@@ -7,6 +7,27 @@
 
 load('hardcode.js');
 
+function dump_object(obj, indent) {
+  if (obj == null) return 'null';
+  if (typeof(obj) == 'string') return "'" + obj + "'";
+  if (typeof(obj) != 'object') return obj;
+  if (obj.constructor.toString().match(/array/i)) {
+    return '[' + obj + ']';
+  }
+
+  var prefix = '';
+  for (var i = 0; i < indent; i++) prefix += ' ';
+
+  var s = '';
+  for (var k in obj) {
+    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
+  }
+  return s;
+}
+function dump_inpinfo(inpinfo) {
+  return dump_object(inpinfo, 2);
+}
+
 // init for IME, ex. Zhuyin, Array
 GenInp = function(name, conf) {
   this.name = name;
@@ -94,9 +115,11 @@ GenInp.prototype.new_instance = function(inpinfo) {
   }
   function match_keystroke_wild(inpinfo) {
     // TODO
+    trace('NotImplemented');
     return match_keystroke_normal(inpinfo);
   }
   function match_keystroke_normal(inpinfo) {
+    trace('');
     // TODO
     var result = ime.table[self.keystroke];
     if (!result)
@@ -104,7 +127,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
     var mcch = [];
     for (var i = 0; i < result.length; i++) {
-      inpinfo.mcch.push(result[i]);
+      mcch.push(result[i]);
     }
     inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
 
@@ -115,8 +138,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
       self.mcch_list = mcch;
       self.mcch_hidx = 0;
     }
+    return 1;
   }
   function match_keystroke(inpinfo) {
+    trace('');
     inpinfo.mcch = [];
     var ret;
     if (!self.mode.INPINFO_MODE_INWILD)
@@ -129,10 +154,11 @@ GenInp.prototype.new_instance = function(inpinfo) {
   }
   function commit_char(inpinfo, cch) {
     // TODO
-    inpinfo.cch += cch;
+    inpinfo.cch = cch;
     if (!self.keystroke.match(/[*?]/)) {
-      // ...
+      inpinfo.suggest_skeystroke += inpinfo.keystroke;
     } else {
+      trace('NotImplemented');
       // ...
     }
     inpinfo.keystroke = '';
@@ -145,6 +171,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
   }
   function commit_keystroke(inpinfo) {
     if (self.kremap) {
+      trace('');
       if (self.kremap[self.keystroke]) {
         commit_char(inpinfo, self.kremap[self.keystroke]);
         return constant.IMKEY_COMMIT;
@@ -152,21 +179,44 @@ GenInp.prototype.new_instance = function(inpinfo) {
     }
 
     if (match_keystroke(inpinfo)) {
+      trace('');
       // not undetstand yet
-      if (self.mcch.length == 1) {
+      if (inpinfo.mcch.length == 1) {
         commit_char(inpinfo, inpinfo.mcch);
         return constant.IMKEY_COMMIT;
       } else {
-        self.mode.INPINFO_MODE_MCCH = false;
+        self.mode.INPINFO_MODE_MCCH = true;
         return return_correct();
       }
     } else {
+      trace('');
       if (self.conf.mode.INP_MODE_AUTORESET)
         reset_keystroke(inpinfo);
       else
         self.mode.INPINFO_MODE_WRONG = true;
       return return_wrong();
     }
+  }
+
+  function mcch_choosech(inpinfo, idx) {
+    if (!inpinfo.mcch && !match_keystroke(inpinfo)) {
+      return 0;
+    }
+
+    if (idx < 0) {
+      idx = 0;
+    } else {
+      if (self.conf.mode.INP_MODE_SELKEYSHIFT) {
+        idx++;
+      }
+      if (idx >= inpinfo.selkey.length &&
+          idx >= inpinfo.mcch.length) {
+        return 0;
+      }
+    }
+
+    commit_char(inpinfo, inpinfo.mcch[idx]);
+    reset_keystroke(inpinfo);
   }
 
   self.onKeystroke = function(inpinfo, keyinfo) {
@@ -176,7 +226,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     var len = inpinfo.keystroke.length;
     var max_len = ime.header.max_keystroke;
 
-    debug('key: ' + keyinfo.key);
+    trace('key: ' + keyinfo.key);
     if (self.mode.INPINFO_MODE_SPACE) {
       var sp_ignore = true;
       self.mode.INPINFO_MODE_SPACE = false;
@@ -202,11 +252,13 @@ GenInp.prototype.new_instance = function(inpinfo) {
       return constant.IMKEY_ABSORB;
     } else if (keyinfo.key == 'Esc' && len) {
       // ...
+      trace('NotImplemented');
     } else if (keyinfo.key == 'Space') {
       inpinfo.cch_publish = '';
       if (conf.mode.INP_MODE_SPACEAUTOUP &&
           (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
           (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != constant.MCCH_ONEPG)) {
+        trace('');
         if (mcch_choosech(inpinfo, -1)) {
           return constant.IMKEY_COMMIT;
         } else {
@@ -218,21 +270,29 @@ GenInp.prototype.new_instance = function(inpinfo) {
           return return_wrong();
         }
       } else if (self.mode.INPINFO_MODE_MCCH) {
+        trace('');
         // TODO INP_MODE_TABNEXTPAGE
         return mcch_nextpage(inpinfo, ' ');
       } else if (conf.mode.INP_MODE_SPACERESET && inp_wrong) {
+        trace('');
         reset_keystroke(inpinfo);
         return constant.IMKEY_ABSORB;
       } else if (sp_ignore) {
+        trace('');
         return constant.IMKEY_ABSORB;
       } else if (inpinfo.keystroke) {
+        trace('');
         return commit_keystroke(inpinfo);
       }
     } else if (keyinfo.key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
+      trace('');
       // ...
+      trace('NotImplemented');
     } else if (0 /* keypad */) {
+      trace('');
       return constant.IMKEY_IGNORE;
     } else if (keyinfo.key.length == 1) {
+      trace('');
       var ret = constant.IMKEY_ABSORB;
       var endkey_pressed = false;
 
@@ -242,7 +302,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (ime.header.endkey.indexOf(self.keystroke[self.keystroke.length-1]) >=0 ) {
         endkey_pressed = true;
       }
-      debug('here');
+      trace('');
 
       if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
         if (len == 1 && conf.disable_sel_list &&
@@ -265,6 +325,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
           return return_wrong();
         }
       }
+      trace('');
 
       len = inpinfo.keystroke.length;
 
@@ -280,6 +341,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
         inpinfo.keystroke += keyinfo.key;
       }
       len++;
+      trace('');
 
       if (conf.mode.INP_MODE_SPACEIGNOR && len == max_len) {
         self.mode.INPINFO_MODE_SPACE = false;
@@ -303,31 +365,37 @@ GenInp.prototype.new_instance = function(inpinfo) {
   return self;
 }
 
+function simulate(inst, inpinfo, input) {
+  for (var i in input) {
+    var keyinfo = {'key': input[i]};
+    var ret = inst.onKeystroke(inpinfo, keyinfo);
+    print('ret = ' + ret);
+    print(dump_inpinfo(inpinfo));
+    print('');
+  }
+}
+
 function main() {
   load('constant.js');
   var liu = new GenInp('liu', liu_conf);
   var inpinfo = {};
-  var inst = liu.new_instance(inpinfo);
+  var liu_inst = liu.new_instance(inpinfo);
 
-  var keyinfo = {'key':'a'};
-  var ret = inst.onKeystroke(inpinfo, keyinfo);
-  print('ret = ' + ret);
-  var keyinfo = {'key':'Space'};
-  var ret = inst.onKeystroke(inpinfo, keyinfo);
-  print('ret = ' + ret);
+  simulate(liu_inst, inpinfo, ['a', 'Space']);
+  simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
 }
 
 if (typeof(console) == typeof(undefined)) {
-  debug = function(s) {
+  trace = function(s) {
     var e = new Error();
-    var m = e.stack.toString().match(/^.*\n.*\n.*\((.*):(\d+):\d+\)/);
-    var prefix = m[1] + ':' + m[2] + ': ';
+    var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
+    var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
     var msg = prefix + s;
     print(msg);
   }
   main();
 } else {
-  debug = function(s) {
+  trace = function(s) {
     console.log(s);
   }
 }
