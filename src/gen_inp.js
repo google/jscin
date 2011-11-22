@@ -60,7 +60,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
   self.mcch_hidx = 0;
   self.mcch_eidx = 0;
 
-  inpinfo.s_keystroke = '';
+  inpinfo.keystroke = '';
   inpinfo.suggest_skeystroke = '';
 
   if (!this.conf.mode.INP_MODE_SELKEYSHIFT) {
@@ -72,7 +72,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
   inpinfo.keystroke = '';
   inpinfo.mcch = [];
   inpinfo.mcch_pgstate = constant.MCCH_ONEPG;
-  inpinfo.lcch = null;
+  inpinfo.lcch = [];
   inpinfo.cch_publish = '';
 
   // ------------------------------------------
@@ -242,7 +242,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (ime.header.endkey.indexOf(self.keystroke[self.keystroke.length-1]) >=0 ) {
         endkey_pressed = true;
       }
-      debug('key: ' + keyinfo.key);
+      debug('here');
 
       if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
         if (len == 1 && conf.disable_sel_list &&
@@ -319,7 +319,11 @@ function main() {
 
 if (typeof(console) == typeof(undefined)) {
   debug = function(s) {
-    print(s);
+    var e = new Error();
+    var m = e.stack.toString().match(/^.*\n.*\n.*\((.*):(\d+):\d+\)/);
+    var prefix = m[1] + ':' + m[2] + ': ';
+    var msg = prefix + s;
+    print(msg);
   }
   main();
 } else {

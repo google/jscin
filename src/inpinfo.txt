@@ -12,9 +12,9 @@ typedef struct {
 
     //ubyte_t keystroke_len;		/* # chars of keystroke */
     wch_t *s_keystroke;			/* keystroke printed in area 3 */
-keystroke = 'foo';
+keystroke = '5j/';
     wch_t *suggest_skeystroke;		/* keystroke printed in area 3 */
-suggest_skeystroke = 'foo';
+suggest_skeystroke = 'ㄓㄨㄥ';
 
     //ubyte_t n_selkey;			/* # of selection keys */
     wch_t *s_selkey;			/* the displayed select keys */
@@ -23,17 +23,19 @@ selkey = '1234567890';
 
     wch_t *mcch;			/* multi-char list */
     ubyte_t *mcch_grouping;		/* grouping of mcch list */
-mcch = ['中', '文', '中文' ]
+mcch = [ '中', '鐘', '終', '忠', '鍾', '衷', '忪', '盅', '螽', '伀' ]
     byte_t mcch_pgstate;		/* page state of multi-char */
 
     //unsigned short n_lcch;		/* # of composed cch list. */
     wch_t *lcch;			/* composed cch list. */
     unsigned short edit_pos;		/* editing position in lcch list. */
     ubyte_t *lcch_grouping;		/* grouping of lcch list */
-lcch = [ '中', '鐘', '終', '忠', '鍾', '衷', '忪', '盅', '螽', '伀' ]
+// for chewing-like ime only
+lcch = [ '已經', '組好', '的', '句子' ]
 
     wch_t cch_publish;			/* A published cch. */
-cch_publish = '5j/';
+// show lastest char commited
+cch_publish = '中';
     char *cch;				/* the string for commit. */
     //char *mcch_hint;			/* mcch selection hint. */
 cch = '中';
