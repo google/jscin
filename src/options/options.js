@@ -12,6 +12,8 @@ var kTableDataKeyPrefix = "table_data-";
 function init() {
   writeLocalStorage(kTableLoading, {});
   loadTableUrls();
+  document.getElementById("cin_table_file_input").addEventListener(
+      'change', addTableFile, false);
 }
 
 function addTableUrl() {
@@ -69,6 +71,39 @@ function addTableUrl() {
     }
     xhr.open("GET", url, true);
     xhr.send(null);
+  }
+}
+
+function addTableFile(evt) {
+  var files = evt.target.files;
+
+  for (var i = 0, file; file = files[i]; i++) {
+    var reader = new FileReader();
+
+    reader.onload = function(file_data) {
+      return function(e) {
+        // Parse the entry
+        var parsed_data = parseCin(e.target.result);
+        if (parsed_data) {
+          // Update the entry in localStorage
+          var table_files = readLocalStorage(kTableFilesKey, {});
+          table_files[file]["data"] = parsed_data;
+          writeLocalStorage(kTableFilesKey, table_files);
+
+          // Update the UI
+          addTableFileToTable(file);
+          setAddFileStatus("OK", false);
+        } else {
+          // Update the entry in localStorage
+          deleteTableFile(file);
+
+          // Update the UI
+          setAddFileStatus("Could not parse cin file.", true);
+        }
+      };
+    })(file);
+
+    reader.readAsDataURL(file);
   }
 }
 
