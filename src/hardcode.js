@@ -5,47 +5,52 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-function copy_default(src, dst) {
-  for (var key in src) {
-    if (dst[key] == undefined) dst[key] = src;
-  }
-}
-
-default_conf = {
-  'AUTO_COMPOSE': true,
-  'AUTO_UPCHAR': true,
-  'AUTO_FULLUP': false,
-  'SPACE_AUTOUP': false,
-  'SELKEY_SHIFT': false,
-  'SPACE_AUTOUP': false,
-  'SPACE_RESET': true,
-  'AUTO_RESET': false,
-  'WILD_ENABLE': true,
-  'SINMD_IN_LINE1': false,
-  'END_KEY': false,
-  'QPHRASE_MODE': 0,
-  'DISABLE_SEL_LIST': '',
-  'KEYSTROKE_REMAP': 'none',
-  'BEEP_WRONG': true,
-  'BEEP_DUPCHAR': true,
-};
-
-array30_conf = {
+array30_data = {
   'DISABLE_SEL_LIST': 'w',
   'KEYSTROKE_REMAP': {'t':'\u7684'},  // 的
+  'keyname': {
+    'a': '1-',
+    'b': '5v',
+    'c': '3v',
+    'd': '3-',
+    'e': '3^',
+    'f': '4-',
+    'g': '5-',
+    'h': '6-',
+    'i': '8^',
+    'j': '7-',
+    'k': '8-',
+    'l': '9-',
+    'm': '7v',
+    'n': '6v',
+    'o': '9^',
+    'p': '0^',
+    'q': '1^',
+    'r': '4^',
+    's': '2-',
+    't': '5^',
+    'u': '7^',
+    'v': '4v',
+    'w': '2^',
+    'x': '2v',
+    'y': '6^',
+    'z': '1v',
+  },
+  'selkey': '1234567890',
+  'endkey': '',
+  'max_keystroke': 4,
+  'chardef': {
+    'a': '\u4e00\u5230\u807d\u73fe\u653f\u5f04\u5169\u800c\u9762\u8981',
+    'ab': '\u53d4',  // 叔
+  },
 };
-copy_default(default_conf, array30_conf);
 
-liu_conf = {
+liu_data = {
   'AUTO_COMPOSE': true,
   'AUTO_UPCHAR': true,
   'SPACE_AUTOUP': true,
   'SELKEY_SHIFT': true,
   'SPACE_RESET': true,
-};
-copy_default(default_conf, liu_conf);
-
-liu_cin_header = {
   'keyname': {
     'a': 'A',
     'b': 'B',
@@ -77,17 +82,41 @@ liu_cin_header = {
   'selkey': '1234567890',
   'endkey': '',
   'max_keystroke': 4,
-};
-liu_table = {
-  'a': '\u5c0d',  // 對
-  'c': '\u4e03',  // 七
-  'ci': '\u4e2d',  // 中
-  'w': '\u4e94',  // 五
-  'wx': '\u6587',  // 文
-  'l': '\u516d',  // 六
-  'ln': '\u4f86\u8944\u8012',  // 來襄耒
+  'chardef': {
+    'a': '\u5c0d',  // 對
+    'c': '\u4e03',  // 七
+    'ci': '\u4e2d',  // 中
+    'w': '\u4e94',  // 五
+    'wx': '\u6587',  // 文
+    'l': '\u516d',  // 六
+    'ln': '\u4f86\u8944\u8012',  // 來襄耒
+  },
 };
 
+function init_predefined() {
+  var kTableMetadataKey = "table_metadata";
+  var kTableDataKeyPrefix = "table_data-";
+
+  var kPredefineArray30 = 'predefined-array30';
+  var kPredefineLiu = 'predefined-liu';
+  var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
+  table_metadata[kPredefineArray30] = {'ename': 'array30', 'cname': 'Array' };
+  table_metadata[kPredefineLiu] = {'ename': 'liu', 'cname': 'Boshiamy' };
+  jscin.writeLocalStorage(kTableMetadataKey, table_metadata);
+
+  jscin.writeLocalStorage(kTableDataKeyPrefix + kPredefineArray30, array30_data);
+  jscin.writeLocalStorage(kTableDataKeyPrefix + kPredefineLiu, liu_data);
+}
+
+init_predefined();
+
 // register input methods into system.
-jscin.register_input_method('array30', 'GenInp', array30_conf);
-jscin.register_input_method('liu', 'GenInp', liu_conf);
+function register_first() {
+  var kTableMetadataKey = "table_metadata";
+  var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
+  for (var url in table_metadata) {
+    jscin.register_input_method(table_metadata[url].ename, 'GenInp');
+  }
+}
+
+register_first();

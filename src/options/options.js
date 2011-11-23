@@ -5,7 +5,8 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
-var kTableUrlsKey = "table_urls";
+var kTableMetadataKey = "table_metadata";
+var kTableDataKeyPrefix = "table_data-";
 
 function init() {
   loadTableUrls();
@@ -18,14 +19,15 @@ function addTableUrl() {
     return;
   }
 
-  var table_urls = readLocalStorage(kTableUrlsKey, {});
+  var table_metadata = readLocalStorage(kTableMetadataKey, {});
 
-  if (table_urls[url]) {
+  if (table_metadata[url]) {
     setAddUrlStatus("URL already exists", true);
   } else {
+    // kcwu: don't write unless load sucessful
     // Write a placeholder value.
-    table_urls[url] = {};
-    writeLocalStorage(kTableUrlsKey, table_urls);
+    //table_metadata[url] = {};
+    //writeLocalStorage(kTableMetadataKey, table_metadata);
 
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -35,9 +37,12 @@ function addTableUrl() {
           var parsed_data = parseCin(this.responseText);
           if (parsed_data) {
             // Update the entry in localStorage
-            var table_urls = readLocalStorage(kTableUrlsKey, {});
-            table_urls[url]["data"] = parsed_data;
-            writeLocalStorage(kTableUrlsKey, table_urls);
+            var table_metadata = readLocalStorage(kTableMetadataKey, {});
+
+            table_metadata[url] = parsed_data.metadata;
+            writeLocalStorage(kTableMetadataKey, table_metadata);
+            writeLocalStorage(kTableDataKeyPrefix + url,
+                              parsed_data.data);
 
             // Update the UI
             addTableUrlToTable(url);
@@ -65,9 +70,10 @@ function addTableUrl() {
 }
 
 function deleteTableUrl(url) {
-  var table_urls = readLocalStorage(kTableUrlsKey);
-  delete table_urls[url];
-  writeLocalStorage(kTableUrlsKey, table_urls);
+  var table_metadata = readLocalStorage(kTableMetadataKey);
+  delete table_metadata[url];
+  deleteLocalStorage(kTableDataKeyPrefix + url);
+  writeLocalStorage(kTableMetadataKey, table_metadata);
 }
 
 function setAddUrlStatus(status, error) {
@@ -98,9 +104,9 @@ function addTableUrlToTable(url) {
 }
 
 function loadTableUrls() {
-  var table_urls = readLocalStorage(kTableUrlsKey);
-  if (table_urls) {
-    for (table_url in table_urls) {
+  var table_metadata = readLocalStorage(kTableMetadataKey);
+  if (table_metadata) {
+    for (table_url in table_metadata) {
       addTableUrlToTable(table_url);
     }
   }
@@ -116,4 +122,8 @@ function readLocalStorage(key, default_value) {
 
 function writeLocalStorage(key, data) {
   localStorage[key] = JSON.stringify(data);
+}
+
+function deleteLocalStorage(key) {
+  delete localStorage[key];
 }

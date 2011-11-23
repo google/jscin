@@ -5,9 +5,51 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
+// TODO(kcwu): better way to load conf and table
+function find_ime_data(name) {
+  var kTableMetadataKey = "table_metadata";
+  var kTableDataKeyPrefix = "table_data-";
+  var metadata = jscin.readLocalStorage(kTableMetadataKey);
+  if (metadata) {
+    for (table_url in metadata) {
+      if (metadata[table_url].ename == name) {
+        trace('Using table from ' + table_url);
+        var data = jscin.readLocalStorage(kTableDataKeyPrefix + table_url);
+        return data;
+      }
+    }
+  }
+  return null;
+}
+
 // init for IME, ex. Zhuyin, Array
-GenInp = function(name, conf) {
+GenInp = function(name) {
   this.name = name;
+
+  var conf = find_ime_data(name);
+  if (!conf) {
+    trace('failed to load data');
+    return;
+  }
+
+  var default_conf = {
+    'AUTO_COMPOSE': true,
+    'AUTO_UPCHAR': true,
+    'AUTO_FULLUP': false,
+    'SPACE_AUTOUP': false,
+    'SELKEY_SHIFT': false,
+    'SPACE_AUTOUP': false,
+    'SPACE_RESET': true,
+    'AUTO_RESET': false,
+    'WILD_ENABLE': true,
+    'SINMD_IN_LINE1': false,
+    'END_KEY': false,
+    'QPHRASE_MODE': 0,
+    'DISABLE_SEL_LIST': '',
+    'KEYSTROKE_REMAP': 'none',
+    'BEEP_WRONG': true,
+    'BEEP_DUPCHAR': true,
+  };
 
   var conf_mapping = {
     'AUTO_COMPOSE': 'INP_MODE_AUTOCOMPOSE',
@@ -21,23 +63,25 @@ GenInp = function(name, conf) {
     'WILD_ENABLE': 'INP_MODE_WILDON',
     'BEEP_WRONG': 'INP_MODE_BEEPWRONG',
     'BEEP_DUPCHAR': 'INP_MODE_BEEPDUP',
-    //'QPHRASE_MODE': 'modesc',
-    //'DISABLE_SEL_LIST': 'disable_sel_list',
-    //'KEYSTROKE_REMAP': 'kremap',
     'END_KEY': 'INP_MODE_ENDKEY',
   };
   this.conf = { 'mode': {} };
   for (var k in conf_mapping) {
-    this.conf.mode[conf_mapping[k]] = conf[k];
+    if (conf[k] == undefined) {
+      this.conf.mode[conf_mapping[k]] = default_conf[k];
+    } else {
+      this.conf.mode[conf_mapping[k]] = conf[k];
+    }
   }
   this.conf.modesc = conf.QPHRASE_MODE;
   this.conf.disable_sel_list = conf.DISABLE_SEL_LIST;
   this.conf.kremap = conf.KEYSTROKE_REMAP;
 
   // load table
-  // TODO(kcwu): create a Cin class.
-  this.header = liu_cin_header;
-  this.table = liu_table;
+  // TODO(kcwu) dirty hack now
+  this.header = conf;
+  this.table = conf.chardef;
+  this.header.max_keystroke = parseInt(this.header.max_keystroke);
 
   if (this.header.endkey) {
     this.conf.mode.INP_MODE_ENDKEY = true;
@@ -167,7 +211,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       trace('');
       // not undetstand yet
       if (inpinfo.mcch.length == 1) {
-        commit_char(inpinfo, inpinfo.mcch);
+        commit_char(inpinfo, inpinfo.mcch[0]);
         return jscin.IMKEY_COMMIT;
       } else {
         self.mode.INPINFO_MODE_MCCH = true;
@@ -502,21 +546,21 @@ function main() {
   if (try_with_jscin) {
     liu_inst = jscin.create_input_method('liu', inpinfo);
   } else {
-    var liu = new GenInp('liu', liu_conf);
+    var liu = new GenInp('liu');
     liu_inst = liu.new_instance(inpinfo);
   }
 
-  simulate(liu_inst, inpinfo, ['a', ' ']);
-  simulate(liu_inst, inpinfo, ['l', 'n', ' ']);
-  simulate(liu_inst, inpinfo, ['l', 'n', '1']);
+  //simulate(liu_inst, inpinfo, ['a', ' ']);
+  //simulate(liu_inst, inpinfo, ['l', 'n', ' ']);
+  //simulate(liu_inst, inpinfo, ['l', 'n', '1']);
 }
 
 // Entry stub
 if (typeof(console) == typeof(undefined)) {
+  trace = console_trace;
   load('jscin.js');
   jscin.register_module('GenInp', GenInp);
   load('hardcode.js');
-  trace = console_trace;
   main();
 } else {
   // jscin must be already loaded.

@@ -42,6 +42,11 @@
 %ename array30
 %cname 行列30
 %selkey 1234567890
+%max_keystroke 4
+%DISABLE_SEL_LIST w
+%KEYSTROKE_REMAP begin
+t 的
+%KEYSTROKE_REMAP end
 %keyname begin
 a 1-
 b 5v

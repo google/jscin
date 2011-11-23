@@ -67,3 +67,21 @@ jscin.create_input_method = function(name, context) {
   }
   return jscin.input_methods[name].new_instance(context);
 }
+
+jscin.readLocalStorage = function (key, default_value) {
+  if (typeof(localStorage) == typeof(undefined)) {
+    localStorage = {};
+  }
+  var data = localStorage[key];
+  if (!data) {
+    return default_value;
+  }
+  return JSON.parse(data);
+}
+
+jscin.writeLocalStorage = function (key, data) {
+  if (typeof(localStorage) == typeof(undefined)) {
+    localStorage = {};
+  }
+  localStorage[key] = JSON.stringify(data);
+}
