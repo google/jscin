@@ -1,5 +1,10 @@
 <html>
-  <head><title>Chrome OS CIN Options</title></head>
+  <head>
+    <title>Chrome OS CIN Options</title>
+    <link rel="stylesheet" href="options.css" type="text/css"/>
+    <script type="text/javascript" src="options.js"></script>
+    <script type="text/javascript" src="cin_parser.js"></script>
+  </head>
   <body onload="init()">
     Table URLs
     <table id="cin_table_url_table">
@@ -15,7 +20,5 @@
     <input type=text id="cin_table_url_input"></input>
     <button onclick="addTableUrl()">Add URL</button>
     <span id="add_url_status"></span>
-    <script type="text/javascript" src="options.js"></script>
-    <script type="text/javascript" src="cin_parser.js"></script>
   </body>
 </html>

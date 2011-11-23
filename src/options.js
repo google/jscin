@@ -69,6 +69,11 @@ function deleteTableUrl(url) {
 function setAddUrlStatus(status, error) {
   var status_field = document.getElementById("add_url_status");
   status_field.innerHTML = status;
+  if (error) {
+    status_field.className = "status_error";
+  } else {
+    status_field.className = "status_ok";
+  }
 }
 
 function addTableUrlToTable(url) {
