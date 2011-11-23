@@ -19,8 +19,8 @@ croscin.IME = function() {
   var self = this;
 
   // TODO(hungte) support multiple im's
-  self.inp_info = {}
-  self.im = jscin.create_input_method(jscin.default_im, self.inp_info);
+  self.imctx = {};
+  self.im = jscin.create_input_method(jscin.default_im, self.imctx);
 
   self.context = null;
   self.registerEventHandlers();
@@ -38,20 +38,81 @@ croscin.IME = function() {
 
   // Core functions
   self.Commit = function(text) {
-    var arg = self.GetBaseArg();
-    arg.text = text;
-    self.ime_api.commitText(arg);
+    if (text) {
+      var arg = self.GetBaseArg();
+      arg.text = text;
+      self.ime_api.commitText(arg);
+      self.log("croscin.Commit: value: " + text);
+    } else {
+      self.log("croscin.Commmit: warning: called with empty string.");
+    }
   }
 
-  self.UpdateComposition = function(text) {
-  }
-
-  self.UpdateCandidates = function(text) {
+  self.SetCanditesWindowProperty = function(name, value) {
+    self.log("croscin.SetCanditesWindowProperty: set " + name + ": " + value);
+    var prop = {};
+    var arg = { engineID: self.context.engineID,
+                properties: prop };
+    prop[name] = value;
+    self.ime_api.setCandidateWindowProperties(arg);
   }
 
   self.InitalizeUI = function() {
+    // Vertical candidates window looks better on ChromeOS.
+    self.SetCanditesWindowProperty('vertical', true);
+    self.SetCanditesWindowProperty('cursorVisible', true);
   }
 
+  self.UpdateComposition = function(text) {
+    var arg = self.GetBaseArg();
+    self.log("croscin.UpdateComposition: " + text);
+    if (text.length > 0) {
+      arg.text = text;
+      // Select everything in composition.
+      arg.selectionStart = 0;
+      arg.selectionEnd = text.length;
+      arg.cursor = text.length;
+      self.ime_api.setComposition(arg);
+    } else {
+      self.ime_api.clearComposition(arg);
+    }
+  }
+
+  self.UpdateCandidates = function(candidate_list) {
+    self.log("croscin.UpdateComposition: elements = " + candidate_list.length);
+    // TODO(hungte) set more properties:
+    //  auxiliaryText, auxiliaryTextVisible.
+    if (candidate_list.length > 0) {
+      var arg = self.GetBaseArg();
+      var candidates = Array(candidate_list.length);
+      for (var i = 0; i < candidates.length; i++) {
+        // TODO(hungte) fix label, annotation
+        candidates[i] = {
+          'candidate': candidate_list[i];
+          'id': i,
+        }
+      }
+      arg.candidates = candidates;
+      self.ime_api.setCandidates(arg);
+      self.SetCanditesWindowProperty('pageSize', candidate_list.length);
+      self.SetCanditesWindowProperty('visible', true);
+    } else {
+      self.SetCanditesWindowProperty('visible', false);
+    }
+  }
+
+  self.UpdateUI = function() {
+    var info = self.inpinfo;
+    // process:
+    //  - keystroke
+    //  - suggest_skeystroke
+    self.UpdateComposition(info.suggest_skeystroke);
+    //  - selkey
+    //  - mcch
+    self.UpdateCandidates(mcch);
+    //  - lcch
+    //  - cch_publish
+  }
 };
 
 /**
@@ -84,6 +145,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onActivate.addListener(function(engineID) {
     self.engineID = engineID;
+    self.UpdateUI();
   });
 
   ime_api.onDeactivated.addListener(function(engineID) {
@@ -117,7 +179,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
     var ret = self.im.onKeystroke(self.inpinfo, keyData);
     switch (ret) {
       case constant.IMKEY_COMMIT:
-        self.Commit();
+        self.Commit(inpinfo.cch);
         self.UpdateUI();
         return true;
 
