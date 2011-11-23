@@ -10,6 +10,8 @@
  */
 
 var jscin = {
+  'ENGINE_ID': "cros_cin",
+
   'IMKEY_ABSORB': 0x0,
   'IMKEY_COMMIT': 0x1,
   'IMKEY_IGNORE': 0x2,
@@ -19,6 +21,8 @@ var jscin = {
   'MCCH_MIDDLE': 2,
   'MCCH_END': 3,
 };
+
+var ime_api = chrome.experimental.input.ime;
 
 // Utilities
 
