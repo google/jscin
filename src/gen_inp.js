@@ -82,6 +82,8 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return jscin.IMKEY_ABSORB;
   }
   function reset_keystroke(inpinfo) {
+    trace('');
+    self.keystroke = '';
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     self.keystroke = '';
@@ -99,9 +101,11 @@ GenInp.prototype.new_instance = function(inpinfo) {
     trace('');
     // TODO
     var result = ime.table[self.keystroke];
+    trace('result = ' + self.keystroke);
     if (!result)
       return 0;
 
+    trace('');
     var mcch = [];
     for (var i = 0; i < result.length; i++) {
       mcch.push(result[i]);
@@ -109,6 +113,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
 
     if (inpinfo.mcch.length <= inpinfo.selkey.length) {
+      trace('');
       inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
     } else {
       inpinfo.mcch_pgstate = jscin.MCCH_BEGIN;
@@ -130,14 +135,16 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return ret;
   }
   function commit_char(inpinfo, cch) {
+    trace('');
     // TODO
     inpinfo.cch = cch;
     if (!self.keystroke.match(/[*?]/)) {
-      inpinfo.suggest_skeystroke += inpinfo.keystroke;
+      inpinfo.suggest_skeystroke = inpinfo.keystroke;
     } else {
       trace('NotImplemented');
       // ...
     }
+    self.keystroke = '';
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     inpinfo.cch_publish = ''; // TODO
@@ -147,6 +154,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     self.mode.INPINFO_MODE_INWILD = false;
   }
   function commit_keystroke(inpinfo) {
+    trace('');
     if (self.kremap) {
       trace('');
       if (self.kremap[self.keystroke]) {
@@ -194,6 +202,100 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
     commit_char(inpinfo, inpinfo.mcch[idx]);
     reset_keystroke(inpinfo);
+  }
+
+  function fillpage(inpinfo, dir) {
+    var n_pg = inpinfo.selkey.length;
+
+    if (!self.mode.INPINFO_MODE_INWILD) {
+      switch (dir) {
+        case 0:
+          self.mcch_hidx = 0;
+          break;
+        case 1:
+          if (self.mcch_hidx + n_pg < self.mcch_list.length)
+            self.mcch_hidx += n_pg;
+          else
+            return 0;
+          break;
+        case -1:
+          if (self.mcch_hidx - n_pg >= 0)
+            self.mcch_hidx -= n_pg;
+          else
+            return 0;
+          break;
+      }
+      inpinfo.mcch = self.mcch_list.slice(self.mcch_hidx, self.mcch_hidx+n_pg);
+
+      if (self.mcch_hidx == 0)
+        self.mcch_pgstate = self.mcch_hidx + n_pg < self.mcch_list.length ?
+            jscin.MCCH_BEGIN : jscin.MCCH_ONEPG;
+      else if (self.mcch_hidx + n_pg < self.mcch_list.length)
+        self.mcch_pgstate = jscin.MCCH_MIDDLE;
+      else
+        self.mcch_pgstate = jscin.MCCH_END;
+    } else {
+      // wild mode
+      trace('NotImplemented');
+    }
+    return 1;
+  }
+  function mcch_nextpage(inpinfo, key) {
+    var ret = 0;
+    switch (inpinfo.mcch_pgstate) {
+      case jscin.MCCH_ONEPG:
+        switch (key) {
+          case ' ':
+            if (self.conf.mode.INP_MODE_AUTOUPCHAR)
+              ret = mcch_choosech(inpinfo, -1) ?
+                  jscin.IMKEY_COMMIT : return_wrong();
+            else
+              ret = return_correct();
+            break;
+          case '<':
+          case '>':
+            ret = return_correct();
+            break;
+          default:
+            ret = return_wrong();
+            break;
+        }
+        break;
+
+      case jscin.MCCH_END:
+        switch (key) {
+          case ' ':
+          case '>':
+            ret = fillpage(inpinfo, 0) ?
+                jscin.IMKEY_ABSORB : return_wrong();
+            break;
+          case '<':
+            ret = fillpage(inpinfo, -1) ?
+                jscin.IMKEY_ABSORB : return_wrong();
+            break;
+          default:
+            ret = return_wrong();
+            break;
+        }
+        break;
+
+      case jscin.MCCH_BEGIN:
+        switch (key) {
+          case ' ':
+          case '>':
+            ret = fillpage(inpinfo, 1) ?
+                jscin.IMKEY_ABSORB : return_wrong();
+            break;
+          case '<':
+            ret = return_correct();
+            break;
+          default:
+            ret = return_wrong();
+            break;
+        }
+        break;
+    }
+    return ret;
   }
 
   self.onKeystroke = function(inpinfo, keyinfo) {
@@ -248,7 +350,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
         }
       } else if (self.mode.INPINFO_MODE_MCCH) {
         trace('');
-        // TODO INP_MODE_TABNEXTPAGE
+        // TODO INP_MODE_TABNEXTPAGE ?
         return mcch_nextpage(inpinfo, ' ');
       } else if (conf.mode.INP_MODE_SPACERESET && inp_wrong) {
         trace('');
@@ -284,7 +386,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
         if (len == 1 && conf.disable_sel_list &&
             conf.disable_sel_list.indexOf(self.keystroke[self.keystroke.length-1])) {
-          wch = '?';
+          wch = keyinfo.key;
         } else {
           return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
         }
@@ -307,15 +409,21 @@ GenInp.prototype.new_instance = function(inpinfo) {
       len = inpinfo.keystroke.length;
 
       // TODO keystate
-      if (len >= max_len) {
+      if (0 /* ShiftMask */) {
+      } else if (0 /* ControlMask */) {
+      } else if (0 /* Mod1Mask */) {
+      } else if (!wch) {
+        return ret | jscin.IMKEY_IGNORE;
+      } else if (len >= max_len) {
         return return_wrong();
       }
 
       self.keystroke += keyinfo.key;
-      if (keyinfo.key.match(/[*?]/)) {
-        inpinfo.keystroke += ' '; // ?
-      } else {
+
+      if (keyinfo.key.match(/^[*?]$/)) {
         inpinfo.keystroke += keyinfo.key;
+      } else {
+        inpinfo.keystroke += wch;
       }
       len++;
       trace('');
@@ -337,6 +445,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return jscin.IMKEY_IGNORE;
   }
   self.show_keystroke = function(conf, simdinfo) {
+    trace('NotImplemented');
     return 0;
   }
   return self;
@@ -383,8 +492,9 @@ function main() {
   var inpinfo = {};
   var liu_inst = liu.new_instance(inpinfo);
 
-  simulate(liu_inst, inpinfo, ['a', 'Space']);
-  simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
+  //simulate(liu_inst, inpinfo, ['a', 'Space']);
+  //simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
+  //simulate(liu_inst, inpinfo, ['l', 'n', '1']);
 }
 
 // Entry stub
