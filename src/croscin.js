@@ -141,7 +141,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   ime_api.setMenuItems({
     "engineID": jscin.ENGINE_ID,
     "items": kMenuItems}
-  )
+  );
 
   ime_api.onActivate.addListener(function(engineID) {
     self.engineID = engineID;
