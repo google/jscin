@@ -243,7 +243,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
     if (name == self.kOptionsPage) {
-      var options_url = chrome.extension.getURL("options.html");
+      var options_url = chrome.extension.getURL("options/options.html");
       chrome.tabs.create({"url": options_url});
     }
   });
