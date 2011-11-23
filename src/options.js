@@ -27,19 +27,27 @@ function addTableUrl() {
     xhr.onreadystatechange = function () {
       if (this.readyState == 4) {
         if (this.status == 200) {
-          // Update the entry in localStorage
-          var table_urls = readLocalStorage(kTableUrlsKey, {});
-          table_urls[url]["data"] = this.responseText;
-          writeLocalStorage(kTableUrlsKey, table_urls);
+          // Parse the entry
+          var parsed_data = parseCin(this.responseText);
+          if (parsed_data) {
+            // Update the entry in localStorage
+            var table_urls = readLocalStorage(kTableUrlsKey, {});
+            table_urls[url]["data"] = parsed_data;
+            writeLocalStorage(kTableUrlsKey, table_urls);
 
-          // Update the UI
-          addTableUrlToTable(url);
-          setAddUrlStatus("OK", false);
+            // Update the UI
+            addTableUrlToTable(url);
+            setAddUrlStatus("OK", false);
+          } else {
+            // Update the entry in localStorage
+            deleteTableUrl(url);
+
+            // Update the UI
+            setAddUrlStatus("Could not parse cin file.", true);
+          }
         } else {
           // Update the entry in localStorage
-          var table_urls = readLocalStorage(kTableUrlsKey, {});
-          delete table_urls[url];
-          writeLocalStorage(kTableUrlsKey, table_urls);
+          deleteTableUrl(url);
 
           // Update the UI
           setAddUrlStatus("Could not read url.  Server returned " + this.status,
@@ -50,6 +58,12 @@ function addTableUrl() {
     xhr.open("GET", url, true);
     xhr.send(null);
   }
+}
+
+function deleteTableUrl(url) {
+  var table_urls = readLocalStorage(kTableUrlsKey);
+  delete table_urls[url];
+  writeLocalStorage(kTableUrlsKey, table_urls);
 }
 
 function setAddUrlStatus(status, error) {
@@ -68,9 +82,7 @@ function addTableUrlToTable(url) {
   button.type = 'button';
   button.value = 'Remove';
   button.onclick = function () {
-    var table_urls = readLocalStorage(kTableUrlsKey);
-    delete table_urls[url];
-    writeLocalStorage(kTableUrlsKey, table_urls);
+    deleteTableUrl(url);
     table.tBodies[0].deleteRow(row.sectionRowIndex);
   }
   cell.appendChild(button);
