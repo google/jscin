@@ -32,7 +32,7 @@ default_conf = {
 
 array30_conf = {
   'DISABLE_SEL_LIST': 'w',
-  'KEYSTROKE_REMAP': {'t':'我'},
+  'KEYSTROKE_REMAP': {'t':'的'},
 };
 copy_default(default_conf, array30_conf);
 
