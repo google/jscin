@@ -82,8 +82,7 @@ croscin.IME = function() {
       // Select everything in composition.
       arg.selectionStart = 0;
       arg.selectionEnd = text.length;
-      // TODO(hungte) enable this once it's supported
-      // arg.cursor = text.length;
+      arg.cursor = text.length;
       self.ime_api.setComposition(arg);
     } else {
       self.ime_api.clearComposition(arg);
