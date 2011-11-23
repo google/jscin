@@ -50,6 +50,7 @@ croscin.IME = function() {
       text = text[0];
       self.log("croscin.Commit: WARNING: input text is not a simple string.");
     }
+
     if (text) {
       var arg = self.GetBaseArg();
       arg.text = text;
@@ -58,6 +59,51 @@ croscin.IME = function() {
     } else {
       self.log("croscin.Commmit: warning: called with empty string.");
     }
+  }
+
+  self.ProcessKeyEvent = function(keyData) {
+    self.log("ProcessKeyEvent: " + keyData.key);
+
+    // Currently all of the modules uses key down.
+    if (keyData.type != 'keydown') {
+      return false;
+    }
+
+    var ret = self.im.onKeystroke(self.imctx, keyData);
+    self.log(dump_inpinfo(self.imctx));
+
+    switch (ret) {
+      case jscin.IMKEY_COMMIT:
+        self.log("im.onKeystroke: return IMKEY_COMMIT");
+        self.Commit(self.imctx.cch);
+        self.UpdateUI();
+        return true;
+
+      case jscin.IMKEY_ABSORB:
+        self.log("im.onKeystroke: return IMKEY_ABSORB");
+        self.UpdateUI();
+        return true;
+
+      case jscin.IMKEY_IGNORE:
+        self.log("im.onKeystroke: return IMKEY_IGNORE");
+        self.UpdateUI();
+        return false;
+    }
+
+    // default: Unknown return value.
+    self.log("croscin.ProcessKeyEvent: Unknown return value: " + ret);
+    return false;
+  }
+
+  self.SimulateKeyDown = function(key) {
+    var keyEvent = {
+      'type': 'keydown',
+      'key': key,
+      'altKey': false,
+      'ctrlKey': false,
+      'shiftKey': false,
+    };
+    return self.ProcessKeyEvent(keyEvent);
   }
 
   self.SetCanditesWindowProperty = function(name, value) {
@@ -72,7 +118,9 @@ croscin.IME = function() {
   self.InitializeUI = function() {
     // Vertical candidates window looks better on ChromeOS.
     self.SetCanditesWindowProperty('vertical', true);
-    self.SetCanditesWindowProperty('cursorVisible', true);
+    // CIN tables don't expect cursor in candidates window.
+    self.SetCanditesWindowProperty('cursorVisible', false);
+    self.SetCanditesWindowProperty('visible', false);
 
     // Setup menu
     self.UpdateMenu();
@@ -199,39 +247,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onKeyEvent.addListener(function(engine, keyData) {
-    console.log('croscin.js: onKeyEvent: ', keyData);
-
-    // Currently all of the modules uses key down.
-    if (keyData.type != 'keydown') {
-      return false;
-    }
-
-    // TODO re-map key events here.... or not.
-
-    var ret = self.im.onKeystroke(self.imctx, keyData);
-    self.log(dump_inpinfo(self.imctx));
-
-    switch (ret) {
-      case jscin.IMKEY_COMMIT:
-        self.log("im.onKeystroke: return IMKEY_COMMIT");
-        self.Commit(self.imctx.cch);
-        self.UpdateUI();
-        return true;
-
-      case jscin.IMKEY_ABSORB:
-        self.log("im.onKeystroke: return IMKEY_ABSORB");
-        self.UpdateUI();
-        return true;
-
-      case jscin.IMKEY_IGNORE:
-        self.log("im.onKeystroke: return IMKEY_IGNORE");
-        self.UpdateUI();
-        return false;
-    }
-
-    // default: Unknown return value.
-    self.log("Unknown return value: " + ret);
-    return false;
+    return self.ProcessKeyEvent(keyData);
   });
 
   ime_api.onInputContextUpdate.addListener(function(context) {
@@ -239,6 +255,10 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onCandidateClicked.addListener(
       function(engineID, candidateID, button) {
+        self.log("onCandidateClicked: " + candidateID + ", " + button);
+        if (button == "left") {
+          self.SimulateKeyDown(self.imctx.selkey.charAt(candidateID));
+        }
   });
 
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
