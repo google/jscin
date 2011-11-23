@@ -5,10 +5,12 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
+var kTableLoading = "loading";
 var kTableMetadataKey = "table_metadata";
 var kTableDataKeyPrefix = "table_data-";
 
 function init() {
+  writeLocalStorage(kTableLoading, {});
   loadTableUrls();
 }
 
@@ -20,22 +22,25 @@ function addTableUrl() {
   }
 
   var table_metadata = readLocalStorage(kTableMetadataKey, {});
+  var table_loading = readLocalStorage(kTableLoading, {});
 
   if (table_metadata[url]) {
     setAddUrlStatus("URL already exists", true);
+  } else if (table_loading[url]) {
+    setAddUrlStatus("Table is loading", false);
   } else {
-    // kcwu: don't write unless load sucessful
     // Write a placeholder value.
-    //table_metadata[url] = {};
-    //writeLocalStorage(kTableMetadataKey, table_metadata);
+    table_loading[url] = true;
+    writeLocalStorage(kTableLoading, table_loading);
 
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
       if (this.readyState == 4) {
         if (this.status == 200) {
           // Parse the entry
-          var parsed_data = parseCin(this.responseText);
-          if (parsed_data) {
+          var parsed_result = parseCin(this.responseText);
+          if (parsed_result[0]) {
+            var parsed_data = parsed_result[1];
             // Update the entry in localStorage
             var table_metadata = readLocalStorage(kTableMetadataKey, {});
 
@@ -48,20 +53,18 @@ function addTableUrl() {
             addTableUrlToTable(url);
             setAddUrlStatus("OK", false);
           } else {
-            // Update the entry in localStorage
-            deleteTableUrl(url);
-
+            var msg = parsed_result[1];
             // Update the UI
-            setAddUrlStatus("Could not parse cin file.", true);
+            setAddUrlStatus("Could not parse cin file. " + msg, true);
           }
         } else {
-          // Update the entry in localStorage
-          deleteTableUrl(url);
-
           // Update the UI
           setAddUrlStatus("Could not read url.  Server returned " + this.status,
                           true);
         }
+        table_loading = readLocalStorage(kTableLoading, {});
+        delete table_loading[url];
+        writeLocalStorage(kTableLoading, table_loading);
       }
     }
     xhr.open("GET", url, true);
@@ -101,6 +104,18 @@ function addTableUrlToTable(url) {
     table.tBodies[0].deleteRow(row.sectionRowIndex);
   }
   cell.appendChild(button);
+
+  var reload_button = document.createElement('input');
+  reload_button.type = 'button';
+  reload_button.value = 'Reload';
+  reload_button.onclick = function () {
+    // dirty hack
+    document.getElementById("cin_table_url_input").value = url;
+    deleteTableUrl(url);
+    table.tBodies[0].deleteRow(row.sectionRowIndex);
+    addTableUrl();
+  }
+  cell.appendChild(reload_button);
 }
 
 function loadTableUrls() {

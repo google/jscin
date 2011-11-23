@@ -97,7 +97,8 @@ GenInp.prototype.new_instance = function(inpinfo) {
   self.ime = ime;
   self.conf = ime.conf;
   // gen_inp_iccf_t iccf
-  self.keystroke = [];
+  self.keystroke = '';
+  self.display_keystroke = [];
   self.mode = {};
   self.mcch_list = [];
   self.mkey_list = [];
@@ -130,6 +131,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
   function reset_keystroke(inpinfo) {
     trace('');
     self.keystroke = '';
+    self.display_keystroke = [];
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     self.keystroke = '';
@@ -138,18 +140,70 @@ GenInp.prototype.new_instance = function(inpinfo) {
     self.mcch_list = [];
     self.mkey_list = [];
   }
+  function wildcard2re(s) {
+    return s.replace('.', '\\.').replace('?', '.').replace('*', '.*');
+  }
+  function pick_cch_wild(head, dir, keystroke, mcch_size) {
+    var mcch = [];
+    var more = false;
+
+    // Object.keys() is in standard since ECMAScript 5 and is only
+    // implemented in new browsers.
+    var keys = ime.table.keys();
+    if (dir == 1) {
+      for (i=0, idx=head; idx<keys.length && i<=mcch_size; idx++) {
+        if (keys[i].match(pattern)) {
+          if (i < mcch_size) {
+            // FIXME(kcwu) only show first
+            mcch.push(keys[idx][0]);
+            i++;
+          } else {
+            more = true;
+          }
+        }
+      }
+    } else {
+      trace('NotImplemented');
+    }
+
+    return {'more': more, 'mcch': mcch, 'end': idx };
+  }
   function match_keystroke_wild(inpinfo) {
-    // TODO
-    trace('NotImplemented');
+    trace('');
     return match_keystroke_normal(inpinfo);
+
+    // TODO optimize
+    var idx = 0;
+    var pattern = wildcard2re(self.keystroke);
+    trace('pattern = ' + pattern);
+
+    for (var k in ime.table) {
+      if (k.match(pattern)) {
+        break;
+      }
+      idx++;
+    }
+    self.mcch_hidx = idx;
+
+    var result = pick_cch_wild(idx, 1, self.keystroke, self.selkey.length);
+    if (!result.more) {
+      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+    } else {
+      inpinfo.mcch_pgstate = jscin.MCCH_BEGIN;
+    }
+
+    inpinfo.mcch = result.mcch;
+    self.mcch_eidx = result.end;
+    return !!inpinfo.mcch.length;
   }
   function match_keystroke_normal(inpinfo) {
     trace('');
     // TODO
     var result = ime.table[self.keystroke];
     trace('result = ' + self.keystroke);
-    if (!result)
+    if (!result) {
       return 0;
+    }
 
     trace('');
     var mcch = [];
@@ -158,7 +212,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     }
     inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
 
-    if (inpinfo.mcch.length <= inpinfo.selkey.length) {
+    if (mcch.length <= inpinfo.selkey.length) {
       trace('');
       inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
     } else {
@@ -191,6 +245,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       // ...
     }
     self.keystroke = '';
+    self.display_keystroke = [];
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     inpinfo.cch_publish = ''; // TODO
@@ -277,13 +332,17 @@ GenInp.prototype.new_instance = function(inpinfo) {
       }
       inpinfo.mcch = self.mcch_list.slice(self.mcch_hidx, self.mcch_hidx+n_pg);
 
-      if (self.mcch_hidx == 0)
-        self.mcch_pgstate = self.mcch_hidx + n_pg < self.mcch_list.length ?
+      if (self.mcch_hidx == 0) {
+        trace('');
+        inpinfo.mcch_pgstate = self.mcch_hidx + n_pg < self.mcch_list.length ?
             jscin.MCCH_BEGIN : jscin.MCCH_ONEPG;
-      else if (self.mcch_hidx + n_pg < self.mcch_list.length)
-        self.mcch_pgstate = jscin.MCCH_MIDDLE;
-      else
-        self.mcch_pgstate = jscin.MCCH_END;
+      } else if (self.mcch_hidx + n_pg < self.mcch_list.length) {
+        trace('');
+        inpinfo.mcch_pgstate = jscin.MCCH_MIDDLE;
+      } else {
+        trace('');
+        inpinfo.mcch_pgstate = jscin.MCCH_END;
+      }
     } else {
       // wild mode
       trace('NotImplemented');
@@ -291,6 +350,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return 1;
   }
   function mcch_nextpage(inpinfo, key) {
+    trace('');
     var ret = 0;
     switch (inpinfo.mcch_pgstate) {
       case jscin.MCCH_ONEPG:
@@ -352,10 +412,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
     // shortcut
     var conf = self.conf;
 
-    var len = inpinfo.keystroke.length;
+    var len = self.keystroke.length;
     var max_len = ime.header.max_keystroke;
 
-    trace('key: ' + keyinfo.key);
+    trace('keyinfo: ' + JSON.stringify(keyinfo));
     if (self.mode.INPINFO_MODE_SPACE) {
       var sp_ignore = true;
       self.mode.INPINFO_MODE_SPACE = false;
@@ -367,7 +427,8 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
     if ((keyinfo.key == 'Backspace' || keyinfo.key == 'Delete') && len) {
       self.keystroke = self.keystroke.substr(0, len-1);
-      inpinfo.keystroke = inpinfo.keystroke.substr(0, len-1);
+      self.display_keystroke = self.display_keystroke.slice(0, len-1);
+      inpinfo.keystroke = self.display_keystroke.join('');
       inpinfo.mcch = '';
       inpinfo.cch_publish = '';
       inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
@@ -380,8 +441,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
       }
       return jscin.IMKEY_ABSORB;
     } else if (keyinfo.key == 'Esc' && len) {
-      // ...
-      trace('NotImplemented');
+      reset_keystroke(inpinfo);
+      inpinfo.cch_publish = '';
+      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+      return jscin.IMKEY_ABSORB;
     } else if (keyinfo.key == ' ') {
       inpinfo.cch_publish = '';
       if (conf.mode.INP_MODE_SPACEAUTOUP &&
@@ -409,7 +472,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       } else if (sp_ignore) {
         trace('');
         return jscin.IMKEY_ABSORB;
-      } else if (inpinfo.keystroke) {
+      } else if (self.keystroke) {
         trace('');
         return commit_keystroke(inpinfo);
       }
@@ -426,17 +489,16 @@ GenInp.prototype.new_instance = function(inpinfo) {
       var endkey_pressed = false;
 
       inpinfo.cch_publish = '';
-      var wch = ime.header.keyname[keyinfo.key];
-      var selkey_idx = ime.header.selkey.indexOf(keyinfo.key);
+      var wch = ime.header.keyname[keyinfo.key.toUpperCase()];
+      var selkey_idx = ime.header.selkey.indexOf(keyinfo.key.toUpperCase());
       if (ime.header.endkey.indexOf(self.keystroke[self.keystroke.length-1]) >=0 ) {
         endkey_pressed = true;
       }
-      trace('');
 
       if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
         if (len == 1 && conf.disable_sel_list &&
             conf.disable_sel_list.indexOf(self.keystroke[self.keystroke.length-1])) {
-          wch = keyinfo.key;
+          wch = keyinfo.key.toUpperCase();
         } else {
           return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
         }
@@ -454,27 +516,34 @@ GenInp.prototype.new_instance = function(inpinfo) {
           return return_wrong();
         }
       }
-      trace('');
+      trace('wch = ' + wch);
 
-      len = inpinfo.keystroke.length;
+      len = self.keystroke.length;
 
-      // TODO keystate
-      if (0 /* ShiftMask */) {
-      } else if (0 /* ControlMask */) {
-      } else if (0 /* Mod1Mask */) {
+      if (keyinfo.shiftKey) {
+        if (keyinfo.key.match(/^[*?]$/)) {
+          self.mode.INPINFO_MODE_INWILD = true;
+        } else {
+          return ret;  // don't support qphrase
+        }
+      } else if (keyinfo.ctrlKey) {
+        return ret;  // don't support qphrase
+      } else if (keyinfo.altKey) {
+        return ret;  // don't support qphrase
       } else if (!wch) {
         return ret | jscin.IMKEY_IGNORE;
       } else if (len >= max_len) {
         return return_wrong();
       }
 
-      self.keystroke += keyinfo.key;
+      self.keystroke += keyinfo.key.toUpperCase();
 
       if (keyinfo.key.match(/^[*?]$/)) {
-        inpinfo.keystroke += keyinfo.key;
+        self.display_keystroke.push(keyinfo.key);
       } else {
-        inpinfo.keystroke += wch;
+        self.display_keystroke.push(wch);
       }
+      inpinfo.keystroke = self.display_keystroke.join('');
       len++;
       trace('');
 
@@ -482,7 +551,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
         self.mode.INPINFO_MODE_SPACE = false;
       }
       if (conf.mode.INP_MODE_ENDKEY && len>1 &&
-          ime.header.endkey.indexOf(keyinfo.key) >= 0) {
+          ime.header.endkey.indexOf(keyinfo.key.toUpperCase()) >= 0) {
         return commit_keystroke(inpinfo);
       } else if (conf.mode.INP_MODE_AUTOFULLUP && len == max_len) {
         return commit_keystroke(inpinfo);

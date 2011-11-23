@@ -13,7 +13,7 @@ function parseCin(cin_input) {
   var table_command = { 'keyname': 1, 'quick': 1, 'chardef': 1 };
 
   var failed = function(lineno, msg) {
-    return null;
+    return [false, 'line ' + (lineno+1) + ': ' + msg];
   }
 
   for (var lineno in lines) {
@@ -54,9 +54,11 @@ function parseCin(cin_input) {
       if (!cmd) continue;
       m = line.match(/^\s*(\S+)\s+(\S+)/);
       if (m) {
-        if (data[cmd][m[1]] == undefined)
-          data[cmd][m[1]] = '';
-        data[cmd][m[1]] += m[2];
+        var key = m[1];
+        key = key.toUpperCase();
+        if (data[cmd][key] == undefined)
+          data[cmd][key] = '';
+        data[cmd][key] += m[2];
       } else {
         // bad line, just ignore
       }
@@ -83,5 +85,5 @@ function parseCin(cin_input) {
     'data': data,
   };
 
-  return parsed_data;
+  return [true, parsed_data];
 }

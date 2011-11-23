@@ -21,7 +21,9 @@ croscin.IME = function() {
 
   // TODO(hungte) support multiple im's
   self.imctx = {};
-  self.im = jscin.create_input_method(jscin.default_im, self.imctx);
+  //self.im = jscin.create_input_method(jscin.default_im, self.imctx);
+  self.im = jscin.create_input_method('array30', self.imctx);
+  //self.im = jscin.create_input_method('liu57b', self.imctx);
 
   self.engineID = null;
   self.context = null;
