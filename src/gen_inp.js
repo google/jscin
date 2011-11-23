@@ -5,8 +5,6 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-load('hardcode.js');
-
 function dump_object(obj, indent) {
   if (obj == null) return 'null';
   if (typeof(obj) == 'string') return "'" + obj + "'";
@@ -385,7 +383,9 @@ function main() {
   simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
 }
 
+// Entry stub
 if (typeof(console) == typeof(undefined)) {
+  load('hardcode.js');
   trace = function(s) {
     var e = new Error();
     var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
