@@ -1,0 +1,27 @@
+{
+  "name": "ChromeOS CIN",
+  "version": "1.0",
+  "description": "XCIN-compatible Input Method for ChromeOS.",
+  "background_page": "croscin.html",
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "permissions": [
+    "http://*/",
+    "input",
+    "experimental"
+  ],
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "input_components": [
+    {
+      "name": "ChromeOS CIN",
+      "type": "ime",
+      "id": "cros_cin",
+      "description": "ChromeOS Chinese Input Method (xcin compatible)",
+      "language": "zh",  // The primary language this IME is used for
+      "layouts": ["us::eng"]
+    }
+  ]
+}
