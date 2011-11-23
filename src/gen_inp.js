@@ -46,7 +46,7 @@ GenInp = function(name) {
     'END_KEY': false,
     'QPHRASE_MODE': 0,
     'DISABLE_SEL_LIST': '',
-    'KEYSTROKE_REMAP': 'none',
+    'KEYSTROKE_REMAP': {},
     'BEEP_WRONG': true,
     'BEEP_DUPCHAR': true,
   };
@@ -73,9 +73,13 @@ GenInp = function(name) {
       this.conf.mode[conf_mapping[k]] = conf[k];
     }
   }
-  this.conf.modesc = conf.QPHRASE_MODE;
+  this.conf.modesc = conf.QPHRASE_MODE;  // not support
   this.conf.disable_sel_list = conf.DISABLE_SEL_LIST;
+  if (this.conf.disable_sel_list) {
+    this.conf.disable_sel_list = this.conf.disable_sel_list.toUpperCase();
+  }
   this.conf.kremap = conf.KEYSTROKE_REMAP;
+  trace(conf.KEYSTROKE_REMAP);
 
   // load table
   // TODO(kcwu) dirty hack now
@@ -256,10 +260,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
   }
   function commit_keystroke(inpinfo) {
     trace('');
-    if (self.kremap) {
+    if (self.conf.kremap) {
       trace('');
-      if (self.kremap[self.keystroke]) {
-        commit_char(inpinfo, self.kremap[self.keystroke]);
+      if (self.conf.kremap[self.keystroke]) {
+        commit_char(inpinfo, self.conf.kremap[self.keystroke]);
         return jscin.IMKEY_COMMIT;
       }
     }
@@ -497,7 +501,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
       if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
         if (len == 1 && conf.disable_sel_list &&
-            conf.disable_sel_list.indexOf(self.keystroke[self.keystroke.length-1])) {
+            conf.disable_sel_list.indexOf(self.keystroke[self.keystroke.length-1]) >= 0) {
           wch = keyinfo.key.toUpperCase();
         } else {
           return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
@@ -521,7 +525,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       len = self.keystroke.length;
 
       if (keyinfo.shiftKey) {
-        if (keyinfo.key.match(/^[*?]$/)) {
+        if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {
           self.mode.INPINFO_MODE_INWILD = true;
         } else {
           return ret;  // don't support qphrase

@@ -158,8 +158,9 @@ croscin.IME = function() {
           'id': i,
           'label': labels.charAt(i),
         }
-        self.log(candidates[i]);
       }
+      self.log('candidates:');
+      self.log(candidates);
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
       self.SetCanditesWindowProperty('pageSize', candidate_list.length);
