@@ -44,6 +44,11 @@ croscin.IME = function() {
 
   // Core functions
   self.Commit = function(text) {
+    // TODO(hungte) fixme when gen_inp has fixed this.
+    if (typeof(text) != typeof('')) {
+      text = text[0];
+      self.log("croscin.Commit: WARNING: input text is not a simple string.");
+    }
     if (text) {
       var arg = self.GetBaseArg();
       arg.text = text;
