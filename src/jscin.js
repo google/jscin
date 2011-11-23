@@ -23,11 +23,13 @@ var jscin = {
 
   modules: {},
   input_methods: {},
+
+  default_im = '',
 };
 
-var ime_api = chrome.experimental.input.ime;
-
-// Utilities
+/**
+ * Utilities
+ */
 
 // Logging / tracing utility.
 jscin.log = function(s) {
@@ -53,6 +55,8 @@ jscin.register_input_method = function(name, module_name, config) {
   jscin.input_methods[name] = (
       new jscin.modules[module_name](name, config));
   jscin.log("jscin: Registered Input Method: " + name);
+  if (!jscin.default_im)
+    jscin.default_im = name;
 }
 
 // Create input method instance
