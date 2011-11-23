@@ -486,28 +486,40 @@ function simulate(inst, inpinfo, input) {
   }
 }
 
-function main() {
-  load('jscin.js');
-  var liu = new GenInp('liu', liu_conf);
-  var inpinfo = {};
-  var liu_inst = liu.new_instance(inpinfo);
+function console_trace(s) {
+  var e = new Error();
+  var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
+  var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
+  var msg = prefix + s;
+  print(msg);
+}
 
-  //simulate(liu_inst, inpinfo, ['a', 'Space']);
-  //simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
-  //simulate(liu_inst, inpinfo, ['l', 'n', '1']);
+function main() {
+  var inpinfo = {};
+  var try_with_jscin = false;
+  var liu_inst = null;
+
+  if (try_with_jscin) {
+    liu_inst = jscin.create_input_method('liu', inpinfo);
+  } else {
+    var liu = new GenInp('liu', liu_conf);
+    liu_inst = liu.new_instance(inpinfo);
+  }
+
+  simulate(liu_inst, inpinfo, ['a', 'Space']);
+  simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
+  simulate(liu_inst, inpinfo, ['l', 'n', '1']);
 }
 
 // Entry stub
 if (typeof(console) == typeof(undefined)) {
+  load('jscin.js');
+  jscin.register_module('GenInp', GenInp);
   load('hardcode.js');
-  trace = function(s) {
-    var e = new Error();
-    var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
-    var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
-    var msg = prefix + s;
-    print(msg);
-  }
+  trace = console_trace;
   main();
 } else {
+  // jscin must be already loaded.
+  jscin.register_module('GenInp', GenInp);
   trace = jscin.log;
 }

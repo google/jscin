@@ -14,6 +14,8 @@ Platform bindings:
     - manifest.json: ChromeOS extension manifest file.
     - croscin.html: ChromeOS extension main background page.
     - croscin.js: Source for ChromeOS extension bindings.
+    - options.html: Options page for ChromeOS extension
+    - options.js: Options page for ChromeOS extension
 
   Console (for d8 from V8 / jsshell from SpiderMonkey):
     - console.js: run "d8 console.js" for testing without UI.

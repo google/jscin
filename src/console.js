@@ -6,10 +6,9 @@
  */
 
 // Equivelant to croscin.html (extension entry page).
-load('hardcode.js');
-
 load('jscin.js');
 load('gen_inp.js');
+load('hardcode.js');
 
 // TODO(hungte) stub to replace croscin.js, or simply call gen_inp directly.
 // load('croscin.js');

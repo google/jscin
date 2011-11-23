@@ -87,3 +87,7 @@ liu_table = {
   'l': '六',
   'ln': '來襄耒',
 };
+
+// put things into jscin
+jscin.register_input_method('array30', 'GenInp', array30_conf);
+jscin.register_input_method('liu', 'GenInp', liu_conf);
