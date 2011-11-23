@@ -1,30 +1,9 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview Description of this file.
+ * @fileoverview General Input Method Module
  * @author kcwu@google.com (Kuang-che Wu)
  */
-
-function dump_object(obj, indent) {
-  if (obj == null) return 'null';
-  if (typeof(obj) == 'string') return "'" + obj + "'";
-  if (typeof(obj) != 'object') return obj;
-  if (obj.constructor.toString().match(/array/i)) {
-    return '[' + obj + ']';
-  }
-
-  var prefix = '';
-  for (var i = 0; i < indent; i++) prefix += ' ';
-
-  var s = '';
-  for (var k in obj) {
-    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
-  }
-  return s;
-}
-function dump_inpinfo(inpinfo) {
-  return dump_object(inpinfo, 2);
-}
 
 // init for IME, ex. Zhuyin, Array
 GenInp = function(name, conf) {
@@ -90,24 +69,24 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
   inpinfo.keystroke = '';
   inpinfo.mcch = [];
-  inpinfo.mcch_pgstate = constant.MCCH_ONEPG;
+  inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
   inpinfo.lcch = [];
   inpinfo.cch_publish = '';
 
   // ------------------------------------------
   // member functions
   function return_wrong() {
-    return constant.IMKEY_ABSORB;
+    return jscin.IMKEY_ABSORB;
   }
   function return_correct() {
-    return constant.IMKEY_ABSORB;
+    return jscin.IMKEY_ABSORB;
   }
   function reset_keystroke(inpinfo) {
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     self.keystroke = '';
     self.mode = {};
-    inpinfo.mcch_pgstate = constant.MCCH_ONEPG;
+    inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
     self.mcch_list = [];
     self.mkey_list = [];
   }
@@ -130,9 +109,9 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
 
     if (inpinfo.mcch.length <= inpinfo.selkey.length) {
-      inpinfo.mcch_pgstate = constant.MCCH_ONEPG;
+      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
     } else {
-      inpinfo.mcch_pgstate = constant.MCCH_BEGIN;
+      inpinfo.mcch_pgstate = jscin.MCCH_BEGIN;
       self.mcch_list = mcch;
       self.mcch_hidx = 0;
     }
@@ -162,7 +141,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     inpinfo.cch_publish = ''; // TODO
-    inpinfo.mcch_pgstate = constant.MCCH_ONEPG;
+    inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
 
     self.mode.INPINFO_MODE_MCCH = false;
     self.mode.INPINFO_MODE_INWILD = false;
@@ -172,7 +151,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       trace('');
       if (self.kremap[self.keystroke]) {
         commit_char(inpinfo, self.kremap[self.keystroke]);
-        return constant.IMKEY_COMMIT;
+        return jscin.IMKEY_COMMIT;
       }
     }
 
@@ -181,7 +160,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       // not undetstand yet
       if (inpinfo.mcch.length == 1) {
         commit_char(inpinfo, inpinfo.mcch);
-        return constant.IMKEY_COMMIT;
+        return jscin.IMKEY_COMMIT;
       } else {
         self.mode.INPINFO_MODE_MCCH = true;
         return return_correct();
@@ -239,7 +218,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       inpinfo.keystroke = inpinfo.keystroke.substr(0, len-1);
       inpinfo.mcch = '';
       inpinfo.cch_publish = '';
-      inpinfo.mcch_pgstate = constant.MCCH_ONEPG;
+      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
       self.mode = {};
       if (conf.mode.INP_MODE_WILDON && self.keystroke.match(/[*?]/)) {
         self.mode.INPINFO_MODE_INWILD = true;
@@ -247,7 +226,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (len > 1 && conf.mode.INP_MODE_AUTOCOMPOSE) {
         match_keystroke(inpinfo);
       }
-      return constant.IMKEY_ABSORB;
+      return jscin.IMKEY_ABSORB;
     } else if (keyinfo.key == 'Esc' && len) {
       // ...
       trace('NotImplemented');
@@ -255,10 +234,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
       inpinfo.cch_publish = '';
       if (conf.mode.INP_MODE_SPACEAUTOUP &&
           (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
-          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != constant.MCCH_ONEPG)) {
+          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != jscin.MCCH_ONEPG)) {
         trace('');
         if (mcch_choosech(inpinfo, -1)) {
-          return constant.IMKEY_COMMIT;
+          return jscin.IMKEY_COMMIT;
         } else {
           if (conf.mode.INP_MODE_AUTORESET) {
             reset_keystroke(inpinfo);
@@ -274,10 +253,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
       } else if (conf.mode.INP_MODE_SPACERESET && inp_wrong) {
         trace('');
         reset_keystroke(inpinfo);
-        return constant.IMKEY_ABSORB;
+        return jscin.IMKEY_ABSORB;
       } else if (sp_ignore) {
         trace('');
-        return constant.IMKEY_ABSORB;
+        return jscin.IMKEY_ABSORB;
       } else if (inpinfo.keystroke) {
         trace('');
         return commit_keystroke(inpinfo);
@@ -288,10 +267,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
       trace('NotImplemented');
     } else if (0 /* keypad */) {
       trace('');
-      return constant.IMKEY_IGNORE;
+      return jscin.IMKEY_IGNORE;
     } else if (keyinfo.key.length == 1) {
       trace('');
-      var ret = constant.IMKEY_ABSORB;
+      var ret = jscin.IMKEY_ABSORB;
       var endkey_pressed = false;
 
       inpinfo.cch_publish = '';
@@ -307,18 +286,18 @@ GenInp.prototype.new_instance = function(inpinfo) {
             conf.disable_sel_list.indexOf(self.keystroke[self.keystroke.length-1])) {
           wch = '?';
         } else {
-          return mcch_choosech(inpinfo, selkey_idx) ? constant.IMKEY_COMMIT: return_wrong();
+          return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
         }
       } else if (keyinfo.key.match(/[<>]/) &&
                  1 /* GUIMOD_SELKEYSPOT ? */) {
         return mcch_nextpage(inpinfo, keyinfo.key);
       } else if (self.mode.INPINFO_MODE_MCCH) {
         if (selkey_idx != -1) {
-          return mcch_choosech(inpinfo, selkey_idx) ? constant.IMKEY_COMMIT: return_wrong();
+          return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
         } else if (conf.mode.INP_MODE_AUTOUPCHAR) {
           if (!mcch_choosech(inpinfo, -1))
             return return_wrong();
-          ret |= constant.IMKEY_COMMIT;
+          ret |= jscin.IMKEY_COMMIT;
         } else {
           return return_wrong();
         }
@@ -355,12 +334,37 @@ GenInp.prototype.new_instance = function(inpinfo) {
       return ret;
     }
 
-    return constant.IMKEY_IGNORE;
+    return jscin.IMKEY_IGNORE;
   }
   self.show_keystroke = function(conf, simdinfo) {
     return 0;
   }
   return self;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Debugging and unit tests
+
+function dump_object(obj, indent) {
+  if (obj == null) return 'null';
+  if (typeof(obj) == 'string') return "'" + obj + "'";
+  if (typeof(obj) != 'object') return obj;
+  if (obj.constructor.toString().match(/array/i)) {
+    return '[' + obj + ']';
+  }
+
+  var prefix = '';
+  for (var i = 0; i < indent; i++) prefix += ' ';
+
+  var s = '';
+  for (var k in obj) {
+    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
+  }
+  return s;
+}
+
+function dump_inpinfo(inpinfo) {
+  return dump_object(inpinfo, 2);
 }
 
 function simulate(inst, inpinfo, input) {
@@ -374,7 +378,7 @@ function simulate(inst, inpinfo, input) {
 }
 
 function main() {
-  load('constant.js');
+  load('jscin.js');
   var liu = new GenInp('liu', liu_conf);
   var inpinfo = {};
   var liu_inst = liu.new_instance(inpinfo);
@@ -395,7 +399,5 @@ if (typeof(console) == typeof(undefined)) {
   }
   main();
 } else {
-  trace = function(s) {
-    console.log(s);
-  }
+  trace = jscin.log;
 }

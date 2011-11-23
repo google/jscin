@@ -7,10 +7,12 @@
 
 // Equivelant to croscin.html (extension entry page).
 load('hardcode.js');
-load('constant.js');
+
+load('jscin.js');
 load('gen_inp.js');
 
 // TODO(hungte) stub to replace croscin.js, or simply call gen_inp directly.
+// load('croscin.js');
 
 function Simulate(ev) {
   // TODO replace me with stub for function we're going to test.
