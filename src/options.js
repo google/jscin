@@ -8,21 +8,19 @@
 var kTableUrlsKey = "table_urls";
 
 function init() {
+  loadTableUrls();
 }
 
 function addTableUrl() {
   var url = document.getElementById("cin_table_url_input").value;
 
-  var table_urls = localStorage[kTableUrlsKey];
-  if (!table_urls) {
-    localStorage[kTableUrlsKey] = {};
-    table_urls = localStorage[kTableUrlsKey];
-  }
+  var table_urls = readLocalStorage(kTableUrlsKey, {});
 
   if (table_urls[url]) {
     setAddUrlStatus("URL already exists", true);
   } else {
-    table_urls[url] = {};
+    table_urls[url] = {"url": url};
+    writeLocalStorage(kTableUrlsKey, table_urls);
     addTableUrlToTable(url);
     setAddUrlStatus("OK", false);
   }
@@ -31,10 +29,6 @@ function addTableUrl() {
 function setAddUrlStatus(status, error) {
   var status_field = document.getElementById("add_url_status");
   status_field.innerHTML = status;
-
-  setTimeout(function() {
-    status_field.innerHTML = "";
-  }, 750);
 }
 
 function addTableUrlToTable(url) {
@@ -48,17 +42,31 @@ function addTableUrlToTable(url) {
   button.type = 'button';
   button.value = 'Remove';
   button.onclick = function () {
-    delete localStorage[kTableUrlsKey][url];
+    var table_urls = readLocalStorage(kTableUrlsKey);
+    delete table_urls[url];
+    writeLocalStorage(kTableUrlsKey, table_urls);
     table.tBodies[0].deleteRow(row.sectionRowIndex);
   }
   cell.appendChild(button);
 }
 
 function loadTableUrls() {
-  var table_urls = localStorage[kTableUrlsKey];
+  var table_urls = readLocalStorage(kTableUrlsKey);
   if (table_urls) {
     for (table_url in table_urls) {
       addTableUrlToTable(table_url);
     }
   }
+}
+
+function readLocalStorage(key, default_value) {
+  var data = localStorage[key];
+  if (!data) {
+    return default_value;
+  }
+  return JSON.parse(data);
+}
+
+function writeLocalStorage(key, data) {
+  localStorage[key] = JSON.stringify(data);
 }
