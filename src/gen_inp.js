@@ -332,7 +332,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     } else if (keyinfo.key == 'Esc' && len) {
       // ...
       trace('NotImplemented');
-    } else if (keyinfo.key == 'Space') {
+    } else if (keyinfo.key == ' ') {
       inpinfo.cch_publish = '';
       if (conf.mode.INP_MODE_SPACEAUTOUP &&
           (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
@@ -506,8 +506,8 @@ function main() {
     liu_inst = liu.new_instance(inpinfo);
   }
 
-  simulate(liu_inst, inpinfo, ['a', 'Space']);
-  simulate(liu_inst, inpinfo, ['l', 'n', 'Space']);
+  simulate(liu_inst, inpinfo, ['a', ' ']);
+  simulate(liu_inst, inpinfo, ['l', 'n', ' ']);
   simulate(liu_inst, inpinfo, ['l', 'n', '1']);
 }
 

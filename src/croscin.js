@@ -22,6 +22,7 @@ croscin.IME = function() {
   self.imctx = {};
   self.im = jscin.create_input_method(jscin.default_im, self.imctx);
 
+  self.engineID = null;
   self.context = null;
   self.registerEventHandlers();
 
@@ -51,7 +52,7 @@ croscin.IME = function() {
   self.SetCanditesWindowProperty = function(name, value) {
     self.log("croscin.SetCanditesWindowProperty: set " + name + ": " + value);
     var prop = {};
-    var arg = { engineID: self.context.engineID,
+    var arg = { engineID: self.engineID,
                 properties: prop };
     prop[name] = value;
     self.ime_api.setCandidateWindowProperties(arg);
@@ -71,15 +72,16 @@ croscin.IME = function() {
       // Select everything in composition.
       arg.selectionStart = 0;
       arg.selectionEnd = text.length;
-      arg.cursor = text.length;
+      // TODO(hungte) enable this once it's supported
+      // arg.cursor = text.length;
       self.ime_api.setComposition(arg);
     } else {
       self.ime_api.clearComposition(arg);
     }
   }
 
-  self.UpdateCandidates = function(candidate_list) {
-    self.log("croscin.UpdateComposition: elements = " + candidate_list.length);
+  self.UpdateCandidates = function(candidate_list, labels) {
+    self.log("croscin.UpdateCandidates: elements = " + candidate_list.length);
     // TODO(hungte) set more properties:
     //  auxiliaryText, auxiliaryTextVisible.
     if (candidate_list.length > 0) {
@@ -88,8 +90,9 @@ croscin.IME = function() {
       for (var i = 0; i < candidates.length; i++) {
         // TODO(hungte) fix label, annotation
         candidates[i] = {
-          'candidate': candidate_list[i];
+          'candidate': candidate_list[i],
           'id': i,
+          'label': labels[i],
         }
       }
       arg.candidates = candidates;
@@ -102,14 +105,14 @@ croscin.IME = function() {
   }
 
   self.UpdateUI = function() {
-    var info = self.inpinfo;
+    var info = self.imctx;
     // process:
     //  - keystroke
     //  - suggest_skeystroke
     self.UpdateComposition(info.suggest_skeystroke);
     //  - selkey
     //  - mcch
-    self.UpdateCandidates(mcch);
+    self.UpdateCandidates(info.mcch, info.selkey);
     //  - lcch
     //  - cch_publish
   }
@@ -176,17 +179,23 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
     // TODO re-map key events here.... or not.
 
-    var ret = self.im.onKeystroke(self.inpinfo, keyData);
+    var ret = self.im.onKeystroke(self.imctx, keyData);
     switch (ret) {
-      case constant.IMKEY_COMMIT:
-        self.Commit(inpinfo.cch);
+      case jscin.IMKEY_COMMIT:
+        self.log("im.onKeystroke: return IMKEY_COMMIT");
+        self.Commit(imctx.cch);
         self.UpdateUI();
         return true;
 
-      case constant.IMKEY_ABSORB:
-      case constant.IMKEY_IGNORE:
+      case jscin.IMKEY_ABSORB:
+        self.log("im.onKeystroke: return IMKEY_ABSORB");
         self.UpdateUI();
-        break true;
+        return true;
+
+      case jscin.IMKEY_IGNORE:
+        self.log("im.onKeystroke: return IMKEY_IGNORE");
+        self.UpdateUI();
+        return false;
     }
 
     // default: Unknown return value.
@@ -199,15 +208,17 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onCandidateClicked.addListener(
       function(engineID, candidateID, button) {
-      });
+  });
 
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
     if (name == kOptionsPage) {
       var options_url = chrome.extension.getURL("options.html");
       chrome.tabs.create({"url": options_url});
-    });
+    }
+  });
 };
 
+// Browser loader entry
 document.addEventListener(
     'readystatechange',
     function() {

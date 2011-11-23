@@ -24,7 +24,7 @@ var jscin = {
   modules: {},
   input_methods: {},
 
-  default_im = '',
+  default_im: '',
 };
 
 /**

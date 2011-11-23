@@ -32,7 +32,7 @@ default_conf = {
 
 array30_conf = {
   'DISABLE_SEL_LIST': 'w',
-  'KEYSTROKE_REMAP': {'t':'的'},
+  'KEYSTROKE_REMAP': {'t':'\u7684'},  // 的
 };
 copy_default(default_conf, array30_conf);
 
@@ -79,13 +79,13 @@ liu_cin_header = {
   'max_keystroke': 4,
 };
 liu_table = {
-  'a': '對',
-  'c': '七',
-  'ci': '中',
-  'w': '五',
-  'wx': '文',
-  'l': '六',
-  'ln': '來襄耒',
+  'a': '\u5c0d',  // 對
+  'c': '\u4e03',  // 七
+  'ci': '\u4e2d',  // 中
+  'w': '\u4e94',  // 五
+  'wx': '\u6587',  // 文
+  'l': '\u516d',  // 六
+  'ln': '\u4f86\u8944\u8012',  // 來襄耒
 };
 
 // register input methods into system.
