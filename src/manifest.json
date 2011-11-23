@@ -3,17 +3,12 @@
   "version": "1.0",
   "description": "XCIN-compatible Input Method for ChromeOS.",
   "background_page": "croscin.html",
-  "browser_action": {
-    "default_icon": "icon.png"
-  },
   "permissions": [
     "http://*/",
     "input",
     "experimental"
   ],
-  "browser_action": {
-    "default_icon": "icon.png"
-  },
+  "options_page": "options.html",
   "input_components": [
     {
       "name": "ChromeOS CIN",
