@@ -13,6 +13,10 @@ function init() {
 
 function addTableUrl() {
   var url = document.getElementById("cin_table_url_input").value;
+  if (url.replace(/^\s+|s+$/g, "") == "") {
+    setAddUrlStatus("URL is empty", true);
+    return;
+  }
 
   var table_urls = readLocalStorage(kTableUrlsKey, {});
 

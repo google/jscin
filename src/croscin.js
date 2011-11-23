@@ -17,6 +17,7 @@ var croscin = {};
  */
 croscin.IME = function() {
   var self = this;
+  self.kOptionsPage = "options";
 
   // TODO(hungte) support multiple im's
   self.imctx = {};
@@ -72,6 +73,9 @@ croscin.IME = function() {
     // Vertical candidates window looks better on ChromeOS.
     self.SetCanditesWindowProperty('vertical', true);
     self.SetCanditesWindowProperty('cursorVisible', true);
+
+    // Setup menu
+    self.UpdateMenu();
   }
 
   self.UpdateComposition = function(text) {
@@ -127,6 +131,29 @@ croscin.IME = function() {
     //  - lcch
     //  - cch_publish
   }
+
+  self.UpdateMenu = function() {
+    var menu_items = [];
+
+    var data = localStorage["table_urls"];
+    if (data) {
+      var cin_tables = JSON.parse(data);
+      for (var cin_table in cin_tables) {
+        var name = cin_table;
+        menu_items.push({"id": cin_table,
+                         "label": name});
+      }
+    }
+
+    menu_items.push({"id": "",
+                     "style": "separator"});
+    menu_items.push({"id": self.kOptionsPage,
+                     "label": "Options"});
+    self.ime_api.setMenuItems({
+      "engineID": jscin.ENGINE_ID,
+      "items": menu_items}
+    );
+  }
 };
 
 /**
@@ -144,18 +171,6 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   var self = this;
   self.ime_api = ime_api;
-
-  // Setup menu
-  var kOptionsPage = "options";
-  var kMenuItems = [{
-    "id": kOptionsPage,
-    "label": "Options"
-  }];
-
-  ime_api.setMenuItems({
-    "engineID": jscin.ENGINE_ID,
-    "items": kMenuItems}
-  );
 
   ime_api.onActivate.addListener(function(engineID) {
     self.engineID = engineID;
@@ -227,7 +242,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
-    if (name == kOptionsPage) {
+    if (name == self.kOptionsPage) {
       var options_url = chrome.extension.getURL("options.html");
       chrome.tabs.create({"url": options_url});
     }
