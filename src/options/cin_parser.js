@@ -52,9 +52,11 @@ function parseCin(cin_input) {
     } else if (table_command[cmd]) {
       // Extra arguments
       if (!cmd) continue;
-      m = line.match(/^\s*(\w+)\s+(\S+)/);
+      m = line.match(/^\s*(\S+)\s+(\S+)/);
       if (m) {
-        data[cmd][m[1]] = m[2];
+        if (data[cmd][m[1]] == undefined)
+          data[cmd][m[1]] = '';
+        data[cmd][m[1]] += m[2];
       } else {
         // bad line, just ignore
       }

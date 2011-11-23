@@ -83,6 +83,8 @@ GenInp = function(name) {
   this.table = conf.chardef;
   this.header.max_keystroke = parseInt(this.header.max_keystroke);
 
+  if (this.header.endkey == undefined)
+    this.header.endkey = '';
   if (this.header.endkey) {
     this.conf.mode.INP_MODE_ENDKEY = true;
   }
@@ -179,7 +181,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return ret;
   }
   function commit_char(inpinfo, cch) {
-    trace('');
+    trace('cch = ' + cch);
     // TODO
     inpinfo.cch = cch;
     if (!self.keystroke.match(/[*?]/)) {
@@ -212,9 +214,11 @@ GenInp.prototype.new_instance = function(inpinfo) {
       // not undetstand yet
       if (inpinfo.mcch.length == 1) {
         commit_char(inpinfo, inpinfo.mcch[0]);
+        trace('');
         return jscin.IMKEY_COMMIT;
       } else {
         self.mode.INPINFO_MODE_MCCH = true;
+        trace('');
         return return_correct();
       }
     } else {
@@ -228,6 +232,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
   }
 
   function mcch_choosech(inpinfo, idx) {
+    trace('');
     if (!inpinfo.mcch && !match_keystroke(inpinfo)) {
       return 0;
     }
@@ -246,6 +251,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
     commit_char(inpinfo, inpinfo.mcch[idx]);
     reset_keystroke(inpinfo);
+    return 1;
   }
 
   function fillpage(inpinfo, dir) {
@@ -530,34 +536,40 @@ function simulate(inst, inpinfo, input) {
   }
 }
 
-function console_trace(s) {
+function trace(s) {
   var e = new Error();
   var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
   var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
   var msg = prefix + s;
-  print(msg);
+  if (typeof(console) == typeof(undefined)) {
+    print(msg);
+  } else {
+    jscin.log(msg);
+  }
 }
 
 function main() {
   var inpinfo = {};
   var try_with_jscin = false;
-  var liu_inst = null;
+  var inst = null;
+  var ename = 'builtin-array30';
+  //var ename = 'builtin-liu';
 
   if (try_with_jscin) {
-    liu_inst = jscin.create_input_method('liu', inpinfo);
+    inst = jscin.create_input_method(ename, inpinfo);
   } else {
-    var liu = new GenInp('liu');
-    liu_inst = liu.new_instance(inpinfo);
+    var liu = new GenInp(ename);
+    inst = liu.new_instance(inpinfo);
   }
 
-  //simulate(liu_inst, inpinfo, ['a', ' ']);
-  //simulate(liu_inst, inpinfo, ['l', 'n', ' ']);
-  //simulate(liu_inst, inpinfo, ['l', 'n', '1']);
+  //simulate(inst, inpinfo, ['a', ' ']);
+  //simulate(inst, inpinfo, ['a', ' ', '1']);
+  //simulate(inst, inpinfo, ['l', 'n', ' ']);
+  //simulate(inst, inpinfo, ['l', 'n', '1']);
 }
 
 // Entry stub
 if (typeof(console) == typeof(undefined)) {
-  trace = console_trace;
   load('jscin.js');
   jscin.register_module('GenInp', GenInp);
   load('hardcode.js');
@@ -565,5 +577,4 @@ if (typeof(console) == typeof(undefined)) {
 } else {
   // jscin must be already loaded.
   jscin.register_module('GenInp', GenInp);
-  trace = jscin.log;
 }
