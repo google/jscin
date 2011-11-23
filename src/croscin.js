@@ -24,6 +24,11 @@ croscin.IME = function() {
 
   self.engineID = null;
   self.context = null;
+
+  // TODO(hungte) remove this workaround: "onActivate is not called if user is
+  // already using extension and then reload..
+  self.engineID = jscin.ENGINE_ID;
+
   self.registerEventHandlers();
 
   // Standard utilities
@@ -58,7 +63,7 @@ croscin.IME = function() {
     self.ime_api.setCandidateWindowProperties(arg);
   }
 
-  self.InitalizeUI = function() {
+  self.InitializeUI = function() {
     // Vertical candidates window looks better on ChromeOS.
     self.SetCanditesWindowProperty('vertical', true);
     self.SetCanditesWindowProperty('cursorVisible', true);
@@ -67,7 +72,7 @@ croscin.IME = function() {
   self.UpdateComposition = function(text) {
     var arg = self.GetBaseArg();
     self.log("croscin.UpdateComposition: " + text);
-    if (text.length > 0) {
+    if (text) {
       arg.text = text;
       // Select everything in composition.
       arg.selectionStart = 0;
@@ -81,7 +86,8 @@ croscin.IME = function() {
   }
 
   self.UpdateCandidates = function(candidate_list, labels) {
-    self.log("croscin.UpdateCandidates: elements = " + candidate_list.length);
+    self.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
+             ", labels = " + labels);
     // TODO(hungte) set more properties:
     //  auxiliaryText, auxiliaryTextVisible.
     if (candidate_list.length > 0) {
@@ -92,8 +98,9 @@ croscin.IME = function() {
         candidates[i] = {
           'candidate': candidate_list[i],
           'id': i,
-          'label': labels[i],
+          'label': labels.charAt(i),
         }
+        self.log(candidates[i]);
       }
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
@@ -105,14 +112,14 @@ croscin.IME = function() {
   }
 
   self.UpdateUI = function() {
-    var info = self.imctx;
+    var imctx = self.imctx;
     // process:
     //  - keystroke
     //  - suggest_skeystroke
-    self.UpdateComposition(info.suggest_skeystroke);
+    self.UpdateComposition(imctx.keystroke);
     //  - selkey
     //  - mcch
-    self.UpdateCandidates(info.mcch, info.selkey);
+    self.UpdateCandidates(imctx.mcch, imctx.selkey);
     //  - lcch
     //  - cch_publish
   }
@@ -148,7 +155,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onActivate.addListener(function(engineID) {
     self.engineID = engineID;
-    self.UpdateUI();
+    self.InitializeUI();
   });
 
   ime_api.onDeactivated.addListener(function(engineID) {
@@ -157,6 +164,9 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onFocus.addListener(function(context) {
     self.context = context;
+    // TODO(hungte) remove this workaround: "onActivate is not called if user
+    // reloads extension.
+    self.InitializeUI();
   });
 
   ime_api.onBlur.addListener(function(contextID) {
@@ -180,10 +190,12 @@ croscin.IME.prototype.registerEventHandlers = function() {
     // TODO re-map key events here.... or not.
 
     var ret = self.im.onKeystroke(self.imctx, keyData);
+    self.log(dump_inpinfo(self.imctx));
+
     switch (ret) {
       case jscin.IMKEY_COMMIT:
         self.log("im.onKeystroke: return IMKEY_COMMIT");
-        self.Commit(imctx.cch);
+        self.Commit(self.imctx.cch);
         self.UpdateUI();
         return true;
 
