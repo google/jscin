@@ -19,10 +19,36 @@ function addTableUrl() {
   if (table_urls[url]) {
     setAddUrlStatus("URL already exists", true);
   } else {
-    table_urls[url] = {"url": url};
+    // Write a placeholder value.
+    table_urls[url] = {};
     writeLocalStorage(kTableUrlsKey, table_urls);
-    addTableUrlToTable(url);
-    setAddUrlStatus("OK", false);
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          // Update the entry in localStorage
+          var table_urls = readLocalStorage(kTableUrlsKey, {});
+          table_urls[url]["data"] = this.responseText;
+          writeLocalStorage(kTableUrlsKey, table_urls);
+
+          // Update the UI
+          addTableUrlToTable(url);
+          setAddUrlStatus("OK", false);
+        } else {
+          // Update the entry in localStorage
+          var table_urls = readLocalStorage(kTableUrlsKey, {});
+          delete table_urls[url];
+          writeLocalStorage(kTableUrlsKey, table_urls);
+
+          // Update the UI
+          setAddUrlStatus("Could not read url.  Server returned " + this.status,
+                          true);
+        }
+      }
+    }
+    xhr.open("GET", url, true);
+    xhr.send(null);
   }
 }
 
