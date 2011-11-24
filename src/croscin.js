@@ -24,6 +24,7 @@ croscin.IME = function() {
   // self.default_input_method = 'array30';
   // self.default_input_method = 'liu57b';
   self.im = jscin.create_input_method(jscin.default_input_method, self.imctx);
+  self.current_input_method = jscin.default_input_method;
 
   self.engineID = null;
   self.context = null;
@@ -189,13 +190,14 @@ croscin.IME = function() {
       // TODO(hungte) Create new instance only if required.
       self.imctx = {};
       self.im = jscin.create_input_method(name, self.imctx);
+      self.current_input_method = name;
       self.InitializeUI();
     } else {
       self.log("croscin.onMenuItemActivated: Invalid item: " + name);
     }
   }
 
-  self.UpdateMenu = function() {
+  self.SetMenuItems = function() {
     var menu_items = [];
 
     for (var i in jscin.input_methods) {
@@ -205,6 +207,7 @@ croscin.IME = function() {
       menu_items.push({
         "id": "ime:" + i,
         "label": label,
+        "style": "radio"
       });
     }
     self.log("croscin.UpdateMenu: " + menu_items.length + " items.");
@@ -219,6 +222,21 @@ croscin.IME = function() {
       "items": menu_items}
     );
   }
+
+  self.UpdateMenu = function() {
+    var menu_items = [];
+    for (var i in jscin.input_methods) {
+      menu_items.push({
+        "id": "ime:" + i,
+        "checked": i == self.current_input_method
+      });
+    }
+    self.ime_api.updateMenuItems({
+      "engineID": jscin.ENGINE_ID,
+      "items": menu_items});
+  }
+
+  self.SetMenuItems();
 };
 
 /**
@@ -288,6 +306,12 @@ croscin.IME.prototype.registerEventHandlers = function() {
       self.ActivateInputMethod(name.replace(/^ime:/, ''));
     }
   });
+
+  window.on_config_changed = function() {
+    // TODO: Reload config
+    self.SetMenuItems();
+    self.UpdateUI();
+  }
 };
 
 // Browser loader entry
