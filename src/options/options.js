@@ -153,7 +153,7 @@ function setAddFileStatus(status, error) {
   }
 }
 
-function addCinTableToTable(name, url) {
+function addCinTableToTable(name, url, builtin) {
   var table = document.getElementById("cin_table_table");
 
   var row = table.tBodies[0].insertRow(-1);
@@ -175,20 +175,22 @@ function addCinTableToTable(name, url) {
 
   // Cell: Remove button
   cell = row.insertCell(-1);
-  var button = document.createElement('input');
-  button.type = 'button';
-  button.value = 'Remove';
-  button.onclick = function () {
-    deleteCinTable(name);
-    table.tBodies[0].deleteRow(row.sectionRowIndex);
+  if (!builtin) {
+    var button = document.createElement('input');
+    button.type = 'button';
+    button.value = 'Remove';
+    button.onclick = function () {
+      deleteCinTable(name);
+      table.tBodies[0].deleteRow(row.sectionRowIndex);
 
-    if (getDefaultCinTable() == name) {
-      setDefaultCinTable(kDefaultCinTableDefault);
-      document.getElementById(kDefaultCinTableRadioId +
-                              kDefaultCinTableDefault).checked = true;
+      if (getDefaultCinTable() == name) {
+        setDefaultCinTable(kDefaultCinTableDefault);
+        document.getElementById(kDefaultCinTableRadioId +
+                                kDefaultCinTableDefault).checked = true;
+      }
     }
+    cell.appendChild(button);
   }
-  cell.appendChild(button);
 
   // Cell: Reload button
   cell = row.insertCell(-1);
@@ -246,7 +248,8 @@ function loadCinTables() {
   var table_metadata = readLocalStorage(kTableMetadataKey);
   if (table_metadata) {
     for (table_name in table_metadata) {
-      addCinTableToTable(table_name, table_metadata[table_name].url);
+      addCinTableToTable(table_name, table_metadata[table_name].url,
+                         table_metadata[table_name].builtin);
     }
   }
   document.getElementById(kDefaultCinTableRadioId +

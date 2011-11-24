@@ -11,8 +11,24 @@ table.cin_tables {
   font-size: 14px;
   width: 1000;
 }
-th.cin_tables {
+table.cin_tables th {
   border-width: 0px 1px 1px 0px;
   border-color: #FFF;
   border-style: solid;
+}
+
+.name_head {
+  width: 200px;
+}
+.default_head {
+  width: 70px;
+}
+.remove_head {
+  width: 65px;
+}
+.reload_head {
+  width: 60px;
+}
+.url_head {
+  width: 600px;
 }

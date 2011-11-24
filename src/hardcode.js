@@ -102,8 +102,12 @@ var kPredefineLiu = 'predefined-liu';
 
 function init_predefined() {
   var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
-  table_metadata[kPredefineArray30] = {'ename': 'builtin-array30', 'cname': 'Array' };
-  table_metadata[kPredefineLiu] = {'ename': 'builtin-liu', 'cname': 'Boshiamy' };
+  table_metadata[kPredefineArray30] = {'ename': 'builtin-array30',
+                                       'cname': 'Array',
+                                       'builtin': true};
+  table_metadata[kPredefineLiu] = {'ename': 'builtin-liu',
+                                   'cname': 'Boshiamy',
+                                   'builtin': true};
   jscin.writeLocalStorage(kTableMetadataKey, table_metadata);
 
   jscin.writeLocalStorage(kTableDataKeyPrefix + kPredefineArray30, array30_data);
