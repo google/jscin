@@ -23,6 +23,7 @@ var jscin = {
 
   modules: {},
   input_methods: {},
+  debug: true,
 
   default_input_method: '',
 };
@@ -33,6 +34,9 @@ var jscin = {
 
 // Logging / tracing utility.
 jscin.log = function(s) {
+  if (!jscin.debug)
+    return;
+
   if (typeof(console) == typeof(undefined)) {
     print(s);
   } else {

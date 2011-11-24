@@ -18,6 +18,9 @@ var croscin = {};
 croscin.IME = function() {
   var self = this;
 
+  // TODO(hungte) load default debug flag from options
+  self.debug = false;
+
   self.kOptionsPage = "options";
 
   self.imctx = {};
@@ -41,7 +44,8 @@ croscin.IME = function() {
   }
 
   self.log = function(s) {
-    jscin.log(s);
+    if (self.debug)
+      jscin.log(s);
   }
 
   // Core functions
