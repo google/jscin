@@ -114,8 +114,8 @@ init_predefined();
 function register_first() {
   var kTableMetadataKey = "table_metadata";
   var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
-  for (var url in table_metadata) {
-    jscin.register_input_method(table_metadata[url].ename, 'GenInp');
+  for (var name in table_metadata) {
+    jscin.register_input_method(name, 'GenInp');
   }
 }
 

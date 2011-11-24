@@ -9,17 +9,8 @@
 function find_ime_data(name) {
   var kTableMetadataKey = "table_metadata";
   var kTableDataKeyPrefix = "table_data-";
-  var metadata = jscin.readLocalStorage(kTableMetadataKey);
-  if (metadata) {
-    for (table_url in metadata) {
-      if (metadata[table_url].ename == name) {
-        trace('Using table from ' + table_url);
-        var data = jscin.readLocalStorage(kTableDataKeyPrefix + table_url);
-        return data;
-      }
-    }
-  }
-  return null;
+  var data = jscin.readLocalStorage(kTableDataKeyPrefix + name);
+  return data;
 }
 
 // init for IME, ex. Zhuyin, Array
