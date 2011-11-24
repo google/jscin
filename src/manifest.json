@@ -1,7 +1,7 @@
 {
-  "name": "ChromeOS CIN",
+  "name": "ChromeOS CIN \u4e2d\u6587\u8f38\u5165\u6cd5",
   "version": "1.0",
-  "description": "XCIN-compatible Input Method for ChromeOS.",
+  "description": "Input methods compatible with XCIN tables.",
   "background_page": "croscin.html",
   "permissions": [
     "http://*/",
@@ -11,7 +11,7 @@
   "options_page": "options/options.html",
   "input_components": [
     {
-      "name": "ChromeOS CIN",
+      "name": "CrosCIN \u4e2d\u6587\u8f38\u5165\u6cd5",
       "type": "ime",
       "id": "cros_cin",
       "description": "ChromeOS Chinese Input Method (xcin compatible)",
