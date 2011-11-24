@@ -61,6 +61,26 @@ jscin.register_input_method = function(name, module_name, cname) {
     jscin.default_input_method = name;
 }
 
+// Un-register an input method
+jscin.unregister_input_method = function(name) {
+  if (!(name in jscin.input_methods)) {
+    jscin.log("jscin: Unknown input method: " + name);
+    return false;
+  }
+  delete jscin.input_methods[name]
+  jscin.log("jscin: Un-registered input method: " + name);
+
+  // Reset default input method.
+  if (name == jscin.default_input_method) {
+    jscin.default_input_method = '';
+    for (var i in jscin.input_methods) {
+      jscin.default_input_method = jscin.input_methods[i];
+      break;
+    }
+  }
+  // TODO(hungte) Remove active instances?
+}
+
 jscin.set_default_input_method = function(name) {
   jscin.default_input_method = name;
 }

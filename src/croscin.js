@@ -269,15 +269,24 @@ croscin.IME.prototype.registerEventHandlers = function() {
     // TODO(hungte) remove this workaround: "onActivate is not called if user
     // reloads extension.
     self.InitializeUI();
+
+    // Calling updateUI here is to carry unfinished composition (preedit) into
+    // the new input element.
+    self.UpdateUI();
   });
 
   ime_api.onBlur.addListener(function(contextID) {
     if (!self.context) {
+      self.log("croscin.onBlur: WARNING: no existing context.");
       return;
     }
     if (self.context.contextID != contextID) {
+      self.log("croscin.onBlur: WARNING: incompatible context.");
       return;
     }
+    // TODO(hungte) Uncomment this if we don't want context to be carried when
+    // input focus changes.
+    // self.SimulateKeyDown('Esc');
     self.context = null;
   });
 
