@@ -21,9 +21,9 @@ croscin.IME = function() {
 
   // TODO(hungte) support multiple im's
   self.imctx = {};
-  //self.im = jscin.create_input_method(jscin.default_im, self.imctx);
-  self.im = jscin.create_input_method('array30', self.imctx);
-  //self.im = jscin.create_input_method('liu57b', self.imctx);
+  // self.default_input_method = 'array30';
+  // self.default_input_method = 'liu57b';
+  self.im = jscin.create_input_method(jscin.default_input_method, self.imctx);
 
   self.engineID = null;
   self.context = null;
@@ -150,14 +150,14 @@ croscin.IME = function() {
     //  auxiliaryText, auxiliaryTextVisible.
     if (candidate_list.length > 0) {
       var arg = self.GetBaseArg();
-      var candidates = Array(candidate_list.length);
+      var candidates = [];
       for (var i = 0; i < candidates.length; i++) {
         // TODO(hungte) fix label, annotation
-        candidates[i] = {
+        candidates.push({
           'candidate': candidate_list[i],
           'id': i,
           'label': labels.charAt(i),
-        }
+        });
       }
       self.log('candidates:');
       self.log(candidates);
@@ -186,16 +186,15 @@ croscin.IME = function() {
   self.UpdateMenu = function() {
     var menu_items = [];
 
-    var data = localStorage["table_urls"];
-    if (data) {
-      var cin_tables = JSON.parse(data);
-      for (var cin_table in cin_tables) {
-        var name = cin_table;
-        menu_items.push({"id": cin_table,
-                         "label": name});
-      }
+    for (var i in jscin.input_methods) {
+      menu_items.push({
+        "id": i,
+        "label": i,
+      });
     }
+    self.log("croscin.UpdateMenu: " + menu_items.length + " items.");
 
+    // Add a separator and options  (Separator does not work yet).
     menu_items.push({"id": "",
                      "style": "separator"});
     menu_items.push({"id": self.kOptionsPage,

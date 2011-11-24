@@ -19,5 +19,5 @@ Platform bindings:
   Console (for d8 from V8 / jsshell from SpiderMonkey):
     - console.js: run "d8 console.js" for testing without UI.
 
-Documents:
-  - ../inpinfo.txt: Document for the interface from original XCIN to JS/CIN.
+Documents (../docs):
+  - inpinfo.txt: Document for the interface from original XCIN to JS/CIN.

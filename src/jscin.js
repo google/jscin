@@ -24,7 +24,7 @@ var jscin = {
   modules: {},
   input_methods: {},
 
-  default_im: '',
+  default_input_method: '',
 };
 
 /**
@@ -54,9 +54,10 @@ jscin.register_input_method = function(name, module_name, config) {
   }
   jscin.input_methods[name] = (
       new jscin.modules[module_name](name, config));
-  jscin.log("jscin: Registered Input Method: " + name);
-  if (!jscin.default_im)
-    jscin.default_im = name;
+  jscin.log("jscin: Registered input method: " + name);
+
+  if (!jscin.default_input_method)
+    jscin.default_input_method = name;
 }
 
 // Create input method instance
@@ -65,6 +66,7 @@ jscin.create_input_method = function(name, context) {
     jscin.log("jscin: Unknown input method: " + name);
     return false;
   }
+  jscin.log("jscin: Created input Method instance: " + name);
   return jscin.input_methods[name].new_instance(context);
 }
 
@@ -85,3 +87,5 @@ jscin.writeLocalStorage = function (key, data) {
   }
   localStorage[key] = JSON.stringify(data);
 }
+
+// TODO(hungte) some place for global configuration data.
