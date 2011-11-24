@@ -121,3 +121,4 @@ function register_first() {
 }
 
 register_first();
+window.on_config_changed = jscin.on_config_changed;

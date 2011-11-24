@@ -253,6 +253,10 @@ function loadCinTables() {
                           getDefaultCinTable()).checked = true;
 }
 
+function notifyConfigChanged() {
+  chrome.extension.getBackgroundPage().on_config_changed();
+}
+
 function readLocalStorage(key, default_value) {
   var data = localStorage[key];
   if (!data) {
@@ -263,6 +267,7 @@ function readLocalStorage(key, default_value) {
 
 function writeLocalStorage(key, data) {
   localStorage[key] = JSON.stringify(data);
+  notifyConfigChanged();
 }
 
 function deleteLocalStorage(key) {
