@@ -36,10 +36,12 @@ croscin.IME = function() {
   self.registerEventHandlers();
 
   // Standard utilities
-  self.GetBaseArg = function() {
-    var arg = {};
-    arg.contextID = this.context.contextID;
-    return arg;
+  self.GetContextArg = function() {
+    return {'contextID': this.context.contextID};
+  }
+
+  self.GetEngineArg = function() {
+    return {'engineID': jscin.ENGINE_ID};
   }
 
   self.log = function(s) {
@@ -55,7 +57,7 @@ croscin.IME = function() {
     }
 
     if (text) {
-      var arg = self.GetBaseArg();
+      var arg = self.GetContextArg();
       arg.text = text;
       self.ime_api.commitText(arg);
       self.log("croscin.Commit: value: " + text);
@@ -112,8 +114,8 @@ croscin.IME = function() {
   self.SetCanditesWindowProperty = function(name, value) {
     self.log("croscin.SetCanditesWindowProperty: set " + name + ": " + value);
     var prop = {};
-    var arg = { engineID: self.engineID,
-                properties: prop };
+    var arg = self.GetEngineArg();
+    arg['properties'] = prop;
     prop[name] = value;
     self.ime_api.setCandidateWindowProperties(arg);
   }
@@ -126,11 +128,11 @@ croscin.IME = function() {
     self.SetCanditesWindowProperty('visible', false);
 
     // Setup menu
-    self.UpdateMenu();
+    self.InitializeMenu();
   }
 
   self.UpdateComposition = function(text) {
-    var arg = self.GetBaseArg();
+    var arg = self.GetContextArg();
     self.log("croscin.UpdateComposition: " + text);
     if (text) {
       arg.text = text;
@@ -150,7 +152,7 @@ croscin.IME = function() {
     // TODO(hungte) set more properties:
     //  auxiliaryText, auxiliaryTextVisible.
     if (candidate_list.length > 0) {
-      var arg = self.GetBaseArg();
+      var arg = self.GetContextArg();
       var candidates = [];
       for (var i = 0; i < candidate_list.length; i++) {
         // TODO(hungte) fix label, annotation
@@ -197,7 +199,21 @@ croscin.IME = function() {
     }
   }
 
-  self.SetMenuItems = function() {
+  self.UpdateMenu = function() {
+    var menu_items = [];
+    for (var i in jscin.input_methods) {
+      menu_items.push({
+        "id": "ime:" + i,
+        "checked": i == self.current_input_method
+      });
+    }
+    var arg = self.GetEngineArg();
+    arg['items'] = menu_items;
+    self.ime_api.updateMenuItems(arg);
+  }
+
+
+  self.InitializeMenu = function() {
     var menu_items = [];
 
     for (var i in jscin.input_methods) {
@@ -210,33 +226,19 @@ croscin.IME = function() {
         "style": "radio"
       });
     }
-    self.log("croscin.UpdateMenu: " + menu_items.length + " items.");
+    self.log("croscin.InitializeMenu: " + menu_items.length + " items.");
 
     // Add a separator and options  (Separator does not work yet).
     menu_items.push({"id": "",
                      "style": "separator"});
     menu_items.push({"id": self.kOptionsPage,
                      "label": "Options"});
-    self.ime_api.setMenuItems({
-      "engineID": jscin.ENGINE_ID,
-      "items": menu_items}
-    );
-  }
+    var arg = self.GetEngineArg();
+    arg['items'] = menu_items;
+    self.ime_api.setMenuItems(arg);
 
-  self.UpdateMenu = function() {
-    var menu_items = [];
-    for (var i in jscin.input_methods) {
-      menu_items.push({
-        "id": "ime:" + i,
-        "checked": i == self.current_input_method
-      });
-    }
-    self.ime_api.updateMenuItems({
-      "engineID": jscin.ENGINE_ID,
-      "items": menu_items});
+    self.UpdateMenu();
   }
-
-  self.SetMenuItems();
 };
 
 /**
@@ -318,8 +320,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   window.on_config_changed = function() {
     // TODO: Reload config
-    self.SetMenuItems();
-    self.UpdateUI();
+    self.InitializeUI();
   }
 };
 
