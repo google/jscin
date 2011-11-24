@@ -100,7 +100,7 @@ function addTableFile(evt) {
       };
     })(file);
 
-    reader.readAsDataURL(file);
+    reader.readAsText(file);
   }
 }
 
