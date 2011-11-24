@@ -177,13 +177,10 @@ croscin.IME = function() {
     var imctx = self.imctx;
     // process:
     //  - keystroke
-    //  - suggest_skeystroke
     self.UpdateComposition(imctx.keystroke);
-    //  - selkey
-    //  - mcch
+    //  - selkey, mcch
     self.UpdateCandidates(imctx.mcch, imctx.selkey);
-    //  - lcch
-    //  - cch_publish
+    //  - (TODO) lcch, cch_publish
   }
 
   self.ActivateInputMethod = function(name) {
@@ -249,6 +246,7 @@ croscin.IME = function() {
     self.UpdateMenu();
   }
 
+  jscin.reload_configuration();
   self.registerEventHandlers();
   // Start the default input method.
   self.ActivateInputMethod(null);
@@ -334,6 +332,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   window.on_config_changed = function() {
     // Some configuration is changed - we need to validate and refresh all.
     self.log("croscin.on_config_changed: notified.");
+    jscin.reload_configuration();
     self.InitializeUI();
   }
 };

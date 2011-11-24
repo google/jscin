@@ -115,16 +115,3 @@ function init_predefined() {
 }
 
 init_predefined();
-
-// register input methods into system.
-function register_first() {
-  jscin.set_default_input_method(jscin.readLocalStorage(kDefaultCinTableKey));
-
-  var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
-  for (var name in table_metadata) {
-    // TODO(hungte) support more modules in future.
-    jscin.register_input_method( name, 'GenInp', table_metadata[name].cname);
-  }
-}
-
-register_first();

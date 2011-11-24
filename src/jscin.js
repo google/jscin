@@ -21,11 +21,16 @@ var jscin = {
   'MCCH_MIDDLE': 2,
   'MCCH_END': 3,
 
+  // Configuration key names.
+  kTableMetadataKey: "table_metadata",
+  kTableDataKeyPrefix: "table_data-",
+  kDefaultCinTableKey: "default_cin_table",
+
   modules: {},
   input_methods: {},
-  debug: true,
-
   default_input_method: '',
+
+  debug: true,
 };
 
 /**
@@ -46,57 +51,89 @@ jscin.log = function(s) {
 
 // Module registration
 jscin.register_module = function(name, constructor) {
-  jscin.modules[name] = constructor;
-  jscin.log("jscin: Registered module:" + name);
+  var self = jscin;
+  self.modules[name] = constructor;
+  self.log("jscin: Registered module:" + name);
 }
 
 // Input method registration
 jscin.register_input_method = function(name, module_name, cname) {
-  if (!(module_name in jscin.modules)) {
-    jscin.log("jscin: Unknown module: " + module_name);
+  var self = jscin;
+  if (!(module_name in self.modules)) {
+    self.log("jscin: Unknown module: " + module_name);
     return false;
   }
-  jscin.input_methods[name] = {
+  self.input_methods[name] = {
     'label': cname,
-    'new_instance': new jscin.modules[module_name](name)};
-  jscin.log("jscin: Registered input method: " + name);
+    'new_instance': new self.modules[module_name](name)};
+  self.log("jscin: Registered input method: " + name);
 
-  if (!jscin.default_input_method)
-    jscin.default_input_method = name;
+  if (!self.default_input_method)
+    self.default_input_method = name;
 }
 
 // Un-register an input method
 jscin.unregister_input_method = function(name) {
-  if (!(name in jscin.input_methods)) {
-    jscin.log("jscin: Unknown input method: " + name);
+  var self = jscin;
+  if (!(name in self.input_methods)) {
+    self.log("jscin: Unknown input method: " + name);
     return false;
   }
-  delete jscin.input_methods[name]
-  jscin.log("jscin: Un-registered input method: " + name);
+  delete self.input_methods[name]
+  self.log("jscin: Un-registered input method: " + name);
 
   // Reset default input method.
-  if (name == jscin.default_input_method) {
-    jscin.default_input_method = '';
-    for (var i in jscin.input_methods) {
-      jscin.default_input_method = jscin.input_methods[i];
+  if (name == self.default_input_method) {
+    self.default_input_method = '';
+    for (var i in self.input_methods) {
+      self.default_input_method = self.input_methods[i];
       break;
     }
   }
   // TODO(hungte) Remove active instances?
 }
 
-jscin.set_default_input_method = function(name) {
-  jscin.default_input_method = name;
-}
-
 // Create input method instance
 jscin.create_input_method = function(name, context) {
-  if (!(name in jscin.input_methods)) {
-    jscin.log("jscin: Unknown input method: " + name);
+  var self = jscin;
+  if (!(name in self.input_methods)) {
+    self.log("jscin: Unknown input method: " + name);
     return false;
   }
-  jscin.log("jscin: Created input Method instance: " + name);
+  self.log("jscin: Created input method instance: " + name);
   return jscin.input_methods[name]["new_instance"].new_instance(context);
+}
+
+jscin.reload_configuration = function() {
+  var self = jscin;
+
+  // Reset input methods
+  self.input_methods = {};
+  var count_ims = 0;
+  var table_metadata = self.readLocalStorage(self.kTableMetadataKey, {});
+  var any_im = '';
+  for (var name in table_metadata) {
+    // TODO(hungte) support more modules in future.
+    self.register_input_method(name, 'GenInp', table_metadata[name].cname);
+    if (!any_im)
+      any_im = name;
+    count_ims++;
+  }
+
+  if (count_ims < 1) {
+    self.debug = true;
+    self.log("jscin.reload_configuration: No input methods available.");
+    self.default_input_method = '';
+  } else {
+    // Update default input method
+    self.default_input_method = self.readLocalStorage(
+        self.kDefaultCinTableKey, self.default_input_method);
+    if (!(self.default_input_method in self.input_methods)) {
+      self.log("jscin.reload_configuration: invalid default input method: " +
+               self.default_input_method + ", picked: " + any_one);
+      self.default_input_method = any_one;
+    }
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////
