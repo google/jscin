@@ -93,12 +93,14 @@ liu_data = {
   },
 };
 
-function init_predefined() {
-  var kTableMetadataKey = "table_metadata";
-  var kTableDataKeyPrefix = "table_data-";
+var kTableMetadataKey = "table_metadata";
+var kTableDataKeyPrefix = "table_data-";
+var kDefaultCinTableKey = "default_cin_table";
 
-  var kPredefineArray30 = 'predefined-array30';
-  var kPredefineLiu = 'predefined-liu';
+var kPredefineArray30 = 'predefined-array30';
+var kPredefineLiu = 'predefined-liu';
+
+function init_predefined() {
   var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
   table_metadata[kPredefineArray30] = {'ename': 'builtin-array30', 'cname': 'Array' };
   table_metadata[kPredefineLiu] = {'ename': 'builtin-liu', 'cname': 'Boshiamy' };
@@ -112,7 +114,8 @@ init_predefined();
 
 // register input methods into system.
 function register_first() {
-  var kTableMetadataKey = "table_metadata";
+  jscin.set_default_input_method(jscin.readLocalStorage(kDefaultCinTableKey));
+
   var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
   for (var name in table_metadata) {
     jscin.register_input_method(name, 'GenInp',

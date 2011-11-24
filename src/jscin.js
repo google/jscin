@@ -61,6 +61,10 @@ jscin.register_input_method = function(name, module_name, cname) {
     jscin.default_input_method = name;
 }
 
+jscin.set_default_input_method = function(name) {
+  jscin.default_input_method = name;
+}
+
 // Create input method instance
 jscin.create_input_method = function(name, context) {
   if (!(name in jscin.input_methods)) {
