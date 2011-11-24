@@ -118,8 +118,8 @@ function register_first() {
 
   var table_metadata = jscin.readLocalStorage(kTableMetadataKey, {});
   for (var name in table_metadata) {
-    jscin.register_input_method(name, 'GenInp',
-                                table_metadata[name].cname);
+    // TODO(hungte) support more modules in future.
+    jscin.register_input_method( name, 'GenInp', table_metadata[name].cname);
   }
 }
 

@@ -95,6 +95,9 @@ jscin.create_input_method = function(name, context) {
   return jscin.input_methods[name]["new_instance"].new_instance(context);
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Platform-dependent utilities
+
 jscin.readLocalStorage = function (key, default_value) {
   if (typeof(localStorage) == typeof(undefined)) {
     localStorage = {};

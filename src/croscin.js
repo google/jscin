@@ -17,14 +17,12 @@ var croscin = {};
  */
 croscin.IME = function() {
   var self = this;
+
   self.kOptionsPage = "options";
 
-  // TODO(hungte) support multiple im's
   self.imctx = {};
-  // self.default_input_method = 'array30';
-  // self.default_input_method = 'liu57b';
-  self.im = jscin.create_input_method(jscin.default_input_method, self.imctx);
-  self.current_input_method = jscin.default_input_method;
+  self.im = null;
+  self.im_name = '';
 
   self.engineID = null;
   self.context = null;
@@ -32,8 +30,6 @@ croscin.IME = function() {
   // TODO(hungte) remove this workaround: "onActivate is not called if user is
   // already using extension and then reload..
   self.engineID = jscin.ENGINE_ID;
-
-  self.registerEventHandlers();
 
   // Standard utilities
   self.GetContextArg = function() {
@@ -187,15 +183,25 @@ croscin.IME = function() {
   }
 
   self.ActivateInputMethod = function(name) {
+    // kDefaultCinTableKey should match options/options.js
+    var kDefaultCinTableKey = "default_cin_table";
+
+    if (!name) {
+      name = jscin.readLocalStorage(
+          kDefaultCinTableKey, jscin.default_input_method);
+    }
+
     if (name in jscin.input_methods) {
-      self.log("croscin.onMenuItemActivated: Selected: " + name);
+      self.log("croscin.ActivateInputMethod: Started: " + name);
       // TODO(hungte) Create new instance only if required.
       self.imctx = {};
       self.im = jscin.create_input_method(name, self.imctx);
-      self.current_input_method = name;
+      self.im_name = name;
       self.InitializeUI();
+      jscin.writeLocalStorage(kDefaultCinTableKey, name);
+      jscin.default_input_method = name;
     } else {
-      self.log("croscin.onMenuItemActivated: Invalid item: " + name);
+      self.log("croscin.ActivateInputMethod: Invalid item: " + name);
     }
   }
 
@@ -204,14 +210,13 @@ croscin.IME = function() {
     for (var i in jscin.input_methods) {
       menu_items.push({
         "id": "ime:" + i,
-        "checked": i == self.current_input_method
+        "checked": i == self.im_name
       });
     }
     var arg = self.GetEngineArg();
     arg['items'] = menu_items;
     self.ime_api.updateMenuItems(arg);
   }
-
 
   self.InitializeMenu = function() {
     var menu_items = [];
@@ -239,6 +244,10 @@ croscin.IME = function() {
 
     self.UpdateMenu();
   }
+
+  self.registerEventHandlers();
+  // Start the default input method.
+  self.ActivateInputMethod(null);
 };
 
 /**
@@ -319,7 +328,8 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   window.on_config_changed = function() {
-    // TODO: Reload config
+    // Some configuration is changed - we need to validate and refresh all.
+    self.log("croscin.on_config_changed: notified.");
     self.InitializeUI();
   }
 };
