@@ -47,13 +47,14 @@ jscin.register_module = function(name, constructor) {
 }
 
 // Input method registration
-jscin.register_input_method = function(name, module_name, config) {
+jscin.register_input_method = function(name, module_name, cname) {
   if (!(module_name in jscin.modules)) {
     jscin.log("jscin: Unknown module: " + module_name);
     return false;
   }
-  jscin.input_methods[name] = (
-      new jscin.modules[module_name](name, config));
+  jscin.input_methods[name] = {
+    'label': cname,
+    'new_instance': new jscin.modules[module_name](name)};
   jscin.log("jscin: Registered input method: " + name);
 
   if (!jscin.default_input_method)
@@ -67,7 +68,7 @@ jscin.create_input_method = function(name, context) {
     return false;
   }
   jscin.log("jscin: Created input Method instance: " + name);
-  return jscin.input_methods[name].new_instance(context);
+  return jscin.input_methods[name]["new_instance"].new_instance(context);
 }
 
 jscin.readLocalStorage = function (key, default_value) {

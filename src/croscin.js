@@ -151,7 +151,7 @@ croscin.IME = function() {
     if (candidate_list.length > 0) {
       var arg = self.GetBaseArg();
       var candidates = [];
-      for (var i = 0; i < candidates.length; i++) {
+      for (var i = 0; i < candidate_list.length; i++) {
         // TODO(hungte) fix label, annotation
         candidates.push({
           'candidate': candidate_list[i],
@@ -183,13 +183,28 @@ croscin.IME = function() {
     //  - cch_publish
   }
 
+  self.ActivateInputMethod = function(name) {
+    if (name in jscin.input_methods) {
+      self.log("croscin.onMenuItemActivated: Selected: " + name);
+      // TODO(hungte) Create new instance only if required.
+      self.imctx = {};
+      self.im = jscin.create_input_method(name, self.imctx);
+      self.InitializeUI();
+    } else {
+      self.log("croscin.onMenuItemActivated: Invalid item: " + name);
+    }
+  }
+
   self.UpdateMenu = function() {
     var menu_items = [];
 
     for (var i in jscin.input_methods) {
+      var label = jscin.input_methods[i]["label"];
+      if (!label)
+        label = i;
       menu_items.push({
-        "id": i,
-        "label": i,
+        "id": "ime:" + i,
+        "label": label,
       });
     }
     self.log("croscin.UpdateMenu: " + menu_items.length + " items.");
@@ -264,9 +279,13 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
+    self.log("croscin.onMenuItemActivated: name=" + name);
+
     if (name == self.kOptionsPage) {
       var options_url = chrome.extension.getURL("options/options.html");
       chrome.tabs.create({"url": options_url});
+    } else if (name.match(/^ime:/)) {
+      self.ActivateInputMethod(name.replace(/^ime:/, ''));
     }
   });
 };
