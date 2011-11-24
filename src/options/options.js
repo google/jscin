@@ -11,13 +11,17 @@ var kTableDataKeyPrefix = "table_data-";
 
 function init() {
   writeLocalStorage(kTableLoading, {});
-  loadTableUrls();
+  loadCinTables();
   document.getElementById("cin_table_file_input").addEventListener(
       'change', addTableFile, false);
 }
 
-function addTableUrl() {
+function onAddTableUrl() {
   var url = document.getElementById("cin_table_url_input").value;
+  addTableUrl(url);
+}
+
+function addTableUrl(url) {
   if (url.replace(/^\s+|s+$/g, "") == "") {
     setAddUrlStatus("URL is empty", true);
     return;
@@ -26,9 +30,7 @@ function addTableUrl() {
   var table_metadata = readLocalStorage(kTableMetadataKey, {});
   var table_loading = readLocalStorage(kTableLoading, {});
 
-  if (table_metadata[url]) {
-    setAddUrlStatus("URL already exists", true);
-  } else if (table_loading[url]) {
+  if (table_loading[url]) {
     setAddUrlStatus("Table is loading", false);
   } else {
     // Write a placeholder value.
@@ -43,17 +45,14 @@ function addTableUrl() {
           var parsed_result = parseCin(this.responseText);
           if (parsed_result[0]) {
             var parsed_data = parsed_result[1];
-            // Update the entry in localStorage
-            var table_metadata = readLocalStorage(kTableMetadataKey, {});
-
-            table_metadata[url] = parsed_data.metadata;
-            writeLocalStorage(kTableMetadataKey, table_metadata);
-            writeLocalStorage(kTableDataKeyPrefix + url,
-                              parsed_data.data);
-
-            // Update the UI
-            addTableUrlToTable(url);
-            setAddUrlStatus("OK", false);
+            parsed_data.metadata.url = url;
+            if (addCinTable(parsed_data)) {
+              // Update the UI
+              addCinTableToTable(parsed_data.metadata.ename, url);
+              setAddUrlStatus("OK", false);
+            } else {
+              setAddUrlStatus("Table not added", true);
+            }
           } else {
             var msg = parsed_result[1];
             // Update the UI
@@ -80,25 +79,23 @@ function addTableFile(evt) {
   for (var i = 0, file; file = files[i]; i++) {
     var reader = new FileReader();
 
-    reader.onload = function(file_data) {
+    reader.onload = (function(file_data) {
       return function(e) {
         // Parse the entry
-        var parsed_data = parseCin(e.target.result);
-        if (parsed_data) {
-          // Update the entry in localStorage
-          var table_files = readLocalStorage(kTableFilesKey, {});
-          table_files[file]["data"] = parsed_data;
-          writeLocalStorage(kTableFilesKey, table_files);
-
-          // Update the UI
-          addTableFileToTable(file);
-          setAddFileStatus("OK", false);
+        var parsed_result = parseCin(e.target.result);
+        if (parsed_result[0]) {
+          var parsed_data = parsed_result[1];
+          if (addCinTable(parsed_data)) {
+            // Update the UI
+            addCinTableToTable(parsed_data.metadata.ename);
+            setAddFileStatus("OK", false);
+          } else {
+            setAddFileStatus("Table not added", true);
+          }
         } else {
-          // Update the entry in localStorage
-          deleteTableFile(file);
-
+          var msg = parsed_result[1];
           // Update the UI
-          setAddFileStatus("Could not parse cin file.", true);
+          setAddFileStatus("Could not parse cin file. " + msg, true);
         }
       };
     })(file);
@@ -107,10 +104,27 @@ function addTableFile(evt) {
   }
 }
 
-function deleteTableUrl(url) {
-  var table_metadata = readLocalStorage(kTableMetadataKey);
-  delete table_metadata[url];
-  deleteLocalStorage(kTableDataKeyPrefix + url);
+function addCinTable(data) {
+  // Update the entry in localStorage
+  var table_metadata = readLocalStorage(kTableMetadataKey, {});
+
+  if (table_metadata[data.metadata.ename] != undefined) {
+    if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
+      return false;
+    } else {
+      removeCinTableFromTable(data.metadata.ename);
+    }
+  }
+  table_metadata[data.metadata.ename] = data.metadata;
+  writeLocalStorage(kTableMetadataKey, table_metadata);
+  writeLocalStorage(kTableDataKeyPrefix + data.metadata.ename, data.data);
+  return true;
+}
+
+function deleteCinTable(name) {
+  var table_metadata = readLocalStorage(kTableMetadataKey, {});
+  delete table_metadata[name];
+  deleteLocalStorage(kTableDataKeyPrefix + name);
   writeLocalStorage(kTableMetadataKey, table_metadata);
 }
 
@@ -124,40 +138,68 @@ function setAddUrlStatus(status, error) {
   }
 }
 
-function addTableUrlToTable(url) {
-  var table = document.getElementById("cin_table_url_table");
+function setAddFileStatus(status, error) {
+  var status_field = document.getElementById("add_file_status");
+  status_field.innerHTML = status;
+  if (error) {
+    status_field.className = "status_error";
+  } else {
+    status_field.className = "status_ok";
+  }
+}
+
+function addCinTableToTable(name, url) {
+  var table = document.getElementById("cin_table_table");
 
   var row = table.tBodies[0].insertRow(-1);
   var cell = row.insertCell(-1);
-  cell.innerHTML = url;
-  var cell = row.insertCell(-1);
+  cell.innerHTML = name;
+  cell = row.insertCell(-1);
+  if (url) {
+    cell.innerHTML = url;
+  }
+  cell = row.insertCell(-1);
   var button = document.createElement('input');
   button.type = 'button';
   button.value = 'Remove';
   button.onclick = function () {
-    deleteTableUrl(url);
+    deleteCinTable(name);
     table.tBodies[0].deleteRow(row.sectionRowIndex);
   }
   cell.appendChild(button);
 
-  var reload_button = document.createElement('input');
-  reload_button.type = 'button';
-  reload_button.value = 'Reload';
-  reload_button.onclick = function () {
-    // dirty hack
-    document.getElementById("cin_table_url_input").value = url;
-    deleteTableUrl(url);
-    table.tBodies[0].deleteRow(row.sectionRowIndex);
-    addTableUrl();
+  cell = row.insertCell(-1);
+  if (url) {
+    var reload_button = document.createElement('input');
+    reload_button.type = 'button';
+    reload_button.value = 'Reload';
+    reload_button.onclick = function () {
+      // dirty hack
+      deleteCinTable(name);
+      table.tBodies[0].deleteRow(row.sectionRowIndex);
+      addTableUrl(url);
+    }
+    cell.appendChild(reload_button);
   }
-  cell.appendChild(reload_button);
 }
 
-function loadTableUrls() {
+function removeCinTableFromTable(name, url) {
+  var table = document.getElementById("cin_table_table");
+
+  for (var i = 0; i < table.tBodies[0].rows.length; i++) {
+    var row = table.tBodies[0].rows[i];
+    if (row.cells[0].innerHTML == name) {
+      table.tBodies[0].deleteRow(i);
+      return;
+    }
+  }
+}
+
+function loadCinTables() {
   var table_metadata = readLocalStorage(kTableMetadataKey);
   if (table_metadata) {
-    for (table_url in table_metadata) {
-      addTableUrlToTable(table_url);
+    for (table_name in table_metadata) {
+      addCinTableToTable(table_name, table_metadata[table_name].url);
     }
   }
 }
