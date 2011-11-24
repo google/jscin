@@ -70,7 +70,6 @@ GenInp = function(name) {
     this.conf.disable_sel_list = this.conf.disable_sel_list.toUpperCase();
   }
   this.conf.kremap = conf.KEYSTROKE_REMAP;
-  trace(conf.KEYSTROKE_REMAP);
 
   // load table
   // TODO(kcwu) dirty hack now
@@ -195,12 +194,10 @@ GenInp.prototype.new_instance = function(inpinfo) {
     trace('');
     // TODO
     var result = ime.table[self.keystroke];
-    trace('result = ' + self.keystroke);
     if (!result) {
       return 0;
     }
 
-    trace('');
     var mcch = [];
     for (var i = 0; i < result.length; i++) {
       mcch.push(result[i]);
@@ -208,7 +205,6 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
 
     if (mcch.length <= inpinfo.selkey.length) {
-      trace('');
       inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
     } else {
       inpinfo.mcch_pgstate = jscin.MCCH_BEGIN;
@@ -218,7 +214,6 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return 1;
   }
   function match_keystroke(inpinfo) {
-    trace('');
     inpinfo.mcch = [];
     var ret;
     if (!self.mode.INPINFO_MODE_INWILD)
@@ -252,7 +247,6 @@ GenInp.prototype.new_instance = function(inpinfo) {
   function commit_keystroke(inpinfo) {
     trace('');
     if (self.conf.kremap) {
-      trace('');
       if (self.conf.kremap[self.keystroke]) {
         commit_char(inpinfo, self.conf.kremap[self.keystroke]);
         return jscin.IMKEY_COMMIT;
@@ -264,15 +258,12 @@ GenInp.prototype.new_instance = function(inpinfo) {
       // not undetstand yet
       if (inpinfo.mcch.length == 1) {
         commit_char(inpinfo, inpinfo.mcch[0]);
-        trace('');
         return jscin.IMKEY_COMMIT;
       } else {
         self.mode.INPINFO_MODE_MCCH = true;
-        trace('');
         return return_correct();
       }
     } else {
-      trace('');
       if (self.conf.mode.INP_MODE_AUTORESET)
         reset_keystroke(inpinfo);
       else
