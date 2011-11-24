@@ -19,7 +19,7 @@ croscin.IME = function() {
   var self = this;
 
   // TODO(hungte) load default debug flag from options
-  self.debug = false;
+  self.debug = true;
 
   self.kOptionsPage = "options";
 
@@ -246,6 +246,53 @@ croscin.IME = function() {
     self.UpdateMenu();
   }
 
+  self.LoadExtensionResource = function(url) {
+    var rsrc = chrome.extension.getURL(url);
+    var xhr = new XMLHttpRequest();
+    self.log("croscin.LoadExtensionResource: " + url);
+    xhr.open("GET", rsrc, false);
+    xhr.send();
+    if (xhr.readyState != 4 || xhr.status != 200) {
+      self.log("croscin.LoadExtensionResource: failed to fetch: " + url);
+      return null;
+    }
+    return xhr.responseText;
+  }
+
+  self.LoadBuiltinTables = function() {
+    var list = self.LoadExtensionResource("tables/builtin.json");
+    if (!list) {
+      self.log("croscin.LoadBuiltinTables: No built-in tables.");
+      return;
+    }
+    var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+    list = JSON.parse(list);
+    for (var table_name in list) {
+      if (table_name in table_metadata) {
+        self.log("croscin.LoadBuiltinTables: skip loaded table: " + table_name);
+        continue;
+      }
+      var content = self.LoadExtensionResource("tables/" + list[table_name]);
+      if (!content) {
+        self.log("croscin.LoadBuiltinTables: Failed to load: " + table_name);
+        continue;
+      }
+      var results = parseCin(content);
+      if (!results[0]) {
+        self.log("croscin.LoadBuiltinTables: Incorrect table: " + table_name);
+        continue;
+      }
+      var table_content = results[1].data;
+      self.log(table_content);
+      var ename = table_content['ename'];
+      table_content['builtin'] = true;
+      table_metadata[ename] = table_content;
+      jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + ename, table_content);
+    }
+    jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+  }
+
+  self.LoadBuiltinTables();
   jscin.reload_configuration();
   self.registerEventHandlers();
   // Start the default input method.

@@ -130,8 +130,8 @@ jscin.reload_configuration = function() {
         self.kDefaultCinTableKey, self.default_input_method);
     if (!(self.default_input_method in self.input_methods)) {
       self.log("jscin.reload_configuration: invalid default input method: " +
-               self.default_input_method + ", picked: " + any_one);
-      self.default_input_method = any_one;
+               self.default_input_method + ", picked: " + any_im);
+      self.default_input_method = any_im;
     }
   }
 }
