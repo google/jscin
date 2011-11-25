@@ -27,7 +27,6 @@ GenInp = function(name) {
     'AUTO_FULLUP': false,
     'SPACE_AUTOUP': false,
     'SELKEY_SHIFT': false,
-    'SPACE_AUTOUP': false,
     'SPACE_RESET': true,
     'AUTO_RESET': false,
     'WILD_ENABLE': true,
@@ -56,7 +55,7 @@ GenInp = function(name) {
   };
   this.conf = { 'mode': {} };
   for (var k in conf_mapping) {
-    if (k in conf) {
+    if (!(k in conf)) {
       this.conf.mode[conf_mapping[k]] = default_conf[k];
     } else {
       this.conf.mode[conf_mapping[k]] = conf[k];
@@ -80,6 +79,10 @@ GenInp = function(name) {
   if (this.header.endkey) {
     this.conf.mode.INP_MODE_ENDKEY = true;
   }
+}
+
+GenInp.prototype.get_metadata = function(inpinfo) {
+  return this.header;
 }
 
 // init for each input instance
@@ -282,7 +285,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (self.conf.mode.INP_MODE_SELKEYSHIFT) {
         idx++;
       }
-      if (idx >= inpinfo.selkey.length &&
+      if (idx >= inpinfo.selkey.length ||
           idx >= inpinfo.mcch.length) {
         return 0;
       }
@@ -508,12 +511,12 @@ GenInp.prototype.new_instance = function(inpinfo) {
         if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {
           self.mode.INPINFO_MODE_INWILD = true;
         } else {
-          return ret;  // don't support qphrase
+          return jscin.IMKEY_IGNORE;  // don't support qphrase
         }
       } else if (keyinfo.ctrlKey) {
-        return ret;  // don't support qphrase
+        return jscin.IMKEY_IGNORE;  // don't support qphrase
       } else if (keyinfo.altKey) {
-        return ret;  // don't support qphrase
+        return jscin.IMKEY_IGNORE;  // don't support qphrase
       } else if (!wch) {
         return ret | jscin.IMKEY_IGNORE;
       } else if (len >= max_len) {

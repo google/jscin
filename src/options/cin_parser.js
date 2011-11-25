@@ -5,7 +5,8 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
-// Return an object containing the parsed data on success, or null on failure.
+// Returns an array, which is [true, parsed_data] on success, or [false, error
+// message] on failure. parsed_data is an object, containing metadata and data.
 function parseCin(cin_input) {
   var lines = cin_input.split('\n');
   var data = {};
@@ -25,7 +26,7 @@ function parseCin(cin_input) {
     }
 
     // Command line
-    var m = line.match(/^%(\w+)(?:\s+(\S+))?/);
+    var m = line.match(/^%(\w+)(?:\s+([^\t]+))?/);
     if (m) {
       var cmd = m[1];
       var arg = m[2];
@@ -52,9 +53,12 @@ function parseCin(cin_input) {
     } else if (table_command[cmd]) {
       // Extra arguments
       if (!cmd) continue;
-      m = line.match(/^\s*(\S+)\s+(\S+)/);
+      m = line.match(/^\s*(\S+)\s+([^\t]+)/);
       if (m) {
         var key = m[1];
+        if (m[2].length > 1) {  // TODO(kcwu): gcin's cin allow phrase
+          continue;
+        }
         key = key.toUpperCase();
         if (data[cmd][key] == undefined)
           data[cmd][key] = '';
@@ -69,6 +73,9 @@ function parseCin(cin_input) {
     return failed(lineno, 'previous section has no end');
 
   // verify mandatory fields
+  if (data['prompt']) {  // gcin format
+    data['cname'] = data['prompt'];
+  }
   var mandatory_command = [
       'ename', 'cname', 'selkey', 'keyname', 'chardef'
       ];
