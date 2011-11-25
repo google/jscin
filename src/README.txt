@@ -7,7 +7,8 @@ Modules:
   - gen_inp.js: General input method module.
 
 Tables:
-  - hardcode.js: A temporary hacked table.
+  - tables/builtin.json: List of built-in tables.
+  - tables/*.cin: Built-in tables.
 
 Platform bindings:
   ChromeOS:

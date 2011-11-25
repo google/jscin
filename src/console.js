@@ -7,15 +7,64 @@
 
 // Equivelant to croscin.html (extension entry page).
 load('jscin.js');
+load('options/cin_parser.js');
 load('gen_inp.js');
-load('hardcode.js');
 
-// TODO(hungte) stub to replace croscin.js, or simply call gen_inp directly.
-// load('croscin.js');
+var _storage = {}
+
+jscin.readLocalStorage = function(key, default_value) {
+  if (key in _storage)
+    return _storage[key];
+  return default_value;
+}
+
+jscin.writeLocalStorage = function(key, data) {
+  _storage[key] = data;
+}
+
+var imctx = {};
+var im = null;
+
+function LoadTable(table_url) {
+  var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+  var cin = parseCin(read(table_url));
+  if (!cin[0]) {
+    print("ERROR: Invalid table: " + table_url);
+    return;
+  }
+  var table_content = cin[1].data;
+  var ename = table_content['ename'];
+  table_metadata[ename] = table_content;
+  jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + ename, table_content);
+  jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+  jscin.reload_configuration();
+  return ename;
+}
+
+function ActivateInputMethod(name) {
+  if (name in jscin.input_methods) {
+    imctx = {};
+    im = jscin.create_input_method(name, imctx);
+  } else {
+    print("ActivateInputMethod: Invalid item: " + name);
+  }
+}
 
 function Simulate(ev) {
   // TODO replace me with stub for function we're going to test.
   print("  > Simulate: " + ev);
+  var ret = im.onKeystroke(imctx, ev);
+  switch (ret) {
+    case jscin.IMKEY_COMMIT:
+      print("Simuate result: IMKEY_COMMIT");
+      break;
+    case jscin.IMKEY_ABSORB:
+      print("Simuate result: IMKEY_ABSORB");
+      break;
+    case jscin.IMKEY_IGNORE:
+      print("Simuate result: IMKEY_IGNORE");
+      break;
+  }
 }
 
 function create_key_event(ch, keyname) {
@@ -38,8 +87,16 @@ function create_key_event(ch, keyname) {
 
 function console_main() {
   // You must execute this program with SpiderMonkey jsshell or V8 "d8".
+  write("Input table file to load: ");
+  var im_name = LoadTable(readline());
+  if (!im_name) {
+    print("Failed to load table. Abort.");
+    return;
+  }
+  ActivateInputMethod(im_name);
   print("Started CIN emulation. Please enter key strokes then ENTER.");
   print("To simulate special keys, press Ctrl-K first then type key name:");
+  write("> ");
 
   while (str = readline()) {
     print("# Raw input: [" + str + "]");
@@ -47,13 +104,13 @@ function console_main() {
     if (str.charCodeAt(0) == 11) {
       keyname = str.substring(1);
       str = ' ';
-
     }
     for (i in str) {
       ev = create_key_event(str[i], keyname);
       print("# Simulating: " + ev.key);
       Simulate(ev);
     }
+    write("> ");
   }
 }
 

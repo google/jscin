@@ -625,12 +625,4 @@ function main() {
 }
 
 // Entry stub
-if (typeof(console) == typeof(undefined)) {
-  load('jscin.js');
-  jscin.register_module('GenInp', GenInp);
-  load('hardcode.js');
-  main();
-} else {
-  // jscin must be already loaded.
-  jscin.register_module('GenInp', GenInp);
-}
+jscin.register_module('GenInp', GenInp);
