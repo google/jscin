@@ -1,17 +1,19 @@
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Chrome OS CIN Options</title>
     <link rel="stylesheet" href="options.css" type="text/css"/>
     <script type="text/javascript" src="options.js"></script>
     <script type="text/javascript" src="cin_parser.js"></script>
   </head>
   <body onload="init()">
+    <h1>CrosCIN Options 輸入法選項設定</h1>
     <!-- TODO (hungte) A flag to configure debug mode. -->
     Input method tables (*.cin):
     <table id="cin_table_table" class="cin_tables">
       <thead>
         <tr>
-          <th class="name_head">Name</th>
+          <th class="name_head" colspan="2">Name</th>
           <th class="default_head">Default</th>
           <th class="remove_head"></th>
           <th class="reload_head"></th>

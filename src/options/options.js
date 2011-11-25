@@ -53,7 +53,7 @@ function addTableUrl(url) {
             parsed_data.metadata.url = url;
             if (addCinTable(parsed_data)) {
               // Update the UI
-              addCinTableToTable(parsed_data.metadata.ename, url);
+              addCinTableToTable(parsed_data.metadata);
               setAddUrlStatus("OK", false);
             } else {
               setAddUrlStatus("Table not added", true);
@@ -92,7 +92,7 @@ function addTableFile(evt) {
           var parsed_data = parsed_result[1];
           if (addCinTable(parsed_data)) {
             // Update the UI
-            addCinTableToTable(parsed_data.metadata.ename);
+            addCinTableToTable(parsed_data.metadata);
             setAddFileStatus("OK", false);
           } else {
             setAddFileStatus("Table not added", true);
@@ -153,14 +153,21 @@ function setAddFileStatus(status, error) {
   }
 }
 
-function addCinTableToTable(name, url, builtin) {
+function addCinTableToTable(metadata) {
+  var name = metadata.ename;
+  var cname = metadata.cname;
+  var url = metadata.url;
+  var builtin = metadata.builtin;
+
   var table = document.getElementById("cin_table_table");
 
   var row = table.tBodies[0].insertRow(-1);
 
-  // Cell: name.
+  // Cell: (ename, cname)
   var cell = row.insertCell(-1);
   cell.innerHTML = name;
+  var cell = row.insertCell(-1);
+  cell.innerHTML = cname;
 
   // Cell: Default
   cell = row.insertCell(-1);
@@ -213,7 +220,9 @@ function addCinTableToTable(name, url, builtin) {
 
   // Cell: URL
   cell = row.insertCell(-1);
-  if (url) {
+  if (builtin) {
+    cell.innerHTML = "(builtin)";
+  } else if (url) {
     cell.innerHTML = url;
   }
 }
@@ -248,8 +257,7 @@ function loadCinTables() {
   var table_metadata = readLocalStorage(kTableMetadataKey);
   if (table_metadata) {
     for (table_name in table_metadata) {
-      addCinTableToTable(table_name, table_metadata[table_name].url,
-                         table_metadata[table_name].builtin);
+      addCinTableToTable(table_metadata[table_name]);
     }
   }
   document.getElementById(kDefaultCinTableRadioId +
