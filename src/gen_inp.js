@@ -5,9 +5,7 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-// TODO(kcwu): better way to load conf and table
 function find_ime_data(name) {
-  var kTableMetadataKey = "table_metadata";
   var kTableDataKeyPrefix = "table_data-";
   var data = jscin.readLocalStorage(kTableDataKeyPrefix + name);
   return data;
@@ -58,7 +56,7 @@ GenInp = function(name) {
   };
   this.conf = { 'mode': {} };
   for (var k in conf_mapping) {
-    if (conf[k] == undefined) {
+    if (k in conf) {
       this.conf.mode[conf_mapping[k]] = default_conf[k];
     } else {
       this.conf.mode[conf_mapping[k]] = conf[k];
@@ -221,7 +219,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     else
       ret = match_keystroke_wild(inpinfo);
     if (inpinfo.mcch.length > 1 && self.mode.INPINFO_MODE_SPACE)
-      self.mode.INPINFO_MODE_SPACE;
+      self.mode.INPINFO_MODE_SPACE = false;
     return ret;
   }
   function commit_char(inpinfo, cch) {
