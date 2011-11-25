@@ -188,10 +188,13 @@ function addCinTableToTable(metadata) {
 
   // Cell: Remove button
   cell = row.insertCell(-1);
-  if (!builtin) {
+  if (true) {
     var button = document.createElement('input');
     button.type = 'button';
-    button.value = 'Remove';
+    if (builtin)
+      button.value = 'Expire';
+    else
+      button.value = 'Remove';
     button.onclick = function () {
       deleteCinTable(name);
       table.tBodies[0].deleteRow(row.sectionRowIndex);
