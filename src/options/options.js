@@ -47,6 +47,7 @@ function addTableUrl(url) {
     table_loading[url] = true;
     writeLocalStorage(kTableLoading, table_loading);
 
+    setAddUrlStatus("Loading...", false);
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
       if (this.readyState == 4) {

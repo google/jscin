@@ -6,6 +6,11 @@
   color: Red;
 }
 
+h1 {
+  color: #33a;
+  text-shadow: #ccf 2px 2px;
+}
+
 table.cin_tables {
   background: #CCC;
   font-size: 14px;
