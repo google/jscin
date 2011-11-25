@@ -27,6 +27,7 @@ var im = null;
 
 function LoadTable(table_url) {
   var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+  print("table_url: [" + table_url + "]");
   var cin = parseCin(read(table_url));
   if (!cin[0]) {
     print("ERROR: Invalid table: " + table_url);
@@ -85,17 +86,28 @@ function create_key_event(ch, keyname) {
   return ev;
 }
 
-function console_main() {
+function console_main(argv) {
   // You must execute this program with SpiderMonkey jsshell or V8 "d8".
-  write("Input table file to load: ");
-  var im_name = LoadTable(readline());
+  print("JSCIN Eumlator\n");
+
+  var im_url = "";
+  if (argv.length > 0) {
+    for (var i in argv) {
+      im_name = LoadTable(argv[i]);
+    }
+  } else {
+    print("No input table file assigned. \n" +
+          "You can specify that in command line (d8 console.js -- FILE).\n");
+    write("Input table file to load: ");
+    im_name = LoadTable(readline());
+  }
   if (!im_name) {
     print("Failed to load table. Abort.");
     return;
   }
   ActivateInputMethod(im_name);
-  print("Started CIN emulation. Please enter key strokes then ENTER.");
-  print("To simulate special keys, press Ctrl-K first then type key name:");
+  print("To simulate simple keystrokes, type them all and then ENTER.");
+  print("To simulate special keys, press Ctrk-K first then type key name.");
   write("> ");
 
   while (str = readline()) {
@@ -114,4 +126,4 @@ function console_main() {
   }
 }
 
-console_main();
+console_main(arguments);
