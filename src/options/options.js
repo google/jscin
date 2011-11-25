@@ -21,6 +21,11 @@ function init() {
       'change', addTableFile, false);
 }
 
+function onDebugModeChange() {
+  var value = document.getElementById("debug_mode_input").checked;
+  chrome.extension.getBackgroundPage().on_debug_mode_change(value);
+}
+
 function onAddTableUrl() {
   var url = document.getElementById("cin_table_url_input").value;
   addTableUrl(url);

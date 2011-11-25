@@ -376,6 +376,10 @@ croscin.IME.prototype.registerEventHandlers = function() {
     }
   });
 
+  window.on_debug_mode_change = function(debug) {
+    self.debug = debug;
+  }
+
   window.on_config_changed = function() {
     // Some configuration is changed - we need to validate and refresh all.
     self.log("croscin.on_config_changed: notified.");
