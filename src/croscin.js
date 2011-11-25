@@ -26,6 +26,7 @@ croscin.IME = function() {
   self.imctx = {};
   self.im = null;
   self.im_name = '';
+  self.im_label = '';
 
   self.engineID = null;
   self.context = null;
@@ -168,6 +169,8 @@ croscin.IME = function() {
       self.ime_api.setCandidates(arg);
       self.SetCanditesWindowProperty('pageSize', candidate_list.length);
       self.SetCanditesWindowProperty('visible', true);
+      self.SetCanditesWindowProperty('auxiliaryText', self.im_label);
+      self.SetCanditesWindowProperty('auxiliaryTextVisible', true);
     } else {
       self.SetCanditesWindowProperty('visible', false);
     }
@@ -184,22 +187,24 @@ croscin.IME = function() {
   }
 
   self.ActivateInputMethod = function(name) {
-    // kDefaultCinTableKey should match options/options.js
-    var kDefaultCinTableKey = "default_cin_table";
 
+    if (name && name == self.im_name) {
+      self.log("croscin.ActivateInputMethod: already activated: " + name);
+      return;
+    }
     if (!name) {
       name = jscin.readLocalStorage(
-          kDefaultCinTableKey, jscin.default_input_method);
+          jscin.kDefaultCinTableKey, jscin.default_input_method);
     }
 
     if (name in jscin.input_methods) {
       self.log("croscin.ActivateInputMethod: Started: " + name);
-      // TODO(hungte) Create new instance only if required.
       self.imctx = {};
       self.im = jscin.create_input_method(name, self.imctx);
       self.im_name = name;
+      self.im_label = jscin.get_input_method_label(name);
       self.InitializeUI();
-      jscin.writeLocalStorage(kDefaultCinTableKey, name);
+      jscin.writeLocalStorage(jscin.kDefaultCinTableKey, name);
       jscin.default_input_method = name;
     } else {
       self.log("croscin.ActivateInputMethod: Invalid item: " + name);

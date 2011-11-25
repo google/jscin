@@ -104,6 +104,15 @@ jscin.create_input_method = function(name, context) {
   return jscin.input_methods[name]["new_instance"].new_instance(context);
 }
 
+jscin.get_input_method_label = function(name) {
+  var self = jscin;
+  if (!(name in self.input_methods)) {
+    self.log("jscin: Unknown input method: " + name);
+    return null;
+  }
+  return jscin.input_methods[name]["label"];
+}
+
 jscin.reload_configuration = function() {
   var self = jscin;
 

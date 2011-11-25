@@ -15,7 +15,8 @@
       "type": "ime",
       "id": "cros_cin",
       "description": "ChromeOS Chinese Input Method (xcin compatible)",
-      "language": "zh",  // The primary language this IME is used for
+      "language": "\u4e2d\u6587",  // The primary language this IME is used for,
+                          // and displayed on menu selection.
       "layouts": ["us::eng"]
     }
   ]
