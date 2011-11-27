@@ -56,9 +56,6 @@ function parseCin(cin_input) {
       m = line.match(/^\s*(\S+)\s+([^\t]+)/);
       if (m) {
         var key = m[1];
-        //if (m[2].length > 1) {  // TODO(kcwu): gcin's cin allow phrase
-        //  continue;
-        //}
         key = key.toUpperCase();
         if (data[cmd][key] == undefined)
           data[cmd][key] = '';

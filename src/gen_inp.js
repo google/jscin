@@ -5,17 +5,11 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-function find_ime_data(name) {
-  var kTableDataKeyPrefix = "table_data-";
-  var data = jscin.readLocalStorage(kTableDataKeyPrefix + name);
-  return data;
-}
-
 // init for IME, ex. Zhuyin, Array
 GenInp = function(name) {
   this.name = name;
 
-  var conf = find_ime_data(name);
+  var conf = jscin.getTableData(name);
   if (!conf) {
     trace('failed to load data');
     return;
@@ -79,10 +73,6 @@ GenInp = function(name) {
   if (this.header.endkey) {
     this.conf.mode.INP_MODE_ENDKEY = true;
   }
-}
-
-GenInp.prototype.get_metadata = function(inpinfo) {
-  return this.header;
 }
 
 // init for each input instance
@@ -557,72 +547,6 @@ GenInp.prototype.new_instance = function(inpinfo) {
   return self;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// Debugging and unit tests
-
-function dump_object(obj, indent) {
-  if (obj == null) return 'null';
-  if (typeof(obj) == 'string') return "'" + obj + "'";
-  if (typeof(obj) != 'object') return obj;
-  if (obj.constructor.toString().match(/array/i)) {
-    return '[' + obj + ']';
-  }
-
-  var prefix = '';
-  for (var i = 0; i < indent; i++) prefix += ' ';
-
-  var s = '';
-  for (var k in obj) {
-    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
-  }
-  return s;
-}
-
-function dump_inpinfo(inpinfo) {
-  return dump_object(inpinfo, 2);
-}
-
-function simulate(inst, inpinfo, input) {
-  for (var i in input) {
-    var keyinfo = {'key': input[i]};
-    var ret = inst.onKeystroke(inpinfo, keyinfo);
-    print('ret = ' + ret);
-    print(dump_inpinfo(inpinfo));
-    print('');
-  }
-}
-
-function trace(s) {
-  var e = new Error();
-  var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
-  var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
-  var msg = prefix + s;
-  if (typeof(console) == typeof(undefined)) {
-    print(msg);
-  } else {
-    jscin.log(msg);
-  }
-}
-
-function main() {
-  var inpinfo = {};
-  var try_with_jscin = false;
-  var inst = null;
-  var ename = 'builtin-array30';
-  //var ename = 'builtin-liu';
-
-  if (try_with_jscin) {
-    inst = jscin.create_input_method(ename, inpinfo);
-  } else {
-    var liu = new GenInp(ename);
-    inst = liu.new_instance(inpinfo);
-  }
-
-  //simulate(inst, inpinfo, ['a', ' ']);
-  //simulate(inst, inpinfo, ['a', ' ', '1']);
-  //simulate(inst, inpinfo, ['l', 'n', ' ']);
-  //simulate(inst, inpinfo, ['l', 'n', '1']);
-}
-
 // Entry stub
 jscin.register_module('GenInp', GenInp);
+

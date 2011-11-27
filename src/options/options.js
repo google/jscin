@@ -5,17 +5,16 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
-var kTableLoading = "loading";
-var kTableMetadataKey = "table_metadata";
-var kTableDataKeyPrefix = "table_data-";
-var kDefaultCinTableKey = "default_cin_table";
+var table_loading = {};
 
 var kDefaultCinTableRadioName = "default_radio_name";
 var kDefaultCinTableRadioId = "default_radio_";
 var kDefaultCinTableDefault = "predefined-array30";
 
+// this is dirty hack
+var jscin = chrome.extension.getBackgroundPage().jscin;
+
 function init() {
-  writeLocalStorage(kTableLoading, {});
   loadCinTables();
   document.getElementById("cin_table_file_input").addEventListener(
       'change', addTableFile, false);
@@ -37,15 +36,10 @@ function addTableUrl(url) {
     return;
   }
 
-  var table_metadata = readLocalStorage(kTableMetadataKey, {});
-  var table_loading = readLocalStorage(kTableLoading, {});
-
   if (table_loading[url]) {
     setAddUrlStatus("Table is loading", false);
   } else {
-    // Write a placeholder value.
     table_loading[url] = true;
-    writeLocalStorage(kTableLoading, table_loading);
 
     setAddUrlStatus("Loading...", false);
     var xhr = new XMLHttpRequest();
@@ -74,9 +68,7 @@ function addTableUrl(url) {
           setAddUrlStatus("Could not read url.  Server returned " + this.status,
                           true);
         }
-        table_loading = readLocalStorage(kTableLoading, {});
         delete table_loading[url];
-        writeLocalStorage(kTableLoading, table_loading);
       }
     }
     xhr.open("GET", url, true);
@@ -116,27 +108,16 @@ function addTableFile(evt) {
 }
 
 function addCinTable(data) {
-  // Update the entry in localStorage
-  var table_metadata = readLocalStorage(kTableMetadataKey, {});
-
-  if (table_metadata[data.metadata.ename] != undefined) {
+  var metadata = jscin.getTableMetadatas()[data.metadata.ename];
+  if (metadata) {
     if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
       return false;
     } else {
       removeCinTableFromTable(data.metadata.ename);
     }
   }
-  table_metadata[data.metadata.ename] = data.metadata;
-  writeLocalStorage(kTableMetadataKey, table_metadata);
-  writeLocalStorage(kTableDataKeyPrefix + data.metadata.ename, data.data);
+  jscin.addTable(data.metadata.ename, data.metadata, data.data);
   return true;
-}
-
-function deleteCinTable(name) {
-  var table_metadata = readLocalStorage(kTableMetadataKey, {});
-  delete table_metadata[name];
-  deleteLocalStorage(kTableDataKeyPrefix + name);
-  writeLocalStorage(kTableMetadataKey, table_metadata);
 }
 
 function setAddUrlStatus(status, error) {
@@ -182,7 +163,8 @@ function addCinTableToTable(metadata) {
   radio.name = kDefaultCinTableRadioName;
   radio.id = kDefaultCinTableRadioId + name;
   radio.onclick = function () {
-    setDefaultCinTable(name);
+    jscin.setDefaultCinTable(name);
+    notifyConfigChanged();
   }
   cell.appendChild(radio);
 
@@ -196,11 +178,13 @@ function addCinTableToTable(metadata) {
     else
       button.value = 'Remove';
     button.onclick = function () {
-      deleteCinTable(name);
+      jscin.deleteTable(name);
+      notifyConfigChanged();
       table.tBodies[0].deleteRow(row.sectionRowIndex);
 
-      if (getDefaultCinTable() == name) {
-        setDefaultCinTable(kDefaultCinTableDefault);
+      if (jscin.getDefaultCinTable() == name) {
+        jscin.setDefaultCinTable(kDefaultCinTableDefault);
+        notifyConfigChanged();
         document.getElementById(kDefaultCinTableRadioId +
                                 kDefaultCinTableDefault).checked = true;
       }
@@ -215,10 +199,12 @@ function addCinTableToTable(metadata) {
     reload_button.type = 'button';
     reload_button.value = 'Reload';
     reload_button.onclick = function () {
-      deleteCinTable(name);
+      jscin.deleteTable(name);
+      notifyConfigChanged();
       table.tBodies[0].deleteRow(row.sectionRowIndex);
-      if (getDefaultCinTable() == name) {
-        setDefaultCinTable(kDefaultCinTableDefault);
+      if (jscin.getDefaultCinTable() == name) {
+        jscin.setDefaultCinTable(kDefaultCinTableDefault);
+        notifyConfigChanged();
         document.getElementById(kDefaultCinTableRadioId +
                                 kDefaultCinTableDefault).checked = true;
       }
@@ -244,8 +230,9 @@ function removeCinTableFromTable(name, url) {
     if (row.cells[0].innerHTML == name) {
       table.tBodies[0].deleteRow(i);
 
-      if (getDefaultCinTable() == name) {
-        setDefaultCinTable(kDefaultCinTableDefault);
+      if (jscin.getDefaultCinTable() == name) {
+        jscin.setDefaultCinTable(kDefaultCinTableDefault);
+        notifyConfigChanged();
         document.getElementById(kDefaultCinTableRadioId +
                                 kDefaultCinTableDefault).checked = true;
       }
@@ -254,42 +241,15 @@ function removeCinTableFromTable(name, url) {
   }
 }
 
-function setDefaultCinTable(name) {
-  writeLocalStorage(kDefaultCinTableKey, name);
-}
-
-function getDefaultCinTable() {
-  return readLocalStorage(kDefaultCinTableKey, kDefaultCinTableDefault);
-}
-
 function loadCinTables() {
-  var table_metadata = readLocalStorage(kTableMetadataKey);
-  if (table_metadata) {
-    for (table_name in table_metadata) {
-      addCinTableToTable(table_metadata[table_name]);
-    }
+  var metadatas = jscin.getTableMetadatas();
+  for (var name in metadatas) {
+    addCinTableToTable(metadatas[name]);
   }
   document.getElementById(kDefaultCinTableRadioId +
-                          getDefaultCinTable()).checked = true;
+                          jscin.getDefaultCinTable()).checked = true;
 }
 
 function notifyConfigChanged() {
   chrome.extension.getBackgroundPage().on_config_changed();
-}
-
-function readLocalStorage(key, default_value) {
-  var data = localStorage[key];
-  if (!data) {
-    return default_value;
-  }
-  return JSON.parse(data);
-}
-
-function writeLocalStorage(key, data) {
-  localStorage[key] = JSON.stringify(data);
-  notifyConfigChanged();
-}
-
-function deleteLocalStorage(key) {
-  delete localStorage[key];
 }

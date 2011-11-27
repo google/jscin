@@ -270,7 +270,7 @@ croscin.IME = function() {
       self.log("croscin.LoadBuiltinTables: No built-in tables.");
       return;
     }
-    var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+    var table_metadata = jscin.getTableMetadatas();
     list = JSON.parse(list);
     for (var table_name in list) {
       if (table_name in table_metadata) {
@@ -288,26 +288,27 @@ croscin.IME = function() {
         continue;
       }
       var table_content = results[1].data;
+      var metadata = results[1].metadata;
       self.log(table_content);
-      var ename = table_content['ename'];
-      table_content['builtin'] = true;
-      table_metadata[ename] = table_content;
-      jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + ename, table_content);
+      var ename = metadata['ename'];
+      metadata['builtin'] = true;
+      jscin.addTable(ename, metadata, table_content);
     }
-    jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
   }
 
   self.LoadBuiltinTables();
   jscin.reload_configuration();
+  self.resolve_ime_api();
+  if (navigator.appVersion.match(/Mac OS/)) {
+    self.hook_dumb_ime();
+    jscin.ime_api = self.ime_api;  // FIXME(kcwu): dirty hack
+  }
   self.registerEventHandlers();
   // Start the default input method.
   self.ActivateInputMethod(null);
 };
 
-/**
- * Registers event handlers to the browser.
- */
-croscin.IME.prototype.registerEventHandlers = function() {
+croscin.IME.prototype.resolve_ime_api = function() {
   /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
   var ime_api = null;
   if ("input" in chrome && "ime" in chrome.input)
@@ -317,8 +318,35 @@ croscin.IME.prototype.registerEventHandlers = function() {
   if ("ime" in ime_api)
     ime_api = ime_api.ime;
 
+  this.ime_api = ime_api;
+}
+
+croscin.IME.prototype.hook_dumb_ime = function() {
   var self = this;
-  self.ime_api = ime_api;
+  var hook_listener = [
+      'onActivate', 'onDeactivated', 'onFocus', 'onBlur', 'onKeyEvent',
+      'onInputContextUpdate', 'onCandidateClicked', 'onMenuItemActivated',
+      ];
+  jscin.dumb_ime = { 'listener': {} };
+  ime_api = self.ime_api;
+
+  for (var i in hook_listener) {
+    var name = hook_listener[i];
+    jscin.dumb_ime.listener[name] = [];
+    ime_api[name].addListener = (function (name) {
+      return function (arg) {
+        jscin.dumb_ime.listener[name].push(arg);
+      };
+    })(name);
+  }
+}
+
+/**
+ * Registers event handlers to the browser.
+ */
+croscin.IME.prototype.registerEventHandlers = function() {
+  var self = this;
+  ime_api = self.ime_api;
 
   ime_api.onActivate.addListener(function(engineID) {
     self.engineID = engineID;
@@ -391,6 +419,8 @@ croscin.IME.prototype.registerEventHandlers = function() {
     jscin.reload_configuration();
     self.InitializeUI();
   }
+
+  window.jscin = jscin;
 };
 
 // Browser loader entry
@@ -398,7 +428,7 @@ document.addEventListener(
     'readystatechange',
     function() {
       if (document.readyState === 'complete') {
-        new croscin.IME;
+        foobar = new croscin.IME;
       }
     }
 )

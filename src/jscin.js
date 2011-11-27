@@ -65,7 +65,7 @@ jscin.register_input_method = function(name, module_name, cname) {
   }
   self.input_methods[name] = {
     'label': cname,
-    'new_instance': new self.modules[module_name](name)};
+    'module': self.modules[module_name] };
   self.log("jscin: Registered input method: " + name);
 
   if (!self.default_input_method)
@@ -101,7 +101,8 @@ jscin.create_input_method = function(name, context) {
     return false;
   }
   self.log("jscin: Created input method instance: " + name);
-  return jscin.input_methods[name]["new_instance"].new_instance(context);
+  var module = jscin.input_methods[name]["module"];
+  return (new module(name)).new_instance(context);
 }
 
 jscin.get_input_method_label = function(name) {
@@ -119,11 +120,11 @@ jscin.reload_configuration = function() {
   // Reset input methods
   self.input_methods = {};
   var count_ims = 0;
-  var table_metadata = self.readLocalStorage(self.kTableMetadataKey, {});
   var any_im = '';
-  for (var name in table_metadata) {
+  for (var name in self.getTableMetadatas()) {
     // TODO(hungte) support more modules in future.
-    self.register_input_method(name, 'GenInp', table_metadata[name].cname);
+    var metadatas = jscin.getTableMetadatas();
+    self.register_input_method(name, 'GenInp', metadatas[name].cname);
     if (!any_im)
       any_im = name;
     count_ims++;
@@ -143,6 +144,40 @@ jscin.reload_configuration = function() {
       self.default_input_method = any_im;
     }
   }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Table management
+jscin.addTable = function (name, metadata, data) {
+  print('addTable(' + name + ',' + metadata);
+  var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+  metadata.ename = name;
+  table_metadata[name] = metadata;
+  jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+  jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + name, data);
+}
+
+jscin.getTableMetadatas = function () {
+  return jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+}
+
+jscin.getTableData = function (name) {
+  return jscin.readLocalStorage(jscin.kTableDataKeyPrefix + name);
+}
+
+jscin.deleteTable = function (name) {
+  var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+  delete table_metadata[name];
+  jscin.deleteLocalStorage(jscin.kTableDataKeyPrefix + name);
+  jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+}
+
+jscin.setDefaultCinTable = function (name) {
+  jscin.writeLocalStorage(jscin.kDefaultCinTableKey, name);
+}
+
+jscin.getDefaultCinTable = function () {
+  return jscin.readLocalStorage(jscin.kDefaultCinTableKey, jscin.kDefaultCinTableDefault);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -167,3 +202,40 @@ jscin.writeLocalStorage = function (key, data) {
 }
 
 // TODO(hungte) some place for global configuration data.
+function dump_object(obj, indent) {
+  if (obj == null) return 'null';
+  if (typeof(obj) == 'string') return "'" + obj + "'";
+  if (typeof(obj) != 'object') return obj;
+  if (obj.constructor.toString().match(/array/i)) {
+    return '[' + obj + ']';
+  }
+
+  var prefix = '';
+  for (var i = 0; i < indent; i++) prefix += ' ';
+
+  var s = '';
+  for (var k in obj) {
+    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
+  }
+  return s;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Debugging and unit tests
+
+function trace(s) {
+  var e = new Error();
+  var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
+  var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
+  var msg = prefix + s;
+  if (typeof(console) == typeof(undefined)) {
+    print(msg);
+  } else {
+    jscin.log(msg);
+  }
+}
+
+function dump_inpinfo(inpinfo) {
+  return dump_object(inpinfo, 2);
+}
+
