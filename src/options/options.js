@@ -14,14 +14,85 @@ var kDefaultCinTableDefault = "predefined-array30";
 // this is dirty hack
 var jscin = chrome.extension.getBackgroundPage().jscin;
 
-$(function() {
-  init();
-});
+$(init);
 
 function init() {
   loadCinTables();
-  document.getElementById("cin_table_file_input").addEventListener(
-      'change', addTableFile, false);
+
+  var select = $("#add_table_setting");
+  var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
+  select.html("");
+  for (var i in setting_options) {
+    var setting = setting_options[i];
+    var option = $("<option>", { "id": "option" + i });
+    option.html(setting.ename + ' ' + setting.cname);
+    select.append(option);
+  }
+
+  $("#add_table_dialog").dialog({
+    autoOpen: false,
+    width: 800,
+    modal: true,
+  });
+
+  $("#add_url_button").click(function(event) {
+    setAddTableStatus("");
+    $("#file_div").hide();
+    $("#url_div").show();
+    $("#add_table_dialog").dialog('option', 'buttons', [
+      {
+        text: "Add Table",
+        click: function() {
+          var url = document.getElementById("cin_table_url_input").value;
+          var setting = getSettingOption();
+          onAddTableUrl(url, setting);
+          $( this ).dialog( "close" );
+        }
+      },
+      {
+        text: "Cancel",
+        click: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    ]).dialog("open");
+  });
+
+  $("#add_file_button").click(function(event) {
+    setAddTableStatus("");
+    $("#file_div").show();
+    $("#url_div").hide();
+    $("#add_table_dialog").dialog('option', 'buttons', [
+      {
+        text: "Add Table",
+        click: function() {
+          var files = document.getElementById("cin_table_file_input").files;
+          var setting = getSettingOption();
+          onAddTableFile(files, setting);
+          $( this ).dialog( "close" );
+        }
+      },
+      {
+        text: "Cancel",
+        click: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    ]).dialog("open");
+  });
+}
+
+function LoadExtensionResource(url) {
+  var rsrc = chrome.extension.getURL(url);
+  var xhr = new XMLHttpRequest();
+  // self.log("croscin.LoadExtensionResource: " + url);
+  xhr.open("GET", rsrc, false);
+  xhr.send();
+  if (xhr.readyState != 4 || xhr.status != 200) {
+    // self.log("croscin.LoadExtensionResource: failed to fetch: " + url);
+    return null;
+  }
+  return xhr.responseText;
 }
 
 function onDebugModeChange() {
@@ -29,47 +100,26 @@ function onDebugModeChange() {
   chrome.extension.getBackgroundPage().on_debug_mode_change(value);
 }
 
-function onAddTableUrl() {
-  var url = document.getElementById("cin_table_url_input").value;
-  addTableUrl(url);
-}
-
-function addTableUrl(url) {
+function onAddTableUrl(url) {
   if (url.replace(/^\s+|s+$/g, "") == "") {
-    setAddUrlStatus("URL is empty", true);
+    setAddTableStatus("URL is empty", true);
     return;
   }
 
   if (table_loading[url]) {
-    setAddUrlStatus("Table is loading", false);
+    setAddTableStatus("Table is loading", false);
   } else {
     table_loading[url] = true;
 
-    setAddUrlStatus("Loading...", false);
+    setAddTableStatus("Loading...", false);
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
       if (this.readyState == 4) {
         if (this.status == 200) {
-          // Parse the entry
-          var parsed_result = parseCin(this.responseText);
-          if (parsed_result[0]) {
-            var parsed_data = parsed_result[1];
-            parsed_data.metadata.url = url;
-            if (addCinTable(parsed_data)) {
-              // Update the UI
-              addCinTableToTable(parsed_data.metadata);
-              setAddUrlStatus("OK", false);
-            } else {
-              setAddUrlStatus("Table not added", true);
-            }
-          } else {
-            var msg = parsed_result[1];
-            // Update the UI
-            setAddUrlStatus("Could not parse cin file. " + msg, true);
-          }
+          addTable(this.responseText, url);
         } else {
           // Update the UI
-          setAddUrlStatus("Could not read url.  Server returned " + this.status,
+          setAddTableStatus("Could not read url.  Server returned " + this.status,
                           true);
         }
         delete table_loading[url];
@@ -80,35 +130,63 @@ function addTableUrl(url) {
   }
 }
 
-function addTableFile(evt) {
-  var files = evt.target.files;
-
+function onAddTableFile(files) {
   for (var i = 0, file; file = files[i]; i++) {
     var reader = new FileReader();
 
-    reader.onload = (function(file_data) {
-      return function(e) {
-        // Parse the entry
-        var parsed_result = parseCin(e.target.result);
-        if (parsed_result[0]) {
-          var parsed_data = parsed_result[1];
-          if (addCinTable(parsed_data)) {
-            // Update the UI
-            addCinTableToTable(parsed_data.metadata);
-            setAddFileStatus("OK", false);
-          } else {
-            setAddFileStatus("Table not added", true);
-          }
-        } else {
-          var msg = parsed_result[1];
-          // Update the UI
-          setAddFileStatus("Could not parse cin file. " + msg, true);
-        }
-      };
-    })(file);
+    reader.onload = function(e) {
+      addTable(e.target.result);
+    };
 
     reader.readAsText(file);
   }
+}
+
+function addTable(content, url) {
+  // Parse the entry
+  var parsed_result = parseCin(content);
+  if (parsed_result[0]) {
+    var parsed_data = parsed_result[1];
+    writeSettingToData(getSettingOption(), parsed_data);
+    if(typeof url !== undefined) {
+      parsed_data.metadata.url = url;
+    }
+    if (addCinTable(parsed_data)) {
+      // Update the UI
+      addCinTableToTable(parsed_data.metadata);
+      setAddTableStatus("Table added successfully", false);
+      notifyConfigChanged();
+    } else {
+      setAddTableStatus("Table not added", true);
+    }
+  } else {
+    var msg = parsed_result[1];
+    // Update the UI
+    setAddTableStatus("Could not parse cin file. " + msg, true);
+  }
+}
+
+function setAddTableStatus(status, error) {
+  var status_field = document.getElementById("add_table_status");
+  status_field.innerHTML = status;
+  if (error) {
+    status_field.className = "status_error";
+  } else {
+    status_field.className = "status_ok";
+  }
+}
+
+function writeSettingToData(setting, parsed_data) {
+  parsed_data.metadata.setting = setting;
+  for(var option in setting.options) {
+    parsed_data.data[option] = setting.options[option];
+  }
+}
+
+function getSettingOption() {
+  var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
+  var setting = setting_options[document.getElementById("add_table_setting").selectedIndex];
+  return setting;
 }
 
 function addCinTable(data) {
@@ -215,6 +293,15 @@ function addCinTableToTable(metadata) {
       addTableUrl(url);
     }
     cell.appendChild(reload_button);
+  }
+
+  // Cell: Setting
+  var setting = metadata.setting;
+  cell = row.insertCell(-1);
+  if (builtin) {
+    cell.innerHTML = "From Table"
+  } else {
+    cell.innerHTML = setting.ename + ' ' + setting.cname;
   }
 
   // Cell: URL

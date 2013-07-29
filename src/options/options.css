@@ -15,7 +15,7 @@ h1 {
 table.cin_tables {
   background: #CCC;
   font-size: 14px;
-  width: 1000;
+  width: 1200;
 }
 table.cin_tables th {
   border-width: 0px 1px 1px 0px;
@@ -34,6 +34,9 @@ table.cin_tables th {
 }
 .reload_head {
   width: 60px;
+}
+.setting_head {
+  width: 150px;
 }
 .url_head {
   width: 600px;

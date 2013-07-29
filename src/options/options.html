@@ -20,18 +20,35 @@
           <th class="default_head">Default</th>
           <th class="remove_head"></th>
           <th class="reload_head"></th>
+          <th class="setting_head">Setting</th>
           <th class="url_head">URL</th>
         </tr>
       </thead>
       <tbody>
       </tbody>
     </table>
-    <input type=text id="cin_table_url_input"></input>
-    <button onclick="onAddTableUrl()">Add URL</button>
-    <span id="add_url_status"></span>
+    <p>
+      <button id="add_url_button">Add tables from URLs</button>
+      or
+      <button id="add_file_button">Add tables from local files</button>
+    </p>
     <br/>
-    <input type=file id="cin_table_file_input"></input>
-    <span id="add_file_status"></span>
+    <span id="add_table_status"></span>
+    <div id="add_table_dialog" title="Add table">
+      <p>
+        <div id="url_div">
+          <input type=text id="cin_table_url_input" size="80" placeholder="Enter a URL"></input>
+          <br/>
+        </div>
+        <div id="file_div">
+          <input type=file id="cin_table_file_input"></input>
+        </div>
+      </p>
+      <p>
+        <label> Setting Choices: </label>
+        <select id="add_table_setting"></select>
+      </p>
+    </div>
     <hr>
     <input type=checkbox id="debug_mode_input" onchange="onDebugModeChange()"></input>
     <label for="debug_mode_input">Enable debug messages</label><br/>

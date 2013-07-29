@@ -1,0 +1,38 @@
+[
+  {
+    "ename": "ZhuYin",
+    "cname": "注音", 
+    "options": {}
+  },
+  {
+    "ename": "ChangJei", 
+    "cname": "倉頡", 
+    "options": {}
+  },
+  {
+    "ename": "Boshiamy",
+    "cname": "嘸蝦米", 
+    "options": {
+      "AUTO_COMPOSE": true,
+      "AUTO_UPCHAR": true,
+      "SELKEY_SHIFT": true,
+      "SPACE_AUTOUP": true,
+      "SPACE_RESET": true
+    }
+  },
+  {
+    "ename": "Array30", 
+    "cname": "行列30", 
+    "options": {
+      "DISABLE_SEL_LIST": "w",
+      "KEYSTROKE_REMAP": {
+        "T": "的"
+      }
+    }
+  },
+  {
+    "ename": "From Table", 
+    "cname": "從表格", 
+    "options": {}
+  }
+]
