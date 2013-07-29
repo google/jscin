@@ -149,7 +149,7 @@ jscin.reload_configuration = function() {
 //////////////////////////////////////////////////////////////////////////////
 // Table management
 jscin.addTable = function (name, metadata, data) {
-  print('addTable(' + name + ',' + metadata);
+  // print('addTable(' + name + ',' + metadata);
   var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
   metadata.ename = name;
   table_metadata[name] = metadata;
@@ -168,7 +168,7 @@ jscin.getTableData = function (name) {
 jscin.deleteTable = function (name) {
   var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
   delete table_metadata[name];
-  jscin.deleteLocalStorage(jscin.kTableDataKeyPrefix + name);
+  delete localStorage[jscin.kTableDataKeyPrefix + name];
   jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
 }
 

@@ -202,26 +202,6 @@ function addCinTable(data) {
   return true;
 }
 
-function setAddUrlStatus(status, error) {
-  var status_field = document.getElementById("add_url_status");
-  status_field.innerHTML = status;
-  if (error) {
-    status_field.className = "status_error";
-  } else {
-    status_field.className = "status_ok";
-  }
-}
-
-function setAddFileStatus(status, error) {
-  var status_field = document.getElementById("add_file_status");
-  status_field.innerHTML = status;
-  if (error) {
-    status_field.className = "status_error";
-  } else {
-    status_field.className = "status_ok";
-  }
-}
-
 function addCinTableToTable(metadata) {
   var name = metadata.ename;
   var cname = metadata.cname;
@@ -265,10 +245,7 @@ function addCinTableToTable(metadata) {
       table.tBodies[0].deleteRow(row.sectionRowIndex);
 
       if (jscin.getDefaultCinTable() == name) {
-        jscin.setDefaultCinTable(kDefaultCinTableDefault);
-        notifyConfigChanged();
-        document.getElementById(kDefaultCinTableRadioId +
-                                kDefaultCinTableDefault).checked = true;
+        setNewDefaultCinTable();
       }
     }
     cell.appendChild(button);
@@ -311,6 +288,23 @@ function addCinTableToTable(metadata) {
   } else if (url) {
     cell.innerHTML = url;
   }
+}
+
+function setNewDefaultCinTable() {
+  var newDefaultCinTable;
+  var metadatas = jscin.getTableMetadatas();
+  // get the first table
+  for(var table in metadatas) {
+    newDefaultCinTable = metadatas[table].ename;
+    break;
+  }
+  setDefaultCinTable(newDefaultCinTable);
+}
+
+function setDefaultCinTable(name) {
+  jscin.setDefaultCinTable(name);
+  notifyConfigChanged();
+  document.getElementById(kDefaultCinTableRadioId + name).checked = true;
 }
 
 function removeCinTableFromTable(name, url) {
