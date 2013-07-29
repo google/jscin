@@ -13,6 +13,7 @@ var kDefaultCinTableDefault = "predefined-array30";
 
 // this is dirty hack
 var jscin = chrome.extension.getBackgroundPage().jscin;
+var bgPage = chrome.extension.getBackgroundPage();
 
 $(init);
 
@@ -79,6 +80,15 @@ function init() {
         }
       }
     ]).dialog("open");
+  });
+
+  $('#save_to_drive').change(function() {
+    if($('#save_to_drive').is(':checked')) {
+      $('#auth_status').html("(Uncheck if you refuse to authenticate.)");
+      bgPage.oauth.authorize(function() {
+        $('#auth_status').html('(Successfully authenticated.)');
+      });
+    }
   });
 }
 
@@ -156,6 +166,9 @@ function addTable(content, url) {
       addCinTableToTable(parsed_data.metadata);
       setAddTableStatus("Table added successfully", false);
       notifyConfigChanged();
+      if($('#save_to_drive').is(':checked')) {
+        SaveToDrive(parsed_data.metadata.ename, content);
+      }
     } else {
       setAddTableStatus("Table not added", true);
     }
@@ -164,6 +177,28 @@ function addTable(content, url) {
     // Update the UI
     setAddTableStatus("Could not parse cin file. " + msg, true);
   }
+}
+
+function SaveToDrive(ename, content) {
+  var handleSuccess = function(resp, xhr) {
+    var link = getLink(JSON.parse(resp).entry.link, 'alternate').href;
+    var link = getLink(JSON.parse(resp).entry.link, 'http://schemas.google.com/docs/2007#embed').href;
+    $("#drive_" + ename).html($('<a>', { href: link, target: '_blank' }).html('Backup on Google Drive'));
+    metadata = jscin.getTableMetadatas();
+    metadata[ename].link = link;
+    jscin.writeLocalStorage(jscin.kTableMetadataKey, metadata);
+  };
+  var params = {
+    'method': 'POST',
+    'headers': {
+      'GData-Version': '3.0',
+      'Content-Type': 'multipart/related; boundary=END_OF_PART',
+    },
+    'parameters': {'alt': 'json'},
+    'body': constructContentBody_(ename + '.cin', 'document', content, 'text/plain')
+  };
+  $("#drive_" + ename).html('Uploading to Google Drive...');
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 }
 
 function setAddTableStatus(status, error) {

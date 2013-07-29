@@ -8,6 +8,7 @@
     <script type="text/javascript" src="../jquery/jquery-ui-1.10.3.custom.js"></script>
     <script type="text/javascript" src="options.js"></script>
     <script type="text/javascript" src="cin_parser.js"></script>
+    <script type="text/javascript" src="drive.js"></script>
   </head>
   <body>
     <h1>CrosCIN Options 輸入法選項設定</h1>
@@ -47,6 +48,11 @@
       <p>
         <label> Setting Choices: </label>
         <select id="add_table_setting"></select>
+      </p>
+      <p id="save_to_drive_input">
+        <input type=checkbox id="save_to_drive">
+        <label for="save_to_drive"> Save to Google Drive </label>
+        <span id="auth_status"></span>
       </p>
     </div>
     <hr>
