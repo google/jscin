@@ -40,6 +40,8 @@ function init() {
     setAddTableStatus("");
     $("#file_div").hide();
     $("#url_div").show();
+    $("#doc_list").hide();
+    $("#save_to_drive_input").show();
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
         text: "Add Table",
@@ -63,6 +65,8 @@ function init() {
     setAddTableStatus("");
     $("#file_div").show();
     $("#url_div").hide();
+    $("#doc_list").hide();
+    $("#save_to_drive_input").show();
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
         text: "Add Table",
@@ -71,6 +75,33 @@ function init() {
           var setting = getSettingOption();
           onAddTableFile(files, setting);
           $( this ).dialog( "close" );
+        }
+      },
+      {
+        text: "Cancel",
+        click: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    ]).dialog("open");
+  });
+
+  $("#add_drive_button").click(function(event) {
+    setAddTableStatus("");
+    $("#url_div").hide();
+    $("#file_div").hide();
+    $("#doc_list").show();
+    $("#save_to_drive").prop('checked', false);
+    $("#save_to_drive_input").hide();
+    bgPage.oauth.authorize(function() {
+      getDocumentList();
+    });
+    $("#add_table_dialog").dialog('option', 'buttons', [
+      {
+        text: "OK",
+        click: function() {
+          $( this ).dialog( "close" );
+          onAddTableDrive();
         }
       },
       {
@@ -152,6 +183,16 @@ function onAddTableFile(files) {
   }
 }
 
+function onAddTableDrive() {
+  var doc;
+  for(var i = 0; doc = bgPage.docs[i]; ++i) {
+    if($('#radio' + i).is(':checked')) {
+      break;
+    }
+  }
+  onAddTableUrl(doc.entry.content.src + '&format=txt', getSettingOption());
+}
+
 function addTable(content, url) {
   // Parse the entry
   var parsed_result = parseCin(content);
@@ -177,28 +218,6 @@ function addTable(content, url) {
     // Update the UI
     setAddTableStatus("Could not parse cin file. " + msg, true);
   }
-}
-
-function SaveToDrive(ename, content) {
-  var handleSuccess = function(resp, xhr) {
-    var link = getLink(JSON.parse(resp).entry.link, 'alternate').href;
-    var link = getLink(JSON.parse(resp).entry.link, 'http://schemas.google.com/docs/2007#embed').href;
-    $("#drive_" + ename).html($('<a>', { href: link, target: '_blank' }).html('Backup on Google Drive'));
-    metadata = jscin.getTableMetadatas();
-    metadata[ename].link = link;
-    jscin.writeLocalStorage(jscin.kTableMetadataKey, metadata);
-  };
-  var params = {
-    'method': 'POST',
-    'headers': {
-      'GData-Version': '3.0',
-      'Content-Type': 'multipart/related; boundary=END_OF_PART',
-    },
-    'parameters': {'alt': 'json'},
-    'body': constructContentBody_(ename + '.cin', 'document', content, 'text/plain')
-  };
-  $("#drive_" + ename).html('Uploading to Google Drive...');
-  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 }
 
 function setAddTableStatus(status, error) {

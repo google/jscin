@@ -26,7 +26,7 @@ function parseCin(cin_input) {
     }
 
     // Command line
-    var m = line.match(/^%(\w+)(?:\s+([^\t]+))?/);
+    var m = line.match(/^%(\w+)(?:\s+([^\t\r]+))?/);
     if (m) {
       var cmd = m[1];
       var arg = m[2];
