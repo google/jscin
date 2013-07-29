@@ -1,8 +1,11 @@
 {
+  "manifest_version": 2,
   "name": "ChromeOS CIN \u4e2d\u6587\u8f38\u5165\u6cd5",
   "version": "1.0",
   "description": "Input methods compatible with XCIN tables.",
-  "background_page": "croscin.html",
+  "background": {
+    "page": "croscin.html"
+  },
   "permissions": [
     "http://*/",
     "input",

@@ -14,6 +14,10 @@ var kDefaultCinTableDefault = "predefined-array30";
 // this is dirty hack
 var jscin = chrome.extension.getBackgroundPage().jscin;
 
+$(function() {
+  init();
+});
+
 function init() {
   loadCinTables();
   document.getElementById("cin_table_file_input").addEventListener(
