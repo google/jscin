@@ -335,6 +335,14 @@ function addCinTableToTable(metadata) {
     cell.innerHTML = setting.ename + ' ' + setting.cname;
   }
 
+  // Cell: Google Drive Link
+  var link = metadata.link;
+  cell = row.insertCell(-1);
+  cell.id = 'drive_' + name;
+  if (link) {
+    cell.innerHTML = '<a href="' + link + '" target="_blank"> Backup on Google Drive </a>';
+  }
+
   // Cell: URL
   cell = row.insertCell(-1);
   if (builtin) {

@@ -35,9 +35,12 @@ table.cin_tables th {
 .reload_head {
   width: 60px;
 }
+.url_head {
+  width: 450px;
+}
 .setting_head {
   width: 150px;
 }
-.url_head {
-  width: 600px;
+.link_head {
+  width: 200px;
 }
