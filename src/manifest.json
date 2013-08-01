@@ -12,8 +12,7 @@
     "tabs", "https://docs.google.com/feeds/*",
     "https://www.google.com/accounts/OAuthGetRequestToken",
     "https://www.google.com/accounts/OAuthAuthorizeToken",
-    "https://www.google.com/accounts/OAuthGetAccessToken",
-    "experimental"
+    "https://www.google.com/accounts/OAuthGetAccessToken"
   ],
   "options_page": "options/options.html",
   "input_components": [
@@ -22,7 +21,7 @@
       "type": "ime",
       "id": "cros_cin",
       "description": "ChromeOS Chinese Input Method (xcin compatible)",
-      "language": "\u4e2d\u6587",  // The primary language this IME is used for,
+      "language": "zh-TW",  // The primary language this IME is used for,
                           // and displayed on menu selection.
       "layouts": ["us::eng"]
     }
