@@ -1,6 +1,8 @@
-function SaveToDrive(ename, content) {
+var DRIVE_FOLDER = 'CrosCIN';
+var inFolder = false;
+
+function uploadDocument(ename, content, folderId) {
   var handleSuccess = function(resp, xhr) {
-    var link = getLink(JSON.parse(resp).entry.link, 'alternate').href;
     var link = getLink(JSON.parse(resp).entry.link, 'http://schemas.google.com/docs/2007#embed').href;
     $("#drive_" + ename).html($('<a>', { href: link, target: '_blank' }).html('Backup on Google Drive'));
     metadata = jscin.getTableMetadatas();
@@ -17,7 +19,57 @@ function SaveToDrive(ename, content) {
     'body': constructContentBody_(ename + '.cin', 'document', content, 'text/plain')
   };
   $("#drive_" + ename).html('Uploading to Google Drive...');
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED + folderId + '/contents', handleSuccess, params);
+}
+
+function createFolderUpload(ename, content) {
+  var handleSuccess = function(resp, xhr) {
+    uploadDocument(ename, content);
+  };
+  var params = {
+    'method': 'POST',
+    'headers': {
+      'GData-Version': '3.0',
+      'Content-Type': 'application/atom+xml',
+    },
+    'parameters': {'alt': 'json'},
+    'body': [
+              "<?xml version='1.0' encoding='UTF-8'?>", 
+              '<entry xmlns="http://www.w3.org/2005/Atom">',
+              '<category scheme="http://schemas.google.com/g/2005#kind"', 
+              ' term="http://schemas.google.com/docs/2007#folder"/>',
+              '<title>', DRIVE_FOLDER, '</title>',
+              '</entry>',
+             ].join('')
+  };
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
+}
+
+function SaveToDrive(ename, content) {
+  // Get the folder if it exist
+  var params = {
+    'headers': {
+      'GData-Version': '3.0'
+    },
+    'parameters': {
+      'title': DRIVE_FOLDER,
+      'title-exact': true,
+      'alt': 'json',
+      'showfolders': 'true'
+    }
+  };
+
+  var handleFolderFeed = function(resp, xhr) {
+    var feed = JSON.parse(resp).feed;
+    if(feed.entry === undefined) { // if the folder doesn't exist
+      createFolderUpload(ename, content);
+    }
+    else {
+      uploadDocument(ename, content, feed.entry[0].gd$resourceId.$t);
+    }
+  }
+
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleFolderFeed, params);
 }
 
 function getLink(links, rel) {
@@ -30,17 +82,10 @@ function getLink(links, rel) {
 };
 
 function constructAtomXml_(docTitle, docType, opt_starred) {
-  var starred = opt_starred || null;
-
-  var starCat = ['<category scheme="http://schemas.google.com/g/2005/labels" ',
-                 'term="http://schemas.google.com/g/2005/labels#starred" ',
-                 'label="starred"/>'].join('');
-
   var atom = ["<?xml version='1.0' encoding='UTF-8'?>", 
               '<entry xmlns="http://www.w3.org/2005/Atom">',
               '<category scheme="http://schemas.google.com/g/2005#kind"', 
               ' term="http://schemas.google.com/docs/2007#' + docType + '"/>',
-              starred ? starCat : '',
               '<title>', docTitle, '</title>',
               '</entry>'].join('');
   return atom;
@@ -81,15 +126,38 @@ function GoogleDoc(entry) {
   // this.contentSrc = entry.content.src;
 };
 
-function renderDocList(entry) {
-  var list = $('#doc_list');
+function setDocStatus(status) {
+  $('#doc_status').html(status);
+}
+
+function findPreviousBackupFolder() {
+  for (var i = 0, doc; doc = bgPage.docs[i]; ++i) {
+    if(doc.type.label == 'folder' && doc.title == DRIVE_FOLDER)
+      return doc.resourceId;
+  }
+  return '';
+}
+
+function renderDocList(list) {
   list.html('');
   for (var i = 0, doc; doc = bgPage.docs[i]; ++i) {
-    list.append('<input type="radio" name="google_doc" id="radio' + i + '">');
-    list.append($('<label>', { 'for': 'radio' + i }).html(doc.title));
-    list.append($('<br>'));
+    if(doc.type.label == 'document') {
+      list.append('<input type="radio" name="google_doc" id="radio' + i + '">');
+      list.append($('<label>', { 'for': 'radio' + i }).html(doc.title));
+      list.append($('<br>'));
+    }
   }
-  $('#doc_list').show();
+  $('#doc_div').show();
+}
+
+function appendDocStatusLink(message) {
+  var a = $('<a>', { "id":"list_all", "href":"" }).html(message);
+  $("#doc_status").append($('<br>')).append(a);
+  $("#list_all").click(function(event) {
+    setDocStatus("All documents:");
+    $('#doc_list').show();
+    event.preventDefault();
+  });
 }
 
 function processDocListResults(response, xhr) {
@@ -99,18 +167,35 @@ function processDocListResults(response, xhr) {
 
   var data = JSON.parse(response);
 
+  if(data.feed.entry === undefined) {
+    appendDocStatusLink("It is empty. List all my document.")
+    return;
+  }
+
   for (var i = 0, entry; entry = data.feed.entry[i]; ++i) {
     var doc = new GoogleDoc(entry);
-    if(doc.type.label == 'document') {
-      bgPage.docs.push(doc);
-    }
+    bgPage.docs.push(doc);
   }
 
   var nextLink = getLink(data.feed.link, 'next');
   if (nextLink) {
     getDocumentList(nextLink.href); // Fetch next page of results.
   } else {
-    renderDocList();
+    if(inFolder) {
+      appendDocStatusLink("Not in this directory? List all of my documents.");
+    }
+    else {
+      renderDocList($('#doc_list'));
+      var folderId = findPreviousBackupFolder();
+      if(folderId !== '') {
+        setDocStatus('Found previous backup directory: ' + DRIVE_FOLDER);
+        inFolder = true;
+        getDocumentList(bgPage.DOCLIST_FEED + folderId + '/contents', true);
+      }
+      else {
+        appendDocStatusLink("Cannot find previous backup directory. List all of my documents.");
+      }
+    }
   }
 };
 
@@ -125,8 +210,8 @@ function unstringify(paramStr) {
   return params;
 };
 
-function getDocumentList(opt_url) {
-  var url = opt_url || null;
+function getDocumentList(opt_url, folder) {
+  var url = opt_url || bgPage.DOCLIST_FEED;
 
   var params = {
     'headers': {
@@ -134,13 +219,16 @@ function getDocumentList(opt_url) {
     }
   };
 
-  if (!url) {
+  if(!opt_url) {
+    inFolder = false;
+  }
+
+  if (!opt_url || folder) {
     bgPage.docs = []; // Clear document list. We're doing a refresh.
 
-    url = bgPage.DOCLIST_FEED;
     params['parameters'] = {
       'alt': 'json',
-      'showfolders': 'false'
+      'showfolders': 'true'
     };
   } else {
     var parts = url.split('?');

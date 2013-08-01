@@ -19,7 +19,7 @@ croscin.IME = function() {
   var self = this;
 
   // TODO(hungte) load default debug flag from options
-  self.debug = false;
+  self.debug = true;
 
   self.kOptionsPage = "options";
 

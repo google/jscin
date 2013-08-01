@@ -40,7 +40,7 @@ function init() {
     setAddTableStatus("");
     $("#file_div").hide();
     $("#url_div").show();
-    $("#doc_list").hide();
+    $("#doc_div").hide();
     $("#save_to_drive_input").show();
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
@@ -65,7 +65,7 @@ function init() {
     setAddTableStatus("");
     $("#file_div").show();
     $("#url_div").hide();
-    $("#doc_list").hide();
+    $("#doc_div").hide();
     $("#save_to_drive_input").show();
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
@@ -90,7 +90,10 @@ function init() {
     setAddTableStatus("");
     $("#url_div").hide();
     $("#file_div").hide();
-    $("#doc_list").show();
+    $("#doc_div").show();
+    setDocStatus("");
+    $('#doc_list').hide();
+    $('#folder_list').hide();
     $("#save_to_drive").prop('checked', false);
     $("#save_to_drive_input").hide();
     bgPage.oauth.authorize(function() {
