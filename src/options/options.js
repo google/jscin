@@ -22,11 +22,11 @@ function init() {
 
   var select = $("#add_table_setting");
   var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
-  select.html("");
+  select.empty();
   for (var i in setting_options) {
     var setting = setting_options[i];
     var option = $("<option>", { "id": "option" + i });
-    option.html(setting.ename + ' ' + setting.cname);
+    option.text(setting.ename + ' ' + setting.cname);
     select.append(option);
   }
 
@@ -49,13 +49,13 @@ function init() {
           var url = document.getElementById("cin_table_url_input").value;
           var setting = getSettingOption();
           onAddTableUrl(url, setting);
-          $( this ).dialog( "close" );
+          $(this).dialog("close");
         }
       },
       {
         text: "Cancel",
         click: function() {
-          $( this ).dialog( "close" );
+          $(this).dialog("close");
         }
       }
     ]).dialog("open");
@@ -74,13 +74,13 @@ function init() {
           var files = document.getElementById("cin_table_file_input").files;
           var setting = getSettingOption();
           onAddTableFile(files, setting);
-          $( this ).dialog( "close" );
+          $(this).dialog("close");
         }
       },
       {
         text: "Cancel",
         click: function() {
-          $( this ).dialog( "close" );
+          $(this).dialog("close");
         }
       }
     ]).dialog("open");
@@ -103,14 +103,14 @@ function init() {
       {
         text: "OK",
         click: function() {
-          $( this ).dialog( "close" );
+          $(this).dialog("close");
           onAddTableDrive();
         }
       },
       {
         text: "Cancel",
         click: function() {
-          $( this ).dialog( "close" );
+          $(this).dialog("close");
         }
       }
     ]).dialog("open");
@@ -118,9 +118,9 @@ function init() {
 
   $('#save_to_drive').change(function() {
     if($('#save_to_drive').is(':checked')) {
-      $('#auth_status').html("(Uncheck if you refuse to authenticate.)");
+      $('#auth_status').text("(Uncheck if you refuse to authenticate.)");
       bgPage.oauth.authorize(function() {
-        $('#auth_status').html('(Successfully authenticated.)');
+        $('#auth_status').text('(Successfully authenticated.)');
       });
     }
   });
@@ -225,7 +225,7 @@ function addTable(content, url) {
 
 function setAddTableStatus(status, error) {
   var status_field = document.getElementById("add_table_status");
-  status_field.innerHTML = status;
+  status_field.text(status);
   if (error) {
     status_field.className = "status_error";
   } else {
@@ -271,9 +271,9 @@ function addCinTableToTable(metadata) {
 
   // Cell: (ename, cname)
   var cell = row.insertCell(-1);
-  cell.innerHTML = name;
+  $(cell).text(name);
   var cell = row.insertCell(-1);
-  cell.innerHTML = cname;
+  $(cell).text(cname);
 
   // Cell: Default
   cell = row.insertCell(-1);
@@ -333,9 +333,9 @@ function addCinTableToTable(metadata) {
   var setting = metadata.setting;
   cell = row.insertCell(-1);
   if (builtin) {
-    cell.innerHTML = "From Table"
+    $(cell).text("From Table");
   } else {
-    cell.innerHTML = setting.ename + ' ' + setting.cname;
+    $(cell).text(setting.ename + ' ' + setting.cname);
   }
 
   // Cell: Google Drive Link
@@ -343,15 +343,15 @@ function addCinTableToTable(metadata) {
   cell = row.insertCell(-1);
   cell.id = 'drive_' + name;
   if (link) {
-    cell.innerHTML = '<a href="' + link + '" target="_blank"> Backup on Google Drive </a>';
+    $(cell).append($('<a>', { 'href': link, 'target': "_blank" }).text('Backup on Google Drive'));
   }
 
   // Cell: URL
   cell = row.insertCell(-1);
   if (builtin) {
-    cell.innerHTML = "(builtin)";
+    $(cell).text("(builtin)");
   } else if (url) {
-    cell.innerHTML = url;
+    $(cell).text(url);
   }
 }
 
@@ -377,7 +377,7 @@ function removeCinTableFromTable(name, url) {
 
   for (var i = 0; i < table.tBodies[0].rows.length; i++) {
     var row = table.tBodies[0].rows[i];
-    if (row.cells[0].innerHTML == name) {
+    if (row.cells[0].text() == name) {
       table.tBodies[0].deleteRow(i);
 
       if (jscin.getDefaultCinTable() == name) {

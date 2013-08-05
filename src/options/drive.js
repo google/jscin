@@ -4,7 +4,8 @@ var inFolder = false;
 function uploadDocument(ename, content, folderId) {
   var handleSuccess = function(resp, xhr) {
     var link = getLink(JSON.parse(resp).entry.link, 'http://schemas.google.com/docs/2007#embed').href;
-    $("#drive_" + ename).html($('<a>', { href: link, target: '_blank' }).html('Backup on Google Drive'));
+    $("#drive_" + ename).empty().append(
+      $('<a>', { href: link, target: '_blank' }).text('Backup on Google Drive'));
     metadata = jscin.getTableMetadatas();
     metadata[ename].link = link;
     jscin.writeLocalStorage(jscin.kTableMetadataKey, metadata);
@@ -18,7 +19,7 @@ function uploadDocument(ename, content, folderId) {
     'parameters': {'alt': 'json'},
     'body': constructContentBody_(ename + '.cin', 'document', content, 'text/plain')
   };
-  $("#drive_" + ename).html('Uploading to Google Drive...');
+  $("#drive_" + ename).text('Uploading to Google Drive...');
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED + folderId + '/contents', handleSuccess, params);
 }
 
@@ -127,7 +128,7 @@ function GoogleDoc(entry) {
 };
 
 function setDocStatus(status) {
-  $('#doc_status').html(status);
+  $('#doc_status').text(status);
 }
 
 function findPreviousBackupFolder() {
@@ -139,11 +140,11 @@ function findPreviousBackupFolder() {
 }
 
 function renderDocList(list) {
-  list.html('');
+  list.empty();
   for (var i = 0, doc; doc = bgPage.docs[i]; ++i) {
     if(doc.type.label == 'document') {
       list.append('<input type="radio" name="google_doc" id="radio' + i + '">');
-      list.append($('<label>', { 'for': 'radio' + i }).html(doc.title));
+      list.append($('<label>', { 'for': 'radio' + i }).text(doc.title));
       list.append($('<br>'));
     }
   }
@@ -151,7 +152,7 @@ function renderDocList(list) {
 }
 
 function appendDocStatusLink(message) {
-  var a = $('<a>', { "id":"list_all", "href":"" }).html(message);
+  var a = $('<a>', { "id":"list_all", "href":"" }).text(message);
   $("#doc_status").append($('<br>')).append(a);
   $("#list_all").click(function(event) {
     setDocStatus("All documents:");
