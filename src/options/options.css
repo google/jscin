@@ -15,7 +15,7 @@ h1 {
 table.cin_tables {
   background: #CCC;
   font-size: 14px;
-  width: 1200;
+  width: 90%;
 }
 table.cin_tables th {
   border-width: 0px 1px 1px 0px;
@@ -24,23 +24,23 @@ table.cin_tables th {
 }
 
 .name_head {
-  width: 200px;
+  width: 15%;
 }
 .default_head {
-  width: 70px;
+  width: 5%;
 }
 .remove_head {
-  width: 65px;
+  width: 5%;
 }
 .reload_head {
-  width: 60px;
+  width: 5%;
 }
 .url_head {
-  width: 450px;
+  width: 30%;
 }
 .setting_head {
-  width: 150px;
+  width: 15%;
 }
 .link_head {
-  width: 200px;
+  width: 15%;
 }
