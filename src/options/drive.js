@@ -156,6 +156,7 @@ function appendDocStatusLink(message) {
   $("#doc_status").append($('<br>')).append(a);
   $("#list_all").click(function(event) {
     setDocStatus("All documents:");
+    $('#folder_list').hide();
     $('#doc_list').show();
     event.preventDefault();
   });
@@ -184,6 +185,8 @@ function processDocListResults(response, xhr) {
   } else {
     if(inFolder) {
       appendDocStatusLink("Not in this directory? List all of my documents.");
+      renderDocList($('#folder_list'));
+      $('#folder_list').show();
     }
     else {
       renderDocList($('#doc_list'));

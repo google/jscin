@@ -48,7 +48,7 @@ function init() {
         click: function() {
           var url = document.getElementById("cin_table_url_input").value;
           var setting = getSettingOption();
-          onAddTableUrl(url, setting);
+          addTableUrl(url, setting);
           $(this).dialog("close");
         }
       },
@@ -73,7 +73,7 @@ function init() {
         click: function() {
           var files = document.getElementById("cin_table_file_input").files;
           var setting = getSettingOption();
-          onAddTableFile(files, setting);
+          addTableFile(files, setting);
           $(this).dialog("close");
         }
       },
@@ -104,7 +104,7 @@ function init() {
         text: "OK",
         click: function() {
           $(this).dialog("close");
-          onAddTableDrive();
+          addTableDrive();
         }
       },
       {
@@ -144,7 +144,7 @@ function onDebugModeChange() {
   chrome.extension.getBackgroundPage().on_debug_mode_change(value);
 }
 
-function onAddTableUrl(url) {
+function addTableUrl(url) {
   if (url.replace(/^\s+|s+$/g, "") == "") {
     setAddTableStatus("URL is empty", true);
     return;
@@ -174,7 +174,7 @@ function onAddTableUrl(url) {
   }
 }
 
-function onAddTableFile(files) {
+function addTableFile(files) {
   for (var i = 0, file; file = files[i]; i++) {
     var reader = new FileReader();
 
@@ -186,14 +186,14 @@ function onAddTableFile(files) {
   }
 }
 
-function onAddTableDrive() {
+function addTableDrive() {
   var doc;
   for(var i = 0; doc = bgPage.docs[i]; ++i) {
     if($('#radio' + i).is(':checked')) {
       break;
     }
   }
-  onAddTableUrl(doc.entry.content.src + '&format=txt', getSettingOption());
+  addTableUrl(doc.entry.content.src + '&format=txt', getSettingOption());
 }
 
 function addTable(content, url) {
@@ -225,7 +225,7 @@ function addTable(content, url) {
 
 function setAddTableStatus(status, error) {
   var status_field = document.getElementById("add_table_status");
-  status_field.text(status);
+  status_field.innerText = status;
   if (error) {
     status_field.className = "status_error";
   } else {
@@ -324,7 +324,7 @@ function addCinTableToTable(metadata) {
         document.getElementById(kDefaultCinTableRadioId +
                                 kDefaultCinTableDefault).checked = true;
       }
-      addTableUrl(url);
+      addTableUrl(url, metadata.setting);
     }
     cell.appendChild(reload_button);
   }
@@ -377,7 +377,7 @@ function removeCinTableFromTable(name, url) {
 
   for (var i = 0; i < table.tBodies[0].rows.length; i++) {
     var row = table.tBodies[0].rows[i];
-    if (row.cells[0].text() == name) {
+    if (row.cells[0].innerText == name) {
       table.tBodies[0].deleteRow(i);
 
       if (jscin.getDefaultCinTable() == name) {
