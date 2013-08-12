@@ -1,6 +1,7 @@
 var DOCLIST_SCOPE = 'https://docs.google.com/feeds';
 var DOCLIST_FEED = DOCLIST_SCOPE + '/default/private/full/';
 var docs = []; // In memory cache for the user's entire doclist.
+var folderDocs = [];
 var refreshRate = localStorage.refreshRate || 300; // 5 min default.
 var pollIntervalMin = 1000 * refreshRate;
 var requests = [];

@@ -92,12 +92,11 @@ function init() {
     $("#file_div").hide();
     $("#doc_div").show();
     setDocStatus("");
-    $('#doc_list').hide();
-    $('#folder_list').hide();
     $("#save_to_drive").prop('checked', false);
     $("#save_to_drive_input").hide();
     bgPage.oauth.authorize(function() {
-      getDocumentList();
+      $('#doc_list').empty();
+      getDocumentList("");
     });
     $("#add_table_dialog").dialog('option', 'buttons', [
       {

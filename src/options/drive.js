@@ -139,69 +139,27 @@ function findPreviousBackupFolder() {
   return '';
 }
 
-function renderDocList(list) {
+function renderDocList(docs) {
+  var list = $('#doc_list');
   list.empty();
-  for (var i = 0, doc; doc = bgPage.docs[i]; ++i) {
+  for (var i = 0, doc; doc = docs[i]; ++i) {
     if(doc.type.label == 'document') {
       list.append('<input type="radio" name="google_doc" id="radio' + i + '">');
       list.append($('<label>', { 'for': 'radio' + i }).text(doc.title));
       list.append($('<br>'));
     }
   }
-  $('#doc_div').show();
 }
 
-function appendDocStatusLink(message) {
+function appendAllDocsLink(message) {
   var a = $('<a>', { "id":"list_all", "href":"" }).text(message);
   $("#doc_status").append($('<br>')).append(a);
   $("#list_all").click(function(event) {
     setDocStatus("All documents:");
-    $('#folder_list').hide();
-    $('#doc_list').show();
+    renderDocList(bgPage.docs);
     event.preventDefault();
   });
 }
-
-function processDocListResults(response, xhr) {
-  if (xhr.status != 200) {
-    return;
-  }
-
-  var data = JSON.parse(response);
-
-  if(data.feed.entry === undefined) {
-    appendDocStatusLink("It is empty. List all my document.")
-    return;
-  }
-
-  for (var i = 0, entry; entry = data.feed.entry[i]; ++i) {
-    var doc = new GoogleDoc(entry);
-    bgPage.docs.push(doc);
-  }
-
-  var nextLink = getLink(data.feed.link, 'next');
-  if (nextLink) {
-    getDocumentList(nextLink.href); // Fetch next page of results.
-  } else {
-    if(inFolder) {
-      appendDocStatusLink("Not in this directory? List all of my documents.");
-      renderDocList($('#folder_list'));
-      $('#folder_list').show();
-    }
-    else {
-      renderDocList($('#doc_list'));
-      var folderId = findPreviousBackupFolder();
-      if(folderId !== '') {
-        setDocStatus('Found previous backup directory: ' + DRIVE_FOLDER);
-        inFolder = true;
-        getDocumentList(bgPage.DOCLIST_FEED + folderId + '/contents', true);
-      }
-      else {
-        appendDocStatusLink("Cannot find previous backup directory. List all of my documents.");
-      }
-    }
-  }
-};
 
 function unstringify(paramStr) {
   var parts = paramStr.split('&');
@@ -214,21 +172,21 @@ function unstringify(paramStr) {
   return params;
 };
 
-function getDocumentList(opt_url, folder) {
-  var url = opt_url || bgPage.DOCLIST_FEED;
-
+function getDocumentList(folderId, url) {
   var params = {
     'headers': {
       'GData-Version': '3.0'
     }
   };
 
-  if(!opt_url) {
-    inFolder = false;
-  }
-
-  if (!opt_url || folder) {
-    bgPage.docs = []; // Clear document list. We're doing a refresh.
+  if (!url) {
+    url = bgPage.DOCLIST_FEED;
+    if(folderId) {
+      url += folderId + '/contents';
+      bgPage.folderDocs = []; // Clear document list. We're doing a refresh.
+    }
+    else
+      bgPage.docs = [];
 
     params['parameters'] = {
       'alt': 'json',
@@ -241,6 +199,44 @@ function getDocumentList(opt_url, folder) {
       params['parameters'] = unstringify(parts[1]);
     }
   }
+
+  var processDocListResults = function(response, xhr) {
+    if (xhr.status != 200) {
+      return;
+    }
+
+    var data = JSON.parse(response);
+
+    if(data.feed.entry === undefined) {
+      appendAllDocsLink("It is empty. List all my document.")
+      return;
+    }
+
+    for (var i = 0, entry; entry = data.feed.entry[i]; ++i) {
+      var doc = new GoogleDoc(entry);
+      if(folderId)
+        bgPage.folderDocs.push(doc);
+      else
+        bgPage.docs.push(doc);
+    }
+
+    var nextLink = getLink(data.feed.link, 'next');
+    if (nextLink) {
+      getDocumentList(folderId, nextLink.href); // Fetch next page of results.
+    } else {
+      if(folderId) {
+        appendAllDocsLink("Not in this directory? List all of my documents.");
+        renderDocList(bgPage.folderDocs);
+      } else {
+        folderId = findPreviousBackupFolder();
+        if(folderId)
+          getDocumentList(folderId);
+        else {
+          appendAllDocsLink("Cannot find previous uploaded directory. List all my documents.");
+        }
+      }
+    }
+  };
 
   bgPage.oauth.sendSignedRequest(url, processDocListResults, params);
 };
