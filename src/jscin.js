@@ -25,6 +25,8 @@ var jscin = {
   kTableMetadataKey: "table_metadata",
   kTableDataKeyPrefix: "table_data-",
   kDefaultCinTableKey: "default_cin_table",
+  kRawDataKeyPrefix: "raw_data-",
+  kVersionKey: "version",
 
   modules: {},
   input_methods: {},
@@ -178,6 +180,33 @@ jscin.setDefaultCinTable = function (name) {
 
 jscin.getDefaultCinTable = function () {
   return jscin.readLocalStorage(jscin.kDefaultCinTableKey, jscin.kDefaultCinTableDefault);
+}
+
+jscin.reloadNonBuiltinTables = function () {
+  var metadatas = jscin.getTableMetadatas();
+  for (name in metadatas) {
+    var table = metadatas[name];
+    if (table.builtin)
+      continue;
+
+    var content = jscin.readLocalStorage(jscin.kRawDataKeyPrefix + name, "");
+    var parsed_result = parseCin(content);
+    if (parsed_result[0]) {
+      var parsed_data = parsed_result[1];
+      parsed_data.metadata.setting = table.setting;
+      for (var option in table.setting.options) {
+        parsed_data.data[option] = table.setting.options[option];
+      }
+      if (typeof table.url !== undefined) {
+        parsed_data.metadata.url = table.url;
+      }
+      jscin.addTable(parsed_data.metadata.ename, parsed_data.metadata, parsed_data.data);
+      jscin.log("jscin: Reload table: " + name);
+    } else {
+      console.error("jscin: Parse error when reloading table: " + name);
+      alert("Parse error when reloading table: " + name);
+    }
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////

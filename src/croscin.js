@@ -264,7 +264,7 @@ croscin.IME = function() {
     return xhr.responseText;
   }
 
-  self.LoadBuiltinTables = function() {
+  self.LoadBuiltinTables = function(reload) {
     var list = self.LoadExtensionResource("tables/builtin.json");
     if (!list) {
       self.log("croscin.LoadBuiltinTables: No built-in tables.");
@@ -273,7 +273,7 @@ croscin.IME = function() {
     var table_metadata = jscin.getTableMetadatas();
     list = JSON.parse(list);
     for (var table_name in list) {
-      if (table_name in table_metadata) {
+      if (table_name in table_metadata && !reload) {
         self.log("croscin.LoadBuiltinTables: skip loaded table: " + table_name);
         continue;
       }
@@ -289,14 +289,20 @@ croscin.IME = function() {
       }
       var table_content = results[1].data;
       var metadata = results[1].metadata;
-      self.log(table_content);
+      self.log("croscin.LoadBuiltinTables: Load table: " + table_name);
       var ename = metadata['ename'];
       metadata['builtin'] = true;
       jscin.addTable(ename, metadata, table_content);
     }
   }
 
-  self.LoadBuiltinTables();
+  var version = chrome.runtime.getManifest().version;
+  var reload = (version !== jscin.readLocalStorage(jscin.kVersionKey, 0));
+  self.LoadBuiltinTables(reload);
+  if (reload) {
+    jscin.reloadNonBuiltinTables();
+    jscin.writeLocalStorage(jscin.kVersionKey, version);
+  }
   jscin.reload_configuration();
   self.resolve_ime_api();
   if (navigator.appVersion.match(/Mac OS/)) {

@@ -9,7 +9,7 @@ var table_loading = {};
 
 var kDefaultCinTableRadioName = "default_radio_name";
 var kDefaultCinTableRadioId = "default_radio_";
-var kDefaultCinTableDefault = "predefined-array30";
+var kDefaultCinTableDefault = "array30";
 
 // this is dirty hack
 var jscin = chrome.extension.getBackgroundPage().jscin;
@@ -116,7 +116,7 @@ function init() {
   });
 
   $('#save_to_drive').change(function() {
-    if($('#save_to_drive').is(':checked')) {
+    if ($('#save_to_drive').is(':checked')) {
       $('#auth_status').text("(Uncheck if you refuse to authenticate.)");
       bgPage.oauth.authorize(function() {
         $('#auth_status').text('(Successfully authenticated.)');
@@ -185,10 +185,10 @@ function addTableFile(files) {
   }
 }
 
-function addTableDrive() {
+function addTableDrive(docs) {
   var doc;
-  for(var i = 0; doc = bgPage.docs[i]; ++i) {
-    if($('#radio' + i).is(':checked')) {
+  for (var i = 0; doc = docs[i]; ++i) {
+    if ($('#radio' + i).is(':checked')) {
       break;
     }
   }
@@ -201,7 +201,7 @@ function addTable(content, url) {
   if (parsed_result[0]) {
     var parsed_data = parsed_result[1];
     writeSettingToData(getSettingOption(), parsed_data);
-    if(typeof url !== undefined) {
+    if (typeof url !== undefined) {
       parsed_data.metadata.url = url;
     }
     if (addCinTable(parsed_data)) {
@@ -209,9 +209,10 @@ function addTable(content, url) {
       addCinTableToTable(parsed_data.metadata);
       setAddTableStatus("Table added successfully", false);
       notifyConfigChanged();
-      if($('#save_to_drive').is(':checked')) {
+      if ($('#save_to_drive').is(':checked')) {
         SaveToDrive(parsed_data.metadata.ename, content);
       }
+      jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + parsed_data.metadata.ename, content);
     } else {
       setAddTableStatus("Table not added", true);
     }
@@ -234,7 +235,7 @@ function setAddTableStatus(status, error) {
 
 function writeSettingToData(setting, parsed_data) {
   parsed_data.metadata.setting = setting;
-  for(var option in setting.options) {
+  for (var option in setting.options) {
     parsed_data.data[option] = setting.options[option];
   }
 }
@@ -358,7 +359,7 @@ function setNewDefaultCinTable() {
   var newDefaultCinTable;
   var metadatas = jscin.getTableMetadatas();
   // get the first table
-  for(var table in metadatas) {
+  for (var table in metadatas) {
     newDefaultCinTable = metadatas[table].ename;
     break;
   }

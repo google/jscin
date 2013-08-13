@@ -1,13 +1,14 @@
 var DRIVE_FOLDER = 'CrosCIN';
-var inFolder = false;
 
 function uploadDocument(ename, content, folderId) {
   var handleSuccess = function(resp, xhr) {
-    var link = getLink(JSON.parse(resp).entry.link, 'http://schemas.google.com/docs/2007#embed').href;
+    var entry = JSON.parse(resp).entry;
+    var link = getLink(entry.link, 'http://schemas.google.com/docs/2007#embed').href;
     $("#drive_" + ename).empty().append(
       $('<a>', { href: link, target: '_blank' }).text('Backup on Google Drive'));
     metadata = jscin.getTableMetadatas();
     metadata[ename].link = link;
+    metadata[ename].url = entry.content.src + '&format=txt';
     jscin.writeLocalStorage(jscin.kTableMetadataKey, metadata);
   };
   var params = {
@@ -62,7 +63,7 @@ function SaveToDrive(ename, content) {
 
   var handleFolderFeed = function(resp, xhr) {
     var feed = JSON.parse(resp).feed;
-    if(feed.entry === undefined) { // if the folder doesn't exist
+    if (feed.entry === undefined) { // if the folder doesn't exist
       createFolderUpload(ename, content);
     }
     else {
@@ -133,7 +134,7 @@ function setDocStatus(status) {
 
 function findPreviousBackupFolder() {
   for (var i = 0, doc; doc = bgPage.docs[i]; ++i) {
-    if(doc.type.label == 'folder' && doc.title == DRIVE_FOLDER)
+    if (doc.type.label == 'folder' && doc.title == DRIVE_FOLDER)
       return doc.resourceId;
   }
   return '';
@@ -142,18 +143,33 @@ function findPreviousBackupFolder() {
 function renderDocList(docs) {
   var list = $('#doc_list');
   list.empty();
-  for (var i = 0, doc; doc = docs[i]; ++i) {
-    if(doc.type.label == 'document') {
+  $.each(docs, function(i, doc) {
+    if (doc.type.label == 'document') {
       list.append('<input type="radio" name="google_doc" id="radio' + i + '">');
       list.append($('<label>', { 'for': 'radio' + i }).text(doc.title));
       list.append($('<br>'));
     }
-  }
+  });
+  $("#add_table_dialog").dialog('option', 'buttons', [
+    {
+      text: "OK",
+      click: function() {
+        $(this).dialog("close");
+        addTableDrive(docs);
+      }
+    },
+    {
+      text: "Cancel",
+      click: function() {
+        $(this).dialog("close");
+      }
+    }
+  ]);
 }
 
 function appendAllDocsLink(message) {
   var a = $('<a>', { "id":"list_all", "href":"" }).text(message);
-  $("#doc_status").append($('<br>')).append(a);
+  $("#doc_status").append($('<br>'), a);
   $("#list_all").click(function(event) {
     setDocStatus("All documents:");
     renderDocList(bgPage.docs);
@@ -181,12 +197,12 @@ function getDocumentList(folderId, url) {
 
   if (!url) {
     url = bgPage.DOCLIST_FEED;
-    if(folderId) {
+    if (folderId) {
       url += folderId + '/contents';
       bgPage.folderDocs = []; // Clear document list. We're doing a refresh.
-    }
-    else
+    } else {
       bgPage.docs = [];
+    }
 
     params['parameters'] = {
       'alt': 'json',
@@ -207,14 +223,14 @@ function getDocumentList(folderId, url) {
 
     var data = JSON.parse(response);
 
-    if(data.feed.entry === undefined) {
+    if (data.feed.entry === undefined) {
       appendAllDocsLink("It is empty. List all my document.")
       return;
     }
 
     for (var i = 0, entry; entry = data.feed.entry[i]; ++i) {
       var doc = new GoogleDoc(entry);
-      if(folderId)
+      if (folderId)
         bgPage.folderDocs.push(doc);
       else
         bgPage.docs.push(doc);
@@ -224,12 +240,12 @@ function getDocumentList(folderId, url) {
     if (nextLink) {
       getDocumentList(folderId, nextLink.href); // Fetch next page of results.
     } else {
-      if(folderId) {
+      if (folderId) {
         appendAllDocsLink("Not in this directory? List all of my documents.");
         renderDocList(bgPage.folderDocs);
       } else {
         folderId = findPreviousBackupFolder();
-        if(folderId)
+        if (folderId)
           getDocumentList(folderId);
         else {
           appendAllDocsLink("Cannot find previous uploaded directory. List all my documents.");

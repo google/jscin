@@ -26,7 +26,7 @@ function parseCin(cin_input) {
     }
 
     // Command line
-    var m = line.match(/^%(\w+)(?:\s+([^\t\r]+))?/);
+    var m = line.match(/^%(\w+)(?:\s+(\S+))?/);
     if (m) {
       var cmd = m[1];
       var arg = m[2];
@@ -53,7 +53,7 @@ function parseCin(cin_input) {
     } else if (table_command[cmd]) {
       // Extra arguments
       if (!cmd) continue;
-      m = line.match(/^\s*(\S+)\s+([^\t]+)/);
+      m = line.match(/^\s*(\S+)\s+(\S+)/);
       if (m) {
         var key = m[1];
         key = key.toUpperCase();
