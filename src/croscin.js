@@ -150,8 +150,6 @@ croscin.IME = function() {
   self.UpdateCandidates = function(candidate_list, labels) {
     self.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
              ", labels = " + labels);
-    // TODO(hungte) set more properties:
-    //  auxiliaryText, auxiliaryTextVisible.
     if (candidate_list.length > 0) {
       var arg = self.GetContextArg();
       var candidates = [];
@@ -168,10 +166,10 @@ croscin.IME = function() {
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
       self.SetCandidatesWindowProperty('pageSize', candidate_list.length);
-      self.SetCandidatesWindowProperty('visible', true);
-      self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
       self.SetCandidatesWindowProperty('auxiliaryTextVisible', true);
+      self.SetCandidatesWindowProperty('visible', true);
     } else {
+      self.SetCandidatesWindowProperty('auxiliaryTextVisible', false);
       self.SetCandidatesWindowProperty('visible', false);
     }
   }
@@ -206,6 +204,7 @@ croscin.IME = function() {
       self.InitializeUI();
       jscin.writeLocalStorage(jscin.kDefaultCinTableKey, name);
       jscin.default_input_method = name;
+      self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
     } else {
       self.log("croscin.ActivateInputMethod: Invalid item: " + name);
     }
