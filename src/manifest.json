@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "ChromeOS CIN \u4e2d\u6587\u8f38\u5165\u6cd5",
-  "version": "1.0",
-  "description": "Input methods compatible with XCIN tables.",
+  "name": "ChromeOS CIN - Chinese Input Method",
+  "version": "0.0.1",
+  "description": "Input methods compatible with XCIN tables for Chrome OS.",
   "background": {
     "page": "croscin.html"
   },
@@ -21,8 +21,7 @@
       "type": "ime",
       "id": "cros_cin",
       "description": "ChromeOS Chinese Input Method (xcin compatible)",
-      "language": "zh-TW",  // The primary language this IME is used for,
-                          // and displayed on menu selection.
+      "language": "zh-TW",
       "layouts": ["us::eng"]
     }
   ]
