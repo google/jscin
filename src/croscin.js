@@ -112,8 +112,8 @@ croscin.IME = function() {
     return self.ProcessKeyEvent(keyEvent);
   }
 
-  self.SetCanditesWindowProperty = function(name, value) {
-    self.log("croscin.SetCanditesWindowProperty: set " + name + ": " + value);
+  self.SetCandidatesWindowProperty = function(name, value) {
+    self.log("croscin.SetCandidatesWindowProperty: set " + name + ": " + value);
     var prop = {};
     var arg = self.GetEngineArg();
     arg['properties'] = prop;
@@ -123,10 +123,10 @@ croscin.IME = function() {
 
   self.InitializeUI = function() {
     // Vertical candidates window looks better on ChromeOS.
-    self.SetCanditesWindowProperty('vertical', true);
+    self.SetCandidatesWindowProperty('vertical', true);
     // CIN tables don't expect cursor in candidates window.
-    self.SetCanditesWindowProperty('cursorVisible', false);
-    self.SetCanditesWindowProperty('visible', false);
+    self.SetCandidatesWindowProperty('cursorVisible', false);
+    self.SetCandidatesWindowProperty('visible', false);
 
     // Setup menu
     self.InitializeMenu();
@@ -167,12 +167,12 @@ croscin.IME = function() {
       self.log(candidates);
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
-      self.SetCanditesWindowProperty('pageSize', candidate_list.length);
-      self.SetCanditesWindowProperty('visible', true);
-      self.SetCanditesWindowProperty('auxiliaryText', self.im_label);
-      self.SetCanditesWindowProperty('auxiliaryTextVisible', true);
+      self.SetCandidatesWindowProperty('pageSize', candidate_list.length);
+      self.SetCandidatesWindowProperty('visible', true);
+      self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
+      self.SetCandidatesWindowProperty('auxiliaryTextVisible', true);
     } else {
-      self.SetCanditesWindowProperty('visible', false);
+      self.SetCandidatesWindowProperty('visible', false);
     }
   }
 
