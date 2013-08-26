@@ -3,7 +3,7 @@
 
 load('jscin.js');
 load('gen_inp.js');
-load('options/cin_parser.js');
+load('cin_parser.js');
 
 function simulate(inst, inpinfo, input) {
   for (var i in input) {
@@ -30,8 +30,7 @@ function loadTableFromFile(filename) {
 }
 function main() {
 
-  var name = loadTableFromFile('../examples/liu57b.cin');
-  //var name = loadTableFromFile('tables/array30.cin')
+  var name = loadTableFromFile('../tables/array30.cin');
   jscin.reload_configuration();
 
   var inpinfo = {};

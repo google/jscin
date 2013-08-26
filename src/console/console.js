@@ -6,9 +6,10 @@
  */
 
 // Equivelant to croscin.html (extension entry page).
-load('jscin.js');
-load('options/cin_parser.js');
-load('gen_inp.js');
+jscin_url = '../'
+load(jscin_url + 'jscin.js');
+load(jscin_url + 'cin_parser.js');
+load(jscin_url + 'gen_inp.js');
 
 var _storage = {}
 

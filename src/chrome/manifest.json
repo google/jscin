@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "CrosCIN \u4e2d\u6587\u8f38\u5165\u6cd5",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description":
       "Input methods compatible with XCIN tables for Google ChromeOS™ .",
   "background": {
