@@ -1,1 +1,8 @@
-Built-in CIN tables from XCIN2.5 standard distribution.
+Built-in CIN tables from internet.
+
+Tables from XCIN 2.5.3-pre2:
+  array30.cin
+  cj.cin
+  phone.cin
+  simplex.cin
+  telecode.cin
