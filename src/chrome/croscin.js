@@ -21,7 +21,7 @@ croscin.IME = function() {
   // TODO(hungte) load default debug flag from options
   self.debug = true;
 
-  self.kOptionsPage = "options";
+  self.kOptionsPage = chrome.i18n.getMessage("menuOptions");
 
   self.imctx = {};
   self.im = null;

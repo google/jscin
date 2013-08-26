@@ -1,0 +1,14 @@
+{
+  "manifestName": { "message":
+    "CrosCIN Chinese Input Methods" },
+  "manifestDesc": { "message":
+    "Chinese Input Methods (XCIN compatible) for Google ChromeOS™" },
+  "manifestImeName": { "message":
+    "CrosCIN Chinese Input Methods" },
+  "manifestImeDesc": { "message":
+    "Chinese Input Methods (XCIN compatible) for Google ChromeOS™" },
+  "menuOptions": { "message":
+    "Options" },
+
+  "dummy": {"message": "" }
+}

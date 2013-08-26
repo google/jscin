@@ -1,13 +1,23 @@
 {
   "manifest_version": 2,
-  "name": "CrosCIN \u4e2d\u6587\u8f38\u5165\u6cd5",
-  "version": "0.0.5",
-  "description":
-      "Input methods compatible with XCIN tables for Google ChromeOS™ .",
-  "background": {
-    "page": "croscin.html"
-  },
+  "name": "__MSG_manifestName__",
+  "version": "0.0.6",
+
+  "default_locale": "en",
+  "description": "__MSG_manifestDesc__",
   "icons": { "48": "icon48.png", "128": "icon128.png" },
+
+  "background": { "page": "croscin.html" },
+  "options_page": "options/options.html",
+
+  "input_components": [ {
+      "name": "__MSG_manifestImeName__",
+      "description": "__MSG_manifestImeDesc__",
+      "type": "ime",
+      "id": "cros_cin",
+      "language": "zh-TW",
+      "layouts": ["us"]
+  } ],
   "permissions": [
     "http://*/",
     "input",
@@ -15,16 +25,5 @@
     "https://www.google.com/accounts/OAuthGetRequestToken",
     "https://www.google.com/accounts/OAuthAuthorizeToken",
     "https://www.google.com/accounts/OAuthGetAccessToken"
-  ],
-  "options_page": "options/options.html",
-  "input_components": [
-    {
-      "name": "CrosCIN \u4e2d\u6587\u8f38\u5165\u6cd5",
-      "type": "ime",
-      "id": "cros_cin",
-      "description": "Chinese Input Method (XCIN compatible) for ChromeOS",
-      "language": "zh-TW",
-      "layouts": ["us"]
-    }
   ]
 }
