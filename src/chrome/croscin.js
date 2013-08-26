@@ -227,8 +227,9 @@ croscin.IME = function() {
       });
     }
     self.log("croscin.InitializeMenu: " + menu_items.length + " items.");
-    // XXX separator may not appear - depends on ChromeOS UI design.
-    menu_items.push({"id": "", "style": "separator"});
+    // Separator is broken on R28, and may not appear after R29.
+    // It depends on ChromeOS UI design so let's not use it.
+    // menu_items.push({"id": "", "style": "separator"});
     menu_items.push({"id": self.kOptionsPage, "label": "Options"});
 
     var arg = self.GetEngineArg();
