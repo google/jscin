@@ -1,2 +1,0 @@
-This folder contains example table (*.cin) files from XCIN 2.5,
-converted to UTF-8 encoding.
