@@ -21,7 +21,8 @@ croscin.IME = function() {
   // TODO(hungte) load default debug flag from options
   self.debug = true;
 
-  self.kOptionsPage = chrome.i18n.getMessage("menuOptions");
+  self.kMenuOptions = "options";
+  self.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
 
   self.imctx = {};
   self.im = null;
@@ -226,7 +227,7 @@ croscin.IME = function() {
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
     // menu_items.push({"id": "", "style": "separator"});
-    menu_items.push({"id": self.kOptionsPage, "label": "Options"});
+    menu_items.push({"id": self.kMenuOptions, "label": self.kMenuOptionsLabel});
 
     var arg = self.GetEngineArg();
     arg['items'] = menu_items;
@@ -389,7 +390,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
     self.log("croscin.onMenuItemActivated: name=" + name);
 
-    if (name == self.kOptionsPage) {
+    if (name == self.kMenuOptions) {
       var options_url = chrome.extension.getURL("options/options.html");
       chrome.tabs.create({"url": options_url});
     } else if (name.match(/^ime:/)) {
