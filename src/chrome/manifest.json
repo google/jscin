@@ -23,7 +23,7 @@
       "id": "cros_cin",
       "description": "Chinese Input Method (XCIN compatible) for ChromeOS",
       "language": "zh-TW",
-      "layouts": ["us::eng"]
+      "layouts": ["us"]
     }
   ]
 }
