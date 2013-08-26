@@ -31,10 +31,6 @@ croscin.IME = function() {
   self.engineID = null;
   self.context = null;
 
-  // TODO(hungte) remove this workaround: "onActivate is not called if user is
-  // already using extension and then reload..
-  self.engineID = jscin.ENGINE_ID;
-
   // Standard utilities
   self.GetContextArg = function() {
     return {'contextID': this.context.contextID};
@@ -355,11 +351,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onFocus.addListener(function(context) {
     self.context = context;
-    // TODO(hungte) remove this workaround: "onActivate is not called if user
-    // reloads extension.
-    self.InitializeUI();
-
-    // Calling updateUI here is to carry unfinished composition (preedit) into
+    // Calling updateUI here to forward unfinished composition (preedit) into
     // the new input element.
     self.UpdateUI();
   });
