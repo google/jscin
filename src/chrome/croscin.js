@@ -210,44 +210,34 @@ croscin.IME = function() {
     }
   }
 
-  self.UpdateMenu = function() {
-    var menu_items = [];
-    for (var i in jscin.input_methods) {
-      menu_items.push({
-        "id": "ime:" + i,
-        "checked": i == self.im_name
-      });
-    }
-    var arg = self.GetEngineArg();
-    arg['items'] = menu_items;
-    self.ime_api.updateMenuItems(arg);
-  }
-
   self.InitializeMenu = function() {
     var menu_items = [];
 
     for (var i in jscin.input_methods) {
-      var label = jscin.input_methods[i]["label"];
-      if (!label)
+      var label = jscin.get_input_method_label(i);
+      if (label)
+        label = label + " (" + i + ")";
+      else
         label = i;
       menu_items.push({
         "id": "ime:" + i,
         "label": label,
-        "style": "radio"
+        "style": "radio",
+        "checked": i == self.im_name,
       });
     }
     self.log("croscin.InitializeMenu: " + menu_items.length + " items.");
+    // XXX separator may not appear - depends on ChromeOS UI design.
+    menu_items.push({"id": "", "style": "separator"});
+    menu_items.push({"id": self.kOptionsPage, "label": "Options"});
 
-    // Add a separator and options  (Separator does not work yet).
-    menu_items.push({"id": "",
-                     "style": "separator"});
-    menu_items.push({"id": self.kOptionsPage,
-                     "label": "Options"});
     var arg = self.GetEngineArg();
     arg['items'] = menu_items;
     self.ime_api.setMenuItems(arg);
 
-    self.UpdateMenu();
+    // TODO(hungte) ime_api.updateMenuItems is broken so we can't really
+    // "update" it - just always do setMenuItems.
+    // self.UpdateMenu();
   }
 
   self.LoadExtensionResource = function(url) {
