@@ -15,16 +15,22 @@ var kDefaultCinTableDefault = "array30";
 var jscin = chrome.extension.getBackgroundPage().jscin;
 var bgPage = chrome.extension.getBackgroundPage();
 
-$(init);
+_ = chrome.i18n.getMessage;
 
-function SetLocalizedElement(name) {
-  $("#" + name).text(chrome.i18n.getMessage(name));
+function SetElementsText() {
+  for (var i = 0; i < arguments.length; i++) {
+    $("." + arguments[i]).text(_(arguments[i]));
+  }
 }
 
 function init() {
   loadCinTables();
-  SetLocalizedElement("optionCaption");
-  SetLocalizedElement("optionInputMethodTables");
+  SetElementsText("optionCaption", "optionInputMethodTables",
+      "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
+      "optionDebug", "optionDebugMessage");
+  $("#accordion").accordion({
+    heightStyle: "content"
+  });
 
   var select = $("#add_table_setting");
   var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
@@ -42,7 +48,7 @@ function init() {
     modal: true,
   });
 
-  $("#add_url_button").click(function(event) {
+  $(".optionAddUrl").button().click(function(event) {
     setAddTableStatus("");
     $("#file_div").hide();
     $("#url_div").show();
@@ -67,7 +73,7 @@ function init() {
     ]).dialog("open");
   });
 
-  $("#add_file_button").click(function(event) {
+  $(".optionAddFile").button().click(function(event) {
     setAddTableStatus("");
     $("#file_div").show();
     $("#url_div").hide();
@@ -92,7 +98,7 @@ function init() {
     ]).dialog("open");
   });
 
-  $("#add_drive_button").click(function(event) {
+  $(".optionAddDrive").button().click(function(event) {
     setAddTableStatus("");
     $("#url_div").hide();
     $("#file_div").hide();
@@ -129,6 +135,13 @@ function init() {
       });
     }
   });
+
+  $('#debug_mode_input').button().click(function() {
+    alert("Sorry, not supported yet.");
+    // chrome.extension.getBackgroundPage().on_debug_mode_change(
+    // $("#debug_mode_input").attr("checked"));
+  });
+  $('#start_dumb_ime').button();
 }
 
 function LoadExtensionResource(url) {
@@ -142,11 +155,6 @@ function LoadExtensionResource(url) {
     return null;
   }
   return xhr.responseText;
-}
-
-function onDebugModeChange() {
-  var value = document.getElementById("debug_mode_input").checked;
-  chrome.extension.getBackgroundPage().on_debug_mode_change(value);
 }
 
 function addTableUrl(url) {
@@ -272,8 +280,12 @@ function addCinTableToTable(metadata) {
   var builtin = metadata.builtin;
 
   var table = document.getElementById("cin_table_table");
+  var rowLength = table.rows.length;
 
   var row = table.tBodies[0].insertRow(-1);
+  if (rowLength % 2) {
+    row.className = "even_row";
+  }
 
   // Cell: (ename, cname)
   var cell = row.insertCell(-1);
@@ -409,3 +421,5 @@ function loadCinTables() {
 function notifyConfigChanged() {
   chrome.extension.getBackgroundPage().on_config_changed();
 }
+
+$(init);

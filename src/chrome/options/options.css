@@ -1,3 +1,7 @@
+body {
+  background: white;
+}
+
 .status_ok {
   color: Green;
 }
@@ -8,19 +12,25 @@
 
 h1 {
   color: navy;
+  font-family: helvetica, sans-serif;
   font-weight: normal;
-  text-shadow: #ccf 2px 2px;
+  border-bottom: 5px solid #ddd;
 }
 
 table.cin_tables {
-  background: #CCC;
+  background: #ddf;
   font-size: 14px;
   width: 90%;
 }
 table.cin_tables th {
+  background: #ccf;
   border-width: 0px 1px 1px 0px;
   border-color: #FFF;
   border-style: solid;
+}
+
+table.cin_tables .even_row {
+  background: #eef;
 }
 
 .name_head {

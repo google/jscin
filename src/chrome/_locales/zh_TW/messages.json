@@ -13,7 +13,21 @@
   "optionCaption": { "message":
     "JsCIN 輸入法選項設定" },
   "optionInputMethodTables": { "message":
-    "輸入法表格 (*.cin):" },
+    "管理輸入法與表格 (*.cin):" },
+  "optionAddTables": {"message":
+    "新增更多輸入法:" },
+  "optionAddUrl": {"message":
+    "由指定網址(URL)加入新輸入法" },
+  "optionAddFile": {"message":
+    "由已下載的表格檔案 (*.cin) 加入新輸入法" },
+  "optionAddDrive": {"message":
+    "由 Google Drive 加入新輸入法" },
+
+  "optionDebug": {"message":
+    "除錯與開發" },
+  "optionDebugMessage": {"message":
+    "印出除錯訊息" },
+
 
   "dummy": {"message": "" }
 }

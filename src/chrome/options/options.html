@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Chrome OS CIN Options</title>
+    <title class="optionCaption">JsCIN Options</title>
     <link rel="stylesheet" href="options.css" type="text/css"/>
     <link href="../css/smoothness/jquery-ui-1.10.3.custom.css" rel="stylesheet">
     <script type="text/javascript" src="../jquery/jquery-1.9.1.js"></script>
@@ -11,36 +11,49 @@
     <script type="text/javascript" src="drive.js"></script>
   </head>
   <body>
-    <h1 id="optionCaption"></h1>
-    <!-- TODO (hungte) A flag to configure debug mode. -->
-    <p id="optionInputMethodTables"></p>
-    <table id="cin_table_table" class="cin_tables">
-      <thead>
-        <tr>
-          <th class="name_head" colspan="2">Name</th>
-          <th class="default_head">Default</th>
-          <th class="remove_head"></th>
-          <th class="reload_head"></th>
-          <th class="setting_head">Setting</th>
-          <th class="link_head"></th>
-          <th class="url_head">URL</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-    <p>
-      <button id="add_url_button">Add tables from URLs</button>
-      or
-      <button id="add_file_button">Add tables from local files</button>
-      or
-      <button id="add_drive_button">Add tables from Google Drive</button>
-    </p>
-    <span id="add_table_status"></span>
-    <div id="add_table_dialog" title="Add table">
+    <h1 class="optionCaption"></h1>
+    <div id="accordion">
+
+      <h3 class="optionInputMethodTables"></h3>
+      <div>
+        <table id="cin_table_table" class="cin_tables">
+          <thead>
+            <tr>
+              <th class="name_head" colspan="2">Name</th>
+              <th class="default_head">Default</th>
+              <th class="remove_head"></th>
+              <th class="reload_head"></th>
+              <th class="setting_head">Setting</th>
+              <th class="link_head"></th>
+              <th class="url_head">URL</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table><br/>
+        <p class="optionAddTables"></p>
+        <button class="optionAddUrl"></button><br/>
+        <button class="optionAddFile"></button><br/>
+        <button class="optionAddDrive"></button><br/>
+        <!-- TODO(hungte) Make this a progress bar. -->
+        <span id="add_table_status"></span>
+      </div>
+
+      <h3 class="optionDebug"></h3>
+      <div>
+        <input type="checkbox" id="debug_mode_input"></input>
+        <label for="debug_mode_input" class="optionDebugMessage"></label><br/>
+        <a id="start_dumb_ime" href="../dumbime.html">Dumb IME</a>
+      </div>
+
+    </div><!-- end of accordion -->
+
+    <!-- TODO(hungte) Localize this -->
+    <div id="add_table_dialog" title="Add table" style="display: none;">
       <p>
         <div id="url_div">
-          <input type=text id="cin_table_url_input" size="80" placeholder="Enter a URL"></input>
+          <input type=text id="cin_table_url_input" size="80"
+                 placeholder="Enter a URL"></input>
           <br/>
         </div>
         <div id="file_div">
@@ -61,10 +74,6 @@
         <span id="auth_status"></span>
       </p>
     </div>
-    <hr>
-    <input type=checkbox id="debug_mode_input" onchange="onDebugModeChange()"></input>
-    <label for="debug_mode_input">Enable debug messages</label><br/>
 
-    <a href="../dumbime.html">Dumb IME</a>
   </body>
 </html>
