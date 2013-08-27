@@ -12,7 +12,8 @@ var oauth = ChromeExOAuth.initBackgroundPage({
   'consumer_key': 'anonymous',
   'consumer_secret': 'anonymous',
   'scope': DOCLIST_SCOPE,
-  'app_name': 'CrosCIN IME Extension'
+  'app_name': 'CrosCIN IME Extension',
+  'callback_page': 'oauth/chrome_ex_oauth.html'
 });
 function setIcon(opt_badgeObj) {
   if (opt_badgeObj) {

@@ -249,6 +249,7 @@ ChromeExOAuth.fromConfig = function(oauth_config) {
     oauth_config['scope'],
     {
       'app_name' : oauth_config['app_name'],
+      'callback_page': oauth_config['callback_page'],
       'auth_params' : oauth_config['auth_params']
     }
   );

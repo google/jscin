@@ -36,9 +36,9 @@ function createFolderUpload(ename, content) {
     },
     'parameters': {'alt': 'json'},
     'body': [
-              "<?xml version='1.0' encoding='UTF-8'?>", 
+              "<?xml version='1.0' encoding='UTF-8'?>",
               '<entry xmlns="http://www.w3.org/2005/Atom">',
-              '<category scheme="http://schemas.google.com/g/2005#kind"', 
+              '<category scheme="http://schemas.google.com/g/2005#kind"',
               ' term="http://schemas.google.com/docs/2007#folder"/>',
               '<title>', DRIVE_FOLDER, '</title>',
               '</entry>',
@@ -84,9 +84,9 @@ function getLink(links, rel) {
 };
 
 function constructAtomXml_(docTitle, docType, opt_starred) {
-  var atom = ["<?xml version='1.0' encoding='UTF-8'?>", 
+  var atom = ["<?xml version='1.0' encoding='UTF-8'?>",
               '<entry xmlns="http://www.w3.org/2005/Atom">',
-              '<category scheme="http://schemas.google.com/g/2005#kind"', 
+              '<category scheme="http://schemas.google.com/g/2005#kind"',
               ' term="http://schemas.google.com/docs/2007#' + docType + '"/>',
               '<title>', docTitle, '</title>',
               '</entry>'].join('');
