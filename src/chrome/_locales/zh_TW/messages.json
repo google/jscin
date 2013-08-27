@@ -13,15 +13,15 @@
   "optionCaption": { "message":
     "JsCIN 輸入法選項設定" },
   "optionInputMethodTables": { "message":
-    "管理輸入法與表格 (*.cin):" },
+    "管理輸入法與表格:" },
   "optionAddTables": {"message":
-    "新增更多輸入法:" },
+    "新增更多輸入法 (*.cin):" },
   "optionAddUrl": {"message":
-    "由指定網址(URL)加入新輸入法" },
+    "由指定網址(URL)新增輸入法" },
   "optionAddFile": {"message":
-    "由已下載的表格檔案 (*.cin) 加入新輸入法" },
+    "由已下載的檔案新增輸入法" },
   "optionAddDrive": {"message":
-    "由 Google Drive 加入新輸入法" },
+    "由 Google Drive 新增輸入法" },
   "optionSaveToDrive": {"message":
     "存入 Google Drive" },
   "optionSettingChoices": {"message":

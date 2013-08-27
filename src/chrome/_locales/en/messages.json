@@ -13,13 +13,13 @@
   "optionCaption": { "message":
     "JsCIN Options" },
   "optionInputMethodTables": { "message":
-    "Manage Input Methods and Tables (*.cin):" },
+    "Manage Input Methods:" },
   "optionAddTables": {"message":
-    "Add more Input Tables:" },
+    "Add more Input Tables (*.cin):" },
   "optionAddUrl": {"message":
     "Add Input Table from URL" },
   "optionAddFile": {"message":
-    "Add Input Table (*.cin) from downloaded local file" },
+    "Add Input Table from downloaded local file" },
   "optionAddDrive": {"message":
     "Add Input Table from Google Drive" },
   "optionSaveToDrive": {"message":
