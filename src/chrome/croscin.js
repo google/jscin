@@ -292,10 +292,6 @@ croscin.IME = function() {
   }
   jscin.reload_configuration();
   self.resolve_ime_api();
-  if (navigator.appVersion.match(/Mac OS/)) {
-    self.hook_dumb_ime();
-    jscin.ime_api = self.ime_api;  // FIXME(kcwu): dirty hack
-  }
   self.registerEventHandlers();
   // Start the default input method.
   self.ActivateInputMethod(null);
@@ -308,8 +304,11 @@ croscin.IME.prototype.resolve_ime_api = function() {
     ime_api = chrome.input.ime;
 
   // TODO(hungte) Alert and die if there's no ime_api.
-
   this.ime_api = ime_api;
+
+  if (!ime_api) {
+    this.hook_dumb_ime();
+  }
 }
 
 croscin.IME.prototype.hook_dumb_ime = function() {
@@ -319,17 +318,23 @@ croscin.IME.prototype.hook_dumb_ime = function() {
       'onInputContextUpdate', 'onCandidateClicked', 'onMenuItemActivated',
       ];
   jscin.dumb_ime = { 'listener': {} };
-  ime_api = self.ime_api;
+  ime_api = {};
 
+  jscin.dumb_ime = { 'listener': {} };
   for (var i in hook_listener) {
     var name = hook_listener[i];
     jscin.dumb_ime.listener[name] = [];
-    ime_api[name].addListener = (function (name) {
+    var node = document.createTextNode("dummy");
+    node.addListener = (function (name) {
       return function (arg) {
         jscin.dumb_ime.listener[name].push(arg);
       };
     })(name);
+    ime_api[name] = node;
   }
+
+  // FIXME(kcwu): dirty hack
+  jscin.ime_api = self.ime_api = ime_api;
 }
 
 /**

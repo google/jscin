@@ -62,6 +62,7 @@ function init() {
   // Generate events
   document.getElementById('onActivate').onclick = function () {
     jscin.dumb_ime.listener.onActivate[0](engineID);
+    document.getElementById('input').title = 'Please click onFocus to start';
     document.getElementById('onActivate').disabled = true;
     document.getElementById('onFocus').disabled = false;
   }
@@ -69,6 +70,8 @@ function init() {
     var context = {
       'contextID': 1,
     };
+    document.getElementById('input').title = 'Please start to input';
+    document.getElementById('input').disabled = false;
     jscin.dumb_ime.listener.onFocus[0](context);
   }
 
