@@ -18,7 +18,9 @@ var croscin = {};
 croscin.IME = function() {
   var self = this;
 
-  // TODO(hungte) load default debug flag from options
+  // TODO(hungte) load default debug flag from options.
+  // Update options/options.html#debug_mode_input if you have changed this
+  // default value.
   self.debug = true;
 
   self.kMenuOptions = "options";
@@ -404,11 +406,13 @@ croscin.IME.prototype.registerEventHandlers = function() {
     }
   });
 
-  window.on_debug_mode_change = function(debug) {
+  self.on_debug_mode_change = function(debug) {
+    jscin.log("croscin.on_debug_mode_change: notified: " + debug);
+    jscin.debug = debug;
     self.debug = debug;
   }
 
-  window.on_config_changed = function() {
+  self.on_config_changed = function() {
     // Some configuration is changed - we need to validate and refresh all.
     self.log("croscin.on_config_changed: notified.");
     jscin.reload_configuration();
@@ -423,7 +427,7 @@ document.addEventListener(
     'readystatechange',
     function() {
       if (document.readyState === 'complete') {
-        foobar = new croscin.IME;
+        croscin.instance = new croscin.IME;
       }
     }
 )

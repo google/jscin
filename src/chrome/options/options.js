@@ -12,8 +12,9 @@ var kDefaultCinTableRadioId = "default_radio_";
 var kDefaultCinTableDefault = "array30";
 
 // this is dirty hack
-var jscin = chrome.extension.getBackgroundPage().jscin;
 var bgPage = chrome.extension.getBackgroundPage();
+var jscin = bgPage.jscin;
+var instance = bgPage.croscin.instance;
 
 _ = chrome.i18n.getMessage;
 
@@ -143,10 +144,10 @@ function init() {
     }
   });
 
+  /* TODO(hungte) Can't find a way to set the default checked state of checkbox
+   * debug_mode_input. Let's pretend it's same as the default value... */
   $('#debug_mode_input').button().click(function() {
-    alert("Sorry, not supported yet.");
-    // chrome.extension.getBackgroundPage().on_debug_mode_change(
-    // $("#debug_mode_input").attr("checked"));
+    instance.on_debug_mode_change($('#debug_mode_input').prop("checked"));
   });
   $('#start_dumb_ime').button();
   if (!('dumb_ime' in jscin)) {
@@ -431,7 +432,7 @@ function loadCinTables() {
 }
 
 function notifyConfigChanged() {
-  chrome.extension.getBackgroundPage().on_config_changed();
+  instance.on_config_changed();
 }
 
 $(init);
