@@ -1,17 +1,17 @@
 [
   {
     "ename": "ZhuYin",
-    "cname": "注音", 
+    "cname": "注音",
     "options": {}
   },
   {
-    "ename": "ChangJei", 
-    "cname": "倉頡", 
+    "ename": "ChangJei",
+    "cname": "倉頡",
     "options": {}
   },
   {
     "ename": "Boshiamy",
-    "cname": "嘸蝦米", 
+    "cname": "嘸蝦米",
     "options": {
       "AUTO_COMPOSE": true,
       "AUTO_UPCHAR": true,
@@ -21,8 +21,8 @@
     }
   },
   {
-    "ename": "Array30", 
-    "cname": "行列30", 
+    "ename": "Array30",
+    "cname": "行列30",
     "options": {
       "DISABLE_SEL_LIST": "w",
       "KEYSTROKE_REMAP": {
@@ -31,8 +31,9 @@
     }
   },
   {
-    "ename": "From Table", 
-    "cname": "從表格", 
+    "ename": "From Table",
+    "cname": "由表格指定",
+    "default": true,
     "options": {}
   }
 ]

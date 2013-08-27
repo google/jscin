@@ -49,7 +49,7 @@
     </div><!-- end of accordion -->
 
     <!-- TODO(hungte) Localize this -->
-    <div id="add_table_dialog" title="Add table" style="display: none;">
+    <div id="add_table_dialog" style="display: none;">
       <p>
         <div id="url_div">
           <input type=text id="cin_table_url_input" size="80"
@@ -65,12 +65,12 @@
         </div>
       </p>
       <p>
-        <label> Setting Choices: </label>
+        <label class="optionSettingChoices"></label>
         <select id="add_table_setting"></select>
       </p>
       <p id="save_to_drive_input">
         <input type=checkbox id="save_to_drive">
-        <label for="save_to_drive"> Save to Google Drive </label>
+        <label for="save_to_drive" class="optionSaveToDrive"></label>
         <span id="auth_status"></span>
       </p>
     </div>

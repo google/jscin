@@ -22,6 +22,17 @@
     "Add Input Table (*.cin) from downloaded local file" },
   "optionAddDrive": {"message":
     "Add Input Table from Google Drive" },
+  "optionSaveToDrive": {"message":
+    "Save to Google Drive" },
+  "optionSettingChoices": {"message":
+    "Input Method Table type:" },
+  "optionAddTable": {"message":
+    "Add Input Method Table" },
+  "optionAdd": {"message":
+    "Add" },
+  "optionCancel": {"message":
+    "Cancel" },
+
   "optionDebug": {"message":
     "Debug and development" },
   "optionDebugMessage": {"message":

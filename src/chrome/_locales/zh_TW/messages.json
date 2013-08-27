@@ -22,6 +22,16 @@
     "由已下載的表格檔案 (*.cin) 加入新輸入法" },
   "optionAddDrive": {"message":
     "由 Google Drive 加入新輸入法" },
+  "optionSaveToDrive": {"message":
+    "存入 Google Drive" },
+  "optionSettingChoices": {"message":
+    "輸入法類別:" },
+  "optionAddTable": {"message":
+    "新增輸入法表格" },
+  "optionAdd": {"message":
+    "新增" },
+  "optionCancel": {"message":
+    "取消" },
 
   "optionDebug": {"message":
     "除錯與開發" },

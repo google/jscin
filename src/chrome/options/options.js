@@ -27,20 +27,27 @@ function init() {
   loadCinTables();
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
+      "optionSaveToDrive", "optionSettingChoices",
       "optionDebug", "optionDebugMessage");
   $("#accordion").accordion({
     heightStyle: "content"
   });
 
+  // TODO(hungte) we should autodetect again after source is specified.
   var select = $("#add_table_setting");
   var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
   select.empty();
   for (var i in setting_options) {
     var setting = setting_options[i];
-    var option = $("<option>", { "id": "option" + i });
+    var option = $("<option>", {"id": "option" + i});
     option.text(setting.ename + ' ' + setting.cname);
+    if ("default" in setting && setting["default"]) {
+      option.attr("selected", "selected");
+    }
     select.append(option);
   }
+
+  $("#add_table_dialog").attr("title", _("optionAddTable"));
 
   $("#add_table_dialog").dialog({
     autoOpen: false,
@@ -56,7 +63,7 @@ function init() {
     $("#save_to_drive_input").show();
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
-        text: "Add Table",
+        text: _("optionAddTable"),
         click: function() {
           var url = document.getElementById("cin_table_url_input").value;
           var setting = getSettingOption();
@@ -65,7 +72,7 @@ function init() {
         }
       },
       {
-        text: "Cancel",
+        text: _("optionCancel"),
         click: function() {
           $(this).dialog("close");
         }
@@ -81,7 +88,7 @@ function init() {
     $("#save_to_drive_input").show();
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
-        text: "Add Table",
+        text: _("optionAddTable"),
         click: function() {
           var files = document.getElementById("cin_table_file_input").files;
           var setting = getSettingOption();
@@ -90,7 +97,7 @@ function init() {
         }
       },
       {
-        text: "Cancel",
+        text: _("optionCancel"),
         click: function() {
           $(this).dialog("close");
         }
@@ -119,7 +126,7 @@ function init() {
         }
       },
       {
-        text: "Cancel",
+        text: _("optionCancel"),
         click: function() {
           $(this).dialog("close");
         }
