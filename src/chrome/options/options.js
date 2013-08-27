@@ -149,6 +149,11 @@ function init() {
     // $("#debug_mode_input").attr("checked"));
   });
   $('#start_dumb_ime').button();
+  if (!('dumb_ime' in jscin)) {
+    $('#start_dumb_ime').attr('href', '#').click(function() {
+      alert('Dumb IME only works on Non-ChromeOS browsers (to help debug).');
+    });
+  }
 }
 
 function LoadExtensionResource(url) {
