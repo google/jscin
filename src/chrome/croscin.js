@@ -21,7 +21,8 @@ croscin.IME = function() {
   // TODO(hungte) load default debug flag from options
   self.debug = true;
 
-  self.kOptionsPage = "options";
+  self.kMenuOptions = "options";
+  self.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
 
   self.imctx = {};
   self.im = null;
@@ -30,10 +31,6 @@ croscin.IME = function() {
 
   self.engineID = null;
   self.context = null;
-
-  // TODO(hungte) remove this workaround: "onActivate is not called if user is
-  // already using extension and then reload..
-  self.engineID = jscin.ENGINE_ID;
 
   // Standard utilities
   self.GetContextArg = function() {
@@ -112,8 +109,8 @@ croscin.IME = function() {
     return self.ProcessKeyEvent(keyEvent);
   }
 
-  self.SetCanditesWindowProperty = function(name, value) {
-    self.log("croscin.SetCanditesWindowProperty: set " + name + ": " + value);
+  self.SetCandidatesWindowProperty = function(name, value) {
+    self.log("croscin.SetCandidatesWindowProperty: set " + name + ": " + value);
     var prop = {};
     var arg = self.GetEngineArg();
     arg['properties'] = prop;
@@ -123,10 +120,10 @@ croscin.IME = function() {
 
   self.InitializeUI = function() {
     // Vertical candidates window looks better on ChromeOS.
-    self.SetCanditesWindowProperty('vertical', true);
+    self.SetCandidatesWindowProperty('vertical', true);
     // CIN tables don't expect cursor in candidates window.
-    self.SetCanditesWindowProperty('cursorVisible', false);
-    self.SetCanditesWindowProperty('visible', false);
+    self.SetCandidatesWindowProperty('cursorVisible', false);
+    self.SetCandidatesWindowProperty('visible', false);
 
     // Setup menu
     self.InitializeMenu();
@@ -150,8 +147,6 @@ croscin.IME = function() {
   self.UpdateCandidates = function(candidate_list, labels) {
     self.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
              ", labels = " + labels);
-    // TODO(hungte) set more properties:
-    //  auxiliaryText, auxiliaryTextVisible.
     if (candidate_list.length > 0) {
       var arg = self.GetContextArg();
       var candidates = [];
@@ -167,12 +162,12 @@ croscin.IME = function() {
       self.log(candidates);
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
-      self.SetCanditesWindowProperty('pageSize', candidate_list.length);
-      self.SetCanditesWindowProperty('visible', true);
-      self.SetCanditesWindowProperty('auxiliaryText', self.im_label);
-      self.SetCanditesWindowProperty('auxiliaryTextVisible', true);
+      self.SetCandidatesWindowProperty('pageSize', candidate_list.length);
+      self.SetCandidatesWindowProperty('auxiliaryTextVisible', true);
+      self.SetCandidatesWindowProperty('visible', true);
     } else {
-      self.SetCanditesWindowProperty('visible', false);
+      self.SetCandidatesWindowProperty('auxiliaryTextVisible', false);
+      self.SetCandidatesWindowProperty('visible', false);
     }
   }
 
@@ -206,49 +201,41 @@ croscin.IME = function() {
       self.InitializeUI();
       jscin.writeLocalStorage(jscin.kDefaultCinTableKey, name);
       jscin.default_input_method = name;
+      self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
     } else {
       self.log("croscin.ActivateInputMethod: Invalid item: " + name);
     }
-  }
-
-  self.UpdateMenu = function() {
-    var menu_items = [];
-    for (var i in jscin.input_methods) {
-      menu_items.push({
-        "id": "ime:" + i,
-        "checked": i == self.im_name
-      });
-    }
-    var arg = self.GetEngineArg();
-    arg['items'] = menu_items;
-    self.ime_api.updateMenuItems(arg);
   }
 
   self.InitializeMenu = function() {
     var menu_items = [];
 
     for (var i in jscin.input_methods) {
-      var label = jscin.input_methods[i]["label"];
-      if (!label)
+      var label = jscin.get_input_method_label(i);
+      if (label)
+        label = label + " (" + i + ")";
+      else
         label = i;
       menu_items.push({
         "id": "ime:" + i,
         "label": label,
-        "style": "radio"
+        "style": "radio",
+        "checked": i == self.im_name,
       });
     }
     self.log("croscin.InitializeMenu: " + menu_items.length + " items.");
+    // Separator is broken on R28, and may not appear after R29.
+    // It depends on ChromeOS UI design so let's not use it.
+    // menu_items.push({"id": "", "style": "separator"});
+    menu_items.push({"id": self.kMenuOptions, "label": self.kMenuOptionsLabel});
 
-    // Add a separator and options  (Separator does not work yet).
-    menu_items.push({"id": "",
-                     "style": "separator"});
-    menu_items.push({"id": self.kOptionsPage,
-                     "label": "Options"});
     var arg = self.GetEngineArg();
     arg['items'] = menu_items;
     self.ime_api.setMenuItems(arg);
 
-    self.UpdateMenu();
+    // TODO(hungte) ime_api.updateMenuItems is broken so we can't really
+    // "update" it - just always do setMenuItems.
+    // self.UpdateMenu();
   }
 
   self.LoadExtensionResource = function(url) {
@@ -365,11 +352,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onFocus.addListener(function(context) {
     self.context = context;
-    // TODO(hungte) remove this workaround: "onActivate is not called if user
-    // reloads extension.
-    self.InitializeUI();
-
-    // Calling updateUI here is to carry unfinished composition (preedit) into
+    // Calling updateUI here to forward unfinished composition (preedit) into
     // the new input element.
     self.UpdateUI();
   });
@@ -407,7 +390,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
     self.log("croscin.onMenuItemActivated: name=" + name);
 
-    if (name == self.kOptionsPage) {
+    if (name == self.kMenuOptions) {
       var options_url = chrome.extension.getURL("options/options.html");
       chrome.tabs.create({"url": options_url});
     } else if (name.match(/^ime:/)) {

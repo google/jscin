@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_manifestName__",
+  "version": "0.0.6",
+
+  "default_locale": "en",
+  "description": "__MSG_manifestDesc__",
+  "icons": { "48": "icon48.png", "128": "icon128.png" },
+
+  "background": { "page": "croscin.html" },
+  "options_page": "options/options.html",
+
+  "input_components": [ {
+      "name": "__MSG_manifestImeName__",
+      "description": "__MSG_manifestImeDesc__",
+      "type": "ime",
+      "id": "cros_cin",
+      "language": "zh-TW",
+      "layouts": ["us"]
+  } ],
+  "permissions": [
+    "http://*/",
+    "input",
+    "tabs", "https://docs.google.com/feeds/*",
+    "https://www.google.com/accounts/OAuthGetRequestToken",
+    "https://www.google.com/accounts/OAuthAuthorizeToken",
+    "https://www.google.com/accounts/OAuthGetAccessToken"
+  ]
+}
