@@ -306,10 +306,8 @@ croscin.IME.prototype.resolve_ime_api = function() {
   var ime_api = null;
   if ("input" in chrome && "ime" in chrome.input)
     ime_api = chrome.input.ime;
-  else
-    ime_api = chrome.experimental.input;
-  if ("ime" in ime_api)
-    ime_api = ime_api.ime;
+
+  // TODO(hungte) Alert and die if there's no ime_api.
 
   this.ime_api = ime_api;
 }
