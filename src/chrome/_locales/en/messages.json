@@ -1,17 +1,17 @@
 {
   "manifestName": { "message":
-    "CrosCIN Chinese Input Methods" },
+    "JsCIN: JavaScript based Chinese Input Methods" },
   "manifestDesc": { "message":
-    "Chinese Input Methods (XCIN compatible) for Google ChromeOS™" },
+    "JavaScript based Chinese Input Methods (XCIN compatible) for ChromeOS™" },
   "manifestImeName": { "message":
-    "CrosCIN Chinese Input Methods" },
+    "JsCIN Chinese Input Methods" },
   "manifestImeDesc": { "message":
     "Chinese Input Methods (XCIN compatible) for Google ChromeOS™" },
   "menuOptions": { "message":
     "Options" },
 
   "optionCaption": { "message":
-    "CrosCIN Options" },
+    "JsCIN Options" },
   "optionInputMethodTables": { "message":
     "Input Method Tables (*.cin):" },
 
