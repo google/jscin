@@ -66,7 +66,7 @@ function parseCin(cin_input) {
     }
   }
 
-  if (runningcmd)
+  if (runningcmd && runningcmd != 'chardef') // iBus tables has no "%chardef end"
     return failed(lineno, 'previous section has no end');
 
   // verify mandatory fields
