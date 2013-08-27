@@ -10,5 +10,10 @@
   "menuOptions": { "message":
     "選項" },
 
+  "optionCaption": { "message":
+    "CrosCIN 輸入法選項設定" },
+  "optionInputMethodTables": { "message":
+    "輸入法表格 (*.cin):" },
+
   "dummy": {"message": "" }
 }

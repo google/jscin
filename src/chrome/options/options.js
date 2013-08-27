@@ -17,8 +17,14 @@ var bgPage = chrome.extension.getBackgroundPage();
 
 $(init);
 
+function SetLocalizedElement(name) {
+  $("#" + name).text(chrome.i18n.getMessage(name));
+}
+
 function init() {
   loadCinTables();
+  SetLocalizedElement("optionCaption");
+  SetLocalizedElement("optionInputMethodTables");
 
   var select = $("#add_table_setting");
   var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));

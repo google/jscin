@@ -10,5 +10,10 @@
   "menuOptions": { "message":
     "Options" },
 
+  "optionCaption": { "message":
+    "CrosCIN Options" },
+  "optionInputMethodTables": { "message":
+    "Input Method Tables (*.cin):" },
+
   "dummy": {"message": "" }
 }
