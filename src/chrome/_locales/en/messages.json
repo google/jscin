@@ -54,6 +54,8 @@
     "Source: " },
   "optionTableDetailTypeHeader": {"message":
     "Type: " },
+  "optionAreYouSure": {"message":
+    "Are you sure?" },
 
   "optionDebug": {"message":
     "Debug and development" },

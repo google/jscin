@@ -54,6 +54,8 @@
     "來源: " },
   "optionTableDetailTypeHeader": {"message":
     "類別: " },
+  "optionAreYouSure": {"message":
+    "確定要繼續嗎？" },
 
   "optionDebug": {"message":
     "除錯與開發" },

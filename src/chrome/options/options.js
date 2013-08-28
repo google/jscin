@@ -348,28 +348,37 @@ function addCinTableToList(metadata, list_id) {
             $(this).dialog("close");
           } } ];
 
-        // TODO(hungte) We should not allow removing active IME.
         if (!builtin) {
+          // TODO(hungte) We should not allow removing active IME.
           buttons.push( { text: _('optionRemove'),
             click: function () {
-              removeCinTable(ename);
-              $('#' + id).remove();
+              if (confirm(_("optionAreYouSure"))) {
+                removeCinTable(ename);
+                $('#' + id).remove();
+                notifyConfigChanged();
+              }
               $(this).dialog("close");
-              notifyConfigChanged();
 
             } }, { text: _('optionReload'),
             click: function() {
-              removeCinTable(ename);
-              $('#' + id).remove();
-              addTableUrl(url, metadata.setting);
+              if (confirm(_("optionAreYouSure"))) {
+                removeCinTable(ename);
+                $('#' + id).remove();
+                addTableUrl(url, metadata.setting);
+                notifyConfigChanged();
+              }
               $(this).dialog("close");
-              notifyConfigChanged();
 
             } });
-          if (metadata.link) {
+
+          var raw_content = jscin.readLocalStorage(
+              jscin.kRawDataKeyPrefix + metadata.ename, null);
+          if (raw_content) {
             buttons.push( { text: _('optionBackupToDrive'),
             click: function () {
-              chrome.tabs.create({url: metadata.link});
+              if (confirm(_("optionAreYouSure"))) {
+                SaveToDrive(metadata.ename, raw_content);
+              }
               $(this).dialog("close");
             } });
           }
