@@ -33,13 +33,14 @@ function init() {
   $('#available_im_list').sortable({
     revert: true,
     connectWith: ".sortable",
-    helper : 'clone'
+    helper: 'clone'
   }).disableSelection();
   /* TODO(hungte) Reject when #enabled_im_list has nothing. */
   $('#enabled_im_list').sortable({
     revert: true,
     connectWith: ".sortable",
-    helper : 'clone',
+    cancel: "li:only-child",
+    helper: 'clone',
     update: function (event, ui) {
       var new_list = []
       $('#enabled_im_list li').each(function(index) {
