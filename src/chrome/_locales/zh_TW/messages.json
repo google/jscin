@@ -40,6 +40,14 @@
     "取消" },
   "optionBuiltin": {"message":
     "內建" },
+  "optionTableDetail": {"message":
+    "輸入法詳細內容" },
+  "optionRemove": {"message":
+    "移除" },
+  "optionReload": {"message":
+    "重新載入" },
+  "optionBackupToDrive": {"message":
+    "備份到 Google Drive" },
 
   "optionDebug": {"message":
     "除錯與開發" },

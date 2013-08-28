@@ -40,6 +40,14 @@
     "Cancel" },
   "optionBuiltin": {"message":
     "Built-in" },
+  "optionTableDetail": {"message":
+    "Input Method Details" },
+  "optionRemove": {"message":
+    "Remove" },
+  "optionReload": {"message":
+    "Reload" },
+  "optionBackupToDrive": {"message":
+    "Backup to Google Drive" },
 
   "optionDebug": {"message":
     "Debug and development" },

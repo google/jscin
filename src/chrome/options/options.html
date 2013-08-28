@@ -45,31 +45,40 @@
 
     </div><!-- end of accordion -->
 
-    <!-- TODO(hungte) Localize this -->
-    <div id="add_table_dialog" style="display: none;">
-      <p>
-        <div id="url_div">
-          <input type=text id="cin_table_url_input" size="80"
-                 placeholder="Enter a URL"></input>
-          <br/>
-        </div>
-        <div id="file_div">
-          <input type=file id="cin_table_file_input"></input>
-        </div>
-        <div id="doc_div">
-          <p id="doc_status"></p>
-          <div id="doc_list"></div>
-        </div>
-      </p>
-      <p>
-        <label class="optionSettingChoices"></label>
-        <select id="add_table_setting"></select>
-      </p>
-      <p id="save_to_drive_input">
-        <input type=checkbox id="save_to_drive">
-        <label for="save_to_drive" class="optionSaveToDrive"></label>
-        <span id="auth_status"></span>
-      </p>
+    <!-- start of dialog definitions -->
+    <div style="display: none;">
+      <div id="add_table_dialog">
+        <p>
+          <div id="url_div">
+            <input type=text id="cin_table_url_input" size="80"
+                   placeholder="Enter a URL"></input>
+            <br/>
+          </div>
+          <div id="file_div">
+            <input type=file id="cin_table_file_input"></input>
+          </div>
+          <div id="doc_div">
+            <p id="doc_status"></p>
+            <div id="doc_list"></div>
+          </div>
+        </p>
+        <p>
+          <label class="optionSettingChoices"></label>
+          <select id="add_table_setting"></select>
+        </p>
+        <p id="save_to_drive_input">
+          <input type=checkbox id="save_to_drive">
+          <label for="save_to_drive" class="optionSaveToDrive"></label>
+          <span id="auth_status"></span>
+        </p>
+      </div>
+
+      <div id="table_detail_dialog">
+        <span class="optionTableDetail"></span><br/>
+        Name: <span class="optionTableDetailName"></span><br/>
+        Source: <span class="optionTableDetailSource"></span><br/>
+        Type: <span class="optionTableDetailType"></span><br/>
+      </div>
     </div>
 
   </body>

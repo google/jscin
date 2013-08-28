@@ -30,12 +30,14 @@ function init() {
 
   $('#available_im_list').sortable({
     revert: true,
-    connectWith: ".sortable"
+    connectWith: ".sortable",
+    helper : 'clone'
   }).disableSelection();
   /* TODO(hungte) Reject when #enabled_im_list has nothing. */
   $('#enabled_im_list').sortable({
     revert: true,
     connectWith: ".sortable",
+    helper : 'clone',
     update: function (event, ui) {
       var new_list = []
       $('#enabled_im_list li').each(function(index) {
@@ -282,8 +284,10 @@ function writeSettingToData(setting, parsed_data) {
 }
 
 function getSettingOption() {
-  var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
-  var setting = setting_options[document.getElementById("add_table_setting").selectedIndex];
+  var setting_options = JSON.parse(
+      LoadExtensionResource("options/builtin_options.json"));
+  var setting = setting_options[
+      document.getElementById("add_table_setting").selectedIndex];
   return setting;
 }
 
@@ -314,64 +318,58 @@ function addCinTableToList(metadata, list_id) {
   var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
 
   var display_name = cname + ' (' + ename + ')';
-  if (builtin) {
-    display_name += ' [' + _("optionBuiltin") + ']';
-  }
+  var builtin_desc = builtin ? ' [' + _("optionBuiltin") + ']' : "";
 
   $(list_id).append(
       $('<li class="ui-state-default"></li>').attr('id', id).text(
-          display_name));
+          display_name + builtin_desc));
 
   // TODO(hungte) Show details and dialog to edit this table.
   $('#' + id).prepend(icon).click(
       function() {
-        // alert('clicked!');
+        $('.optionTableDetailName').text(display_name);
+        $('.optionTableDetailSource').text(builtin ? _("optionBuiltin") : url);
+        $('.optionTableDetailType').text(setting ? setting.ename :
+          _("optionBuiltin"));
+        var buttons = [ { text: ' OK ',
+          click: function () {
+            $(this).dialog("close");
+          } } ];
+
+        // TODO(hungte) We should not allow removing active IME.
+        if (!builtin) {
+          buttons.push( { text: _('optionRemove'),
+            click: function () {
+              removeCinTable(ename);
+              $('#' + id).remove();
+              $(this).dialog("close");
+              notifyConfigChanged();
+
+            } }, { text: _('optionReload'),
+            click: function() {
+              removeCinTable(ename);
+              $('#' + id).remove();
+              addTableUrl(url, metadata.setting);
+              $(this).dialog("close");
+              notifyConfigChanged();
+
+            } });
+          if (metadata.link) {
+            buttons.push( { text: _('optionBackupToDrive'),
+            click: function () {
+              chrome.tabs.create({url: metadata.link});
+              $(this).dialog("close");
+            } });
+          }
+        }
+        $('#table_detail_dialog').dialog({
+          title: _("optionTableDetail"),
+          minWidth: 600,
+          buttons: buttons,
+          modal: true
+        });
       });
-
-  // TODO remove / expire
-  // if (builtin) expire; else remove;
-  //   jscin.deleteTable(name);
-  //   notifyConfigChanged();
-
-  // TODO reload
-  //   jscin.deleteTable(name);
-  //   notifyConfigChanged();
-  //   table.tBodies[0].deleteRow(row.sectionRowIndex);
-  // if (jscin.getDefaultCinTable() == name) {
-  // jscin.setDefaultCinTable(kDefaultCinTableDefault);
-  // notifyConfigChanged();
-  // addTableUrl(url, metadata.setting);
-
-  // TODO save to Drive
-  // // Cell: Google Drive Link
-  // var link = metadata.link;
-  // cell = row.insertCell(-1);
-  // cell.id = 'drive_' + name;
-  // if (link) {
-  //   $(cell).append($('<a>', { 'href': link, 'target': "_blank" }).text('Backup on Google Drive'));
-  // }
 }
-
-/*
-function removeCinTableFromTable(name, url) {
-  var table = document.getElementById("cin_table_table");
-
-  for (var i = 0; i < table.tBodies[0].rows.length; i++) {
-    var row = table.tBodies[0].rows[i];
-    if (row.cells[0].innerText == name) {
-      table.tBodies[0].deleteRow(i);
-
-      if (jscin.getDefaultCinTable() == name) {
-        jscin.setDefaultCinTable(kDefaultCinTableDefault);
-        notifyConfigChanged();
-        document.getElementById(kDefaultCinTableRadioId +
-                                kDefaultCinTableDefault).checked = true;
-      }
-      return;
-    }
-  }
-}
-*/
 
 function loadCinTables() {
   var metadatas = jscin.getTableMetadatas();
@@ -384,6 +382,12 @@ function loadCinTables() {
       addCinTableToList(metadatas[name], '#available_im_list');
     }
   }
+}
+
+function removeCinTable(name) {
+  console.log('removeCinTable: ' + name);
+  instance.prefRemoveEnabledInputMethod(name);
+  jscin.deleteTable(name);
 }
 
 function notifyConfigChanged() {
