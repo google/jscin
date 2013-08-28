@@ -203,14 +203,23 @@ function addTableUrl(url) {
 
     setAddTableStatus("Loading...", false);
     var xhr = new XMLHttpRequest();
+    xhr.addEventListener("progress", function(evt) {
+      if (evt.lengthComputable && evt.total > 0) {
+        var percentComplete = evt.loaded / evt.total;
+        // TODO(hungte) Complete the progress bar stuff.
+        // $('#progressbar').progressbar({value: percentComplete});
+      } else {
+        // $('#progressbar').progressbar({value: false});
+      }
+    }, false);
     xhr.onreadystatechange = function () {
       if (this.readyState == 4) {
         if (this.status == 200) {
           addTable(this.responseText, url);
         } else {
           // Update the UI
-          setAddTableStatus("Could not read url.  Server returned " + this.status,
-                          true);
+          setAddTableStatus("Could not read url.  Server returned " +
+                            this.status, true);
         }
         delete table_loading[url];
       }
@@ -300,7 +309,7 @@ function installCinTable(data, raw_content) {
     if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
       return false;
     } else {
-      // removeCinTableFromTable(data.metadata.ename);
+      $('#ime_' + data.metadata.ename).remove();
     }
   }
   jscin.addTable(data.metadata.ename, data.metadata, data.data);
