@@ -14,6 +14,12 @@
     "JsCIN Options" },
   "optionInputMethodTables": { "message":
     "Manage Input Methods:" },
+  "optionHowToEnableTables": {"message":
+    "You can drag and drop input methods listed below to set their ordering (or even hide) in menu. Click the input method item for more details." },
+  "optionEnabledTables": {"message":
+    "Enabled input methods:" },
+  "optionAvailableTables": {"message":
+    "Available input methods:" },
   "optionAddTables": {"message":
     "Add more Input Tables (*.cin):" },
   "optionAddUrl": {"message":
@@ -32,6 +38,8 @@
     "Add" },
   "optionCancel": {"message":
     "Cancel" },
+  "optionBuiltin": {"message":
+    "Built-in" },
 
   "optionDebug": {"message":
     "Debug and development" },

@@ -23,6 +23,8 @@ croscin.IME = function() {
   // default value.
   self.debug = true;
 
+  // The engine ID must match input_components.id in manifest file.
+  self.kEngineId = 'cros_cin';
   self.kMenuOptions = "options";
   self.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
 
@@ -30,6 +32,11 @@ croscin.IME = function() {
   self.im = null;
   self.im_name = '';
   self.im_label = '';
+
+  self.kEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
+  self.kDefaultInputMethod = 'croscinPrefDefaultInputMethod';
+  self.pref_im_default = '';
+  self.pref_im_enabled_list = [];
 
   self.engineID = null;
   self.context = null;
@@ -40,7 +47,7 @@ croscin.IME = function() {
   }
 
   self.GetEngineArg = function() {
-    return {'engineID': jscin.ENGINE_ID};
+    return {'engineID': self.kEngineId};
   }
 
   self.log = function(s) {
@@ -126,6 +133,8 @@ croscin.IME = function() {
     // CIN tables don't expect cursor in candidates window.
     self.SetCandidatesWindowProperty('cursorVisible', false);
     self.SetCandidatesWindowProperty('visible', false);
+    self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
+    self.SetCandidatesWindowProperty('auxiliaryTextVisible', false);
 
     // Setup menu
     self.InitializeMenu();
@@ -144,6 +153,7 @@ croscin.IME = function() {
     } else {
       self.ime_api.clearComposition(arg);
     }
+    return text;
   }
 
   self.UpdateCandidates = function(candidate_list, labels) {
@@ -165,33 +175,31 @@ croscin.IME = function() {
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
       self.SetCandidatesWindowProperty('pageSize', candidate_list.length);
-      self.SetCandidatesWindowProperty('auxiliaryTextVisible', true);
       self.SetCandidatesWindowProperty('visible', true);
     } else {
-      self.SetCandidatesWindowProperty('auxiliaryTextVisible', false);
       self.SetCandidatesWindowProperty('visible', false);
     }
+    return candidate_list.length > 0;
   }
 
   self.UpdateUI = function() {
     var imctx = self.imctx;
+    var has_composition, has_candidates;
     // process:
     //  - keystroke
-    self.UpdateComposition(imctx.keystroke);
+    has_composition = self.UpdateComposition(imctx.keystroke);
     //  - selkey, mcch
-    self.UpdateCandidates(imctx.mcch, imctx.selkey);
+    has_candidates = self.UpdateCandidates(imctx.mcch, imctx.selkey);
     //  - (TODO) lcch, cch_publish
+
+    self.SetCandidatesWindowProperty('auxiliaryTextVisible',
+        (has_composition || has_candidates) ? true : false);
   }
 
   self.ActivateInputMethod = function(name) {
-
     if (name && name == self.im_name) {
       self.log("croscin.ActivateInputMethod: already activated: " + name);
       return;
-    }
-    if (!name) {
-      name = jscin.readLocalStorage(
-          jscin.kDefaultCinTableKey, jscin.default_input_method);
     }
 
     if (name in jscin.input_methods) {
@@ -201,9 +209,6 @@ croscin.IME = function() {
       self.im_name = name;
       self.im_label = jscin.get_input_method_label(name);
       self.InitializeUI();
-      jscin.writeLocalStorage(jscin.kDefaultCinTableKey, name);
-      jscin.default_input_method = name;
-      self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
     } else {
       self.log("croscin.ActivateInputMethod: Invalid item: " + name);
     }
@@ -212,19 +217,20 @@ croscin.IME = function() {
   self.InitializeMenu = function() {
     var menu_items = [];
 
-    for (var i in jscin.input_methods) {
-      var label = jscin.get_input_method_label(i);
+    // TODO(hungte) Also list available input methods.
+    self.pref_im_enabled_list.forEach(function (name) {
+      var label = jscin.get_input_method_label(name);
       if (label)
-        label = label + " (" + i + ")";
+        label = label + " (" + name + ")";
       else
-        label = i;
+        label = name;
       menu_items.push({
-        "id": "ime:" + i,
+        "id": "ime:" + name,
         "label": label,
         "style": "radio",
-        "checked": i == self.im_name,
+        "checked": name == self.im_name,
       });
-    }
+    });
     self.log("croscin.InitializeMenu: " + menu_items.length + " items.");
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
@@ -234,10 +240,6 @@ croscin.IME = function() {
     var arg = self.GetEngineArg();
     arg['items'] = menu_items;
     self.ime_api.setMenuItems(arg);
-
-    // TODO(hungte) ime_api.updateMenuItems is broken so we can't really
-    // "update" it - just always do setMenuItems.
-    // self.UpdateMenu();
   }
 
   self.LoadExtensionResource = function(url) {
@@ -285,18 +287,97 @@ croscin.IME = function() {
     }
   }
 
+  self.LoadPreferences = function() {
+    var pref_im_default = jscin.readLocalStorage(
+        self.kDefaultInputMethod, self.pref_im_default);
+    var pref_im_enabled_list = jscin.readLocalStorage(
+        self.kEnabledInputMethodList, self.pref_im_enabled_list);
+    var changed = false;
+
+    // Normalize preferences.
+    var metadatas = jscin.getTableMetadatas();
+    var k = null;
+    var enabled_list = [];
+
+    pref_im_enabled_list.forEach(function (key) {
+      if (key in metadatas && enabled_list.indexOf(key) < 0)
+        enabled_list.push(key);
+    });
+    if (enabled_list.length < 1) {
+      for (k in metadatas) {
+        if (enabled_list.indexOf(k) < 0)
+          enabled_list.push(k);
+      }
+    }
+    // To compare arrays, hack with string compare.
+    if (pref_im_enabled_list.toString() != enabled_list.toString()) {
+      pref_im_enabled_list = enabled_list;
+      changed = true;
+    }
+
+    if (pref_im_enabled_list.indexOf(pref_im_default) < 0) {
+      if (pref_im_enabled_list.length > 0) {
+        pref_im_default = pref_im_enabled_list[0];
+      } else {
+        pref_im_default = '';
+      }
+      changed = true;
+    }
+
+    self.pref_im_default = pref_im_default;
+    self.pref_im_enabled_list = pref_im_enabled_list;
+    self.log("pref_im_default: " + pref_im_default);
+    self.log("pref_im_enabled_list: " + pref_im_enabled_list);
+
+    if (changed) {
+      self.SavePreferences();
+    }
+  }
+
+  self.SavePreferences = function() {
+    self.log("preferences saved.");
+    jscin.writeLocalStorage(self.kDefaultInputMethod, self.pref_im_default);
+    jscin.writeLocalStorage(self.kEnabledInputMethodList,
+                            self.pref_im_enabled_list);
+  }
+
+  self.prefAddEnabledInputMethod = function (name) {
+    if (self.pref_im_enabled_list.indexOf(name) < 0) {
+      self.pref_im_enabled_list.push(name);
+      self.prefSetEnabledList(self.pref_im_enabled_list);
+    }
+  }
+
+  self.prefRemoveEnabledInputMethod = function (name) {
+    var index = self.pref_im_enabled_list.indexOf(name);
+    if (index < 0) {
+      return;
+    }
+    self.pref_im_enabled_list.splice(index, 1);
+    self.prefSetEnabledList(self.pref_im_enabled_list);
+  }
+
+  self.prefSetEnabledList = function (new_list) {
+    self.pref_im_enabled_list = new_list;
+    self.pref_im_default = new_list.length > 0 ? new_list[0] : '';
+    self.SavePreferences();
+  }
+
+  // Initialization.
   var version = chrome.runtime.getManifest().version;
-  var reload = (version !== jscin.readLocalStorage(jscin.kVersionKey, 0));
+  var reload = (version !== jscin.getLocalStorageVersion());
   self.LoadBuiltinTables(reload);
   if (reload) {
     jscin.reloadNonBuiltinTables();
-    jscin.writeLocalStorage(jscin.kVersionKey, version);
+    jscin.setLocalStorageVersion(version);
   }
   jscin.reload_configuration();
   self.resolve_ime_api();
   self.registerEventHandlers();
+
   // Start the default input method.
-  self.ActivateInputMethod(null);
+  self.LoadPreferences();
+  self.ActivateInputMethod(self.pref_im_default);
 };
 
 croscin.IME.prototype.resolve_ime_api = function() {
@@ -320,7 +401,14 @@ croscin.IME.prototype.hook_dumb_ime = function() {
       'onInputContextUpdate', 'onCandidateClicked', 'onMenuItemActivated',
       ];
   jscin.dumb_ime = { 'listener': {} };
-  ime_api = {};
+  ime_api = {
+    clearComposition: function() {},
+    commitText: function() {},
+    setCandidates: function() {},
+    setCandidateWindowProperties: function() {},
+    setComposition: function() {},
+    setMenuItems: function() {}
+  };
 
   jscin.dumb_ime = { 'listener': {} };
   for (var i in hook_listener) {

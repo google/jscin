@@ -7,10 +7,6 @@
 
 var table_loading = {};
 
-var kDefaultCinTableRadioName = "default_radio_name";
-var kDefaultCinTableRadioId = "default_radio_";
-var kDefaultCinTableDefault = "array30";
-
 // this is dirty hack
 var bgPage = chrome.extension.getBackgroundPage();
 var jscin = bgPage.jscin;
@@ -25,14 +21,33 @@ function SetElementsText() {
 }
 
 function init() {
-  loadCinTables();
   SetElementsText("optionCaption", "optionInputMethodTables",
+      "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
       "optionSaveToDrive", "optionSettingChoices",
       "optionDebug", "optionDebugMessage");
-  $("#accordion").accordion({
-    heightStyle: "content"
-  });
+
+
+  $('#available_im_list').sortable({
+    revert: true,
+    connectWith: ".sortable"
+  }).disableSelection();
+  /* TODO(hungte) Reject when #enabled_im_list has nothing. */
+  $('#enabled_im_list').sortable({
+    revert: true,
+    connectWith: ".sortable",
+    update: function (event, ui) {
+      var new_list = []
+      $('#enabled_im_list li').each(function(index) {
+        new_list.push($(this).attr('id').replace(/^ime_/, ''));
+      });
+      updateEnabledList(new_list);
+      notifyConfigChanged();
+    }
+  }).disableSelection();
+  $("#accordion").accordion({heightStyle: "content"});
+
+  loadCinTables();
 
   // TODO(hungte) we should autodetect again after source is specified.
   var select = $("#add_table_setting");
@@ -231,15 +246,14 @@ function addTable(content, url) {
     if (typeof url !== undefined) {
       parsed_data.metadata.url = url;
     }
-    if (addCinTable(parsed_data)) {
+    if (installCinTable(parsed_data, content)) {
       // Update the UI
-      addCinTableToTable(parsed_data.metadata);
+      addCinTableToList(parsed_data.metadata, '#enabled_im_list');
       setAddTableStatus("Table added successfully", false);
       notifyConfigChanged();
       if ($('#save_to_drive').is(':checked')) {
         SaveToDrive(parsed_data.metadata.ename, content);
       }
-      jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + parsed_data.metadata.ename, content);
     } else {
       setAddTableStatus("Table not added", true);
     }
@@ -273,136 +287,72 @@ function getSettingOption() {
   return setting;
 }
 
-function addCinTable(data) {
+function installCinTable(data, raw_content) {
   var metadata = jscin.getTableMetadatas()[data.metadata.ename];
   if (metadata) {
     if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
       return false;
     } else {
-      removeCinTableFromTable(data.metadata.ename);
+      // removeCinTableFromTable(data.metadata.ename);
     }
   }
   jscin.addTable(data.metadata.ename, data.metadata, data.data);
+  // TODO(hungte) Move this to jscin.addTable.
+  jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + data.metadata.ename,
+                          raw_content);
+  instance.prefAddEnabledInputMethod(data.metadata.ename);
   return true;
 }
 
-function addCinTableToTable(metadata) {
-  var name = metadata.ename;
+function addCinTableToList(metadata, list_id) {
+  var ename = metadata.ename;
   var cname = metadata.cname;
   var url = metadata.url;
   var builtin = metadata.builtin;
-
-  var table = document.getElementById("cin_table_table");
-  var rowLength = table.rows.length;
-
-  var row = table.tBodies[0].insertRow(-1);
-  if (rowLength % 2) {
-    row.className = "even_row";
-  }
-
-  // Cell: (ename, cname)
-  var cell = row.insertCell(-1);
-  $(cell).text(name);
-  var cell = row.insertCell(-1);
-  $(cell).text(cname);
-
-  // Cell: Default
-  cell = row.insertCell(-1);
-  var radio = document.createElement('input');
-  radio.type = 'radio';
-  radio.name = kDefaultCinTableRadioName;
-  radio.id = kDefaultCinTableRadioId + name;
-  radio.onclick = function () {
-    jscin.setDefaultCinTable(name);
-    notifyConfigChanged();
-  }
-  cell.appendChild(radio);
-
-  // Cell: Remove button
-  cell = row.insertCell(-1);
-  if (true) {
-    var button = document.createElement('input');
-    button.type = 'button';
-    if (builtin)
-      button.value = 'Expire';
-    else
-      button.value = 'Remove';
-    button.onclick = function () {
-      jscin.deleteTable(name);
-      notifyConfigChanged();
-      table.tBodies[0].deleteRow(row.sectionRowIndex);
-
-      if (jscin.getDefaultCinTable() == name) {
-        setNewDefaultCinTable();
-      }
-    }
-    cell.appendChild(button);
-  }
-
-  // Cell: Reload button
-  cell = row.insertCell(-1);
-  if (url) {
-    var reload_button = document.createElement('input');
-    reload_button.type = 'button';
-    reload_button.value = 'Reload';
-    reload_button.onclick = function () {
-      jscin.deleteTable(name);
-      notifyConfigChanged();
-      table.tBodies[0].deleteRow(row.sectionRowIndex);
-      if (jscin.getDefaultCinTable() == name) {
-        jscin.setDefaultCinTable(kDefaultCinTableDefault);
-        notifyConfigChanged();
-        document.getElementById(kDefaultCinTableRadioId +
-                                kDefaultCinTableDefault).checked = true;
-      }
-      addTableUrl(url, metadata.setting);
-    }
-    cell.appendChild(reload_button);
-  }
-
-  // Cell: Setting
   var setting = metadata.setting;
-  cell = row.insertCell(-1);
+  var id = 'ime_' + ename;
+  var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
+
+  var display_name = cname + ' (' + ename + ')';
   if (builtin) {
-    $(cell).text("From Table");
-  } else {
-    $(cell).text(setting.ename + ' ' + setting.cname);
+    display_name += ' [' + _("optionBuiltin") + ']';
   }
 
-  // Cell: Google Drive Link
-  var link = metadata.link;
-  cell = row.insertCell(-1);
-  cell.id = 'drive_' + name;
-  if (link) {
-    $(cell).append($('<a>', { 'href': link, 'target': "_blank" }).text('Backup on Google Drive'));
-  }
+  $(list_id).append(
+      $('<li class="ui-state-default"></li>').attr('id', id).text(
+          display_name));
 
-  // Cell: URL
-  cell = row.insertCell(-1);
-  if (builtin) {
-    $(cell).text("(builtin)");
-  } else if (url) {
-    $(cell).text(url);
-  }
+  // TODO(hungte) Show details and dialog to edit this table.
+  $('#' + id).prepend(icon).click(
+      function() {
+        // alert('clicked!');
+      });
+
+  // TODO remove / expire
+  // if (builtin) expire; else remove;
+  //   jscin.deleteTable(name);
+  //   notifyConfigChanged();
+
+  // TODO reload
+  //   jscin.deleteTable(name);
+  //   notifyConfigChanged();
+  //   table.tBodies[0].deleteRow(row.sectionRowIndex);
+  // if (jscin.getDefaultCinTable() == name) {
+  // jscin.setDefaultCinTable(kDefaultCinTableDefault);
+  // notifyConfigChanged();
+  // addTableUrl(url, metadata.setting);
+
+  // TODO save to Drive
+  // // Cell: Google Drive Link
+  // var link = metadata.link;
+  // cell = row.insertCell(-1);
+  // cell.id = 'drive_' + name;
+  // if (link) {
+  //   $(cell).append($('<a>', { 'href': link, 'target': "_blank" }).text('Backup on Google Drive'));
+  // }
 }
 
-function setNewDefaultCinTable() {
-  var newDefaultCinTable;
-  var metadatas = jscin.getTableMetadatas();
-  // get the first table
-  for (var table in metadatas) {
-    newDefaultCinTable = metadatas[table].ename;
-    break;
-  }
-  setDefaultCinTable(newDefaultCinTable);
-}
-
-function setDefaultCinTable(name) {
-  jscin.setDefaultCinTable(name);
-  notifyConfigChanged();
-  document.getElementById(kDefaultCinTableRadioId + name).checked = true;
-}
-
+/*
 function removeCinTableFromTable(name, url) {
   var table = document.getElementById("cin_table_table");
 
@@ -421,18 +371,27 @@ function removeCinTableFromTable(name, url) {
     }
   }
 }
+*/
 
 function loadCinTables() {
   var metadatas = jscin.getTableMetadatas();
+  var tables = instance.pref_im_enabled_list;
+  tables.forEach(function (name) {
+    addCinTableToList(metadatas[name], '#enabled_im_list');
+  });
   for (var name in metadatas) {
-    addCinTableToTable(metadatas[name]);
+    if (tables.indexOf(name) < 0) {
+      addCinTableToList(metadatas[name], '#available_im_list');
+    }
   }
-  document.getElementById(kDefaultCinTableRadioId +
-                          jscin.getDefaultCinTable()).checked = true;
 }
 
 function notifyConfigChanged() {
   instance.on_config_changed();
+}
+
+function updateEnabledList(enabled) {
+  instance.prefSetEnabledList(enabled);
 }
 
 $(init);

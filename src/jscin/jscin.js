@@ -10,8 +10,6 @@
  */
 
 var jscin = {
-  'ENGINE_ID': "cros_cin",
-
   'IMKEY_ABSORB': 0x0,
   'IMKEY_COMMIT': 0x1,
   'IMKEY_IGNORE': 0x2,
@@ -24,13 +22,11 @@ var jscin = {
   // Configuration key names.
   kTableMetadataKey: "table_metadata",
   kTableDataKeyPrefix: "table_data-",
-  kDefaultCinTableKey: "default_cin_table",
   kRawDataKeyPrefix: "raw_data-",
   kVersionKey: "version",
 
   modules: {},
   input_methods: {},
-  default_input_method: '',
 
   debug: true,
 };
@@ -69,9 +65,6 @@ jscin.register_input_method = function(name, module_name, cname) {
     'label': cname,
     'module': self.modules[module_name] };
   self.log("jscin: Registered input method: " + name);
-
-  if (!self.default_input_method)
-    self.default_input_method = name;
 }
 
 // Un-register an input method
@@ -84,14 +77,6 @@ jscin.unregister_input_method = function(name) {
   delete self.input_methods[name]
   self.log("jscin: Un-registered input method: " + name);
 
-  // Reset default input method.
-  if (name == self.default_input_method) {
-    self.default_input_method = '';
-    for (var i in self.input_methods) {
-      self.default_input_method = self.input_methods[i];
-      break;
-    }
-  }
   // TODO(hungte) Remove active instances?
 }
 
@@ -123,9 +108,9 @@ jscin.reload_configuration = function() {
   self.input_methods = {};
   var count_ims = 0;
   var any_im = '';
-  for (var name in self.getTableMetadatas()) {
+  var metadatas = self.getTableMetadatas();
+  for (var name in metadatas) {
     // TODO(hungte) support more modules in future.
-    var metadatas = jscin.getTableMetadatas();
     self.register_input_method(name, 'GenInp', metadatas[name].cname);
     if (!any_im)
       any_im = name;
@@ -135,21 +120,20 @@ jscin.reload_configuration = function() {
   if (count_ims < 1) {
     self.debug = true;
     self.log("jscin.reload_configuration: No input methods available.");
-    self.default_input_method = '';
-  } else {
-    // Update default input method
-    self.default_input_method = self.readLocalStorage(
-        self.kDefaultCinTableKey, self.default_input_method);
-    if (!(self.default_input_method in self.input_methods)) {
-      self.log("jscin.reload_configuration: invalid default input method: " +
-               self.default_input_method + ", picked: " + any_im);
-      self.default_input_method = any_im;
-    }
   }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Table management
+// Table and local storage management
+
+jscin.getLocalStorageVersion = function () {
+  return jscin.readLocalStorage(jscin.kVersionKey, 0);
+}
+
+jscin.setLocalStorageVersion = function (version) {
+  return jscin.writeLocalStorage(jscin.kVersionKey, version);
+}
+
 jscin.addTable = function (name, metadata, data) {
   // print('addTable(' + name + ',' + metadata);
   var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
@@ -172,14 +156,6 @@ jscin.deleteTable = function (name) {
   delete table_metadata[name];
   delete localStorage[jscin.kTableDataKeyPrefix + name];
   jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
-}
-
-jscin.setDefaultCinTable = function (name) {
-  jscin.writeLocalStorage(jscin.kDefaultCinTableKey, name);
-}
-
-jscin.getDefaultCinTable = function () {
-  return jscin.readLocalStorage(jscin.kDefaultCinTableKey, jscin.kDefaultCinTableDefault);
 }
 
 jscin.reloadNonBuiltinTables = function () {

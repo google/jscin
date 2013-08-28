@@ -14,6 +14,12 @@
     "JsCIN 輸入法選項設定" },
   "optionInputMethodTables": { "message":
     "管理輸入法與表格:" },
+  "optionHowToEnableTables": {"message":
+    "請拖放底下的輸入法項目以調整它們在輸入法選單中的位置(或不顯示)。 若想進一步設定請點選輸入法。" },
+  "optionEnabledTables": {"message":
+    "已啓用的輸入法:" },
+  "optionAvailableTables": {"message":
+    "其它已安裝的輸入法:" },
   "optionAddTables": {"message":
     "新增更多輸入法 (*.cin):" },
   "optionAddUrl": {"message":
@@ -32,6 +38,8 @@
     "新增" },
   "optionCancel": {"message":
     "取消" },
+  "optionBuiltin": {"message":
+    "內建" },
 
   "optionDebug": {"message":
     "除錯與開發" },

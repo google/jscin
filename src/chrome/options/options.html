@@ -16,22 +16,19 @@
 
       <h3 class="optionInputMethodTables"></h3>
       <div>
-        <table id="cin_table_table" class="cin_tables">
-          <thead>
-            <tr>
-              <th class="name_head" colspan="2">Name</th>
-              <th class="default_head">Default</th>
-              <th class="remove_head"></th>
-              <th class="reload_head"></th>
-              <th class="setting_head">Setting</th>
-              <th class="link_head"></th>
-              <th class="url_head">URL</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table><br/>
-        <p class="optionAddTables"></p>
+        <div class="optionHowToEnableTables" style="font-weight: bold;"></div>
+        <br/>
+        <div style="float: left;">
+        <span class="optionEnabledTables"></span>
+        <ul id="enabled_im_list" class="sortable">
+        </ul>
+        </div>
+        <div style="float: left;">
+        <span class="optionAvailableTables"></span>
+        <ul id="available_im_list" class="sortable">
+        </ul>
+        </div>
+        <p class="optionAddTables" style="clear: both;"></p>
         <button class="optionAddUrl"></button><br/>
         <button class="optionAddFile"></button><br/>
         <button class="optionAddDrive"></button><br/>
