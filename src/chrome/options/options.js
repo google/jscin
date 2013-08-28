@@ -24,6 +24,8 @@ function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
+      "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
+      "optionTableDetailTypeHeader",
       "optionSaveToDrive", "optionSettingChoices",
       "optionDebug", "optionDebugMessage");
 

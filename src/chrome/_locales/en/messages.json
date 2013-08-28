@@ -48,6 +48,12 @@
     "Reload" },
   "optionBackupToDrive": {"message":
     "Backup to Google Drive" },
+  "optionTableDetailNameHeader": {"message":
+    "Name: " },
+  "optionTableDetailSourceHeader": {"message":
+    "Source: " },
+  "optionTableDetailTypeHeader": {"message":
+    "Type: " },
 
   "optionDebug": {"message":
     "Debug and development" },

@@ -48,6 +48,12 @@
     "重新載入" },
   "optionBackupToDrive": {"message":
     "備份到 Google Drive" },
+  "optionTableDetailNameHeader": {"message":
+    "名稱: " },
+  "optionTableDetailSourceHeader": {"message":
+    "來源: " },
+  "optionTableDetailTypeHeader": {"message":
+    "類別: " },
 
   "optionDebug": {"message":
     "除錯與開發" },
