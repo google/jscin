@@ -28,6 +28,11 @@ croscin.IME = function() {
   self.kMenuOptions = "options";
   self.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
 
+  self.kImeApiType = {
+    dumb: 0,
+    chromeos: 1,
+  };
+
   self.imctx = {};
   self.im = null;
   self.im_name = '';
@@ -392,50 +397,50 @@ croscin.IME = function() {
 };
 
 croscin.IME.prototype.resolve_ime_api = function() {
+  var self = this;
   /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
-  var ime_api = null;
-  if ("input" in chrome && "ime" in chrome.input)
-    ime_api = chrome.input.ime;
+  try {
+    self.ime_api = chrome.input.ime;
+    self.ime_api_type = self.kImeApiType.chromeos;
+  } catch (err) {
+    // Binding failure can't really be catched - it'll simply escape current
+    // syntax scope.
+  }
 
-  // TODO(hungte) Alert and die if there's no ime_api.
-  this.ime_api = ime_api;
-
-  if (!ime_api) {
-    this.hook_dumb_ime();
+  if (!self.ime_api) {
+    // TODO(hungte) Alert and die if there's no ime_api.
+    // Install a dumb IME for future hook.
+    self.log("installing dumb api...");
+    self.ime_api = self.create_dumb_ime();
+    self.ime_api_type = self.kImeApiType.dumb;
   }
 }
 
-croscin.IME.prototype.hook_dumb_ime = function() {
+croscin.IME.prototype.create_dumb_ime = function() {
   var self = this;
-  var hook_listener = [
-      'onActivate', 'onDeactivated', 'onFocus', 'onBlur', 'onKeyEvent',
-      'onInputContextUpdate', 'onCandidateClicked', 'onMenuItemActivated',
-      ];
-  jscin.dumb_ime = { 'listener': {} };
-  ime_api = {
-    clearComposition: function() {},
-    commitText: function() {},
-    setCandidates: function() {},
-    setCandidateWindowProperties: function() {},
-    setComposition: function() {},
-    setMenuItems: function() {}
-  };
-
-  jscin.dumb_ime = { 'listener': {} };
-  for (var i in hook_listener) {
-    var name = hook_listener[i];
-    jscin.dumb_ime.listener[name] = [];
-    var node = document.createTextNode("dummy");
-    node.addListener = (function (name) {
-      return function (arg) {
-        jscin.dumb_ime.listener[name].push(arg);
-      };
-    })(name);
-    ime_api[name] = node;
+  var dummy_function = function() {};
+  self.dumb_ime = { listener: {} };
+  function create_listener(name) {
+    self.dumb_ime.listener[name] = [];
+    return { addListener: function(arg) {
+      self.dumb_ime.listener[name].push(arg)} };
   }
-
-  // FIXME(kcwu): dirty hack
-  jscin.ime_api = self.ime_api = ime_api;
+  return {
+    clearComposition: dummy_function,
+    commitText: dummy_function,
+    setCandidates: dummy_function,
+    setCandidateWindowProperties: dummy_function,
+    setComposition: dummy_function,
+    setMenuItems: dummy_function,
+    onActivate: create_listener('onActivate'),
+    onDeactivated: create_listener('onDeactivated'),
+    onFocus: create_listener('onFocus'),
+    onBlur: create_listener('onBlur'),
+    onKeyEvent: create_listener('onKeyEvent'),
+    onInputContextUpdate: create_listener('onInputContextUpdate'),
+    onCandidateClicked: create_listener('onCandidateClicked'),
+    onMenuItemActivated: create_listener('onMenuItemActivated')
+  };
 }
 
 /**

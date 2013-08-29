@@ -170,7 +170,7 @@ function init() {
     instance.on_debug_mode_change($('#debug_mode_input').prop("checked"));
   });
   $('#start_dumb_ime').button();
-  if (!('dumb_ime' in jscin)) {
+  if (instance.ime_api_type != instance.kImeApiType.dumb) {
     $('#start_dumb_ime').attr('href', '#').click(function() {
       alert('Dumb IME only works on Non-ChromeOS browsers (to help debug).');
     });

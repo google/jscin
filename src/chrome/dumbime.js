@@ -5,8 +5,8 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
+var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
-
 var current_context = {};
 
 function translateKeyEvent(evt) {
@@ -34,8 +34,8 @@ function translateKeyEvent(evt) {
 }
 
 function init() {
-  var engineID = 'foo';
-  var dumb_ime = jscin.dumb_ime;
+  var engineID = croscin.kEngineId;
+  var dumb_ime = croscin.dumb_ime;
 
   // duplicate log to this page
   if (!jscin.log_old) {
@@ -61,7 +61,7 @@ function init() {
 
   // Generate events
   document.getElementById('onActivate').onclick = function () {
-    jscin.dumb_ime.listener.onActivate[0](engineID);
+    dumb_ime.listener.onActivate[0](engineID);
     document.getElementById('input').title = 'Please click onFocus to start';
     document.getElementById('onActivate').disabled = true;
     document.getElementById('onFocus').disabled = false;
@@ -72,11 +72,11 @@ function init() {
     };
     document.getElementById('input').title = 'Please start to input';
     document.getElementById('input').disabled = false;
-    jscin.dumb_ime.listener.onFocus[0](context);
+    dumb_ime.listener.onFocus[0](context);
   }
 
   // Hook IME APIs
-  var ime_api = jscin.ime_api;
+  var ime_api = croscin.ime_api;
   ime_api.commitText = function (arg) {
     //console.log('commitText');
     //console.log(arg);
@@ -115,7 +115,6 @@ function init() {
     console.log(arg);
   }
 }
-
 
 // Browser loader entry
 document.addEventListener(
