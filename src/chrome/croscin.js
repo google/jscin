@@ -38,7 +38,7 @@ croscin.IME = function() {
   self.pref_im_default = '';
   self.pref_im_enabled_list = [];
 
-  self.engineID = null;
+  self.engineID = self.kEngineId;
   self.context = null;
 
   // Standard utilities
@@ -363,21 +363,25 @@ croscin.IME = function() {
     self.SavePreferences();
   }
 
-  // Initialization.
-  var version = chrome.runtime.getManifest().version;
-  var reload = (version !== jscin.getLocalStorageVersion());
-  self.LoadBuiltinTables(reload);
-  if (reload) {
-    jscin.reloadNonBuiltinTables();
-    jscin.setLocalStorageVersion(version);
-  }
-  jscin.reload_configuration();
-  self.resolve_ime_api();
-  self.registerEventHandlers();
+  function Initialize() {
+    // Initialization.
+    var version = chrome.runtime.getManifest().version;
+    var reload = (version !== jscin.getLocalStorageVersion());
+    self.LoadBuiltinTables(reload);
+    if (reload) {
+      jscin.reloadNonBuiltinTables();
+      jscin.setLocalStorageVersion(version);
+    }
+    jscin.reload_configuration();
+    self.resolve_ime_api();
+    self.registerEventHandlers();
 
-  // Start the default input method.
-  self.LoadPreferences();
-  self.ActivateInputMethod(self.pref_im_default);
+    // Start the default input method.
+    self.LoadPreferences();
+    self.ActivateInputMethod(self.pref_im_default);
+  }
+
+  Initialize();
 };
 
 croscin.IME.prototype.resolve_ime_api = function() {
