@@ -175,6 +175,7 @@ function init() {
       alert('Dumb IME only works on Non-ChromeOS browsers (to help debug).');
     });
   }
+  $('#start_test_area').button();
 }
 
 function LoadExtensionResource(url) {
