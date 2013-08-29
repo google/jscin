@@ -118,23 +118,29 @@ croscin.IME = function() {
     return self.ProcessKeyEvent(keyEvent);
   }
 
-  self.SetCandidatesWindowProperty = function(name, value) {
-    // self.log("SetCandidatesWindowProperty: set " + name + ": " + value);
-    var prop = {};
+  self.SetCandidatesWindowProperty = function(properties) {
+    // self.log("SetCandidatesWindowProperty: " + properties);
     var arg = self.GetEngineArg();
-    arg['properties'] = prop;
-    prop[name] = value;
+    if (arguments.length == 2) {
+      // Legacy support.
+      var name = arguments[0], value = arguments[1];
+      properties = {};
+      properties[name] = value;
+      self.log('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
+    }
+    arg.properties = properties;
     self.ime_api.setCandidateWindowProperties(arg);
   }
 
   self.InitializeUI = function() {
     // Vertical candidates window looks better on ChromeOS.
-    self.SetCandidatesWindowProperty('vertical', true);
     // CIN tables don't expect cursor in candidates window.
-    self.SetCandidatesWindowProperty('cursorVisible', false);
-    self.SetCandidatesWindowProperty('visible', false);
-    self.SetCandidatesWindowProperty('auxiliaryText', self.im_label);
-    self.SetCandidatesWindowProperty('auxiliaryTextVisible', false);
+    self.SetCandidatesWindowProperty({
+      vertical: true,
+      cursorVisible: false,
+      visible: false,
+      auxiliaryText: self.im_label,
+      auxiliaryTextVisible: false});
 
     // Setup menu
     self.InitializeMenu();
@@ -174,10 +180,11 @@ croscin.IME = function() {
       self.log(candidates);
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
-      self.SetCandidatesWindowProperty('pageSize', candidate_list.length);
-      self.SetCandidatesWindowProperty('visible', true);
+      self.SetCandidatesWindowProperty({
+        pageSize: candidate_list.length,
+        visible: true});
     } else {
-      self.SetCandidatesWindowProperty('visible', false);
+      self.SetCandidatesWindowProperty({visible: false});
     }
     return candidate_list.length > 0;
   }
@@ -192,8 +199,8 @@ croscin.IME = function() {
     has_candidates = self.UpdateCandidates(imctx.mcch, imctx.selkey);
     //  - (TODO) lcch, cch_publish
 
-    self.SetCandidatesWindowProperty('auxiliaryTextVisible',
-        (has_composition || has_candidates) ? true : false);
+    self.SetCandidatesWindowProperty({
+      auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
   }
 
   self.ActivateInputMethod = function(name) {
