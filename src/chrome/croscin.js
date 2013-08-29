@@ -119,7 +119,7 @@ croscin.IME = function() {
   }
 
   self.SetCandidatesWindowProperty = function(name, value) {
-    self.log("croscin.SetCandidatesWindowProperty: set " + name + ": " + value);
+    // self.log("SetCandidatesWindowProperty: set " + name + ": " + value);
     var prop = {};
     var arg = self.GetEngineArg();
     arg['properties'] = prop;
@@ -439,8 +439,12 @@ croscin.IME.prototype.registerEventHandlers = function() {
   ime_api = self.ime_api;
 
   ime_api.onActivate.addListener(function(engineID) {
+    self.log('onActivate: croscin started.');
     self.engineID = engineID;
     self.InitializeUI();
+    // We should activate IME here, but in order to speed up we did
+    // ActivateInputMethod in Initialize, and use hard-coded engine ID before it
+    // is assigned.
   });
 
   ime_api.onDeactivated.addListener(function(engineID) {
