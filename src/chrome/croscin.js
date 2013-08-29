@@ -31,7 +31,7 @@ croscin.IME = function() {
   self.kImeApiType = {
     dumb: 0,
     chromeos: 1,
-    emulation: 2,
+    emulation: 2
   };
 
   self.imctx = {};

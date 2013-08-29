@@ -382,7 +382,7 @@ $(function() {
     jscin.log = function (arg) { jscin.log_old(arg); console.log(arg); };
 
     croscin.ime_api = chrome.input.ime;
-    croscin.ime_api = croscin.kImeApiType.emulation;
+    croscin.ime_api_type = croscin.kImeApiType.emulation;
     croscin.registerEventHandlers();
     // croscin has already started, so we need to activate again.
     chrome.input.ime.DispatchEvent('Activate', 'input_ime');
