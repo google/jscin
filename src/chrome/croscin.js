@@ -50,9 +50,9 @@ croscin.IME = function() {
     return {'engineID': self.kEngineId};
   }
 
-  self.log = function(s) {
+  self.log = function() {
     if (self.debug)
-      jscin.log(s);
+      jscin.log.apply(jscin, arguments);
   }
 
   // Core functions
@@ -67,14 +67,14 @@ croscin.IME = function() {
       var arg = self.GetContextArg();
       arg.text = text;
       self.ime_api.commitText(arg);
-      self.log("croscin.Commit: value: " + text);
+      self.log("croscin.Commit: value:", text);
     } else {
       self.log("croscin.Commmit: warning: called with empty string.");
     }
   }
 
   self.ProcessKeyEvent = function(keyData) {
-    self.log("ProcessKeyEvent: " + keyData.key);
+    self.log("ProcessKeyEvent:", keyData.key);
 
     // Currently all of the modules uses key down.
     if (keyData.type != 'keydown') {
@@ -103,7 +103,7 @@ croscin.IME = function() {
     }
 
     // default: Unknown return value.
-    self.log("croscin.ProcessKeyEvent: Unknown return value: " + ret);
+    self.log("croscin.ProcessKeyEvent: Unknown return value:", ret);
     return false;
   }
 
@@ -119,7 +119,7 @@ croscin.IME = function() {
   }
 
   self.SetCandidatesWindowProperty = function(properties) {
-    // self.log("SetCandidatesWindowProperty: " + properties);
+    // self.log("SetCandidatesWindowProperty: ", properties);
     var arg = self.GetEngineArg();
     if (arguments.length == 2) {
       // Legacy support.
@@ -148,7 +148,7 @@ croscin.IME = function() {
 
   self.UpdateComposition = function(text) {
     var arg = self.GetContextArg();
-    self.log("croscin.UpdateComposition: " + text);
+    self.log("croscin.UpdateComposition:", text);
     if (text) {
       arg.text = text;
       // Select everything in composition.
@@ -176,8 +176,7 @@ croscin.IME = function() {
           'label': labels.charAt(i),
         });
       }
-      self.log('candidates:');
-      self.log(candidates);
+      self.log('candidates:', candidates);
       arg.candidates = candidates;
       self.ime_api.setCandidates(arg);
       self.SetCandidatesWindowProperty({
@@ -205,19 +204,19 @@ croscin.IME = function() {
 
   self.ActivateInputMethod = function(name) {
     if (name && name == self.im_name) {
-      self.log("croscin.ActivateInputMethod: already activated: " + name);
+      self.log("croscin.ActivateInputMethod: already activated:", name);
       return;
     }
 
     if (name in jscin.input_methods) {
-      self.log("croscin.ActivateInputMethod: Started: " + name);
+      self.log("croscin.ActivateInputMethod: Started:", name);
       self.imctx = {};
       self.im = jscin.create_input_method(name, self.imctx);
       self.im_name = name;
       self.im_label = jscin.get_input_method_label(name);
       self.InitializeUI();
     } else {
-      self.log("croscin.ActivateInputMethod: Invalid item: " + name);
+      self.log("croscin.ActivateInputMethod: Invalid item:", name);
     }
   }
 
@@ -252,11 +251,11 @@ croscin.IME = function() {
   self.LoadExtensionResource = function(url) {
     var rsrc = chrome.extension.getURL(url);
     var xhr = new XMLHttpRequest();
-    self.log("croscin.LoadExtensionResource: " + url);
+    self.log("croscin.LoadExtensionResource:", url);
     xhr.open("GET", rsrc, false);
     xhr.send();
     if (xhr.readyState != 4 || xhr.status != 200) {
-      self.log("croscin.LoadExtensionResource: failed to fetch: " + url);
+      self.log("croscin.LoadExtensionResource: failed to fetch:", url);
       return null;
     }
     return xhr.responseText;
@@ -272,22 +271,22 @@ croscin.IME = function() {
     list = JSON.parse(list);
     for (var table_name in list) {
       if (table_name in table_metadata && !reload) {
-        self.log("croscin.LoadBuiltinTables: skip loaded table: " + table_name);
+        self.log("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
       var content = self.LoadExtensionResource("tables/" + list[table_name]);
       if (!content) {
-        self.log("croscin.LoadBuiltinTables: Failed to load: " + table_name);
+        self.log("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
       }
       var results = parseCin(content);
       if (!results[0]) {
-        self.log("croscin.LoadBuiltinTables: Incorrect table: " + table_name);
+        self.log("croscin.LoadBuiltinTables: Incorrect table:", table_name);
         continue;
       }
       var table_content = results[1].data;
       var metadata = results[1].metadata;
-      self.log("croscin.LoadBuiltinTables: Load table: " + table_name);
+      self.log("croscin.LoadBuiltinTables: Load table:", table_name);
       var ename = metadata['ename'];
       metadata['builtin'] = true;
       jscin.addTable(ename, metadata, table_content);
@@ -333,8 +332,8 @@ croscin.IME = function() {
 
     self.pref_im_default = pref_im_default;
     self.pref_im_enabled_list = pref_im_enabled_list;
-    self.log("pref_im_default: " + pref_im_default);
-    self.log("pref_im_enabled_list: " + pref_im_enabled_list);
+    self.log("pref_im_default:", pref_im_default);
+    self.log("pref_im_enabled_list:", pref_im_enabled_list);
 
     if (changed) {
       self.SavePreferences();
@@ -395,7 +394,7 @@ croscin.IME.prototype.set_ime_api = function(ime_api, name) {
   var self = this;
   self.ime_api = ime_api;
   self.ime_api_type = name;
-  self.log("IME API set to " + name);
+  self.log("IME API set to:", name);
 }
 
 croscin.IME.prototype.detect_ime_api = function() {
@@ -480,8 +479,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onKeyEvent.addListener(function(engine, keyData) {
-    self.log(engine);
-    self.log(keyData);
+    self.log(engine, keyData);
     return self.ProcessKeyEvent(keyData);
   });
 
@@ -490,14 +488,14 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onCandidateClicked.addListener(
       function(engineID, candidateID, button) {
-        self.log("onCandidateClicked: " + candidateID + ", " + button);
+        self.log("onCandidateClicked: ", candidateID,  button);
         if (button == "left") {
           self.SimulateKeyDown(self.imctx.selkey.charAt(candidateID));
         }
   });
 
   ime_api.onMenuItemActivated.addListener(function(engineID, name) {
-    self.log("croscin.onMenuItemActivated: name=" + name);
+    self.log("croscin.onMenuItemActivated: name=", name);
 
     if (name == self.kMenuOptions) {
       var options_url = chrome.extension.getURL("options/options.html");
@@ -511,7 +509,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   self.on_debug_mode_change = function(debug) {
-    jscin.log("croscin.on_debug_mode_change: notified: " + debug);
+    console.log("croscin.on_debug_mode_change: notified: ", debug);
     jscin.debug = debug;
     self.debug = debug;
   }

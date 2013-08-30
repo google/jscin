@@ -177,11 +177,11 @@ function init() {
 function LoadExtensionResource(url) {
   var rsrc = chrome.extension.getURL(url);
   var xhr = new XMLHttpRequest();
-  // self.log("croscin.LoadExtensionResource: " + url);
+  console.log("LoadExtensionResource:", url);
   xhr.open("GET", rsrc, false);
   xhr.send();
   if (xhr.readyState != 4 || xhr.status != 200) {
-    // self.log("croscin.LoadExtensionResource: failed to fetch: " + url);
+    console.log("LoadExtensionResource: failed to fetch:", url);
     return null;
   }
   return xhr.responseText;
@@ -403,7 +403,7 @@ function loadCinTables() {
 }
 
 function removeCinTable(name) {
-  console.log('removeCinTable: ' + name);
+  console.log('removeCinTable:', name);
   instance.prefRemoveEnabledInputMethod(name);
   jscin.deleteTable(name);
 }

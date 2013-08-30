@@ -36,14 +36,17 @@ var jscin = {
  */
 
 // Logging / tracing utility.
-jscin.log = function(s) {
+jscin.log = function() {
   if (!jscin.debug)
     return;
+  jscin.error.apply(jscin, arguments);
+}
 
+jscin.error = function() {
   if (typeof(console) == typeof(undefined)) {
-    print(s);
+    print.apply(null, arguments);
   } else {
-    console.log(s);
+    console.log.apply(console, arguments);
   }
 }
 
@@ -58,13 +61,13 @@ jscin.register_module = function(name, constructor) {
 jscin.register_input_method = function(name, module_name, cname) {
   var self = jscin;
   if (!(module_name in self.modules)) {
-    self.log("jscin: Unknown module: " + module_name);
+    self.log("jscin: Unknown module:", module_name);
     return false;
   }
   self.input_methods[name] = {
     'label': cname,
     'module': self.modules[module_name] };
-  self.log("jscin: Registered input method: " + name);
+  self.log("jscin: Registered input method: ", name);
 }
 
 // Un-register an input method
@@ -75,7 +78,7 @@ jscin.unregister_input_method = function(name) {
     return false;
   }
   delete self.input_methods[name]
-  self.log("jscin: Un-registered input method: " + name);
+  self.log("jscin: Un-registered input method: ", name);
 
   // TODO(hungte) Remove active instances?
 }
@@ -84,10 +87,10 @@ jscin.unregister_input_method = function(name) {
 jscin.create_input_method = function(name, context) {
   var self = jscin;
   if (!(name in self.input_methods)) {
-    self.log("jscin: Unknown input method: " + name);
+    self.log("jscin: Unknown input method: ", name);
     return false;
   }
-  self.log("jscin: Created input method instance: " + name);
+  self.log("jscin: Created input method instance: ", name);
   var module = jscin.input_methods[name]["module"];
   return (new module(name)).new_instance(context);
 }
@@ -95,10 +98,10 @@ jscin.create_input_method = function(name, context) {
 jscin.get_input_method_label = function(name) {
   var self = jscin;
   if (!(name in self.input_methods)) {
-    self.log("jscin: Unknown input method: " + name);
+    self.log("jscin: Unknown input method: ", name);
     return null;
   }
-  return jscin.input_methods[name]["label"];
+  return jscin.input_methods[name].label;
 }
 
 jscin.reload_configuration = function() {
@@ -177,12 +180,13 @@ jscin.reloadNonBuiltinTables = function () {
         parsed_data.metadata.url = table.url;
       }
       jscin.addTable(parsed_data.metadata.ename, parsed_data.metadata, parsed_data.data);
-      jscin.log("jscin: Reload table: " + name);
+      jscin.log("jscin: Reload table: ", name);
     } else {
-      console.error("jscin: Parse error when reloading table: " + name);
-      alert("Parse error when reloading table: " + name);
+      jscin.error("jscin: Parse error when reloading table: ", name);
+      return false;
     }
   }
+  return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
