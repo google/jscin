@@ -7,8 +7,79 @@
 
 var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
-var current_context = {};
 
+DumbIME = function() {
+  var self = this;
+  var dummy_function = function() {};
+  var _listeners = {};
+
+  function create_listener(name) {
+    _listeners[name] = [];
+    return {
+      addListener: function(arg) {
+          _listeners[name].push(arg); },
+      invoke: function() {
+          var args = arguments;
+          _listeners[name].forEach(function (callback) {
+            callback.apply(this, args);
+          }); } };
+  }
+
+  return {
+    // internal helpers
+    _listeners: _listeners,
+
+    // chrome.input.api.*
+
+    commitText: function (arg) {
+      console.log('commitText');
+      console.log(arguments);
+      document.getElementById('committed').value += arg.text;
+    },
+    setCandidateWindowProperties: function () {
+      console.log('setCandidateWindowProperties');
+      console.log(arguments);
+    },
+    setComposition: function (arg) {
+      console.log('setComposition');
+      console.log(arguments);
+      document.getElementById('composition').value = arg.text;
+    },
+    clearComposition: function () {
+      console.log('clearComposition');
+      console.log(arguments);
+      document.getElementById('composition').value = '';
+    },
+    setCandidates: function (arg) {
+      console.log('setCandidates');
+      console.log(arguments);
+      var s = '';
+      for (var i in arg.candidates) {
+        var cand = arg.candidates[i];
+        s += cand.label + ' ' + cand.candidate + ', ';
+      }
+      document.getElementById('candidates').value = s;
+    },
+    updateMenuItems: function () {
+      console.log('updateMenuItems');
+      console.log(arguments);
+    },
+    setMenuItems: function () {
+      console.log('setMenuItems');
+      console.log(arguments);
+    },
+    onActivate: create_listener('onActivate'),
+    onDeactivated: create_listener('onDeactivated'),
+    onFocus: create_listener('onFocus'),
+    onBlur: create_listener('onBlur'),
+    onKeyEvent: create_listener('onKeyEvent'),
+    onInputContextUpdate: create_listener('onInputContextUpdate'),
+    onCandidateClicked: create_listener('onCandidateClicked'),
+    onMenuItemActivated: create_listener('onMenuItemActivated')
+  };
+};
+
+// TODO(hungte) Move key translation to somewhere shared by everyone.
 function translateKeyEvent(evt) {
   var e = {
     'altKey': evt.altKey,
@@ -35,33 +106,39 @@ function translateKeyEvent(evt) {
 
 function init() {
   var engineID = croscin.kEngineId;
-  var dumb_ime = croscin.dumb_ime;
+  var dumb_ime = new DumbIME;
 
   // duplicate log to this page
   if (!jscin.log_old) {
     jscin.log_old = jscin.log;
   }
-  jscin.log = function (arg) { jscin.log_old(arg); console.log(arg); };
+  jscin.log = function () {
+    jscin.log_old.apply(jscin, arguments);
+    console.log.apply(console, arguments); };
+
+  // Hook IME API.
+  croscin.set_ime_api(dumb_ime, 'dumb');
+  croscin.registerEventHandlers();
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {
-    console.log('onkeydown');
-    console.log(evt);
     var e = translateKeyEvent(evt);
-    dumb_ime.listener.onKeyEvent[0](engineID, e);
+    console.log('onkeydown');
+    console.log(evt, e);
+    dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
   document.getElementById('input').onkeyup = function (evt) {
-    console.log('onkeyup');
-    console.log(evt);
     var e = translateKeyEvent(evt);
-    dumb_ime.listener.onKeyEvent[0](engineID, e);
+    console.log('onkeyup');
+    console.log(evt, e);
+    dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
 
   // Generate events
   document.getElementById('onActivate').onclick = function () {
-    dumb_ime.listener.onActivate[0](engineID);
+    dumb_ime.onActivate.invoke(engineID);
     document.getElementById('input').title = 'Please click onFocus to start';
     document.getElementById('onActivate').disabled = true;
     document.getElementById('onFocus').disabled = false;
@@ -72,47 +149,7 @@ function init() {
     };
     document.getElementById('input').title = 'Please start to input';
     document.getElementById('input').disabled = false;
-    dumb_ime.listener.onFocus[0](context);
-  }
-
-  // Hook IME APIs
-  var ime_api = croscin.ime_api;
-  ime_api.commitText = function (arg) {
-    //console.log('commitText');
-    //console.log(arg);
-    document.getElementById('committed').value += arg.text;
-  }
-  ime_api.setCandidateWindowProperties = function (arg) {
-    console.log('setCandidateWindowProperties');
-    console.log(arg);
-  }
-  ime_api.setComposition = function (arg) {
-    console.log('setComposition');
-    console.log(arg);
-    document.getElementById('composition').value = arg.text;
-  }
-  ime_api.clearComposition = function (arg) {
-    console.log('clearComposition');
-    console.log(arg);
-    document.getElementById('composition').value = '';
-  }
-  ime_api.setCandidates = function (arg) {
-    console.log('setCandidates');
-    console.log(arg);
-    var s = '';
-    for (var i in arg.candidates) {
-      var cand = arg.candidates[i];
-      s += cand.label + ' ' + cand.candidate + ', ';
-    }
-    document.getElementById('candidates').value = s;
-  }
-  ime_api.updateMenuItems = function (arg) {
-    console.log('updateMenuItems');
-    console.log(arg);
-  }
-  ime_api.setMenuItems = function (arg) {
-    console.log('setMenuItems');
-    console.log(arg);
+    dumb_ime.onFocus.invoke(context);
   }
 }
 

@@ -28,12 +28,6 @@ croscin.IME = function() {
   self.kMenuOptions = "options";
   self.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
 
-  self.kImeApiType = {
-    dumb: 0,
-    chromeos: 1,
-    emulation: 2
-  };
-
   self.imctx = {};
   self.im = null;
   self.im_name = '';
@@ -386,7 +380,7 @@ croscin.IME = function() {
       jscin.setLocalStorageVersion(version);
     }
     jscin.reload_configuration();
-    self.resolve_ime_api();
+    self.detect_ime_api();
     self.registerEventHandlers();
 
     // Start the default input method.
@@ -397,12 +391,18 @@ croscin.IME = function() {
   Initialize();
 };
 
-croscin.IME.prototype.resolve_ime_api = function() {
+croscin.IME.prototype.set_ime_api = function(ime_api, name) {
+  var self = this;
+  self.ime_api = ime_api;
+  self.ime_api_type = name;
+  self.log("IME API set to " + name);
+}
+
+croscin.IME.prototype.detect_ime_api = function() {
   var self = this;
   /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
   try {
-    self.ime_api = chrome.input.ime;
-    self.ime_api_type = self.kImeApiType.chromeos;
+    self.set_ime_api(chrome.input.ime, "chromeos");
   } catch (err) {
     // Binding failure can't really be catched - it'll simply escape current
     // syntax scope.
@@ -410,22 +410,15 @@ croscin.IME.prototype.resolve_ime_api = function() {
 
   if (!self.ime_api) {
     // TODO(hungte) Alert and die if there's no ime_api.
-    // Install a dumb IME for future hook.
-    self.log("installing dumb api...");
-    self.ime_api = self.create_dumb_ime();
-    self.ime_api_type = self.kImeApiType.dumb;
+    self.log("Switched to dummy IME API...");
+    self.set_ime_api(self.create_dummy_ime_api(), "dummy");
   }
 }
 
-croscin.IME.prototype.create_dumb_ime = function() {
+croscin.IME.prototype.create_dummy_ime_api = function() {
   var self = this;
   var dummy_function = function() {};
-  self.dumb_ime = { listener: {} };
-  function create_listener(name) {
-    self.dumb_ime.listener[name] = [];
-    return { addListener: function(arg) {
-      self.dumb_ime.listener[name].push(arg)} };
-  }
+  var dummy_listener = { addListener: function() {} };
   return {
     clearComposition: dummy_function,
     commitText: dummy_function,
@@ -433,14 +426,14 @@ croscin.IME.prototype.create_dumb_ime = function() {
     setCandidateWindowProperties: dummy_function,
     setComposition: dummy_function,
     setMenuItems: dummy_function,
-    onActivate: create_listener('onActivate'),
-    onDeactivated: create_listener('onDeactivated'),
-    onFocus: create_listener('onFocus'),
-    onBlur: create_listener('onBlur'),
-    onKeyEvent: create_listener('onKeyEvent'),
-    onInputContextUpdate: create_listener('onInputContextUpdate'),
-    onCandidateClicked: create_listener('onCandidateClicked'),
-    onMenuItemActivated: create_listener('onMenuItemActivated')
+    onActivate: dummy_listener,
+    onDeactivated: dummy_listener,
+    onFocus: dummy_listener,
+    onBlur: dummy_listener,
+    onKeyEvent: dummy_listener,
+    onInputContextUpdate: dummy_listener,
+    onCandidateClicked: dummy_listener,
+    onMenuItemActivated: dummy_listener,
   };
 }
 
@@ -487,6 +480,8 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onKeyEvent.addListener(function(engine, keyData) {
+    self.log(engine);
+    self.log(keyData);
     return self.ProcessKeyEvent(keyData);
   });
 

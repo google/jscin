@@ -166,15 +166,11 @@ function init() {
 
   /* TODO(hungte) Can't find a way to set the default checked state of checkbox
    * debug_mode_input. Let's pretend it's same as the default value... */
-  $('#debug_mode_input').button().click(function() {
+  $('#debug_mode_input').button().prop("checked", instance.debug).
+      button("refresh").click(function() {
     instance.on_debug_mode_change($('#debug_mode_input').prop("checked"));
   });
   $('#start_dumb_ime').button();
-  if (instance.ime_api_type != instance.kImeApiType.dumb) {
-    $('#start_dumb_ime').attr('href', '#').click(function() {
-      alert('Dumb IME only works on Non-ChromeOS browsers (to help debug).');
-    });
-  }
   $('#start_test_area').button();
 }
 
