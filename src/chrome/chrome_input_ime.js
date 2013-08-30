@@ -8,9 +8,12 @@
 ChromeInputIME = function () {
   var self = this;
 
+  // Internal variables
   self._debug = true;
-  self.kDefaultEngineId = 'Emulation';
   self.contextIndex = 0;
+  self.kDefaultEngineId = 'Emulation';
+
+  // Internal Functions
 
   self.log = function() {
     console.log.apply(console, arguments);
@@ -21,21 +24,6 @@ ChromeInputIME = function () {
       self.log.apply(self, arguments);
     }
   }
-
-  function CreateDummyUi(name, arg) {
-    return function (ui_context) {
-      self.log("DummyUI:", name, arg, ui_context);
-    }
-  }
-
-  self.ui = {
-    // functions taking engine as input
-    menu: CreateDummyUi("menu", "engine"),
-    candidates_window: CreateDummyUi("candidates_window", "engine"),
-    // functions taking context as input
-    composition: CreateDummyUi("composition", "context"),
-    candidates: CreateDummyUi("candidates", "context"),
-  };
 
   function GetContext(contextID) {
     return self.context_list[contextID];
@@ -81,6 +69,22 @@ ChromeInputIME = function () {
         selectionEnd: 0,
         cursor: 0
       }
+    };
+  }
+
+  function CreateDummyUserInterface() {
+    function DummyHandler(name, arg) {
+      return function (ui_context) {
+        self.log("DummyUI:", name, arg, ui_context);
+      }
+    }
+    return {
+      // functions taking engine as input
+      menu: DummyHandler("menu", "engine"),
+      candidates_window: DummyHandler("candidates_window", "engine"),
+      // functions taking context as input
+      composition: DummyHandler("composition", "context"),
+      candidates: DummyHandler("candidates", "context"),
     };
   }
 
@@ -163,6 +167,25 @@ ChromeInputIME = function () {
     }
   };
 
+  var kEventPrefix = 'chrome.input.ime#';
+  var kEarlyAbortEvents = ['KeyEvent'];  // Return true to abort.
+
+  function CreateEventHandler(event_name) {
+    var needEarlyAbort = (kEarlyAbortEvents.indexOf(event_name) >= 0);
+    return { addListener: function (callback) {
+      document.addEventListener(
+          kEventPrefix + event_name,
+          function (ime_ev) {
+            self.debug('on', event_name);
+            var result = callback.apply(null, ime_ev.detail);
+            if (needEarlyAbort && result) {
+              ime_ev.preventDefault();
+            }
+            return result;
+          }, false);
+    } };
+  }
+
   // public functions
 
   self.attach = function (node) {
@@ -170,7 +193,7 @@ ChromeInputIME = function () {
     var keyEventHandler = function(ev) {
       var ev2 = ImeKeyEvent(ev);
       self.debug("<attach>", ev.type, ev2);
-      var result = DispatchEvent("KeyEvent", engine.engineID, ev2);
+      var result = self.dispatchEvent("KeyEvent", engine.engineID, ev2);
       if (!result)
         ev.preventDefault();
       self.debug("result:", result);
@@ -180,14 +203,14 @@ ChromeInputIME = function () {
     node.addEventListener('keyup', keyEventHandler);
 
     node.addEventListener('focus', function(ev) {
-      var result = DispatchEvent("Focus", EnterContext(node));
+      var result = self.dispatchEvent("Focus", EnterContext(node));
       return result;
     });
     node.addEventListener('blur', function(ev) {
       var context = GetContext();
       if (context == null)
         return;
-      var result = DispatchEvent('Blur', GetContext().contextID);
+      var result = self.dispatchEvent('Blur', GetContext().contextID);
       LeaveContext();
       return result;
     });
@@ -197,6 +220,14 @@ ChromeInputIME = function () {
     self.log("UI handlers changed to:", ui);
     self.ui = ui;
   }
+
+  self.dispatchEvent = function (type) {
+    var params = Array.prototype.slice.call(arguments, 1);
+    var imeEvent = new CustomEvent(kEventPrefix + type);
+    imeEvent.initCustomEvent(imeEvent.type, false,
+        (kEarlyAbortEvents.indexOf(type) >= 0), params);
+    return document.dispatchEvent(imeEvent);
+  };
 
   // chrome.input.ime API
 
@@ -281,34 +312,6 @@ ChromeInputIME = function () {
     throw "not implemented, sorry";
   };
 
-  var kEventPrefix = 'chrome.input.ime#';
-  var kEarlyAbortEvents = ['KeyEvent'];  // Return true to abort.
-
-  function CreateEventHandler(event_name) {
-    var needEarlyAbort = (kEarlyAbortEvents.indexOf(event_name) >= 0);
-    return { addListener: function (callback) {
-      document.addEventListener(
-          kEventPrefix + event_name,
-          function (ime_ev) {
-            self.debug('on', event_name);
-            var result = callback.apply(null, ime_ev.detail);
-            if (needEarlyAbort && result) {
-              ime_ev.preventDefault();
-            }
-            return result;
-          }, false);
-    } };
-  }
-
-  function DispatchEvent(type) {
-    var params = Array.prototype.slice.call(arguments, 1);
-    var imeEvent = new CustomEvent(kEventPrefix + type);
-    imeEvent.initCustomEvent(imeEvent.type, false,
-        (kEarlyAbortEvents.indexOf(type) >= 0), params);
-    return document.dispatchEvent(imeEvent);
-  }
-  self.DispatchEvent = DispatchEvent;
-
   self.onActivate = CreateEventHandler("Activate");
   self.onDeactivated = CreateEventHandler("Deactivated");
   self.onBlur = CreateEventHandler("Blur");
@@ -321,10 +324,11 @@ ChromeInputIME = function () {
   self.onReset = CreateEventHandler("Reset");
 
   // Initialization
-  self.Initialize = function () {
+  function Initialize () {
     self.engineContext = CreateEngineContext(self.kDefaultEngineId);
     self.context_list = {};
+    self.ui = CreateDummyUserInterface();
   }
 
-  self.Initialize();
+  Initialize();
 }

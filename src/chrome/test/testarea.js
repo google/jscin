@@ -77,7 +77,7 @@ $(function() {
         var label = item.label || item.id;
         ui.append(
             $('<li/>', {text: label}).click(function () {
-              chrome.input.ime.DispatchEvent(
+              chrome.input.ime.dispatchEvent(
                   'MenuItemActivated', engine.engineID,
                   engine.menuitems[$(this).index()].id);
             }));
@@ -130,7 +130,7 @@ $(function() {
     croscin.set_ime_api(chrome.input.ime, 'emulation');
     croscin.registerEventHandlers();
     // croscin has already started, so we need to activate again.
-    chrome.input.ime.DispatchEvent('Activate', 'input_ime');
+    chrome.input.ime.dispatchEvent('Activate', 'input_ime');
     $('#TestItems').hide();
   } else {
     // Running in simple web page, let's enable all testing buttons.
