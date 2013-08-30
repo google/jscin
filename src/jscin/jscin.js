@@ -50,6 +50,14 @@ jscin.error = function() {
   }
 }
 
+jscin.add_logger = function(logger, context) {
+  var old_logger = jscin.log;
+  jscin.log = function() {
+    logger.apply(context, arguments);
+    old_logger.apply(null, arguments);
+  }
+}
+
 // Module registration
 jscin.register_module = function(name, constructor) {
   var self = jscin;

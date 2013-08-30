@@ -123,14 +123,10 @@ $(function() {
 
   if (chrome && chrome.extension) {
     var croscin = chrome.extension.getBackgroundPage().croscin.instance;
-    var jscin = chrome.extension.getBackgroundPage().jscin;
+    jscin = chrome.extension.getBackgroundPage().jscin;
 
-    // Duplicate log to this page. TODO(hungte) Allow jscin to chain error logs.
-    if (!jscin.log_old) {
-      jscin.log_old = jscin.log;
-    }
-    jscin.log = function (arg) { jscin.log_old(arg); console.log(arg); };
-
+    // Get all logs on my console.
+    jscin.add_logger(console.log, console);
     croscin.set_ime_api(chrome.input.ime, 'emulation');
     croscin.registerEventHandlers();
     // croscin has already started, so we need to activate again.

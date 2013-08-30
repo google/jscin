@@ -7,6 +7,7 @@
 
 var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
+log = function() { console.log.apply(console, arguments); };
 
 DumbIME = function() {
   var self = this;
@@ -32,27 +33,27 @@ DumbIME = function() {
     // chrome.input.api.*
 
     commitText: function (arg) {
-      console.log('commitText');
-      console.log(arguments);
+      log('commitText');
+      log(arguments);
       document.getElementById('committed').value += arg.text;
     },
     setCandidateWindowProperties: function () {
-      console.log('setCandidateWindowProperties');
-      console.log(arguments);
+      log('setCandidateWindowProperties');
+      log(arguments);
     },
     setComposition: function (arg) {
-      console.log('setComposition');
-      console.log(arguments);
+      log('setComposition');
+      log(arguments);
       document.getElementById('composition').value = arg.text;
     },
     clearComposition: function () {
-      console.log('clearComposition');
-      console.log(arguments);
+      log('clearComposition');
+      log(arguments);
       document.getElementById('composition').value = '';
     },
     setCandidates: function (arg) {
-      console.log('setCandidates');
-      console.log(arguments);
+      log('setCandidates');
+      log(arguments);
       var s = '';
       for (var i in arg.candidates) {
         var cand = arg.candidates[i];
@@ -61,12 +62,12 @@ DumbIME = function() {
       document.getElementById('candidates').value = s;
     },
     updateMenuItems: function () {
-      console.log('updateMenuItems');
-      console.log(arguments);
+      log('updateMenuItems');
+      log(arguments);
     },
     setMenuItems: function () {
-      console.log('setMenuItems');
-      console.log(arguments);
+      log('setMenuItems');
+      log(arguments);
     },
     onActivate: create_listener('onActivate'),
     onDeactivated: create_listener('onDeactivated'),
@@ -109,12 +110,7 @@ function init() {
   var dumb_ime = new DumbIME;
 
   // duplicate log to this page
-  if (!jscin.log_old) {
-    jscin.log_old = jscin.log;
-  }
-  jscin.log = function () {
-    jscin.log_old.apply(jscin, arguments);
-    console.log.apply(console, arguments); };
+  jscin.add_logger(console.log, console);
 
   // Hook IME API.
   croscin.set_ime_api(dumb_ime, 'dumb');
@@ -123,15 +119,15 @@ function init() {
   // key events
   document.getElementById('input').onkeydown = function (evt) {
     var e = translateKeyEvent(evt);
-    console.log('onkeydown');
-    console.log(evt, e);
+    log('onkeydown');
+    log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
   document.getElementById('input').onkeyup = function (evt) {
     var e = translateKeyEvent(evt);
-    console.log('onkeyup');
-    console.log(evt, e);
+    log('onkeyup');
+    log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
