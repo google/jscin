@@ -112,6 +112,9 @@ $(function() {
         var label = item.label || item.id;
         ui.append(
             $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
+            click(function () {
+              chrome.input.ime.dispatchEvent('CandidateClicked',
+                "", item.id, 'left'); }).
           prepend($('<span/>', {text: label, "class": "candidate_label"})));
       });
     }
