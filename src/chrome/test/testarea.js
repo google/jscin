@@ -67,9 +67,11 @@ $(function() {
   chrome.input = { ime: new ChromeInputIME };
 
   // Setup UI rendering
-  chrome.input.ime.setUserInterfaceHandlers({
-    menu:
-    function(engine) {
+  chrome.input.ime.setUserInterfaceEventHandler(function (evt) {
+    var type = evt.type;
+    var engine = evt.engine;
+    var context = evt.context;
+    if (type == 'menu') {
       // Update IME UI
       var ui = $('#imePanel #menu');
       ui.empty();
@@ -82,29 +84,19 @@ $(function() {
                   engine.menuitems[$(this).index()].id);
             }));
       });
-    },
-
-    candidates_window:
-    function(engine) {
-      // candidates window
+    } else if (type == 'candidate_window') {
       var ui = $('#imePanel #candidates');
       if (!engine.candidate_window.visible) {
         ui.hide();
       }
       ui.show();
-    },
-
-    composition:
-    function(context) {
+    } else if (type == 'composition') {
       // composition area
       var ui = $('#imePanel #composition');
       // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
       var nbsp = '\xa0';
       ui.text((context ? context.composition.text : "" )+ nbsp);
-    },
-
-    candidates:
-    function (context) {
+    } else if (type == 'candidates') {
       var ui = $('#imePanel #candidates');
       var nbsp = '\xa0';
       ui.empty().append(nbsp);

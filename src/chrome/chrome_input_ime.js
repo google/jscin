@@ -72,21 +72,24 @@ ChromeInputIME = function () {
     };
   }
 
-  function CreateDummyUserInterface() {
-    function DummyHandler(name, arg) {
-      return function (ui_context) {
-        self.log("DummyUI:", name, arg, ui_context);
-      }
-    }
-    return {
-      // functions taking engine as input
-      menu: DummyHandler("menu", "engine"),
-      candidates_window: DummyHandler("candidates_window", "engine"),
-      // functions taking context as input
-      composition: DummyHandler("composition", "context"),
-      candidates: DummyHandler("candidates", "context"),
-    };
+  function CreateUIEvent(type, context, engine) {
+    return { type: type,
+             context: context,
+             engine: engine };
   }
+
+  function DummyUIEventHandler(ev) {
+    console.log('DummyUIEventHandler', ev.type, ev);
+  }
+
+  self.ProcessUIEvent = function (type, context, engine) {
+    // Create and dispatch.
+    // Known UI events: 'menu', 'candidates', 'candidate_window', 'composition'.
+    self.ui_event_handler({
+      type: type,
+      context: context,
+      engine: engine});
+  };
 
   function JsKeyCode2Key(k) {
     // The KeyboardEvent by browser uses "JavaScript Key Code" and is different
@@ -216,9 +219,9 @@ ChromeInputIME = function () {
     });
   };
 
-  self.setUserInterfaceHandlers = function(ui) {
-    self.log("UI handlers changed to:", ui);
-    self.ui = ui;
+  self.setUserInterfaceEventHandler = function (handler) {
+    self.log("UI handlers changed to:", handler);
+    self.ui_event_handler = handler;
   }
 
   self.dispatchEvent = function (type) {
@@ -240,7 +243,7 @@ ChromeInputIME = function () {
     }
     SetDefinedParams(context.composition, parameters,
         'text', 'selectionStart', 'selectionEnd', 'cursor');
-    self.ui.composition(context);
+    self.ProcessUIEvent("composition", context, undefined);
   };
 
   self.clearComposition = function (parameters, callback) {
@@ -254,7 +257,7 @@ ChromeInputIME = function () {
     context.composition.selectionStart = 0;
     context.composition.selectionEnd = 0;
     context.composition.cursor = 0;
-    self.ui.composition(context);
+    self.ProcessUIEvent("composition", context, undefined);
   };
 
   self.commitText = function (parameters, callback) {
@@ -276,7 +279,7 @@ ChromeInputIME = function () {
     SetDefinedParams(engine.candidate_window, parameters.properties,
         'visible', 'cursorVisible', 'vertical', 'pageSize', 'auxiliaryText',
         'auxiliaryTextVisible', 'windowPosition');
-    self.ui.candidates_window(engine);
+    self.ProcessUIEvent("candidate_window", undefined, engine);
   };
 
   self.setCandidates = function (parameters, callback) {
@@ -287,7 +290,7 @@ ChromeInputIME = function () {
       return;
     }
     context.candidates = parameters.candidates;
-    self.ui.candidates(context);
+    self.ProcessUIEvent("candidates", context, undefined);
   };
 
   self.setCursorPosition = function (parameters, callback) {
@@ -298,7 +301,7 @@ ChromeInputIME = function () {
     self.debug('setMenuItems');
     var engine = GetEngineContext(parameters.engineID);
     engine.menuitems = parameters.items;
-    self.ui.menu(engine);
+    self.ProcessUIEvent("menu", undefined, engine);
   };
 
   // Currently Chrome implements updateMenuItems in same way as setMenuItems.
@@ -326,8 +329,8 @@ ChromeInputIME = function () {
   // Initialization
   function Initialize () {
     self.engineContext = CreateEngineContext(self.kDefaultEngineId);
+    self.ui_event_handler = DummyUIEventHandler;
     self.context_list = {};
-    self.ui = CreateDummyUserInterface();
   }
 
   Initialize();
