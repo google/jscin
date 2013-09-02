@@ -408,9 +408,16 @@ croscin.IME.prototype.detect_ime_api = function() {
   }
 
   if (!self.ime_api) {
-    // TODO(hungte) Alert and die if there's no ime_api.
-    self.log("Switched to dummy IME API...");
-    self.set_ime_api(self.create_dummy_ime_api(), "dummy");
+    // provided by input_api/chrome_input_ime.js
+    if (ChromeInputIME) {
+      self.log("Switched to Javascript Emulation IME API...");
+      self.set_ime_api(new ChromeInputIME, "emulation");
+      self.ime_api.log = jscin.log;
+      chrome.input = { ime: self.ime_api };
+    } else {
+      self.log("Switched to dummy IME API...");
+      self.set_ime_api(self.create_dummy_ime_api(), "dummy");
+    }
   }
 }
 
@@ -464,12 +471,14 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onBlur.addListener(function(contextID) {
+    self.log("croscin: onBlur", contextID);
     if (!self.context) {
       self.log("croscin.onBlur: WARNING: no existing context.");
       return;
     }
     if (self.context.contextID != contextID) {
-      self.log("croscin.onBlur: WARNING: incompatible context.");
+      self.log("croscin.onBlur: WARNING: incompatible context.",
+               self.context.contextID, contextID);
       return;
     }
     // TODO(hungte) Uncomment this if we don't want context to be carried when
@@ -523,13 +532,3 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   window.jscin = jscin;
 };
-
-// Browser loader entry
-document.addEventListener(
-    'readystatechange',
-    function() {
-      if (document.readyState === 'complete') {
-        croscin.instance = new croscin.IME;
-      }
-    }
-)

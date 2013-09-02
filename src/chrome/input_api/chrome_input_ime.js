@@ -5,13 +5,14 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-ChromeInputIME = function () {
+var ChromeInputIME = function () {
   var self = this;
 
   // Internal variables
   self._debug = true;
   self.contextIndex = 0;
   self.kDefaultEngineId = 'Emulation';
+  self.isEmulation = true;
 
   // Internal Functions
 
@@ -91,63 +92,6 @@ ChromeInputIME = function () {
       engine: engine});
   };
 
-  function JsKeyCode2Key(k) {
-    // The KeyboardEvent by browser uses "JavaScript Key Code" and is different
-    // from Chrome Extension key names. Ref:
-    // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
-    switch (k) {
-      case 8:
-        return 'Backspace';
-      case 37:
-        return 'Left';
-      case 38:
-        return 'Up';
-      case 39:
-        return 'Right';
-      case 40:
-        return 'Down';
-      case 27:
-        return 'Esc';
-      case 186:
-        return ';';
-      case 187:
-        return '=';
-      case 188:
-        return ',';
-      case 189:
-        return '-';
-      case 190:
-        return '.';
-      case 191:
-        return '/';
-      case 192:
-        return '`';
-      case 219:
-        return '{';
-      case 220:
-        return '\\';
-      case 221:
-        return '}';
-      case 222:
-        return "'";
-    };
-    return String.fromCharCode((96 <= k && k <= 105) ? k - 48 : k);
-  }
-
-  // The real W3C KeyboardEvent is slightly different from the KeyboardEvent
-  // expected in Chrome Extension input API, so let's make a mini
-  // implementation.
-  function ImeKeyEvent(ev) {
-    return {
-      altKey: ev.altKey,
-      ctrlKey: ev.ctrlKey,
-      shiftKey: ev.shiftKey,
-      type: ev.type,
-      key: JsKeyCode2Key(ev.keyCode),
-      code: ev.keyCode,
-    };
-  }
-
   function EnterContext(node) {
     self.debug("EnterContext:", node);
     var context = CreateContext(node);
@@ -179,7 +123,7 @@ ChromeInputIME = function () {
       document.addEventListener(
           kEventPrefix + event_name,
           function (ime_ev) {
-            self.debug('on', event_name);
+            self.debug('on', event_name, ime_ev);
             var result = callback.apply(null, ime_ev.detail);
             if (needEarlyAbort && result) {
               ime_ev.preventDefault();
@@ -194,7 +138,7 @@ ChromeInputIME = function () {
   self.attach = function (node) {
     var engine = GetEngineContext();
     var keyEventHandler = function(ev) {
-      var ev2 = ImeKeyEvent(ev);
+      var ev2 = ImeEvent.ImeKeyEvent(ev);
       self.debug("<attach>", ev.type, ev2);
       var result = self.dispatchEvent("KeyEvent", engine.engineID, ev2);
       if (!result)
@@ -219,6 +163,27 @@ ChromeInputIME = function () {
     });
   };
 
+  self.attachImeExtensionIpc = function (ipc) {
+    // ipc must be a ImeEvent.ImeExtensionIPC object.
+    if (!ipc) {
+      ipc = new ImeEvent.ImeExtensionIPC('background');
+    }
+    self.ipc = ipc;
+    ipc.recv(function(type) {
+      if (type == 'Focus') {
+        // We need to create a context for this.
+        self.dispatchEvent('Focus', EnterContext(ipc));
+      } else {
+        self.dispatchEvent.apply(self, arguments);
+      }
+    });
+    self.setUserInterfaceEventHandler(function (msg) {
+      if (!self.ipc)
+        return;
+      self.ipc.send('UIEvent', msg);
+    });
+  }
+
   self.setUserInterfaceEventHandler = function (handler) {
     self.log("UI handlers changed to:", handler);
     self.ui_event_handler = handler;
@@ -227,6 +192,7 @@ ChromeInputIME = function () {
   self.dispatchEvent = function (type) {
     var params = Array.prototype.slice.call(arguments, 1);
     var imeEvent = new CustomEvent(kEventPrefix + type);
+    self.log("dispatchEvent", type, arguments);
     imeEvent.initCustomEvent(imeEvent.type, false,
         (kEarlyAbortEvents.indexOf(type) >= 0), params);
     return document.dispatchEvent(imeEvent);
@@ -268,9 +234,14 @@ ChromeInputIME = function () {
       return;
     }
     var node = context.node;
-    node.value = (node.value.substring(0, node.selectionStart) +
-                  parameters.text +
-                  node.value.substring(node.selectionEnd));
+    if ('send' in node) {
+      node.send("commitText", parameters);
+    } else {
+      // Assume node is a DOM node.
+      node.value = (node.value.substring(0, node.selectionStart) +
+          parameters.text +
+          node.value.substring(node.selectionEnd));
+    }
   };
 
   self.setCandidateWindowProperties = function (parameters, callback) {

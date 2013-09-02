@@ -7,7 +7,7 @@
   "description": "__MSG_manifestDesc__",
   "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
 
-  "background": { "page": "croscin.html" },
+  "background": { "page": "background.html" },
   "options_page": "options/options.html",
 
   "input_components": [ {
@@ -18,8 +18,12 @@
       "language": "zh-TW",
       "layouts": ["us"]
   } ],
+  "web_accessible_resources": [
+     "jquery/*",
+     "input_api/*"
+  ],
   "permissions": [
-    "http://*/",
+    "http://*/", "https://*/",
     "input",
     "tabs", "https://docs.google.com/feeds/*",
     "https://www.google.com/accounts/OAuthGetRequestToken",

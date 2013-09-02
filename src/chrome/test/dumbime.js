@@ -80,31 +80,6 @@ DumbIME = function() {
   };
 };
 
-// TODO(hungte) Move key translation to somewhere shared by everyone.
-function translateKeyEvent(evt) {
-  var e = {
-    'altKey': evt.altKey,
-    'ctrlKey': evt.ctrlKey,
-    'shiftKey': evt.shiftKey,
-    'type': evt.type,
-    'key': String.fromCharCode(evt.keyCode),
-    // keyCode, charCode
-  };
-  switch (evt.keyCode) {
-    case 8:
-      e.key = 'Backspace';
-      break;
-    case 27:
-      e.key = 'Esc';
-      break;
-  }
-  // TODO(kcwu) recgonize more keys
-  if (evt.keyIdentifier in ['Left', 'Right', 'Up', 'Down']) {
-    e.key = evt.keyIdentifier;
-  }
-  return e;
-}
-
 function init() {
   var engineID = croscin.kEngineId;
   var dumb_ime = new DumbIME;
@@ -118,14 +93,14 @@ function init() {
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {
-    var e = translateKeyEvent(evt);
+    var e = ImeEvent.ImeKeyEvent(evt);
     log('onkeydown');
     log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
   document.getElementById('input').onkeyup = function (evt) {
-    var e = translateKeyEvent(evt);
+    var e = ImeEvent.ImeKeyEvent(evt);
     log('onkeyup');
     log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
