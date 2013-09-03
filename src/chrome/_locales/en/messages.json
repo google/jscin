@@ -10,6 +10,9 @@
   "menuOptions": { "message":
     "Options" },
 
+  "imeToggleHint": { "message":
+    "<TAB to toggle>" },
+
   "optionCaption": { "message":
     "JsCIN Options" },
   "optionInputMethodTables": { "message":

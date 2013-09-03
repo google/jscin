@@ -15,6 +15,8 @@ var ImeEvent = {
         return 'Backspace';
       case 9:
         return 'Tab';
+      case 20:
+        return 'CapsLock';
       case 27:
         return 'Esc';
       case 33:

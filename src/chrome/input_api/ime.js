@@ -56,8 +56,12 @@ $(function() {
     } else if (type == 'candidate_window') {
       debug("render", type);
       var ui = $('#imePanel #auxiliaryText');
+      var _ = chrome.i18n.getMessage;
+      // TODO(hungte) Remove the hard-coded prefix.
       // The auxiliaryText looks better if we always keep it.
-      ui.text(engine.candidate_window.auxiliaryText + nbsp);
+      ui.text(engine.candidate_window.auxiliaryText + nbsp).
+          prepend($('<span/>').css({color: '#444'}).
+          text(_("imeToggleHint") + nbsp));
 
       if (false) {
         // The correct way (for debug)

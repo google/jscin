@@ -16,6 +16,8 @@ function IME() {
   self.ipc = undefined;
   self.debug = false;
   self.nodeStates = [];
+  self.enabled = true;
+  self.toggleHotKey = 9;  // TAB.
 
   self.log = function () {
     if (!self.debug)
@@ -28,6 +30,20 @@ function IME() {
   };
 
   self.KeyEventHandler = function (ev) {
+    if (ev.keyCode == self.toggleHotKey) {
+      self.enabled = !self.enabled;
+      ev.preventDefault();
+
+      if (self.enabled)
+        self.frame.fadeIn(100);
+      else
+        self.frame.fadeOut(100);
+      return;
+    }
+
+    if (!self.enabled)
+      return;
+
     var ev2 = ImeEvent.ImeKeyEvent(ev);
     self.log("ImeKeyEventHandler", ev2);
     self.SendMessage("KeyEvent", self.engineID, ev2);

@@ -10,6 +10,9 @@
   "menuOptions": { "message":
     "選項" },
 
+  "imeToggleHint": { "message":
+    "<TAB 可切換英數輸入>" },
+
   "optionCaption": { "message":
     "JsCIN 輸入法選項設定" },
   "optionInputMethodTables": { "message":
