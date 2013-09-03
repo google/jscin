@@ -80,7 +80,7 @@ var ChromeInputIME = function () {
   }
 
   function DummyUIEventHandler(ev) {
-    self.log('DummyUIEventHandler', ev.type, ev);
+    self.debug('DummyUIEventHandler', ev.type, ev);
   }
 
   self.ProcessUIEvent = function (type, context, engine) {
@@ -191,14 +191,14 @@ var ChromeInputIME = function () {
   }
 
   self.setUserInterfaceEventHandler = function (handler) {
-    self.log("UI handlers changed to:", handler);
+    self.debug("UI handlers changed to:", handler);
     self.ui_event_handler = handler;
   }
 
   self.dispatchEvent = function (type) {
     var params = Array.prototype.slice.call(arguments, 1);
     var imeEvent = new CustomEvent(kEventPrefix + type);
-    self.log("dispatchEvent", type, arguments);
+    self.debug("dispatchEvent", type, arguments);
     imeEvent.initCustomEvent(imeEvent.type, false,
         (kEarlyAbortEvents.indexOf(type) >= 0), params);
     return document.dispatchEvent(imeEvent);

@@ -48,9 +48,13 @@ function IME() {
 
   self.ImeEventHandler = function (type) {
     if (type == 'UIReady') {
+      self.log("Got", type);
+      self.SendMessage("Activate"); // hack: we want to update menu.
       // Delayed init.
-      if (self.init_node)
+      if (self.init_node) {
+        self.log("Found init_node:", self.init_node);
         self.FocusHandler({target: self.init_node});
+      }
       self.init_node = undefined;
     } else if (type == 'Focus') {
       var context = arguments[1];
@@ -81,7 +85,6 @@ function IME() {
     self.log("on focus");
     var node = ev.target;
     self.node = ev.target;
-    self.SendMessage("Activate"); // hack: we want to update menu.
     self.SendMessage("Focus");
   };
 
@@ -121,12 +124,7 @@ function IME() {
   };
 }
 
-document.addEventListener('readystatechange', function() {
-  // TODO(hungte) Bind on "interactive" gets us early access to input
-  // components, but on 'complete' we may need to parse again.
-  if (document.readyState != 'complete')
-    return;
-
+function init () {
   // Check chrome.input.ime availability.  The correct way is to check
   // chrome.input.ime binding but that would spew error message in console for
   // every page; so let's check userAgent instead because for right now only
@@ -173,5 +171,8 @@ document.addEventListener('readystatechange', function() {
     if (focused == node)
       self.init_node = node;
   });
+}
 
-});
+// For content.js we can't wait for readystatechange - that is controlled by
+// manifest:run_at.
+init();
