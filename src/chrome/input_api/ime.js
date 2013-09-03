@@ -38,13 +38,15 @@ $(function() {
     if (type == 'menu') {
       debug("render", type);
       var ui = $('#imePanel #menu');
+      if (!ui)
+        return;
       debug(ui);
       ui.empty();
       engine.menuitems.forEach(function (item) {
         debug("item", item);
         var label = item.label || item.id;
         ui.append(
-            $('<li/>',  {text: label, 'class': item.checked ? "active" : ""})
+            $('<div/>',  {text: label, 'class': item.checked ? "active" : ""})
             .click(function () {
               ipc.send('MenuItemActivated', engine.engineID,
                 engine.menuitems[$(this).index()].id);
@@ -53,13 +55,29 @@ $(function() {
 
     } else if (type == 'candidate_window') {
       debug("render", type);
-      var ui = $('#imePanel #candidates');
-      if (!engine.candidate_window.visible) {
-        ui.hide();
-      } else {
-        ui.show();
-      }
+      var ui = $('#imePanel #auxiliaryText');
+      // The auxiliaryText looks better if we always keep it.
+      ui.text(engine.candidate_window.auxiliaryText + nbsp);
 
+      if (false) {
+        // The correct way (for debug)
+        ui = $('#imePanel #candidates');
+        if (!engine.candidate_window.visible) {
+          ui.hide();
+        } else {
+          ui.show();
+        }
+      } else {
+        // The special rendering way, for better visual feedback.
+        ui = $('body');
+        if (!engine.candidate_window.visible) {
+          ui.css({opacity: 0.8});
+          $('#imePanel #candidates').hide();
+        } else {
+          $('#imePanel #candidates').show();
+          ui.css({opacity: 1.0});
+        }
+      }
     } else if (type == 'composition') {
       debug("render", type);
       var ui = $('#imePanel #composition');

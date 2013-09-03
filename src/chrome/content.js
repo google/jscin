@@ -5,9 +5,6 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) This file is full of hacks.
-// Try to clean it up.
-
 function IME() {
   var self = this;
 
@@ -119,11 +116,11 @@ function IME() {
   };
 }
 
-document.addEventListener('readystatechange',
-                          function() {
+document.addEventListener('readystatechange', function() {
+  // TODO(hungte) Bind on "interactive" gets us early access to input
+  // components, but on 'complete' we may need to parse again.
   if (document.readyState != 'complete')
     return;
-  console.log("content.js ready");
 
   // Check chrome.input.ime availability.  The correct way is to check
   // chrome.input.ime binding but that would spew error message in console for

@@ -175,6 +175,10 @@ var ChromeInputIME = function () {
         var context = EnterContext(ipc);
         self.dispatchEvent('Focus', context);
         ipc.send(type, context);
+
+        chrome.tabs.getSelected(null, function(tab) {
+          chrome.pageAction.show(tab.id);
+        });
       } else {
         self.dispatchEvent.apply(self, arguments);
       }

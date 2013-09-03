@@ -30,12 +30,12 @@ body {
   background: #ee0;
 }
 
-#menu li:hover {
+#menu div:hover {
   background: #ccf;
   cursor: pointer;
 }
 
-#menu li.active {
+#menu div.active {
   background: #cfc;
 }
 
@@ -54,6 +54,11 @@ body {
   background: #ddd;
 }
 
+#auxiliaryText {
+  padding-top: 10px;
+  text-align: right;
+}
+
 .candidate:hover {
   background: #888;
   color: #fff;
@@ -70,7 +75,8 @@ body {
 <div id="imePanel">
   <div id="composition">Composition Area</div>
   <div id="candidates">Candidates Area</div>
-  <ul type="square" id="menu"><li>IME Menu</li></ul>
+  <!-- <div id="menu">IME Menu</div> -->
+  <div id="auxiliaryText">Auxilary Text</div>
 </div>
 </body>
 </html>

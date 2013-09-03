@@ -18,6 +18,13 @@
       "language": "zh-TW",
       "layouts": ["us"]
   } ],
+  "page_action": {
+    "default_icon": {
+        "19": "page_icon19.png"
+    },
+    "default_title": "__MSG_manifestName__",
+    "default_popup": "input_api/menu.html"
+  },
   "content_scripts": [ {
     "js": [
         "jquery/jquery.js",
