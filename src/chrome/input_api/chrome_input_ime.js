@@ -9,7 +9,7 @@ var ChromeInputIME = function () {
   var self = this;
 
   // Internal variables
-  self._debug = true;
+  self._debug = false;
   self.contextIndex = 0;
   self.kDefaultEngineId = 'Emulation';
   self.isEmulation = true;
@@ -80,7 +80,7 @@ var ChromeInputIME = function () {
   }
 
   function DummyUIEventHandler(ev) {
-    console.log('DummyUIEventHandler', ev.type, ev);
+    self.log('DummyUIEventHandler', ev.type, ev);
   }
 
   self.ProcessUIEvent = function (type, context, engine) {
@@ -171,8 +171,10 @@ var ChromeInputIME = function () {
     self.ipc = ipc;
     ipc.recv(function(type) {
       if (type == 'Focus') {
-        // We need to create a context for this.
-        self.dispatchEvent('Focus', EnterContext(ipc));
+        // We need to create a new context for this.
+        var context = EnterContext(ipc);
+        self.dispatchEvent('Focus', context);
+        ipc.send(type, context);
       } else {
         self.dispatchEvent.apply(self, arguments);
       }

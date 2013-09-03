@@ -52,7 +52,7 @@ croscin.IME = function() {
 
   self.log = function() {
     if (self.debug)
-      jscin.log.apply(jscin, arguments);
+      console.log.apply(console, arguments);
   }
 
   // Core functions

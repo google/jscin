@@ -18,6 +18,15 @@
       "language": "zh-TW",
       "layouts": ["us"]
   } ],
+  "content_scripts": [ {
+    "js": [
+        "jquery/jquery.js",
+        "input_api/ipc.js",
+        "input_api/ime_event.js",
+        "content.js"
+    ],
+    "matches": ["http://*/*", "https://*/*"]
+  } ],
   "web_accessible_resources": [
      "jquery/*",
      "input_api/*"

@@ -28,7 +28,7 @@ var jscin = {
   modules: {},
   input_methods: {},
 
-  debug: true,
+  debug: false,
 };
 
 /**

@@ -69,12 +69,15 @@ var ImeEvent = {
     var ipc = new ChromeExtensionIPC.IPC(type, kIpcDomain);
     return {
       ipc: ipc,
+
       attach: ipc.attach,
+
       send: function () {
         return ipc.send({
           ime: kIpcDomain,
           args: Array.prototype.slice.call(arguments, 0)
         }); },
+
       recv: function(callback) {
         ipc.recv(function (evt) {
           if (evt.ime != kIpcDomain)
