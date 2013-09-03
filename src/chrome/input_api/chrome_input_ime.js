@@ -179,6 +179,10 @@ var ChromeInputIME = function () {
         chrome.tabs.getSelected(null, function(tab) {
           chrome.pageAction.show(tab.id);
         });
+      } else if (type == "KeyEvent") {
+        var ev = arguments[2];
+        // HACK: Need to send an ack
+        ipc.send(type, self.dispatchEvent.apply(self, arguments), ev);
       } else {
         self.dispatchEvent.apply(self, arguments);
       }
