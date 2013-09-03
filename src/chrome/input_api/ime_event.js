@@ -13,6 +13,18 @@ var ImeEvent = {
     switch (k) {
       case 8:
         return 'Backspace';
+      case 9:
+        return 'Tab';
+      case 27:
+        return 'Esc';
+      case 33:
+        return 'Page Up';
+      case 34:
+        return 'Page Down';
+      case 35:
+        return 'End';
+      case 36:
+        return 'Home';
       case 37:
         return 'Left';
       case 38:
@@ -21,8 +33,10 @@ var ImeEvent = {
         return 'Right';
       case 40:
         return 'Down';
-      case 27:
-        return 'Esc';
+      case 45:
+        return 'Insert';
+      case 46:
+        return 'Delete';
       case 186:
         return ';';
       case 187:
