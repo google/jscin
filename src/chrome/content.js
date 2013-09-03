@@ -47,7 +47,12 @@ function IME() {
   };
 
   self.ImeEventHandler = function (type) {
-    if (type == 'Focus') {
+    if (type == 'UIReady') {
+      // Delayed init.
+      if (self.init_node)
+        self.FocusHandler({target: self.init_node});
+      self.init_node = undefined;
+    } else if (type == 'Focus') {
       var context = arguments[1];
       var node = self.node;
       self.contextID = context.contextID;
@@ -161,9 +166,12 @@ document.addEventListener('readystatechange', function() {
 
   ime.frame = ime.CreateFrame();
 
+  var focused = document.activeElement;
   targets.forEach(function (node) {
     node.addEventListener("focus", ime.FocusHandler);
     node.addEventListener("blur", ime.BlurHandler);
+    if (focused == node)
+      self.init_node = node;
   });
 
 });

@@ -95,4 +95,5 @@ $(function() {
       });
     }
   });
+  ipc.send("UIReady");
 });
