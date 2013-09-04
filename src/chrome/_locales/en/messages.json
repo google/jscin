@@ -11,7 +11,7 @@
     "Options" },
 
   "imeToggleHint": { "message":
-    "<TAB to toggle>" },
+    "<SHIFT to toggle>" },
 
   "optionCaption": { "message":
     "JsCIN Options" },

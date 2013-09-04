@@ -17,7 +17,8 @@ function IME() {
   self.debug = false;
   self.nodeStates = [];
   self.enabled = true;
-  self.toggleHotKey = 9;  // TAB.
+  self.toggleHotKey = 16;  // Shift.
+  self.waitForHotkey = false;
 
   self.log = function () {
     if (!self.debug)
@@ -29,15 +30,30 @@ function IME() {
     self.ipc.send.apply(null, arguments);
   };
 
-  self.KeyEventHandler = function (ev) {
-    if (ev.keyCode == self.toggleHotKey) {
-      self.enabled = !self.enabled;
-      ev.preventDefault();
+  self.KeyUpEventHandler = function (ev) {
+    // Assume our IME won't do anything on key up, let's only check hotkeys.
+    if (!self.waitForHotkey)
+      return;
 
+    if (ev.keyCode == self.toggleHotKey) {
+      self.log("Got toggle hot key!");
+      self.enabled = !self.enabled;
       if (self.enabled)
         self.frame.fadeIn(100);
       else
         self.frame.fadeOut(100);
+    }
+    self.waitForHotkey = false;
+  }
+
+  self.KeyDownEventHandler = function (ev) {
+    if (self.waitForHotkey)
+      self.waitForHotkey = false;
+
+    if (ev.keyCode == self.toggleHotKey && !ev.ctrlKey && !ev.altKey) {
+      self.log("Wait to check toggle hotkey!");
+      self.waitForHotkey = true;
+      // Assume our IME don't need to handle single shift key.
       return;
     }
 
@@ -45,7 +61,7 @@ function IME() {
       return;
 
     var ev2 = ImeEvent.ImeKeyEvent(ev);
-    self.log("ImeKeyEventHandler", ev2);
+    self.log("IME.KeyDownEventHandler", ev2);
     self.SendMessage("KeyEvent", self.engineID, ev2);
     // TODO(hungte) Due to browser design, we can't find a better way to re-fire
     // keyboard events if the IPC message responds "reject... so a workaround
@@ -60,15 +76,13 @@ function IME() {
   };
 
   self.AttachKeyEvents = function (node) {
-    node.addEventListener('keydown', self.KeyEventHandler);
-    // WORKAROUND: keyup is ignored due to nodeStates.
-    // node.addEventListener('keyup', self.KeyEventHandler);
+    node.addEventListener('keydown', self.KeyDownEventHandler);
+    node.addEventListener('keyup', self.KeyUpEventHandler);
   };
 
   self.DetachKeyEvents = function (node) {
-    node.removeEventListener('keydown', self.KeyEventHandler);
-    // WORKAROUND: keyup is ignored due to nodeStates.
-    // node.removeEventListener('keyup', self.KeyEventHandler);
+    node.removeEventListener('keydown', self.KeyDownEventHandler);
+    node.removeEventListener('keyup', self.KeyUpEventHandler);
   };
 
   self.ImeEventHandler = function (type) {
