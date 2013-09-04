@@ -175,10 +175,12 @@ var ChromeInputIME = function () {
         var context = EnterContext(ipc);
         self.dispatchEvent('Focus', context);
         ipc.send(type, context);
-
+      } else if (type == "Activate") {
+        // Show page action.
         chrome.tabs.getSelected(null, function(tab) {
           chrome.pageAction.show(tab.id);
         });
+        self.dispatchEvent.apply(self, arguments);
       } else if (type == "KeyEvent") {
         var ev = arguments[2];
         // HACK: Need to send an ack
