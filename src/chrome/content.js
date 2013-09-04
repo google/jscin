@@ -171,11 +171,11 @@ function IME() {
           frameBorder: 0,
           allowTransparency: true})
         .css({
-          width: 500,
           zIndex: 999999,
           border: 0,
           padding: 0,
-          height: 300,
+          width: "30em",
+          height: "10em",
           position: 'absolute',
           backgroundColor: 'transparent'}).hide();
     $('body').append(frame);
