@@ -87,8 +87,7 @@ function init() {
         text: _("optionAddTable"),
         click: function() {
           var url = document.getElementById("cin_table_url_input").value;
-          var setting = getSettingOption();
-          addTableUrl(url, setting);
+          addTableUrl(url);
           $(this).dialog("close");
         }
       },
@@ -112,8 +111,7 @@ function init() {
         text: _("optionAddTable"),
         click: function() {
           var files = document.getElementById("cin_table_file_input").files;
-          var setting = getSettingOption();
-          addTableFile(files, setting);
+          addTabFile(files);
           $(this).dialog("close");
         }
       },
@@ -187,6 +185,14 @@ function LoadExtensionResource(url) {
   return xhr.responseText;
 }
 
+function removeFileExtension(filename) {
+  var dotPos = filename.indexOf('.');
+  if(dotPos >= 0) {
+    filename = filename.slice(0, dotPos);
+  }
+  return filename;
+}
+
 function addTableUrl(url) {
   if (url.replace(/^\s+|s+$/g, "") == "") {
     setAddTableStatus("URL is empty", true);
@@ -200,7 +206,7 @@ function addTableUrl(url) {
 
     setAddTableStatus("Loading...", false);
     var xhr = new XMLHttpRequest();
-    xhr.addEventListener("progress", function(evt) {
+    var showProgress = function(evt) {
       if (evt.lengthComputable && evt.total > 0) {
         var percentComplete = evt.loaded / evt.total;
         // TODO(hungte) Complete the progress bar stuff.
@@ -208,33 +214,66 @@ function addTableUrl(url) {
       } else {
         // $('#progressbar').progressbar({value: false});
       }
-    }, false);
-    xhr.onreadystatechange = function () {
-      if (this.readyState == 4) {
-        if (this.status == 200) {
-          addTable(this.responseText, url);
-        } else {
-          // Update the UI
-          setAddTableStatus("Could not read url.  Server returned " +
-                            this.status, true);
+    };
+    xhr.addEventListener("progress", showProgress, false);
+    xhr.onload = function(e) {
+      try {
+        var ename = url;
+        var slashPos = ename.lastIndexOf('/');
+        if(slashPos >= 0) {
+          ename = ename.slice(slashPos + 1, ename.length);
         }
-        delete table_loading[url];
+        ename = removeFileExtension(ename);
+        addTable('%ename ' + ename + '\n' + parseGtab(e.currentTarget.response));
+      } catch (error) {
+        console.log(error);
+        console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.')
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener("progress", showProgress, false);
+        xhr.onreadystatechange = function () {
+          if (this.readyState == 4) {
+            if (this.status == 200) {
+              addTable(this.responseText, url);
+            } else {
+              // Update the UI
+              setAddTableStatus("Could not read url.  Server returned " +
+                                this.status, true);
+            }
+            delete table_loading[url];
+          }
+        }
+        xhr.open("GET", url, true);
+        xhr.send(null);
       }
     }
     xhr.open("GET", url, true);
+    xhr.responseType = 'arraybuffer';
     xhr.send(null);
   }
 }
 
-function addTableFile(files) {
+function addTabFile(files) {
   for (var i = 0, file; file = files[i]; i++) {
     var reader = new FileReader();
 
-    reader.onload = function(e) {
-      addTable(e.target.result);
-    };
+    reader.onload = function(file) {
+      return function(e) {
+        var ename = removeFileExtension(file.name);
+        try {
+          addTable('%ename ' + ename + '\n' + parseGtab(e.target.result));
+        } catch (error) {
+          console.log(error);
+          console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.');
+          var reader = new FileReader();
+          reader.onload = function(event) {
+            addTable(event.target.result);
+          }
+          reader.readAsText(file);
+        }
+      };
+    } (file);
 
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   }
 }
 
@@ -245,7 +284,7 @@ function addTableDrive(docs) {
       break;
     }
   }
-  addTableUrl(doc.entry.content.src + '&format=txt', getSettingOption());
+  addTableUrl(doc.entry.content.src + '&format=txt');
 }
 
 function addTable(content, url) {
