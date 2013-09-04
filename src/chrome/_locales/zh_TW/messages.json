@@ -2,16 +2,16 @@
   "manifestName": { "message":
     "JsCIN 中文輸入法" },
   "manifestDesc": { "message":
-    "可用於 Google ChromeOS（與 XCIN 表格相容）的中文輸入法" },
+    "可用於 Google ChromeOS 的中文輸入法（與 XCIN/GCIN 表格相容）" },
   "manifestImeName": { "message":
     "JsCIN 中文輸入法" },
   "manifestImeDesc": { "message":
-    "可用於 Google ChromeOS（與 XCIN 表格相容）的中文輸入法" },
+    "可用於 Google ChromeOS 的中文輸入法（與 XCIN/GCIN 表格相容）" },
   "menuOptions": { "message":
     "選項" },
 
   "imeToggleHint": { "message":
-    "<Shift 可切換英數輸入>" },
+    "<按Shift 可切換英數輸入>" },
 
   "optionCaption": { "message":
     "JsCIN 輸入法選項設定" },
