@@ -85,6 +85,16 @@ function IME() {
     node.removeEventListener('keyup', self.KeyUpEventHandler);
   };
 
+  self.GetAbsoluteOffset = function (node) {
+    var offset = { left: 0, 'top': 0};
+    while (node) {
+      offset.left += node.offsetLeft;
+      offset['top'] += node.offsetTop;
+      node = node.offsetParent;
+    }
+    return offset;
+  }
+
   self.ImeEventHandler = function (type) {
     if (type == 'UIReady') {
       self.log("Got", type);
@@ -100,8 +110,10 @@ function IME() {
       var node = self.node;
       self.contextID = context.contextID;
       self.AttachKeyEvents(node);
-      var offset = $(node).offset();
-      offset.left += 10;
+
+      var offset = self.GetAbsoluteOffset(node);
+      offset.left += 5;
+      // TODO(hungte) Remove jquery -- although the height() is hard to replace.
       offset.top += $(node).height();
       if (self.enabled)
         self.frame.css(offset).fadeIn(250);
@@ -164,21 +176,20 @@ function IME() {
   };
 
   self.CreateFrame = function () {
-    // TODO(hungte) Don't use jquery.
-    var frame = $('<iframe/>',
-        { src: self.frameURL,
-          scrolling: 'no',
-          frameBorder: 0,
-          allowTransparency: true})
-        .css({
-          zIndex: 999999,
-          border: 0,
-          padding: 0,
-          width: "30em",
-          height: "10em",
-          position: 'absolute',
-          backgroundColor: 'transparent'}).hide();
-    $('body').append(frame);
+    var frame = document.createElement("iframe");
+    frame.setAttribute("src", self.frameURL);
+    frame.setAttribute("scrolling", "no");
+    frame.setAttribute("frameBorder", 0);
+    frame.setAttribute("allowTransparency", true);
+    frame.style.zIndex = 999999;
+    frame.style.border = 0;
+    frame.style.padding = 0;
+    frame.style.width = "30em";
+    frame.style.height = "10em";
+    frame.style.position = "absolute";
+    frame.style.backgroundColor = "transparent";
+    frame.style.visible = false;
+    document.getElementsByTagName('body')[0].appendChild(frame);
     return frame;
   };
 }
@@ -221,7 +232,7 @@ function init () {
   ime.log("Installing extension IME, input elements:", targets.length);
   ime.InstallIPC();
 
-  ime.frame = ime.CreateFrame();
+  ime.frame = $(ime.CreateFrame());
 
   var focused = document.activeElement;
   targets.forEach(function (node) {
