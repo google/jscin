@@ -89,7 +89,8 @@ function IME() {
       var offset = $(node).offset();
       offset.left += 10;
       offset.top += $(node).height();
-      self.frame.css(offset).fadeIn(250);
+      if (self.enabled)
+        self.frame.css(offset).fadeIn(250);
     } else if (type == 'KeyEvent') {
       var result = arguments[1];
       var state = self.nodeStates.shift();
@@ -134,7 +135,8 @@ function IME() {
   self.BlurHandler = function (ev) {
     if (self.contextID) {
       self.log("on blur", self.contextID);
-      self.frame.fadeOut(100);
+      if (self.enabled)
+        self.frame.fadeOut(100);
       self.DetachKeyEvents(ev.target);
       self.SendMessage("Blur", self.contextID);
       self.contextID = undefined;
