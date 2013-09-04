@@ -175,8 +175,12 @@ var ChromeInputIME = function () {
         var context = EnterContext(ipc);
         self.dispatchEvent('Focus', context);
         ipc.send(type, context);
+        // BUG: Try harder to show page action, if haven't.
+        chrome.tabs.getSelected(null, function(tab) {
+          chrome.pageAction.show(tab.id);
+        });
       } else if (type == "Activate") {
-        // Show page action.
+        // Show page action. (BUG: sometimes does not work?)
         chrome.tabs.getSelected(null, function(tab) {
           chrome.pageAction.show(tab.id);
         });
