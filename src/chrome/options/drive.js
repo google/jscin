@@ -145,7 +145,12 @@ function renderDocList(docs) {
   list.empty();
   $.each(docs, function(i, doc) {
     if (doc.type.label == 'document') {
-      list.append('<input type="radio" name="google_doc" id="radio' + i + '">');
+      list.append($('<input>', {
+                      type:     'radio',
+                      name:     'google_doc',
+                      id:       'radio' + i,
+                      checked : (i == 0)
+                    }));
       list.append($('<label>', { 'for': 'radio' + i }).text(doc.title));
       list.append($('<br>'));
     }
@@ -159,12 +164,13 @@ function renderDocList(docs) {
       }
     },
     {
-      text: "Cancel",
+      text: _("optionCancel"),
       click: function() {
         $(this).dialog("close");
       }
     }
-  ]);
+  ]).dialog('open');
+
 }
 
 function appendAllDocsLink(message) {

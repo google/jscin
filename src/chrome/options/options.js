@@ -136,21 +136,8 @@ function init() {
       $('#doc_list').empty();
       getDocumentList("");
     });
-    $("#add_table_dialog").dialog('option', 'buttons', [
-      {
-        text: "OK",
-        click: function() {
-          $(this).dialog("close");
-          addTableDrive();
-        }
-      },
-      {
-        text: _("optionCancel"),
-        click: function() {
-          $(this).dialog("close");
-        }
-      }
-    ]).dialog("open");
+    // #add_table_dialog will be open after the docs are ready
+    // in drive.js: renderDocList()
   });
 
   $('#save_to_drive').change(function() {
