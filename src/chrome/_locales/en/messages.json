@@ -24,7 +24,7 @@
   "optionAvailableTables": {"message":
     "Available input methods:" },
   "optionAddTables": {"message":
-    "Add more Input Tables (*.cin):" },
+    "Add more input tables (*.cin or *.gtab):" },
   "optionAddUrl": {"message":
     "Add Input Table from URL" },
   "optionAddFile": {"message":
