@@ -509,9 +509,21 @@ croscin.IME.prototype.registerEventHandlers = function() {
     if (name == self.kMenuOptions) {
       var options_url = chrome.extension.getURL("options/options.html");
       // Tabs are better, but if there are no active windows (which is common in
-      // ChromeOS if you put everything behind) then chrome.tabs.create would
-      // fail.
-      chrome.windows.create({"url": options_url, type:"popup"});
+      // ChromeOS if you put everything behind and activate by menu) then
+      // chrome.window.create must be used.
+      chrome.tabs.getSelected(null, function(tab) {
+        if (tab) {
+          chrome.tabs.create({"url": options_url});
+        } else {
+          chrome.windows.create({
+            url: options_url,
+            type: "popup",
+            width: screen.width * 0.8,
+            height: screen.height * 0.8,
+            focused: true
+          });
+        }
+      });
     } else if (name.match(/^ime:/)) {
       self.ActivateInputMethod(name.replace(/^ime:/, ''));
     }
