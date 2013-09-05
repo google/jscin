@@ -20,7 +20,6 @@ h1 {
             border: 2px solid #eee; min-width: 300px; min-height: 100px; }
 .sortable li { margin: 0 3px 3px 3px; padding: 0.4em; padding-left: 1.5em;
                cursor: pointer; min-width: 300px; }
-// { margin: 0 5px 5px 5px; padding: 5px; width: 120px; }
 .sortable li span.ui-icon { position: absolute; margin-left: -1.3em; }
 
 table.cin_tables {
