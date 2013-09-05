@@ -18,7 +18,7 @@ function IME() {
   self.frame = undefined;
   self.contextID = undefined;
   self.ipc = undefined;
-  self.debug = true;
+  self.debug = false;
   self.nodeStates = [];
   self.enabled = true;
   self.toggleHotKey = 16;  // Shift.

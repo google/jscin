@@ -132,6 +132,8 @@ jscin.reload_configuration = function() {
     self.debug = true;
     self.log("jscin.reload_configuration: No input methods available.");
   }
+  if (localStorage)
+    self.log("jscin.localStorage:", Object.keys(localStorage));
 }
 
 //////////////////////////////////////////////////////////////////////////////

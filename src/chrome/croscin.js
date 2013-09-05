@@ -223,7 +223,7 @@ croscin.IME = function() {
       self.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
       self.im.allow_ctrl_phrase = self.prefGetQuickPruncuations();
-      self.log(self.im);
+      self.log("croscin.im:", self.im);
       self.InitializeUI();
     } else {
       self.log("croscin.ActivateInputMethod: Invalid item:", name);
@@ -528,7 +528,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onKeyEvent.addListener(function(engine, keyData) {
-    self.log(engine, keyData);
+    self.log("croscin.onKeyEvent", engine, keyData);
     return self.ProcessKeyEvent(keyData);
   });
 
