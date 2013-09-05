@@ -126,6 +126,34 @@ function IME() {
     return offset;
   }
 
+  self.CommitText = function (node, text) {
+    if (node.hasAttribute("value")) {
+      // input or textarea.
+      var newpos = node.selectionStart + text.length;
+      node.value = (node.value.substring(0, node.selectionStart) +
+                    text + node.value.substring(node.selectionEnd));
+      node.selectionStart = newpos;
+      node.selectionEnd = newpos;
+      return;
+    }
+
+    // Probably a [contenteditable] element.
+    var sel = window.getSelection();
+    if (sel.rangeCount) {
+      var range = sel.getRangeAt(0);
+      range.deleteContents();
+      var newnode = document.createTextNode(text);
+      range.insertNode(newnode);
+      range = range.cloneRange();
+      range.setStartAfter(newnode);
+      range.setEndAfter(newnode);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      range.commonAncestorContainer.normalize();
+      return;
+    }
+  }
+
   self.ImeEventHandler = function (type) {
     self.log("ImeEvent", type);
     if (type == 'UIReady') {
@@ -149,16 +177,7 @@ function IME() {
       if (self.enabled)
         self.frame.css(offset).fadeIn(250);
     } else if (type == 'commitText') {
-      var parameters = arguments[1];
-      var node = self.node;
-      var src = node;
-      var newpos = src.selectionStart + parameters.text.length;
-      // TODO selctionStart seems wrong after changing node.value...
-      node.value = (src.value.substring(0, src.selectionStart) +
-          parameters.text +
-          src.value.substring(src.selectionEnd));
-      node.selectionStart = newpos;
-      node.selectionEnd = newpos;
+      self.CommitText(self.node, arguments[1].text);
     } else if (type == 'RefreshIME') {
       // Need to request for another snapshot.
       self.SnapshotIME();
@@ -258,6 +277,12 @@ function init () {
   for (i = 0; i < nodes.length; i++) {
     targets.push(nodes[i]);
   }
+
+  $('[contenteditable]').each(function (i) {
+    var node = this;
+    if (targets.indexOf(node) < 0)
+      targets.push(node);
+  });
 
   if (!targets.length)
     return;
