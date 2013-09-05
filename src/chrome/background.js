@@ -10,7 +10,8 @@ document.addEventListener( 'readystatechange', function() {
     croscin.instance = new croscin.IME;
 
     // TODO Sync with content.js behavior.
-    if (chrome.input.ime.isEmulation) {
+    if (chrome.input.ime.isEmulation &&
+        croscin.instance.prefGetSupportNonChromeOS()) {
       ipc = new ImeEvent.ImeExtensionIPC('background');
       ipc.attach();
       chrome.input.ime.attachImeExtensionIpc(ipc);

@@ -66,6 +66,12 @@
     "Enable on Non-ChromeOS environments" },
   "optionPunctuations": {"message":
     "Support quick Chinese punctuations (by Ctrl+.,';[]...)" },
+  "optionAlertChangeSupportNonChromeOS": {"message":
+    "This setting will take effect next time Chrome restarted." },
+  "optionAlert": {"message":
+    "Warning!" },
+  "optionOK": {"message":
+    "OK" },
 
   "optionDebug": {"message":
     "Debug and development" },

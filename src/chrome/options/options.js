@@ -28,6 +28,7 @@ function init() {
       "optionTableDetailTypeHeader",
       "optionSaveToDrive", "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS", "optionPunctuations",
+      "optionAlertChangeSupportNonChromeOS",
       "optionDebug", "optionDebugMessage");
 
 
@@ -154,6 +155,14 @@ function init() {
       "checked", instance.prefGetSupportNonChromeOS()).
       click(function() {
     instance.prefSetSupportNonChromeOS($(this).prop("checked"));
+    var buttons = {};
+    buttons[_("optionOK")] = function () {
+      $(this).dialog("close");
+    };
+    $('#dialog_alert_change_support_non_chromeos').dialog({
+      title: _("optionAlert"),
+      modal: true,
+      buttons: buttons});
   });
   $('#checkPunctuations').prop(
       "checked", instance.prefGetQuickPruncuations()).

@@ -66,6 +66,12 @@
     "在非 ChromeOS 的環境上一樣預設啟動輸入法" },
   "optionPunctuations": {"message":
     "支援快速輸入中文標點符號 (Ctrl + ,.';[]...) " },
+  "optionAlertChangeSupportNonChromeOS": {"message":
+    "更改此設定要到下次重新開啟 Chrome 瀏覽器才會生效。" },
+  "optionAlert": {"message":
+    "注意!" },
+  "optionOK": {"message":
+    "確定" },
 
   "optionDebug": {"message":
     "除錯與開發" },
