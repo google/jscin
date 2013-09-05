@@ -173,25 +173,21 @@ var ChromeInputIME = function () {
       if (type == 'Focus') {
         // We need to create a new context for this.
         var context = EnterContext(ipc);
-        self.dispatchEvent('Focus', context);
+        var result = self.dispatchEvent('Focus', context);
         ipc.send(type, context);
         // BUG: Try harder to show page action, if haven't.
         chrome.tabs.getSelected(null, function(tab) {
           chrome.pageAction.show(tab.id);
         });
+        return result;
       } else if (type == "Activate") {
         // Show page action. (BUG: sometimes does not work?)
         chrome.tabs.getSelected(null, function(tab) {
           chrome.pageAction.show(tab.id);
         });
-        self.dispatchEvent.apply(self, arguments);
-      } else if (type == "KeyEvent") {
-        var ev = arguments[2];
-        // HACK: Need to send an ack
-        ipc.send(type, self.dispatchEvent.apply(self, arguments), ev);
-      } else {
-        self.dispatchEvent.apply(self, arguments);
+        // continue to return dispatched reults.
       }
+      return self.dispatchEvent.apply(self, arguments);
     });
     self.setUserInterfaceEventHandler(function (msg) {
       if (!self.ipc)

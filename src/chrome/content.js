@@ -19,7 +19,6 @@ function IME() {
   self.contextID = undefined;
   self.ipc = undefined;
   self.debug = false;
-  self.nodeStates = [];
   self.enabled = true;
   self.toggleHotKey = 16;  // Shift.
   self.waitForHotkey = false;
@@ -65,17 +64,31 @@ function IME() {
       return;
 
     var ev2 = ImeEvent.ImeKeyEvent(ev);
-    self.log("IME.KeyDownEventHandler", ev2);
-    self.SendMessage("KeyEvent", self.engineID, ev2);
+    var node = ev.target;
+    self.log("IME.KeyDownEventHandler", ev, ev2);
+
     // TODO(hungte) Due to browser design, we can't find a better way to re-fire
-    // keyboard events if the IPC message responds "reject... so a workaround
+    // keyboard events if the IPC message responds "absorb or ignore". Woakround
     // here is to preserve input element state. We really need to find better
-    // way to fix this and enable preventDefault() call.
-    // ev.preventDefault();
-    self.nodeStates.push({
-      value: ev.target.value,
-      selectionStart: ev.target.selectionStart,
-      selectionEnd: ev.target.selectionEnd
+    // way to fix this and enable preventDefault() call, ex calling jscin
+    // directly.
+    // Note due to JavaScript event model, the return value is always retrieved
+    // before CommitText event is received so we don't need to hack in
+    // commitText.
+    var state = {
+      value: node.value,
+      selectionStart: node.selectionStart,
+      selectionEnd: node.selectionEnd
+    };
+
+    self.SendMessage("KeyEvent", self.engineID, ev2, function (result) {
+      self.log("KeyEvent result got:", result, state);
+      if (!result) {
+        node.value = state.value;
+        node.selectionStart = state.selectionStart;
+        node.selectionEnd = state.selectionEnd;
+        self.log("Restored node state.");
+      }
     });
   };
 
@@ -121,23 +134,10 @@ function IME() {
       offset.top += $(node).height();
       if (self.enabled)
         self.frame.css(offset).fadeIn(250);
-    } else if (type == 'KeyEvent') {
-      var result = arguments[1];
-      var state = self.nodeStates.shift();
-      self.log("Got KeyEvent reply!", result, state);
-      if (!result) {
-        var node = self.node;
-        node.value = state.value;
-        node.selectionStart = state.selectionStart;
-        node.selectionEnd = state.selectionEnd;
-        self.log("Restored node state.");
-      }
     } else if (type == 'commitText') {
-      // WORKAROUND commitText is usually invoked before last KeyEvent.
-      // We rely on this croscin behavior to calibrate nodeStates.
       var parameters = arguments[1];
       var node = self.node;
-      var src = self.nodeStates.shift() || node;
+      var src = node;
       var newpos = src.selectionStart + parameters.text.length;
       // TODO selctionStart seems wrong after changing node.value...
       node.value = (src.value.substring(0, src.selectionStart) +
@@ -145,10 +145,6 @@ function IME() {
           src.value.substring(src.selectionEnd));
       node.selectionStart = newpos;
       node.selectionEnd = newpos;
-      self.nodeStates.unshift({
-        value: node.value,
-        selectionStart: node.selectionStart,
-        selectionEnd: node.selectionEnd});
     } else if (type == 'MenuItemActivated') {
       // forward to background.
       self.ipc.send.apply(null, arguments);
