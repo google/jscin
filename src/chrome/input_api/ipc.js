@@ -33,14 +33,20 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
             message.ipc == self.ipcTypeName);
   }
 
-  function IpcHandler(message) {
+  function IpcHandler(message, response) {
     if (!IsMessage(message)) {
       self.debug("ipc> Invalid message:", message);
       return;
     }
     self.debug("ipc> IpcHandler:", message.data, self.handlers);
     self.handlers.forEach(function (handler) {
-      handler(message.data);
+      var result = handler(message.data);
+      if (typeof(result) != 'undefined' && response) {
+        self.debug("ipc> response is returned:", handler, result);
+        response(result);
+        // chrome.runtime.onMessage cannot take more than one response .
+        response = null;
+      }
     });
   }
 
@@ -51,7 +57,7 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
         chrome.runtime.onMessage.addListener(
             function(message, sender, response) {
               self.debug("ipc> recv<bg-cnt>:", instance_type, message, sender);
-              IpcHandler(message);
+              IpcHandler(message, response);
             });
         // events from iframe
         window.addEventListener('message', function (e) {
@@ -59,9 +65,15 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
           IpcHandler(e.data);
         });
       },
-      send: function (message) {
+      send: function (message, callback) {
               // Send to background page
-              chrome.runtime.sendMessage(CreateMessage(message));
+              if (callback) {
+                self.debug("send with callback");
+                chrome.runtime.sendMessage(CreateMessage(message), callback);
+              } else {
+                self.debug("send without callback");
+                chrome.runtime.sendMessage(CreateMessage(message));
+              }
       },
       recv: AddHandler
     };
@@ -71,7 +83,7 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
         chrome.runtime.onMessage.addListener(
             function(message, sender, response) {
               self.debug("ipc> recv<iframe>:", instance_type, message, sender);
-              IpcHandler(message);
+              IpcHandler(message, response);
             });
       },
       send: function (message) {
@@ -86,7 +98,7 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
         chrome.runtime.onMessage.addListener(
             function(message, sender, response) {
               self.debug("ipc> recv<bg>:", instance_type, message, sender);
-              IpcHandler(message);
+              IpcHandler(message, response);
             });
       },
       send: function (message, destination) {

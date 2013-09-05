@@ -89,16 +89,26 @@ var ImeEvent = {
       attach: ipc.attach,
 
       send: function () {
-        return ipc.send({
-          ime: kIpcDomain,
-          args: Array.prototype.slice.call(arguments, 0)
-        }); },
+        var args, callback;
+        var args_len = arguments.length;
+
+        // If the last parameter is a function, treat it as callback.
+        if (arguments.length > 0 &&
+            typeof(arguments[args_len - 1]) == 'function') {
+          args = Array.prototype.slice.call(arguments, 0, args_len - 1);
+          callback = arguments[args_len - 1];
+        } else {
+          args = Array.prototype.slice.call(arguments, 0);
+          callback = undefined;
+        }
+
+        return ipc.send({ ime: kIpcDomain, args: args}, callback); },
 
       recv: function(callback) {
         ipc.recv(function (evt) {
           if (evt.ime != kIpcDomain)
             return;
-          callback.apply(null, evt.args);
+          return callback.apply(null, evt.args);
         });
       }
     };
