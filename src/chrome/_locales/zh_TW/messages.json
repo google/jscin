@@ -60,6 +60,13 @@
   "optionAreYouSure": {"message":
     "確定要繼續嗎？" },
 
+  "optionGeneral": {"message":
+    "一般性設定" },
+  "optionSupportNonChromeOS": {"message":
+    "在非 ChromeOS 的環境上一樣預設啟動輸入法" },
+  "optionPunctuations": {"message":
+    "支援快速輸入中文標點符號 (Ctrl + ,.';[]...) " },
+
   "optionDebug": {"message":
     "除錯與開發" },
   "optionDebugMessage": {"message":

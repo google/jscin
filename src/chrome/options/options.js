@@ -27,6 +27,7 @@ function init() {
       "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
       "optionTableDetailTypeHeader",
       "optionSaveToDrive", "optionSettingChoices",
+      "optionGeneral", "optionSupportNonChromeOS", "optionPunctuations",
       "optionDebug", "optionDebugMessage");
 
 
@@ -149,11 +150,21 @@ function init() {
     }
   });
 
-  /* TODO(hungte) Can't find a way to set the default checked state of checkbox
-   * debug_mode_input. Let's pretend it's same as the default value... */
-  $('#debug_mode_input').button().prop("checked", instance.debug).
-      button("refresh").click(function() {
-    instance.on_debug_mode_change($('#debug_mode_input').prop("checked"));
+  $('#checkSupportNonChromeOS').prop(
+      "checked", instance.prefGetSupportNonChromeOS()).
+      click(function() {
+    instance.prefSetSupportNonChromeOS($(this).prop("checked"));
+  });
+  $('#checkPunctuations').prop(
+      "checked", instance.prefGetQuickPruncuations()).
+      click(function() {
+    instance.prefSetQuickPuncuations($(this).prop("checked"));
+  });
+
+  // To set default check state of checkboxes, do call button("refresh").
+  $('#checkDebugMessage').prop("checked", instance.debug).
+      click(function() {
+    instance.on_debug_mode_change($(this).prop("checked"));
   });
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
@@ -417,7 +428,7 @@ function addCinTableToList(metadata, list_id) {
 
 function loadCinTables() {
   var metadatas = jscin.getTableMetadatas();
-  var tables = instance.pref_im_enabled_list;
+  var tables = instance.pref.im_enabled_list;
   tables.forEach(function (name) {
     addCinTableToList(metadatas[name], '#enabled_im_list');
   });

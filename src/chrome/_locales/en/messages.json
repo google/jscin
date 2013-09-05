@@ -60,6 +60,13 @@
   "optionAreYouSure": {"message":
     "Are you sure?" },
 
+  "optionGeneral": {"message":
+    "General Settings" },
+  "optionSupportNonChromeOS": {"message":
+    "Enable on Non-ChromeOS environments" },
+  "optionPunctuations": {"message":
+    "Support quick Chinese punctuations (by Ctrl+.,';[]...)" },
+
   "optionDebug": {"message":
     "Debug and development" },
   "optionDebugMessage": {"message":

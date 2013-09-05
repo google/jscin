@@ -33,10 +33,17 @@ croscin.IME = function() {
   self.im_name = '';
   self.im_label = '';
 
-  self.kEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
-  self.kDefaultInputMethod = 'croscinPrefDefaultInputMethod';
-  self.pref_im_default = '';
-  self.pref_im_enabled_list = [];
+  self.kPrefEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
+  self.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
+  self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
+  self.kPrefQuickPuncuations = 'croscinPrefQuckPuncuations';
+
+  self.pref = {
+    im_default: '',
+    im_enabled_list: [],
+    support_non_chromeos: true,
+    quick_puncuations: true
+  };
 
   self.engineID = self.kEngineId;
   self.context = null;
@@ -224,7 +231,7 @@ croscin.IME = function() {
     var menu_items = [];
 
     // TODO(hungte) Also list available input methods.
-    self.pref_im_enabled_list.forEach(function (name) {
+    self.pref.im_enabled_list.forEach(function (name) {
       var label = jscin.get_input_method_label(name);
       if (label)
         label = label + " (" + name + ")";
@@ -295,10 +302,16 @@ croscin.IME = function() {
 
   self.LoadPreferences = function() {
     var pref_im_default = jscin.readLocalStorage(
-        self.kDefaultInputMethod, self.pref_im_default);
+        self.kPrefDefaultInputMethod, self.pref.im_default);
     var pref_im_enabled_list = jscin.readLocalStorage(
-        self.kEnabledInputMethodList, self.pref_im_enabled_list);
+        self.kPrefEnabledInputMethodList, self.pref.im_enabled_list);
     var changed = false;
+
+    // Preferences that don't need to be normalized.
+    self.pref.quick_puncuations = jscin.readLocalStorage(
+        self.kPrefQuickPuncuations, self.pref.quick_puncuations);
+    self.pref.support_non_chromeos = jscin.readLocalStorage(
+        self.kPrefSupportNonChromeOS, self.pref.support_non_chromeos);
 
     // Normalize preferences.
     var metadatas = jscin.getTableMetadatas();
@@ -330,10 +343,9 @@ croscin.IME = function() {
       changed = true;
     }
 
-    self.pref_im_default = pref_im_default;
-    self.pref_im_enabled_list = pref_im_enabled_list;
-    self.log("pref_im_default:", pref_im_default);
-    self.log("pref_im_enabled_list:", pref_im_enabled_list);
+    self.pref.im_default = pref_im_default;
+    self.pref.im_enabled_list = pref_im_enabled_list;
+    self.log("croscin.prefs", self.pref);
 
     if (changed) {
       self.SavePreferences();
@@ -341,31 +353,54 @@ croscin.IME = function() {
   }
 
   self.SavePreferences = function() {
+    // Preferences that don't need to be normalized.
+    jscin.writeLocalStorage(self.kPrefDefaultInputMethod, self.pref.im_default);
+    jscin.writeLocalStorage(self.kPrefEnabledInputMethodList,
+                            self.pref.im_enabled_list);
+    jscin.writeLocalStorage(self.kPrefSupportNonChromeOS,
+                            self.pref.support_non_chromeos);
+    jscin.writeLocalStorage(self.kPrefQuickPuncuations,
+                            self.pref.quick_puncuations);
     self.log("preferences saved.");
-    jscin.writeLocalStorage(self.kDefaultInputMethod, self.pref_im_default);
-    jscin.writeLocalStorage(self.kEnabledInputMethodList,
-                            self.pref_im_enabled_list);
   }
 
   self.prefAddEnabledInputMethod = function (name) {
-    if (self.pref_im_enabled_list.indexOf(name) < 0) {
-      self.pref_im_enabled_list.push(name);
-      self.prefSetEnabledList(self.pref_im_enabled_list);
+    if (self.pref.im_enabled_list.indexOf(name) < 0) {
+      self.pref.im_enabled_list.push(name);
+      self.prefSetEnabledList(self.pref.im_enabled_list);
     }
   }
 
   self.prefRemoveEnabledInputMethod = function (name) {
-    var index = self.pref_im_enabled_list.indexOf(name);
+    var index = self.pref.im_enabled_list.indexOf(name);
     if (index < 0) {
       return;
     }
-    self.pref_im_enabled_list.splice(index, 1);
-    self.prefSetEnabledList(self.pref_im_enabled_list);
+    self.pref.im_enabled_list.splice(index, 1);
+    self.prefSetEnabledList(self.pref.im_enabled_list);
   }
 
   self.prefSetEnabledList = function (new_list) {
-    self.pref_im_enabled_list = new_list;
-    self.pref_im_default = new_list.length > 0 ? new_list[0] : '';
+    self.pref.im_enabled_list = new_list;
+    self.pref.im_default = new_list.length > 0 ? new_list[0] : '';
+    self.SavePreferences();
+  }
+
+  self.prefGetQuickPruncuations = function () {
+    return self.pref.quick_puncuations;
+  }
+
+  self.prefSetQuickPuncuations = function (new_value) {
+    self.pref.quick_puncuations = new_value;
+    self.SavePreferences();
+  }
+
+  self.prefGetSupportNonChromeOS = function () {
+    return self.pref.support_non_chromeos;
+  }
+
+  self.prefSetSupportNonChromeOS = function (new_value) {
+    self.pref.support_non_chromeos = new_value;
     self.SavePreferences();
   }
 
@@ -384,7 +419,7 @@ croscin.IME = function() {
 
     // Start the default input method.
     self.LoadPreferences();
-    self.ActivateInputMethod(self.pref_im_default);
+    self.ActivateInputMethod(self.pref.im_default);
   }
 
   Initialize();
