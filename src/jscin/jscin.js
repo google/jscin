@@ -167,7 +167,7 @@ jscin.getTableData = function (name) {
 jscin.deleteTable = function (name) {
   var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
   delete table_metadata[name];
-  delete localStorage[jscin.kTableDataKeyPrefix + name];
+  jscin.deleteLocalStorage(jscin.kTableDataKeyPrefix + name);
   jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
 }
 
@@ -218,6 +218,10 @@ jscin.writeLocalStorage = function (key, data) {
     localStorage = {};
   }
   localStorage[key] = JSON.stringify(data);
+}
+
+jscin.deleteLocalStorage = function (key) {
+  delete localStorage[key];
 }
 
 // TODO(hungte) some place for global configuration data.
