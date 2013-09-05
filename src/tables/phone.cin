@@ -3,6 +3,12 @@
 %cname  注音
 %selkey  123456789
 %endkey  3467
+%KEYGROUPS begin
+1 1qaz2wxsedcrfv5tgbyhn
+2 ujm
+3 89kilop-,;/.0
+4 6734
+%KEYGROUPS end
 %keyname  begin
 ,  ㄝ
 -  ㄦ

@@ -12,7 +12,7 @@ function parseCin(cin_input) {
   var data = {};
   var runningcmd = null;
   var table_command = { 'keyname': 1, 'quick': 1, 'chardef': 1,
-                        'KEYSTROKE_REMAP': 1 };
+                        'KEYSTROKE_REMAP': 1, 'KEYGROUPS': 1 };
 
   var failed = function(lineno, msg) {
     return [false, 'line ' + (lineno+1) + ': ' + msg];

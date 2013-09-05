@@ -61,6 +61,7 @@ GenInp = function(name) {
     this.conf.disable_sel_list = this.conf.disable_sel_list.toUpperCase();
   }
   this.conf.kremap = conf.KEYSTROKE_REMAP;
+  this.conf.keygroups = conf.KEYGROUPS;
 
   // load table
   // TODO(kcwu) dirty hack now
