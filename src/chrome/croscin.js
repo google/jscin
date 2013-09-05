@@ -221,6 +221,9 @@ croscin.IME = function() {
       self.im = jscin.create_input_method(name, self.imctx);
       self.im_name = name;
       self.im_label = jscin.get_input_method_label(name);
+      // TODO(hungte) Move this dirty workaround to jscin global settings.
+      self.im.allow_ctrl_phrase = self.prefGetQuickPruncuations();
+      self.log(self.im);
       self.InitializeUI();
     } else {
       self.log("croscin.ActivateInputMethod: Invalid item:", name);
@@ -392,6 +395,8 @@ croscin.IME = function() {
 
   self.prefSetQuickPuncuations = function (new_value) {
     self.pref.quick_puncuations = new_value;
+    // TODO(hungte) Change this dirty workaround to IM events.
+    self.im.allow_ctrl_phrase = new_value;
     self.SavePreferences();
   }
 

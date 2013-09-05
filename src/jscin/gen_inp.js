@@ -90,9 +90,9 @@ GenInp.prototype.new_instance = function(inpinfo) {
   self.mcch_hidx = 0;
   self.mcch_eidx = 0;
 
-  // TODO(hungte) Move this to configurable dictionary, and make an option to
-  // allow enable/disable.
+  // TODO(hungte) Move this to configurable dictionary.
   // Mapping from Windows and GCIN recommendation.
+  self.allow_ctrl_phrase = true;
   self.ctrl_phrase = {
     ',': '\uff0c',
     '.': '\u3002',
@@ -523,7 +523,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (keyinfo.ctrlKey) {
         var result = (keyinfo.shiftKey ? self.ctrl_shift_phrase[keyinfo.key] :
                       self.ctrl_phrase[keyinfo.key]);
-        if (result) {
+        if (self.allow_ctrl_phrase && result) {
           commit_char(inpinfo, result);
           return jscin.IMKEY_COMMIT;
         }
