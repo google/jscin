@@ -92,7 +92,7 @@ jscin.unregister_input_method = function(name) {
 }
 
 // Create input method instance
-jscin.create_input_method = function(name, context) {
+jscin.create_input_method = function(name, context, data) {
   var self = jscin;
   if (!(name in self.input_methods)) {
     self.log("jscin: Unknown input method: ", name);
@@ -100,7 +100,7 @@ jscin.create_input_method = function(name, context) {
   }
   self.log("jscin: Created input method instance: ", name);
   var module = jscin.input_methods[name]["module"];
-  return (new module(name)).new_instance(context);
+  return (new module(name, data)).new_instance(context);
 }
 
 jscin.get_input_method_label = function(name) {

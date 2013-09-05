@@ -6,10 +6,10 @@
  */
 
 // init for IME, ex. Zhuyin, Array
-GenInp = function(name) {
+GenInp = function(name, conf) {
   this.name = name;
 
-  var conf = jscin.getTableData(name);
+  var conf = conf || jscin.getTableData(name);
   if (!conf) {
     trace('failed to load data');
     return;
