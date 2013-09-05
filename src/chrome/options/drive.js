@@ -230,7 +230,12 @@ function getDocumentList(folderId, url) {
     var data = JSON.parse(response);
 
     if (data.feed.entry === undefined) {
-      appendAllDocsLink("It is empty. List all my document.")
+      if(folderId) { // Croscin folder is found, but it's empty
+        appendAllDocsLink("It is empty. List all my document.");
+        renderDocList([]);
+      } else { // The whole drive is empty
+        alert('Cannot find any documents in your Google Drive.');
+      }
       return;
     }
 
@@ -255,6 +260,7 @@ function getDocumentList(folderId, url) {
           getDocumentList(folderId);
         else {
           appendAllDocsLink("Cannot find previous uploaded directory. List all my documents.");
+          renderDocList([]);
         }
       }
     }

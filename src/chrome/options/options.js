@@ -288,6 +288,9 @@ function addTabFile(files) {
 }
 
 function addTableDrive(docs) {
+  if(docs.length == 0) {
+    return;
+  }
   var doc;
   for (var i = 0; doc = docs[i]; ++i) {
     if ($('#radio' + i).is(':checked')) {
