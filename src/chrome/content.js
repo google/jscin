@@ -303,6 +303,19 @@ function init () {
       ime.init_node = node;
     }
   });
+
+  // Also attach to dynamic nodes. Currently only works for gmail composition.
+  document.addEventListener("DOMNodeInserted", function (ev) {
+    var node = ev.relatedNode;
+    if (node.tagName.toLowerCase() == 'input' ||
+        node.tagName.toLowerCase() == 'textarea' ||
+        node.getAttribute('contenteditable')) {
+      ime.log("got new input node", ev);
+      node.addEventListener("focus", ime.FocusHandler);
+      node.addEventListener("blur", ime.BlurHandler);
+    }
+  }, true);
+
 }
 
 // For content.js we can't wait for readystatechange - that is controlled by
