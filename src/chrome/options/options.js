@@ -269,6 +269,9 @@ function addTabFile(files) {
         try {
           addTable('%ename ' + ename + '\n' + parseGtab(e.target.result));
         } catch (error) {
+          if(error.name != 'URIError') {
+            throw error;
+          }
           console.log(error);
           console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.');
           var reader = new FileReader();

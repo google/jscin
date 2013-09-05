@@ -36,6 +36,7 @@ function decode_utf8(s) {
 function MyView (view) {
   this.view = view;
   this.offset = 0;
+  this.littleEndian = false;
 }
 
 MyView.prototype.getUint8 = function() {
@@ -43,13 +44,13 @@ MyView.prototype.getUint8 = function() {
 };
 
 MyView.prototype.getUint32 = function() {
-  var n = this.view.getUint32(this.offset, true);
+  var n = this.view.getUint32(this.offset, this.littleEndian);
   this.offset += 4;
   return n;
 }
 
 MyView.prototype.getUint64 = function() {
-  var n = this.view.getUint64(this.offset, true);
+  var n = this.view.getUint64(this.offset, this.littleEndian);
   this.offset += 8;
   return n;
 }
@@ -67,10 +68,24 @@ MyView.prototype.getString = function(len) {
   return decode_utf8(ret);
 }
 
+MyView.prototype.detectEndian = function() {
+  var KeyS_first_byte = this.view.getUint8(56);
+  // key size should not be more than 255
+  if(KeyS_first_byte) {
+    console.log("gtab: little endian");
+    this.littleEndian = true;
+  } else {
+    console.log("gtab: big endian");
+    this.littleEndian = false;
+  }
+}
+
 function parseGtab(arraybuffer) {
   var cin = '';
   var myView = new MyView(new DataView(arraybuffer));
   var th = {};
+
+  myView.detectEndian();
 
   th.version = myView.getUint32();
   th.flag = myView.getUint32();
