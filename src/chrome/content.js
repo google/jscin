@@ -96,9 +96,9 @@ function IME() {
   }
 
   self.ImeEventHandler = function (type) {
+    self.log("ImeEvent", type);
     if (type == 'UIReady') {
-      self.log("Got", type);
-      self.SendMessage("Activate"); // hack: we want to update menu.
+      self.SendMessage("Activate", self.engineID); // Update menu & pageAction.
       // Delayed init.
       if (self.init_node) {
         self.log("Found init_node:", self.init_node);
@@ -152,9 +152,9 @@ function IME() {
   };
 
   self.FocusHandler = function (ev) {
-    self.log("on focus");
     var node = ev.target;
-    self.node = ev.target;
+    self.log("on focus", node);
+    self.node = node;
     self.SendMessage("Focus");
   };
 
@@ -188,7 +188,7 @@ function IME() {
     frame.style.height = "10em";
     frame.style.position = "absolute";
     frame.style.backgroundColor = "transparent";
-    frame.style.visible = false;
+    frame.style.display = "none";
     document.getElementsByTagName('body')[0].appendChild(frame);
     return frame;
   };
@@ -238,8 +238,10 @@ function init () {
   targets.forEach(function (node) {
     node.addEventListener("focus", ime.FocusHandler);
     node.addEventListener("blur", ime.BlurHandler);
-    if (focused == node)
-      self.init_node = node;
+    if (focused == node) {
+      ime.log("detected init node");
+      ime.init_node = node;
+    }
   });
 }
 
