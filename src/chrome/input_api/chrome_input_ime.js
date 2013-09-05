@@ -186,8 +186,17 @@ var ChromeInputIME = function () {
           chrome.pageAction.show(tab.id);
         });
         // continue to return dispatched reults.
+      } else if (type == 'SnapshotIME') {
+        return {
+          im_data: jscin.getTableData(croscin.instance.im_name),
+          im_name: croscin.instance.im_name,
+          imctx: croscin.instance.imctx
+        };
       }
       return self.dispatchEvent.apply(self, arguments);
+    });
+    self.onMenuItemActivated.addListener(function () {
+      self.ipc.send("RefreshIME");
     });
     self.setUserInterfaceEventHandler(function (msg) {
       if (!self.ipc)

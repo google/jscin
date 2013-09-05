@@ -32,6 +32,8 @@
         "jquery/jquery.js",
         "input_api/ipc.js",
         "input_api/ime_event.js",
+        "jscin/jscin.js",
+        "jscin/gen_inp.js",
         "content.js"
     ],
     "run_at": "document_idle",

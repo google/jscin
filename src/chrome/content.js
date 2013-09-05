@@ -67,11 +67,25 @@ function IME() {
     var node = ev.target;
     self.log("IME.KeyDownEventHandler", ev, ev2);
 
+    // Simulation by SnapshotIME.
+    if (self.im) {
+      switch (self.im.onKeystroke(self.imctx, ev2)) {
+        case jscin.IMKEY_COMMIT:
+        case jscin.IMKEY_ABSORB:
+          ev.preventDefault();
+          break;
+        case jscin.IMKEY_IGNORE:
+        default:
+          break;
+      }
+      self.SendMessage("KeyEvent", self.engineID, ev2);
+      return;
+    }
+
     // TODO(hungte) Due to browser design, we can't find a better way to re-fire
     // keyboard events if the IPC message responds "absorb or ignore". Woakround
-    // here is to preserve input element state. We really need to find better
-    // way to fix this and enable preventDefault() call, ex calling jscin
-    // directly.
+    // here is to preserve input element state. Another way is to call jscin
+    // directly (see SnapshotIME).
     // Note due to JavaScript event model, the return value is always retrieved
     // before CommitText event is received so we don't need to hack in
     // commitText.
@@ -145,9 +159,13 @@ function IME() {
           src.value.substring(src.selectionEnd));
       node.selectionStart = newpos;
       node.selectionEnd = newpos;
+    } else if (type == 'RefreshIME') {
+      // Need to request for another snapshot.
+      self.SnapshotIME();
     } else if (type == 'MenuItemActivated') {
-      // forward to background.
+      // (Legacy, when menu is included in iframe) forward to background.
       self.ipc.send.apply(null, arguments);
+      self.SnapshotIME();
     }
   };
 
@@ -168,6 +186,22 @@ function IME() {
       self.contextID = undefined;
     }
   };
+
+  self.SnapshotIME = function () {
+    self.im = undefined;
+    self.imctx = undefined;
+    self.SendMessage("SnapshotIME", function (result) {
+      var name = result.im_name;
+      self.log("Snapshot - IM:", result);
+      if (!name) {
+        self.log("Remote IM is not ready... good luck.");
+        return;
+      }
+      jscin.register_input_method(name, 'GenInp', 'snapshot');
+      self.imctx = result.imctx;
+      self.im = jscin.create_input_method(name, {}, result.im_data);
+    });
+  }
 
   self.InstallIPC = function () {
     self.ipc = new ImeEvent.ImeExtensionIPC('content');
@@ -231,6 +265,7 @@ function init () {
   var ime = new IME;
   ime.log("Installing extension IME, input elements:", targets.length);
   ime.InstallIPC();
+  ime.SnapshotIME();
 
   ime.frame = $(ime.CreateFrame());
 
