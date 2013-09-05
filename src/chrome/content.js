@@ -5,6 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+// TODO(hungte) Add jscin instance to prevent async KeyEvent issue.
+// TODO(hungte) Support [contenteditable]... or never.
+// TODO(hungte) Load jquery on demand.
+
 function IME() {
   var self = this;
 
