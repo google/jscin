@@ -449,7 +449,8 @@ GenInp.prototype.new_instance = function(inpinfo) {
       inpinfo.cch_publish = '';
       if (conf.mode.INP_MODE_SPACEAUTOUP &&
           (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
-          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != jscin.MCCH_ONEPG)) {
+          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != jscin.MCCH_ONEPG))
+      {
         trace('');
         if (mcch_choosech(inpinfo, -1)) {
           return jscin.IMKEY_COMMIT;
@@ -491,23 +492,27 @@ GenInp.prototype.new_instance = function(inpinfo) {
       inpinfo.cch_publish = '';
       var wch = ime.header.keyname[keyinfo.key.toUpperCase()];
       var selkey_idx = ime.header.selkey.indexOf(keyinfo.key.toUpperCase());
-      if (ime.header.endkey.indexOf(self.keystroke[self.keystroke.length-1]) >=0 ) {
+      if (ime.header.endkey.indexOf(
+          self.keystroke[self.keystroke.length-1]) >=0 ) {
         endkey_pressed = true;
       }
 
       if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
         if (len == 1 && conf.disable_sel_list &&
-            conf.disable_sel_list.indexOf(self.keystroke[self.keystroke.length-1]) >= 0) {
+            conf.disable_sel_list.indexOf(
+                self.keystroke[self.keystroke.length-1]) >= 0) {
           wch = keyinfo.key.toUpperCase();
         } else {
-          return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
+          return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
+                                                       return_wrong());
         }
       } else if (keyinfo.key.match(/[<>]/) &&
                  1 /* GUIMOD_SELKEYSPOT ? */) {
         return mcch_nextpage(inpinfo, keyinfo.key);
       } else if (self.mode.INPINFO_MODE_MCCH) {
         if (selkey_idx != -1) {
-          return mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT: return_wrong();
+          return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
+                                                       return_wrong());
         } else if (conf.mode.INP_MODE_AUTOUPCHAR) {
           if (!mcch_choosech(inpinfo, -1))
             return return_wrong();
