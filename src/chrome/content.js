@@ -5,8 +5,9 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) Add jscin instance to prevent async KeyEvent issue.
-// TODO(hungte) Support [contenteditable]... or never.
+// TODO(hungte) Get fully serialized jscin, or totally do jscin in content side.
+// TODO(hungte) Support dynamic DOM nodes better.
+// TODO(hungte) Move more code to input_ime/impl_chromeext.js
 // TODO(hungte) Load jquery on demand.
 
 function IME() {
