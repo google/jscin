@@ -57,6 +57,8 @@
     "Source: " },
   "optionTableDetailTypeHeader": {"message":
     "Type: " },
+  "optionQueryKeystrokes": {"message":
+    "Display corresponding keystrokes of this input method."},
   "optionAreYouSure": {"message":
     "Are you sure?" },
 
@@ -77,6 +79,9 @@
     "Debug and development" },
   "optionDebugMessage": {"message":
     "Print debug messages" },
+
+  "crossQueryAuxText": {"message":
+    "Look up: "},
 
   "dummy": {"message": "" }
 }

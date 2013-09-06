@@ -57,6 +57,8 @@
     "來源: " },
   "optionTableDetailTypeHeader": {"message":
     "類別: " },
+  "optionQueryKeystrokes": {"message":
+    "反查此輸入法中對應的字根"},
   "optionAreYouSure": {"message":
     "確定要繼續嗎？" },
 
@@ -77,6 +79,9 @@
     "除錯與開發" },
   "optionDebugMessage": {"message":
     "印出除錯訊息" },
+
+  "crossQueryAuxText": {"message":
+    "反查: "},
 
 
   "dummy": {"message": "" }

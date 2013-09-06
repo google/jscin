@@ -82,6 +82,35 @@ croscin.IME = function() {
     }
   }
 
+  self.CrossQueryKeystrokes = function(ch) {
+    var crossQuery = jscin.getCrossQuery();
+    if(!crossQuery) {
+      return;
+    }
+    var char_map = jscin.readLocalStorage(jscin.kTableDataKeyPrefix + crossQuery, {}).charToKey;
+    var list = char_map[ch];
+    if(list === undefined) {
+      return;
+    }
+    var arg = self.GetContextArg();
+    var candidates = [];
+    for(var i = 0; i < list.length; i++) {
+      candidates[i] = {
+        candidate: list[i],
+        id: i,
+      }
+    }
+    arg.candidates = candidates;
+    self.ime_api.setCandidates(arg);
+    var cname = jscin.getTableMetadatas()[crossQuery].cname;
+    self.SetCandidatesWindowProperty({
+      auxiliaryTextVisible: true,
+      auxiliaryText: chrome.i18n.getMessage('crossQueryAuxText') + cname,
+      visible: true,
+      pageSize: list.length,
+    });
+  }
+
   self.ProcessKeyEvent = function(keyData) {
     self.log("ProcessKeyEvent:", keyData.key);
 
@@ -98,6 +127,7 @@ croscin.IME = function() {
         self.log("im.onKeystroke: return IMKEY_COMMIT");
         self.Commit(self.imctx.cch);
         self.UpdateUI();
+        self.CrossQueryKeystrokes(self.imctx.cch);
         return true;
 
       case jscin.IMKEY_ABSORB:
@@ -208,6 +238,7 @@ croscin.IME = function() {
     //  - (TODO) lcch, cch_publish
 
     self.SetCandidatesWindowProperty({
+      auxiliaryText: self.im_label,
       auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
   }
 
@@ -273,6 +304,28 @@ croscin.IME = function() {
     return xhr.responseText;
   }
 
+  self.genCharToKeyMap = function(data) {
+    var map = {};
+    for(var key in data.chardef) {
+      var chs = data.chardef[key];
+      for(var i in chs) {
+        var ch = chs[i];
+        var keyname = '';
+        for(var j in key) {
+          if(key[j] in data.keyname) {
+            keyname += data.keyname[key[j]];
+          }
+        }
+        if(ch in map) {
+          map[ch] = map[ch].concat(keyname);
+        } else {
+          map[ch] = [keyname];
+        }
+      }
+    }
+    data.charToKey = map;
+  }
+
   self.LoadBuiltinTables = function(reload) {
     var list = self.LoadExtensionResource("tables/builtin.json");
     if (!list) {
@@ -301,6 +354,7 @@ croscin.IME = function() {
       self.log("croscin.LoadBuiltinTables: Load table:", table_name);
       var ename = metadata['ename'];
       metadata['builtin'] = true;
+      self.genCharToKeyMap(table_content);
       jscin.addTable(ename, metadata, table_content);
     }
   }

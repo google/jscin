@@ -172,7 +172,6 @@ function parseGtab(arraybuffer) {
     cin += checkAndConcat(keyString, ch);
   }
   cin += '%chardef end\n';
-  console.log(cin);
 
   return cin;
 }

@@ -25,7 +25,7 @@ function init() {
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
       "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
-      "optionTableDetailTypeHeader",
+      "optionTableDetailTypeHeader", "optionQueryKeystrokes",
       "optionSaveToDrive", "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS", "optionPunctuations",
       "optionAlertChangeSupportNonChromeOS",
@@ -305,6 +305,7 @@ function addTable(content, url) {
   var parsed_result = parseCin(content);
   if (parsed_result[0]) {
     var parsed_data = parsed_result[1];
+    instance.genCharToKeyMap(parsed_data.data);
     writeSettingToData(getSettingOption(), parsed_data);
     if (typeof url !== undefined) {
       parsed_data.metadata.url = url;
@@ -361,11 +362,11 @@ function installCinTable(data, raw_content) {
       $('#ime_' + data.metadata.ename).remove();
     }
   }
+  instance.genCharToKeyMap(data.data);
   jscin.addTable(data.metadata.ename, data.metadata, data.data);
   // TODO(hungte) Move this to jscin.addTable.
   jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + data.metadata.ename,
                           raw_content);
-  instance.prefAddEnabledInputMethod(data.metadata.ename);
   return true;
 }
 
@@ -392,8 +393,16 @@ function addCinTableToList(metadata, list_id) {
         $('.optionTableDetailSource').text(builtin ? _("optionBuiltin") : url);
         $('.optionTableDetailType').text(setting ? setting.ename :
           _("optionBuiltin"));
+        $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == ename);
         var buttons = [ { text: ' OK ',
           click: function () {
+            if($('#query_keystrokes').is(':checked')) {
+              jscin.setCrossQuery(ename);
+            } else {
+              if(jscin.getCrossQuery() == ename) {
+                jscin.setCrossQuery('');
+              }
+            }
             $(this).dialog("close");
           } } ];
 
@@ -456,6 +465,9 @@ function loadCinTables() {
 
 function removeCinTable(name) {
   console.log('removeCinTable:', name);
+  if(jscin.getCrossQuery() == name) {
+    jscin.setCrossQuery('');
+  }
   instance.prefRemoveEnabledInputMethod(name);
   jscin.deleteTable(name);
 }

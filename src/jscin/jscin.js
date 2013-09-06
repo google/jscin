@@ -24,6 +24,8 @@ var jscin = {
   kTableDataKeyPrefix: "table_data-",
   kRawDataKeyPrefix: "raw_data-",
   kVersionKey: "version",
+  kCharMapKeyPrefix: "char_map-",
+  kCrossQueryKey: "cross_query",
 
   modules: {},
   input_methods: {},
@@ -138,6 +140,14 @@ jscin.reload_configuration = function() {
 
 //////////////////////////////////////////////////////////////////////////////
 // Table and local storage management
+
+jscin.getCrossQuery = function () {
+  return jscin.readLocalStorage(jscin.kCrossQueryKey);
+}
+
+jscin.setCrossQuery = function (ime) {
+  return jscin.writeLocalStorage(jscin.kCrossQueryKey, ime);
+}
 
 jscin.getLocalStorageVersion = function () {
   return jscin.readLocalStorage(jscin.kVersionKey, 0);
