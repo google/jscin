@@ -104,6 +104,20 @@ var ImeEvent = {
 
         return ipc.send({ ime: kIpcDomain, args: args}, callback); },
 
+      listen: function(map, other) {
+        ipc.recv(function (evt) {
+          if (evt.ime != kIpcDomain)
+            return;
+          if (evt.args.length) {
+            var callback = map[evt.args[0]];
+            if (callback)
+              return callback.apply(null, evt.args.slice(1));
+          }
+          if (other)
+            return other.apply(null, evt.args);
+        });
+      },
+
       recv: function(callback) {
         ipc.recv(function (evt) {
           if (evt.ime != kIpcDomain)

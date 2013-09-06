@@ -7,10 +7,10 @@
 
 var ChromeInputImeImplChromeExtension = function (type) {
   var self = this;
-  var ime_api = chrome.input.ime;
-  var engineID = "chrome_input_ime#impl#chromeext";
+  self.ime_api = chrome.input.ime;
+  self.engineID = "chrome_input_ime#impl#chromeext";
 
-  self._debug = false;
+  self._debug = true;
   self.log = function () {
     console.log.apply(console, arguments);
   }
@@ -39,6 +39,7 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   var self = this;
   self.attach = function () { };
 
+  var ime_api = self.ime_api;
   var ipc = new ImeEvent.ImeExtensionIPC('background');
   ipc.attach();
 
@@ -78,24 +79,24 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
     ipc.send("ImplCommitText", contextID, text);
   });
 
-  // Route IPC events to ime_api.
-  ipc.recv(function (type) {
-    // Simple types that need to return directly.
-    switch (type) {
-      case "IpcSnapshotIME":
-        return {
-          im_data: jscin.getTableData(croscin.instance.im_name),
-          im_name: croscin.instance.im_name,
-          imctx: croscin.instance.imctx
-        };
+  ipc.listen({
+    IpcSnapshotIME: function () {
+      self.debug("IpcSnapshotIME");
+      return {
+        im_data: jscin.getTableData(croscin.instance.im_name),
+        im_name: croscin.instance.im_name,
+        imctx: croscin.instance.imctx }; },
 
-      case 'IpcGetDefaultEnabled':
-        return croscin.instance.prefGetDefaultEnabled();
+    IpcGetDefaultEnabled: function () {
+      self.debug("IpcGetDefaultEnabled");
+      return croscin.instance.prefGetDefaultEnabled(); },
 
-      case 'IpcSetDefaultEnabled':
-        self.debug("IpcSetDefaultEnabled", arguments[1]);
-        return croscin.instance.prefSetDefaultEnabled(arguments[1]);
-    }
+    IpcSetDefaultEnabled: function (new_value) {
+      self.debug("IpcSetDefaultEnabled", new_value);
+      return croscin.instance.prefSetDefaultEnabled(new_value); }
+
+  }, function () {
+    self.debug("Ipc Uncaught event:", arguments);
     return ime_api.dispatchEvent.apply(null, arguments);
   });
 };
@@ -284,11 +285,13 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     });
   }
 
-  function ContentImeEventHandler (type) {
-    self.debug("ImeEvent", type, arguments);
-    switch (type) {
+  function InitContent() {
+    var ipc = new ImeEvent.ImeExtensionIPC('content');
+    self.ipc = ipc;
+    ipc.attach();
 
-      case 'IpcUiReady':
+    ipc.listen({
+      IpcUiReady: function () {
         SendMessage("Activate", self.engineID); // Update menu & pageAction.
         // Delayed init.
         if (self.init_node) {
@@ -296,46 +299,38 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
           FocusHandler({target: self.init_node});
         }
         self.init_node = undefined;
-        break;
+      },
 
-      case 'Focus':
-        var context = arguments[1];
+      IpcRefreshIME: function () {
+        // Need to request for another snapshot.
+        SnapshotIME();
+      },
+
+      ImplCommitText: function (contextID, text) {
+        ImplCommitText(self.node, text);
+      },
+
+      Focus: function (context) {
         var node = self.node;
         self.contextID = context.contextID;
         AttachKeyEvents(node);
 
         var offset = GetAbsoluteOffset(node);
         offset.left += 5;
-        // TODO(hungte) Remove jquery -- although the height() is hard to replace.
+        // TODO(hungte) Remove jquery -- although height() is hard to replace.
         offset.top += $(node).height();
         self.frame.css(offset);
         if (self.enabled)
           self.frame.fadeIn(250);
-        break;
+      },
 
-      case 'IpcRefreshIME':
-        // Need to request for another snapshot.
-        SnapshotIME();
-        break;
-
-      case 'ImplCommitText':
-        // contextID, text
-        ImplCommitText(self.node, arguments[2]);
-        break;
-
-      case 'MenuItemActivated':
+      MenuItemActivated: function (engineID, name) {
         // (Legacy, when menu is included in iframe) forward to background.
-        self.ipc.send.apply(null, arguments);
+        self.ipc.send.apply("MenuItemActivated", engineID, name);
         SnapshotIME();
-        break;
-    }
-  }
+      }
+    });
 
-  function InitContent() {
-    var ipc = new ImeEvent.ImeExtensionIPC('content');
-    self.ipc = ipc;
-    ipc.attach();
-    ipc.recv(ContentImeEventHandler);
     SendMessage('IpcGetDefaultEnabled', function (result) {
       self.debug("IpcGetDefaultEnabled received:", result);
       SetEnabled(result);

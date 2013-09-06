@@ -16,19 +16,13 @@ function debug() {
 $(function() {
   debug("ime.js started:", window.location.href);
 
+  // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
+  var nbsp = '\xa0';
+
   var ipc = new ImeEvent.ImeExtensionIPC('iframe');
   ipc.attach();
-  ipc.recv(function (type, arg) {
-    var engine = arg;
-    var context =arg;
-
-    debug('<iframe>', type, arg);
-
-    // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
-    var nbsp = '\xa0';
-
-    if (type == 'UiMenu') {
-      debug("render", type);
+  ipc.listen({
+    UiMenu: function (engine) {
       var ui = $('#imePanel #menu');
       if (!ui)
         return;
@@ -44,9 +38,9 @@ $(function() {
                 engine.menuitems[$(this).index()].id);
             }));
       });
+    },
 
-    } else if (type == 'UiCandidateWindow') {
-      debug("render", type);
+    UiCandidateWindow: function (engine) {
       var ui = $('#imePanel #auxiliaryText');
       var _ = chrome.i18n.getMessage;
       // TODO(hungte) Remove the hard-coded prefix.
@@ -74,13 +68,14 @@ $(function() {
           ui.css({opacity: 1.0});
         }
       }
-    } else if (type == 'UiComposition') {
-      debug("render", type);
+    },
+
+    UiComposition: function (context) {
       var ui = $('#imePanel #composition');
       ui.text((context ? context.composition.text : "" )+ nbsp);
+    },
 
-    } else if (type == 'UiCandidates') {
-      debug("render", type);
+    UiCandidates: function (context) {
       var ui = $('#imePanel #candidates');
       ui.empty().append(nbsp);
       context.candidates.forEach(function (item) {
