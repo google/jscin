@@ -18,10 +18,8 @@ var croscin = {};
 croscin.IME = function() {
   var self = this;
 
-  // TODO(hungte) load default debug flag from options.
-  // Update options/options.html#debug_mode_input if you have changed this
-  // default value.
-  self.debug = true;
+  // TODO(hungte) Make this a real pref.
+  self.debug = jscin.readLocalStorage('debug', false);
 
   // The engine ID must match input_components.id in manifest file.
   self.kEngineId = 'cros_cin';
@@ -640,10 +638,11 @@ croscin.IME.prototype.registerEventHandlers = function() {
     }
   });
 
-  self.on_debug_mode_change = function(debug) {
-    console.log("croscin.on_debug_mode_change: notified: ", debug);
-    jscin.debug = debug;
-    self.debug = debug;
+  self.onDebugModeChange = function(new_value) {
+    console.log("croscin.onDebugModeChange:", new_value);
+    jscin.writeLocalStorage('debug', new_value);
+    jscin.debug = new_value;
+    self.debug = new_value;
   }
 
   self.on_config_changed = function() {

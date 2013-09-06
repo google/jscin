@@ -10,7 +10,7 @@ var ChromeInputImeImplChromeExtension = function (type) {
   self.ime_api = chrome.input.ime;
   self.engineID = "chrome_input_ime#impl#chromeext";
 
-  self._debug = true;
+  self._debug = false;
   self.log = function () {
     console.log.apply(console, arguments);
   }
@@ -87,9 +87,11 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
         im_name: croscin.instance.im_name,
         imctx: croscin.instance.imctx }; },
 
-    IpcGetDefaultEnabled: function () {
-      self.debug("IpcGetDefaultEnabled");
-      return croscin.instance.prefGetDefaultEnabled(); },
+    IpcGetSystemStatus: function () {
+      self.debug("IpcGetSystemStatus");
+      return {
+        default_enabled: croscin.instance.prefGetDefaultEnabled(),
+        debug: croscin.instance.debug }; },
 
     IpcSetDefaultEnabled: function (new_value) {
       self.debug("IpcSetDefaultEnabled", new_value);
@@ -331,9 +333,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       }
     });
 
-    SendMessage('IpcGetDefaultEnabled', function (result) {
-      self.debug("IpcGetDefaultEnabled received:", result);
-      SetEnabled(result);
+    SendMessage('IpcGetSystemStatus', function (result) {
+      self.debug("IpcGetSystemStatus received:", result);
+      self._debug = result.debug;
+      SetEnabled(result.default_enabled);
     });
     SnapshotIME();
   }

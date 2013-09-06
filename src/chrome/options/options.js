@@ -173,7 +173,7 @@ function init() {
   // To set default check state of checkboxes, do call button("refresh").
   $('#checkDebugMessage').prop("checked", instance.debug).
       click(function() {
-    instance.on_debug_mode_change($(this).prop("checked"));
+    instance.onDebugModeChange($(this).prop("checked"));
   });
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
