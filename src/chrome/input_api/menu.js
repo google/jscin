@@ -1,5 +1,7 @@
+// Copyright 2013 Google Inc. All Rights Reserved.
 /**
- * @fileoverview Description of this file.
+ * @fileoverview Implementation of IME menu for page-action.
+ * @author hungte@google.com (Hung-Te Lin)
  */
 $(function() {
   var bgpage = chrome.extension.getBackgroundPage();
