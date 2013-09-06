@@ -91,5 +91,5 @@ $(function() {
       });
     }
   });
-  ipc.send("UIReady");
+  ipc.send("IpcUiReady");
 });

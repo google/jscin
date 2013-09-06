@@ -222,7 +222,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     return offset;
   }
 
-  function CommitText(node, text) {
+  function ImplCommitText(node, text) {
     if (node.hasAttribute("value")) {
       // input or textarea.
       var newpos = node.selectionStart + text.length;
@@ -288,7 +288,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.debug("ImeEvent", type, arguments);
     switch (type) {
 
-      case 'UIReady':
+      case 'IpcUiReady':
         SendMessage("Activate", self.engineID); // Update menu & pageAction.
         // Delayed init.
         if (self.init_node) {
@@ -313,14 +313,14 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
           self.frame.fadeIn(250);
         break;
 
-      case 'ImplCommitText':
-        // contextID, text
-        CommitText(self.node, arguments[2]);
-        break;
-
       case 'IpcRefreshIME':
         // Need to request for another snapshot.
         SnapshotIME();
+        break;
+
+      case 'ImplCommitText':
+        // contextID, text
+        ImplCommitText(self.node, arguments[2]);
         break;
 
       case 'MenuItemActivated':
