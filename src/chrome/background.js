@@ -14,6 +14,7 @@ document.addEventListener( 'readystatechange', function() {
         croscin.instance.prefGetSupportNonChromeOS()) {
       var ime_api = chrome.input.ime;
 
+      // TODO(hungte) Move these stuff to input_ime/impl_ipc.js
       var ipc = new ImeEvent.ImeExtensionIPC('background');
       ipc.attach();
 

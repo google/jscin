@@ -65,61 +65,57 @@ function test_setMenuItems(labels_array) {
 
 $(function() {
   chrome.input = { ime: new ChromeInputIME };
+  var impl = new ChromeInputImeImplPage;
 
-  // Setup UI rendering
-  chrome.input.ime.setUserInterfaceEventHandler(function (evt) {
-    var type = evt.type;
-    var engine = evt.engine;
-    var context = evt.context;
-    if (type == 'menu') {
-      // Update IME UI
-      var ui = $('#imePanel #menu');
-      ui.empty();
-      engine.menuitems.forEach(function (item) {
-        var label = item.label || item.id;
-        ui.append(
-            $('<li/>', {text: label}).click(function () {
-              chrome.input.ime.dispatchEvent(
-                  'MenuItemActivated', engine.engineID,
-                  engine.menuitems[$(this).index()].id);
-            }));
-      });
-    } else if (type == 'candidate_window') {
-      var ui = $('#imePanel #candidates');
-      if (!engine.candidate_window.visible) {
-        ui.hide();
-      }
-      ui.show();
-    } else if (type == 'composition') {
-      // composition area
-      var ui = $('#imePanel #composition');
-      // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
-      var nbsp = '\xa0';
-      ui.text((context ? context.composition.text : "" )+ nbsp);
-    } else if (type == 'candidates') {
-      var ui = $('#imePanel #candidates');
-      var nbsp = '\xa0';
-      ui.empty().append(nbsp);
-      context.candidates.forEach(function (item) {
-        var label = item.label || item.id;
-        ui.append(
-            $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
-            click(function () {
-              chrome.input.ime.dispatchEvent('CandidateClicked',
-                "", item.id, 'left'); }).
-          prepend($('<span/>', {text: label, "class": "candidate_label"})));
-      });
+  chrome.input.ime.onUiMenu.addListener(function (engine) {
+    var ui = $('#imePanel #menu');
+    ui.empty();
+    engine.menuitems.forEach(function (item) {
+      var label = item.label || item.id;
+      ui.append(
+          $('<li/>', {text: label}).click(function () {
+            chrome.input.ime.dispatchEvent(
+                'MenuItemActivated', engine.engineID,
+                engine.menuitems[$(this).index()].id);
+          }));
+    });
+  });
+
+  chrome.input.ime.onUiCandidateWindow.addListener(function (engine) {
+    var ui = $('#imePanel #candidates');
+    if (!engine.candidate_window.visible) {
+      ui.hide();
     }
+    ui.show();
+  });
+
+  chrome.input.ime.onUiCandidates.addListener(function (context) {
+    var ui = $('#imePanel #candidates');
+    var nbsp = '\xa0';
+    ui.empty().append(nbsp);
+    context.candidates.forEach(function (item) {
+      var label = item.label || item.id;
+      ui.append(
+          $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
+          click(function () {
+            chrome.input.ime.dispatchEvent('CandidateClicked',
+              "", item.id, 'left'); }).
+          prepend($('<span/>', {text: label, "class": "candidate_label"})));
+    });
+  });
+
+  chrome.input.ime.onUiComposition.addListener(function (context) {
+    // composition area
+    var ui = $('#imePanel #composition');
+    // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
+    var nbsp = '\xa0';
+    ui.text((context ? context.composition.text : "" )+ nbsp);
   });
 
   var node = document.getElementById('input');
   node.blur();
-  chrome.input.ime.attach(node);
-  chrome.input.ime.onImplCommitText.addListener(function (contextID, text) {
-    // Assume node is a DOM node.
-    node.value = (node.value.substring(0, node.selectionStart) +
-          text + node.value.substring(node.selectionEnd));
-  });
+  impl.init();
+  impl.attach(node);
 
   if (chrome && chrome.extension) {
     var croscin = chrome.extension.getBackgroundPage().croscin.instance;

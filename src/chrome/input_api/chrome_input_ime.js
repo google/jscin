@@ -121,34 +121,6 @@ var ChromeInputIME = function () {
 
   // public functions
 
-  self.attach = function (node) {
-    var engine = GetEngineContext();
-    var keyEventHandler = function(ev) {
-      var ev2 = ImeEvent.ImeKeyEvent(ev);
-      self.debug("<attach>", ev.type, ev2);
-      var result = self.dispatchEvent("KeyEvent", engine.engineID, ev2);
-      if (!result)
-        ev.preventDefault();
-      self.debug("result:", result);
-      return result;
-    };
-    node.addEventListener('keydown', keyEventHandler);
-    node.addEventListener('keyup', keyEventHandler);
-
-    node.addEventListener('focus', function(ev) {
-      var result = self.dispatchEvent("Focus", self.EnterContext());
-      return result;
-    });
-    node.addEventListener('blur', function(ev) {
-      var context = GetContext();
-      if (context == null)
-        return;
-      var result = self.dispatchEvent('Blur', GetContext().contextID);
-      LeaveContext();
-      return result;
-    });
-  };
-
   self.dispatchEvent = function (type) {
     var params = Array.prototype.slice.call(arguments, 1);
     var imeEvent = new CustomEvent(kEventPrefix + type);
