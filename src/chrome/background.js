@@ -15,6 +15,22 @@ document.addEventListener( 'readystatechange', function() {
       ipc = new ImeEvent.ImeExtensionIPC('background');
       ipc.attach();
       chrome.input.ime.attachImeExtensionIpc(ipc);
+      console.log(chrome.input.ime.onUiComposition);
+
+      // Forward UI events to IME Frame.
+      // Menu is installed by page action window.
+      function ForwardUiToImeFrame (event_name) {
+        return function (arg) {
+          ipc.send(event_name, arg);
+        };
+      }
+
+      chrome.input.ime.onUiComposition.addListener(
+          ForwardUiToImeFrame("UiComposition"));
+      chrome.input.ime.onUiCandidateWindow.addListener(
+          ForwardUiToImeFrame("UiCandidateWindow"));
+      chrome.input.ime.onUiCandidates.addListener(
+          ForwardUiToImeFrame("UiCandidates"));
     }
   }
 });

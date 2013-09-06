@@ -4,16 +4,12 @@
 $(function() {
   var bgpage = chrome.extension.getBackgroundPage();
   var ime_api = bgpage.croscin.instance.ime_api;
-  if (!ime_api.isEmulation) {
+  if (!ime_api.onUiMenu) {
     return;
   }
 
-  // Hack: hook menu events.
-  var oldUiHandler = ime_api.ProcessUIEvent;
-  ime_api.ProcessUIEvent = function(type, context, engine) {
-    if (type != 'menu') {
-      return oldUiHandler(type, context, engine);
-    }
+  ime_api.onUiMenu.addListener(function (engine) {
+    console.log("got onUiMenu", arguments);
     var ui = $('#menu');
     ui.empty();
     engine.menuitems.forEach(function (item) {
@@ -26,7 +22,7 @@ $(function() {
                 engine.menuitems[$(this).index()].id);
           }));
     });
-  };
+  });
 
   ime_api.dispatchEvent('Activate', 'reload-menu');
 });

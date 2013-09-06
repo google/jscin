@@ -18,24 +18,16 @@ $(function() {
 
   var ipc = new ImeEvent.ImeExtensionIPC('iframe');
   ipc.attach();
-  ipc.recv(function (event_type, evt) {
+  ipc.recv(function (type, arg) {
+    var engine = arg;
+    var context =arg;
 
-    debug('<iframe> recv:', arguments);
-
-    if (event_type != 'UIEvent') {
-      debug('<iframe>', "NOT ime/UIEvent");
-      return;
-    }
-
-    var type = evt.type;
-    var context = evt.context;
-    var engine = evt.engine;
-    debug('<iframe>', type, context, engine);
+    debug('<iframe>', type, arg);
 
     // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
     var nbsp = '\xa0';
 
-    if (type == 'menu') {
+    if (type == 'UiMenu') {
       debug("render", type);
       var ui = $('#imePanel #menu');
       if (!ui)
@@ -53,7 +45,7 @@ $(function() {
             }));
       });
 
-    } else if (type == 'candidate_window') {
+    } else if (type == 'UiCandidateWindow') {
       debug("render", type);
       var ui = $('#imePanel #auxiliaryText');
       var _ = chrome.i18n.getMessage;
@@ -82,12 +74,12 @@ $(function() {
           ui.css({opacity: 1.0});
         }
       }
-    } else if (type == 'composition') {
+    } else if (type == 'UiComposition') {
       debug("render", type);
       var ui = $('#imePanel #composition');
       ui.text((context ? context.composition.text : "" )+ nbsp);
 
-    } else if (type == 'candidates') {
+    } else if (type == 'UiCandidates') {
       debug("render", type);
       var ui = $('#imePanel #candidates');
       ui.empty().append(nbsp);
