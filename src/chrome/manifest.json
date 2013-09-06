@@ -32,6 +32,7 @@
         "jquery/jquery.js",
         "input_api/ipc.js",
         "input_api/ime_event.js",
+        "input_api/impl_chromeext.js",
         "jscin/jscin.js",
         "jscin/gen_inp.js",
         "content.js"

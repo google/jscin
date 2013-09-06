@@ -12,8 +12,8 @@ document.addEventListener( 'readystatechange', function() {
     // TODO Sync with content.js behavior.
     if (chrome.input.ime.isEmulation &&
         croscin.instance.prefGetSupportNonChromeOS()) {
-      var impl = new ChromeInputImeImplChromeExtension();
-      impl.init('background');
+      var impl = new ChromeInputImeImplChromeExtension('background');
+      impl.init();
     }
   }
 });
