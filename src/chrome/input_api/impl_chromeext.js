@@ -88,9 +88,6 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
           im_name: croscin.instance.im_name,
           imctx: croscin.instance.imctx
         };
-      case "IpcNewFocus":
-        // We need to create a new context for this.
-        return ime_api.dispatchEvent('Focus', ime_api.EnterContext());
 
       case 'IpcGetDefaultEnabled':
         return croscin.instance.prefGetDefaultEnabled();
@@ -257,7 +254,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     var node = ev.target;
     self.debug("on focus", node);
     self.node = node;
-    SendMessage("IpcNewFocus");
+    SendMessage("ImplFocus");
   }
 
   function BlurHandler(ev) {

@@ -266,7 +266,6 @@ croscin.IME = function() {
   self.InitializeMenu = function() {
     var menu_items = [];
 
-    // TODO(hungte) Also list available input methods.
     self.pref.im_enabled_list.forEach(function (name) {
       var label = jscin.get_input_method_label(name);
       if (label)

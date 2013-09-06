@@ -78,7 +78,7 @@ var ChromeInputIME = function () {
              engine: engine };
   }
 
-  self.EnterContext = function () {
+  function EnterContext() {
     self.debug("EnterContext");
     var context = CreateContext();
     self.context_list[context.contextID] = context;
@@ -210,7 +210,7 @@ var ChromeInputIME = function () {
   self.onBlur = CreateEventHandler("Blur");
   self.onFocus = CreateEventHandler("Focus");
   self.onInputContextUpdate = CreateEventHandler("InputContextUpdate");
-  self.onKeyEvent = CreateEventHandler("KeyEvent", true);
+  self.onKeyEvent = CreateEventHandler("KeyEvent");
   self.onCandidateClicked = CreateEventHandler("CandidateClicked");
   self.onMenuItemActivated = CreateEventHandler("MenuItemActivated");
   self.onSurroundingTextChanged = CreateEventHandler("SurroundingTextChanged");
@@ -222,11 +222,15 @@ var ChromeInputIME = function () {
   self.onUiCandidateWindow = CreateEventHandler("UiCandidateWindow");
   self.onUiComposition = CreateEventHandler("UiComposition");
   self.onImplCommitText = CreateEventHandler("ImplCommitText");
+  self.onImplFocus = CreateEventHandler("ImplFocus");
 
   // Initialization
   function Initialize () {
     self.engineContext = CreateEngineContext(self.kDefaultEngineId);
     self.context_list = {};
+    self.onImplFocus.addListener(function () {
+      return self.dispatchEvent("Focus", EnterContext());
+    });
   }
 
   Initialize();

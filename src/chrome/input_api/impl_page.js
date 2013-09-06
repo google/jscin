@@ -10,7 +10,7 @@ var ChromeInputImeImplPage = function () {
   var ime_api = chrome.input.ime;
   var engineID = "chrome_input_ime#impl#page";
 
-  self.context_list = {};
+  self.contexts = {};
 
   function keyEventHandler (ev) {
     var ev2 = ImeEvent.ImeKeyEvent(ev);
@@ -22,13 +22,18 @@ var ChromeInputImeImplPage = function () {
 
   self.init = function() {
     chrome.input.ime.onImplCommitText.addListener(function (contextID, text) {
-      var node = self.context_list[contextID].node;
+      var node = self.contexts[contextID].node;
       var newSelect = node.selectionStart + text.length;
       // Assume node is either input or text area.
       node.value = (node.value.substring(0, node.selectionStart) +
         text + node.value.substring(node.selectionEnd));
       node.selectionStart = newSelect;
       node.selectionEnd = newSelect;
+    });
+    chrome.input.ime.onFocus.addListener(function (context) {
+      context.node = self.node;
+      self.contexts[context.contextID] = context;
+      self.node.setAttribute("imeContextId", context.contextID);
     });
   }
 
@@ -37,16 +42,13 @@ var ChromeInputImeImplPage = function () {
     node.addEventListener('keyup', keyEventHandler);
     node.addEventListener('focus', function (ev) {
       console.log("focus");
-      var context = ime_api.EnterContext();
-      context.node = node;
-      node.setAttribute("imeContextId", context.contextID);
-      self.context_list[context.contextID] = context;
-      return ime_api.dispatchEvent("Focus", context);
+      self.node = node;
+      return ime_api.dispatchEvent("ImplFocus");
     });
     node.addEventListener('blur', function (ev) {
       console.log("blur");
       var contextID = ev.target.getAttribute("imeContextId");
-      // TODO(hungte) Remove from contex_list?
+      delete self.contexts[contextID];
       return ime_api.dispatchEvent('Blur', contextID);
     });
   }
