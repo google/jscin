@@ -20,7 +20,7 @@ function IME() {
   self.contextID = undefined;
   self.ipc = undefined;
   self.debug = false;
-  self.enabled = true;
+  self.enabled = undefined;
   self.toggleHotKey = 16;  // Shift.
   self.waitForHotkey = false;
 
@@ -34,18 +34,32 @@ function IME() {
     self.ipc.send.apply(null, arguments);
   };
 
+  self.SetEnabled = function (enabled) {
+    console.log("SetEnabled", enabled, self.enabled);
+    if (typeof(self.enabled) == 'undefined') {
+      // First time setting enabled.
+      self.enabled = enabled;
+      // TODO(hungte) should we show frame?
+    } else {
+      // Apparently user is already doing something.
+      self.enabled = enabled;
+      if (enabled)
+        self.frame.fadeIn(100);
+      else
+        self.frame.fadeOut(100);
+      // Notify background page to change settings.
+      self.SendMessage('IpcSetDefaultEnabled', enabled);
+    }
+  }
+
   self.KeyUpEventHandler = function (ev) {
     // Assume our IME won't do anything on key up, let's only check hotkeys.
     if (!self.waitForHotkey)
       return;
 
     if (ev.keyCode == self.toggleHotKey) {
-      self.log("Got toggle hot key!");
-      self.enabled = !self.enabled;
-      if (self.enabled)
-        self.frame.fadeIn(100);
-      else
-        self.frame.fadeOut(100);
+      self.log("Got toggle hot key!", self.enabled);
+      self.SetEnabled(!self.enabled);
     }
     self.waitForHotkey = false;
   }
@@ -175,12 +189,13 @@ function IME() {
       offset.left += 5;
       // TODO(hungte) Remove jquery -- although the height() is hard to replace.
       offset.top += $(node).height();
+      self.frame.css(offset);
       if (self.enabled)
-        self.frame.css(offset).fadeIn(250);
+        self.frame.fadeIn(250);
     } else if (type == 'ImplCommitText') {
       // contextID, text
       self.CommitText(self.node, arguments[2]);
-    } else if (type == 'RefreshIME') {
+    } else if (type == 'IpcRefreshIME') {
       // Need to request for another snapshot.
       self.SnapshotIME();
     } else if (type == 'MenuItemActivated') {
@@ -194,7 +209,7 @@ function IME() {
     var node = ev.target;
     self.log("on focus", node);
     self.node = node;
-    self.SendMessage("NewFocus");
+    self.SendMessage("IpcNewFocus");
   };
 
   self.BlurHandler = function (ev) {
@@ -211,7 +226,7 @@ function IME() {
   self.SnapshotIME = function () {
     self.im = undefined;
     self.imctx = undefined;
-    self.SendMessage("SnapshotIME", function (result) {
+    self.SendMessage("IpcSnapshotIME", function (result) {
       var name = result.im_name;
       self.log("Snapshot - IM:", result);
       if (!name) {
@@ -292,8 +307,12 @@ function init () {
   var ime = new IME;
   ime.log("Installing extension IME, input elements:", targets.length);
   ime.InstallIPC();
-  ime.SnapshotIME();
+  ime.SendMessage('IpcGetDefaultEnabled', function (result) {
+    ime.log("IpcGetDefaultEnabled received:", result);
+    ime.SetEnabled(result);
+  });
 
+  ime.SnapshotIME();
   ime.frame = $(ime.CreateFrame());
 
   var focused = document.activeElement;

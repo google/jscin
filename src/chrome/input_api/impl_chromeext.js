@@ -41,7 +41,7 @@ var ChromeInputImeImplChromeExtension = function () {
 
     // Send a refresh for content.js when any menu item is clicked.
     ime_api.onMenuItemActivated.addListener(function () {
-      ipc.send("RefreshIME");
+      ipc.send("IpcRefreshIME");
     });
 
     ime_api.onActivate.addListener(function () {
@@ -61,15 +61,22 @@ var ChromeInputImeImplChromeExtension = function () {
     ipc.recv(function (type) {
       // Simple types that need to return directly.
       switch (type) {
-        case "SnapshotIME":
+        case "IpcSnapshotIME":
           return {
             im_data: jscin.getTableData(croscin.instance.im_name),
             im_name: croscin.instance.im_name,
             imctx: croscin.instance.imctx
           };
-        case "NewFocus":
+        case "IpcNewFocus":
           // We need to create a new context for this.
           return ime_api.dispatchEvent('Focus', ime_api.EnterContext());
+
+        case 'IpcGetDefaultEnabled':
+          return croscin.instance.prefGetDefaultEnabled();
+
+        case 'IpcSetDefaultEnabled':
+          self.log("IpcSetDefaultEnabled", arguments[1]);
+          return croscin.instance.prefSetDefaultEnabled(arguments[1]);
       }
       return ime_api.dispatchEvent.apply(null, arguments);
     });

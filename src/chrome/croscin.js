@@ -37,12 +37,14 @@ croscin.IME = function() {
   self.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
   self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
   self.kPrefQuickPuncuations = 'croscinPrefQuckPuncuations';
+  self.kPrefDefaultEnabled = 'croscinPrefDefaultEnabled';
 
   self.pref = {
     im_default: '',
     im_enabled_list: [],
     support_non_chromeos: true,
-    quick_puncuations: true
+    quick_puncuations: true,
+    default_enabled: true  // Only for non-ChromeOS.
   };
 
   self.engineID = self.kEngineId;
@@ -315,6 +317,8 @@ croscin.IME = function() {
         self.kPrefQuickPuncuations, self.pref.quick_puncuations);
     self.pref.support_non_chromeos = jscin.readLocalStorage(
         self.kPrefSupportNonChromeOS, self.pref.support_non_chromeos);
+    self.pref.default_enabled = jscin.readLocalStorage(
+        self.kPrefDefaultEnabled, self.pref.default_enabled);
 
     // Normalize preferences.
     var metadatas = jscin.getTableMetadatas();
@@ -364,6 +368,8 @@ croscin.IME = function() {
                             self.pref.support_non_chromeos);
     jscin.writeLocalStorage(self.kPrefQuickPuncuations,
                             self.pref.quick_puncuations);
+    jscin.writeLocalStorage(self.kPrefDefaultEnabled,
+                            self.pref.default_enabled);
     self.log("preferences saved.");
   }
 
@@ -407,6 +413,18 @@ croscin.IME = function() {
   self.prefSetSupportNonChromeOS = function (new_value) {
     self.pref.support_non_chromeos = new_value;
     self.SavePreferences();
+  }
+
+  self.prefGetDefaultEnabled = function () {
+    return self.pref.default_enabled;
+  }
+
+  self.prefSetDefaultEnabled = function (new_value) {
+    self.pref.default_enabled = new_value;
+    // Hack: pref.default_enabled is more frequently being modified, so let's
+    // write it directly.
+    jscin.writeLocalStorage(self.kPrefDefaultEnabled,
+                            self.pref.default_enabled);
   }
 
   function Initialize() {
