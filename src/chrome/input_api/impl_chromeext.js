@@ -137,10 +137,15 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     } else {
       // Apparently user is already doing something.
       self.enabled = enabled;
-      if (enabled)
+      if (enabled) {
+        self.debug("setEnabled: frame.fadeIn(100)");
+        self.frame.stop();
         self.frame.fadeIn(100);
-      else
+      } else {
+        self.debug("setEnabled: frame.fadeIn(100)");
+        self.frame.stop();
         self.frame.fadeOut(100);
+      }
       // Notify background page to change settings.
       SendMessage('IpcSetDefaultEnabled', enabled);
     }
@@ -263,8 +268,11 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   function BlurHandler(ev) {
     if (self.contextID) {
       self.debug("on blur", self.contextID);
-      if (self.enabled)
+      if (self.enabled) {
+        self.debug("BlurHandler: frame.fadeIn(100)");
+        self.frame.stop();
         self.frame.fadeOut(100);
+      }
       DetachKeyEvents(ev.target);
       SendMessage("Blur", self.contextID);
       self.contextID = undefined;
@@ -322,8 +330,11 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         // TODO(hungte) Remove jquery -- although height() is hard to replace.
         offset.top += $(node).height();
         self.frame.css(offset);
-        if (self.enabled)
+        if (self.enabled) {
+          self.debug("Focus: frame.fadeIn(250)");
+          self.frame.stop();
           self.frame.fadeIn(250);
+        }
       },
 
       MenuItemActivated: function (engineID, name) {
