@@ -226,7 +226,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function ImplCommitText(node, text) {
-    if (node.hasAttribute("value")) {
+    if (node.tagName == 'TEXTAREA' || node.tagName == 'INPUT')) {
       // input or textarea.
       var newpos = node.selectionStart + text.length;
       node.value = (node.value.substring(0, node.selectionStart) +
