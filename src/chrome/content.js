@@ -87,7 +87,7 @@ function IME() {
     // here is to preserve input element state. Another way is to call jscin
     // directly (see SnapshotIME).
     // Note due to JavaScript event model, the return value is always retrieved
-    // before CommitText event is received so we don't need to hack in
+    // before ImplCommitText event is received so we don't need to hack in
     // commitText.
     var state = {
       value: node.value,
@@ -155,7 +155,7 @@ function IME() {
   }
 
   self.ImeEventHandler = function (type) {
-    self.log("ImeEvent", type);
+    self.log("ImeEvent", type, arguments);
     if (type == 'UIReady') {
       self.SendMessage("Activate", self.engineID); // Update menu & pageAction.
       // Delayed init.
@@ -176,8 +176,9 @@ function IME() {
       offset.top += $(node).height();
       if (self.enabled)
         self.frame.css(offset).fadeIn(250);
-    } else if (type == 'commitText') {
-      self.CommitText(self.node, arguments[1].text);
+    } else if (type == 'ImplCommitText') {
+      // contextID, text
+      self.CommitText(self.node, arguments[2]);
     } else if (type == 'RefreshIME') {
       // Need to request for another snapshot.
       self.SnapshotIME();
@@ -192,7 +193,7 @@ function IME() {
     var node = ev.target;
     self.log("on focus", node);
     self.node = node;
-    self.SendMessage("Focus");
+    self.SendMessage("NewFocus");
   };
 
   self.BlurHandler = function (ev) {

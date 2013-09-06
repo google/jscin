@@ -54,14 +54,13 @@ var ChromeInputIME = function () {
     };
   }
 
-  function CreateContext(node) {
+  function CreateContext() {
     self.contextIndex += 1;
     return {
       // InputContext
       contextID: self.contextIndex,
       type: 'text',
 
-      node: node,
       candidates: [],
 
       composition: {
@@ -79,9 +78,9 @@ var ChromeInputIME = function () {
              engine: engine };
   }
 
-  function EnterContext(node) {
-    self.debug("EnterContext:", node);
-    var context = CreateContext(node);
+  self.EnterContext = function () {
+    self.debug("EnterContext");
+    var context = CreateContext();
     self.context_list[context.contextID] = context;
     self.debug(context);
     return { contextID: context.contextID, type: context.type };
@@ -137,7 +136,7 @@ var ChromeInputIME = function () {
     node.addEventListener('keyup', keyEventHandler);
 
     node.addEventListener('focus', function(ev) {
-      var result = self.dispatchEvent("Focus", EnterContext(node));
+      var result = self.dispatchEvent("Focus", self.EnterContext());
       return result;
     });
     node.addEventListener('blur', function(ev) {
@@ -149,43 +148,6 @@ var ChromeInputIME = function () {
       return result;
     });
   };
-
-  self.attachImeExtensionIpc = function (ipc) {
-    // ipc must be a ImeEvent.ImeExtensionIPC object.
-    if (!ipc) {
-      ipc = new ImeEvent.ImeExtensionIPC('background');
-    }
-    self.ipc = ipc;
-    ipc.recv(function(type) {
-      if (type == 'Focus') {
-        // We need to create a new context for this.
-        var context = EnterContext(ipc);
-        var result = self.dispatchEvent('Focus', context);
-        ipc.send(type, context);
-        // BUG: Try harder to show page action, if haven't.
-        chrome.tabs.getSelected(null, function(tab) {
-          chrome.pageAction.show(tab.id);
-        });
-        return result;
-      } else if (type == "Activate") {
-        // Show page action. (BUG: sometimes does not work?)
-        chrome.tabs.getSelected(null, function(tab) {
-          chrome.pageAction.show(tab.id);
-        });
-        // continue to return dispatched reults.
-      } else if (type == 'SnapshotIME') {
-        return {
-          im_data: jscin.getTableData(croscin.instance.im_name),
-          im_name: croscin.instance.im_name,
-          imctx: croscin.instance.imctx
-        };
-      }
-      return self.dispatchEvent.apply(self, arguments);
-    });
-    self.onMenuItemActivated.addListener(function () {
-      self.ipc.send("RefreshIME");
-    });
-  }
 
   self.dispatchEvent = function (type) {
     var params = Array.prototype.slice.call(arguments, 1);
@@ -225,21 +187,8 @@ var ChromeInputIME = function () {
   };
 
   self.commitText = function (parameters, callback) {
-    self.debug('commitText');
-    var context = GetContext(parameters.contextID);
-    if (!context) {
-      self.debug("Invalid context ID:", parameters.contextID);
-      return;
-    }
-    var node = context.node;
-    if ('send' in node) {
-      node.send("commitText", parameters);
-    } else {
-      // Assume node is a DOM node.
-      node.value = (node.value.substring(0, node.selectionStart) +
-          parameters.text +
-          node.value.substring(node.selectionEnd));
-    }
+    self.debug('commitText', parameters);
+    self.dispatchEvent("ImplCommitText", parameters.contextID, parameters.text);
   };
 
   self.setCandidateWindowProperties = function (parameters, callback) {
@@ -300,6 +249,7 @@ var ChromeInputIME = function () {
   self.onUiCandidates = CreateEventHandler("UiCandidates");
   self.onUiCandidateWindow = CreateEventHandler("UiCandidateWindow");
   self.onUiComposition = CreateEventHandler("UiComposition");
+  self.onImplCommitText = CreateEventHandler("ImplCommitText");
 
   // Initialization
   function Initialize () {

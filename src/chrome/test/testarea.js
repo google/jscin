@@ -115,6 +115,11 @@ $(function() {
   var node = document.getElementById('input');
   node.blur();
   chrome.input.ime.attach(node);
+  chrome.input.ime.onImplCommitText.addListener(function (contextID, text) {
+    // Assume node is a DOM node.
+    node.value = (node.value.substring(0, node.selectionStart) +
+          text + node.value.substring(node.selectionEnd));
+  });
 
   if (chrome && chrome.extension) {
     var croscin = chrome.extension.getBackgroundPage().croscin.instance;
