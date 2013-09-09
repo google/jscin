@@ -234,6 +234,15 @@ jscin.deleteLocalStorage = function (key) {
   delete localStorage[key];
 }
 
+jscin.guid = function () {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16).substring(1);
+  }
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+      s4() + '-' + s4() + s4() + s4();
+}
+
 // TODO(hungte) some place for global configuration data.
 function dump_object(obj, indent) {
   if (obj == null) return 'null';
