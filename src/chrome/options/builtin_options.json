@@ -3,7 +3,7 @@
     "ename": "Phonetic",
     "cname": "注音",
     "options": {
-      "AUTO_COMPOSE": false,
+      "AUTO_COMPOSE": false
     }
   },
   {
