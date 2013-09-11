@@ -163,7 +163,53 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.waitForHotkey = false;
   }
 
+  function UpdateUI() {
+    var imctx = self.imctx;
+    SendMessage("ImplUpdateUI", imctx.keystroke, imctx.mcch, imctx.selkey);
+  }
+
+  // Same as croscin.ProcessKeyEvent. Need self.im*.
+  function ProcessKeyEvent(ev) {
+    self.debug("ProcessKeyEvent:", ev.key);
+
+    // Currently all of the modules uses key down.
+    if (ev.type != 'keydown') {
+      return false;
+    }
+    var ret = self.im.onKeystroke(self.imctx, ev);
+
+    switch (ret) {
+      case jscin.IMKEY_COMMIT:
+        self.debug("im.onKeystroke: return IMKEY_COMMIT");
+        UpdateUI();
+        // croscin may have extra UI processing when committing text (ex,
+        // cross-query) so we don't want to do ImplCommitText directly. Let's
+        // route back to croscin.
+        SendMessage("ImplCommit", self.imctx.cch);
+        return true;
+
+      case jscin.IMKEY_ABSORB:
+        self.debug("im.onKeystroke: return IMKEY_ABSORB");
+        UpdateUI();
+        return true;
+
+      case jscin.IMKEY_IGNORE:
+        self.debug("im.onKeystroke: return IMKEY_IGNORE");
+        UpdateUI();
+        return false;
+    }
+
+    // default: Unknown return value.
+    self.debug("ProcessKeyEvent: Unknown return value:", ret);
+    return false;
+  }
+
   function KeyDownEventHandler(ev) {
+    if (!self.im) {
+      self.debug("Key event before IM is ready.");
+      return;
+    }
+
     if (self.waitForHotkey)
       self.waitForHotkey = false;
 
@@ -182,42 +228,9 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.debug("impl.KeyDownEventHandler", ev, ev2);
 
     // Simulation by SnapshotIME.
-    if (self.im) {
-      switch (self.im.onKeystroke(self.imctx, ev2)) {
-        case jscin.IMKEY_COMMIT:
-        case jscin.IMKEY_ABSORB:
-          ev.preventDefault();
-          break;
-        case jscin.IMKEY_IGNORE:
-        default:
-          break;
-      }
-      SendMessage("KeyEvent", self.engineID, ev2);
-      return;
+    if (ProcessKeyEvent(ev2)) {
+      ev.preventDefault();
     }
-
-    // TODO(hungte) Due to browser design, we can't find a better way to re-fire
-    // keyboard events if the IPC message responds "absorb or ignore". Woakround
-    // here is to preserve input element state. Another way is to call jscin
-    // directly (see SnapshotIME).
-    // Note due to JavaScript event model, the return value is always retrieved
-    // before ImplCommitText event is received so we don't need to hack in
-    // commitText.
-    var state = {
-      value: node.value,
-      selectionStart: node.selectionStart,
-      selectionEnd: node.selectionEnd
-    };
-
-    SendMessage("KeyEvent", self.engineID, ev2, function (result) {
-      self.debug("KeyEvent result got:", result, state);
-      if (!result) {
-        node.value = state.value;
-        node.selectionStart = state.selectionStart;
-        node.selectionEnd = state.selectionEnd;
-        self.debug("Restored node state.");
-      }
-    });
   }
 
   function GetAbsoluteOffset(node) {

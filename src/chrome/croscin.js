@@ -75,8 +75,9 @@ croscin.IME = function() {
       arg.text = text;
       self.ime_api.commitText(arg);
       self.log("croscin.Commit: value:", text);
+      self.CrossQueryKeystrokes(text);
     } else {
-      self.log("croscin.Commmit: warning: called with empty string.");
+      self.log("croscin.Commit: warning: called with empty string.");
     }
   }
 
@@ -85,8 +86,10 @@ croscin.IME = function() {
     if(!crossQuery) {
       return;
     }
-    var char_map = jscin.readLocalStorage(jscin.kTableDataKeyPrefix + crossQuery, {}).charToKey;
-    var list = char_map[ch];
+    // TODO(hungte) cache this.
+    var char_map = jscin.readLocalStorage(
+        jscin.kTableDataKeyPrefix + crossQuery, {}).charToKey;
+    var list = char_map ? char_map[ch] : undefined;
     if(list === undefined) {
       return;
     }
@@ -123,9 +126,8 @@ croscin.IME = function() {
     switch (ret) {
       case jscin.IMKEY_COMMIT:
         self.log("im.onKeystroke: return IMKEY_COMMIT");
-        self.Commit(self.imctx.cch);
         self.UpdateUI();
-        self.CrossQueryKeystrokes(self.imctx.cch);
+        self.Commit(self.imctx.cch);
         return true;
 
       case jscin.IMKEY_ABSORB:
@@ -644,9 +646,15 @@ croscin.IME.prototype.registerEventHandlers = function() {
     }
   });
 
+  // Implementation events (by emulation).
   if (ime_api.onImplUpdateUI) {
     ime_api.onImplUpdateUI.addListener(function () {
       self.UpdateUI.apply(self, arguments);
+    });
+  }
+  if (ime_api.onImplCommit) {
+    ime_api.onImplCommit.addListener(function () {
+      self.Commit.apply(self, arguments);
     });
   }
 
