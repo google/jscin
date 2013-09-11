@@ -49,6 +49,8 @@ function parseCin(cin_input) {
           return failed(lineno, 'previous section has no end');
         if (arg == undefined)
           arg = true;
+        else if (arg == 'false')
+          arg = false;
         data[cmd] = arg;
       }
     } else if (table_command[cmd]) {

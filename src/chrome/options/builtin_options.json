@@ -2,7 +2,9 @@
   {
     "ename": "ZhuYin",
     "cname": "注音",
-    "options": {}
+    "options": {
+      "AUTO_COMPOSE": false,
+    }
   },
   {
     "ename": "ChangJei",
