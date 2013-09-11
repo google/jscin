@@ -139,11 +139,11 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.enabled = enabled;
       if (enabled) {
         self.debug("setEnabled: frame.fadeIn(100)");
-        self.frame.stop();
+        self.frame.finish();
         self.frame.fadeIn(100);
       } else {
         self.debug("setEnabled: frame.fadeOut(100)");
-        self.frame.stop();
+        self.frame.finish();
         self.frame.fadeOut(100);
       }
       // Notify background page to change settings.
@@ -284,7 +284,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.debug("on blur", self.contextID);
       if (self.enabled) {
         self.debug("BlurHandler: frame.fadeOut(100)");
-        self.frame.stop();
+        self.frame.finish();
         self.frame.fadeOut(100);
       }
       DetachKeyEvents(ev.target);
@@ -316,6 +316,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
     ipc.listen({
       IpcUiReady: function () {
+        self.debug("UIReady",document.activeElement);
         SendMessage("Activate", self.engineID); // Update menu & pageAction.
         // Delayed init.
         if (self.init_node) {
@@ -346,7 +347,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.frame.css(offset);
         if (self.enabled) {
           self.debug("Focus: frame.fadeIn(250)", self.frame.offset());
-          self.frame.stop();
+          self.frame.finish();
           self.frame.fadeIn(250);
         }
       },
