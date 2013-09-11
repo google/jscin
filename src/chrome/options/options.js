@@ -165,9 +165,9 @@ function init() {
       buttons: buttons});
   });
   $('#checkPunctuations').prop(
-      "checked", instance.prefGetQuickPruncuations()).
+      "checked", instance.prefGetQuickPunctuations()).
       click(function() {
-    instance.prefSetQuickPuncuations($(this).prop("checked"));
+    instance.prefSetQuickPunctuations($(this).prop("checked"));
   });
 
   // To set default check state of checkboxes, do call button("refresh").

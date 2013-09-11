@@ -36,14 +36,14 @@ croscin.IME = function() {
   self.kPrefEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
   self.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
   self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
-  self.kPrefQuickPuncuations = 'croscinPrefQuckPuncuations';
+  self.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
   self.kPrefDefaultEnabled = 'croscinPrefDefaultEnabled';
 
   self.pref = {
     im_default: '',
     im_enabled_list: [],
     support_non_chromeos: true,
-    quick_puncuations: true,
+    quick_punctuations: true,
     default_enabled: true  // Only for non-ChromeOS.
   };
 
@@ -269,7 +269,7 @@ croscin.IME = function() {
       self.im_name = name;
       self.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
-      self.im.allow_ctrl_phrase = self.prefGetQuickPruncuations();
+      self.imctx.allow_ctrl_phrase = self.prefGetQuickPunctuations();
       self.log("croscin.im:", self.im);
       self.InitializeUI();
     } else {
@@ -380,8 +380,8 @@ croscin.IME = function() {
     var changed = false;
 
     // Preferences that don't need to be normalized.
-    self.pref.quick_puncuations = jscin.readLocalStorage(
-        self.kPrefQuickPuncuations, self.pref.quick_puncuations);
+    self.pref.quick_punctuations = jscin.readLocalStorage(
+        self.kPrefQuickPunctuations, self.pref.quick_punctuations);
     self.pref.support_non_chromeos = jscin.readLocalStorage(
         self.kPrefSupportNonChromeOS, self.pref.support_non_chromeos);
     self.pref.default_enabled = jscin.readLocalStorage(
@@ -433,8 +433,8 @@ croscin.IME = function() {
                             self.pref.im_enabled_list);
     jscin.writeLocalStorage(self.kPrefSupportNonChromeOS,
                             self.pref.support_non_chromeos);
-    jscin.writeLocalStorage(self.kPrefQuickPuncuations,
-                            self.pref.quick_puncuations);
+    jscin.writeLocalStorage(self.kPrefQuickPunctuations,
+                            self.pref.quick_punctuations);
     jscin.writeLocalStorage(self.kPrefDefaultEnabled,
                             self.pref.default_enabled);
     self.log("preferences saved.");
@@ -462,14 +462,14 @@ croscin.IME = function() {
     self.SavePreferences();
   }
 
-  self.prefGetQuickPruncuations = function () {
-    return self.pref.quick_puncuations;
+  self.prefGetQuickPunctuations = function () {
+    return self.pref.quick_punctuations;
   }
 
-  self.prefSetQuickPuncuations = function (new_value) {
-    self.pref.quick_puncuations = new_value;
+  self.prefSetQuickPunctuations = function (new_value) {
+    self.pref.quick_punctuations = new_value;
     // TODO(hungte) Change this dirty workaround to IM events.
-    self.im.allow_ctrl_phrase = new_value;
+    self.imctx.allow_ctrl_phrase = new_value;
     self.SavePreferences();
   }
 

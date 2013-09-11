@@ -529,7 +529,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (keyinfo.ctrlKey) {
         var result = (keyinfo.shiftKey ? self.ctrl_shift_phrase[keyinfo.key] :
                       self.ctrl_phrase[keyinfo.key]);
-        if (self.allow_ctrl_phrase && result) {
+        if (inpinfo.allow_ctrl_phrase && result) {
           commit_char(inpinfo, result);
           return jscin.IMKEY_COMMIT;
         }
