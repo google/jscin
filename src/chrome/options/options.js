@@ -206,6 +206,10 @@ function addTableUrl(url) {
     return;
   }
 
+  // Convert github blobs to raw format.
+  url = url.replace(RegExp('^[^:]*://github.com/([^/]*)/([^/]*)/blob/'),
+                    'https://raw.github.com/$1/$2/');
+
   if (table_loading[url]) {
     setAddTableStatus("Table is loading", false);
   } else {
