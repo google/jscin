@@ -409,6 +409,48 @@ GenInp.prototype.new_instance = function(inpinfo) {
     return ret;
   }
 
+  // For zhuyin, reorder keystrokes.
+  function reorder_key_by_keygroups(inpinfo, keyinfo) {
+    if (!self.conf.keygroups) {
+      return false;
+    }
+
+    function determine_group(key) {
+      for (var g in self.conf.keygroups) {
+        if (self.conf.keygroups[g].toUpperCase().indexOf(key) >= 0) {
+          return g;
+        }
+      }
+      return undefined;
+    }
+
+    var key_by_group = {};
+    for (var i in self.keystroke) {
+      var g = determine_group(self.keystroke[i]);
+      if (!g) return false;  // only reorder if all keys are in known group
+      key_by_group[g] = self.keystroke[i];
+    }
+
+    var g = determine_group(keyinfo.key.toUpperCase());
+    if (!g)
+      return false;
+
+    key_by_group[g] = keyinfo.key.toUpperCase();
+
+    // reconstruct keystroke sequence
+    var groups_in_order = Object.keys(key_by_group).sort();
+    self.keystroke = '';
+    self.display_keystroke = [];
+    for (var i in groups_in_order) {
+      var ch = key_by_group[groups_in_order[i]];
+      self.keystroke += ch;
+      self.display_keystroke.push(self.ime.header.keyname[ch]);
+    }
+    inpinfo.keystroke = self.display_keystroke.join('');
+
+    return true;
+  }
+
   self.onKeystroke = function(inpinfo, keyinfo) {
     // shortcut
     var conf = self.conf;
@@ -544,6 +586,12 @@ GenInp.prototype.new_instance = function(inpinfo) {
         return jscin.IMKEY_IGNORE;  // don't support qphrase
       } else if (!wch) {
         return ret | jscin.IMKEY_IGNORE;
+      } else if (reorder_key_by_keygroups(inpinfo, keyinfo)) {
+        // Note, INP_MODE_AUTOFULLUP is not respected if KEYGROUPS is enabled.
+        if (conf.mode.INP_MODE_AUTOCOMPOSE) {
+          match_keystroke(inpinfo);
+        }
+        return ret;
       } else if (len >= max_len) {
         return return_wrong();
       }
