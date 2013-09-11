@@ -223,6 +223,7 @@ var ChromeInputIME = function () {
   self.onUiComposition = CreateEventHandler("UiComposition");
   self.onImplCommitText = CreateEventHandler("ImplCommitText");
   self.onImplFocus = CreateEventHandler("ImplFocus");
+  self.onImplUpdateUI = CreateEventHandler("ImplUpdateUI");
 
   // Initialization
   function Initialize () {

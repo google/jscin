@@ -225,14 +225,19 @@ croscin.IME = function() {
     return candidate_list.length > 0;
   }
 
-  self.UpdateUI = function() {
-    var imctx = self.imctx;
+  self.UpdateUI = function(keystroke, mcch, selkey) {
+    if (arguments.length == 0) {
+      keystroke = self.imctx.keystroke;
+      mcch = self.imctx.mcch;
+      selkey = self.imctx.selkey;
+    }
+
     var has_composition, has_candidates;
     // process:
     //  - keystroke
-    has_composition = self.UpdateComposition(imctx.keystroke);
+    has_composition = self.UpdateComposition(keystroke);
     //  - selkey, mcch
-    has_candidates = self.UpdateCandidates(imctx.mcch, imctx.selkey);
+    has_candidates = self.UpdateCandidates(mcch, selkey);
     //  - (TODO) lcch, cch_publish
 
     self.SetCandidatesWindowProperty({
@@ -638,6 +643,12 @@ croscin.IME.prototype.registerEventHandlers = function() {
       self.ActivateInputMethod(name.replace(/^ime:/, ''));
     }
   });
+
+  if (ime_api.onImplUpdateUI) {
+    ime_api.onImplUpdateUI.addListener(function () {
+      self.UpdateUI.apply(self, arguments);
+    });
+  }
 
   self.onDebugModeChange = function(new_value) {
     console.log("croscin.onDebugModeChange:", new_value);
