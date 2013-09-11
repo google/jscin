@@ -46,7 +46,7 @@
   ],
   "permissions": [
     "http://*/", "https://*/",
-    "input",
+    "input", "unlimitedStorage",
     "tabs", "https://docs.google.com/feeds/*",
     "https://www.google.com/accounts/OAuthGetRequestToken",
     "https://www.google.com/accounts/OAuthAuthorizeToken",
