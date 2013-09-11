@@ -180,7 +180,7 @@ croscin.IME = function() {
       auxiliaryTextVisible: false});
 
     // Setup menu
-    self.InitializeMenu();
+    self.UpdateMenu();
   }
 
   self.UpdateComposition = function(text) {
@@ -243,6 +243,7 @@ croscin.IME = function() {
   self.ActivateInputMethod = function(name) {
     if (name && name == self.im_name) {
       self.log("croscin.ActivateInputMethod: already activated:", name);
+      self.UpdateMenu();
       return;
     }
 
@@ -261,7 +262,7 @@ croscin.IME = function() {
     }
   }
 
-  self.InitializeMenu = function() {
+  self.UpdateMenu = function() {
     var menu_items = [];
 
     self.pref.im_enabled_list.forEach(function (name) {
@@ -277,7 +278,7 @@ croscin.IME = function() {
         "checked": name == self.im_name,
       });
     });
-    self.log("croscin.InitializeMenu: " + menu_items.length + " items.");
+    self.log("croscin.UpdateMenu: " + menu_items.length + " items.");
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
     // menu_items.push({"id": "", "style": "separator"});
