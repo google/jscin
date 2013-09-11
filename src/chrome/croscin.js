@@ -31,6 +31,8 @@ croscin.IME = function() {
   self.im_name = '';
   self.im_label = '';
 
+  self.cross_query = {};
+
   self.kPrefEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
   self.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
   self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
@@ -83,12 +85,19 @@ croscin.IME = function() {
 
   self.CrossQueryKeystrokes = function(ch) {
     var crossQuery = jscin.getCrossQuery();
-    if(!crossQuery) {
+    if (!crossQuery) {
       return;
     }
-    // TODO(hungte) cache this.
-    var char_map = jscin.readLocalStorage(
-        jscin.kTableDataKeyPrefix + crossQuery, {}).charToKey;
+    if (!self.cross_query[crossQuery]) {
+      // TODO(hungte) cache this in better way....
+      var metadata = jscin.getTableMetadatas();
+      self.cross_query[crossQuery] = [
+          (metadata && metadata[crossQuery]) ? metadata[crossQuery].cname : "",
+          jscin.readLocalStorage(
+              jscin.kTableDataKeyPrefix + crossQuery, {}).charToKey];
+    }
+    var cname = self.cross_query[crossQuery][0];
+    var char_map = self.cross_query[crossQuery][1];
     var list = char_map ? char_map[ch] : undefined;
     if(list === undefined) {
       return;
@@ -103,7 +112,6 @@ croscin.IME = function() {
     }
     arg.candidates = candidates;
     self.ime_api.setCandidates(arg);
-    var cname = jscin.getTableMetadatas()[crossQuery].cname;
     self.SetCandidatesWindowProperty({
       auxiliaryTextVisible: true,
       auxiliaryText: chrome.i18n.getMessage('crossQueryAuxText') + cname,
