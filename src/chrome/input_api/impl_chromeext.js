@@ -142,7 +142,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.frame.stop();
         self.frame.fadeIn(100);
       } else {
-        self.debug("setEnabled: frame.fadeIn(100)");
+        self.debug("setEnabled: frame.fadeOut(100)");
         self.frame.stop();
         self.frame.fadeOut(100);
       }
@@ -164,6 +164,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function UpdateUI() {
+    self.debug("UpdateUI");
     var imctx = self.imctx;
     SendMessage("ImplUpdateUI", imctx.keystroke, imctx.mcch, imctx.selkey);
   }
@@ -282,7 +283,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     if (self.contextID) {
       self.debug("on blur", self.contextID);
       if (self.enabled) {
-        self.debug("BlurHandler: frame.fadeIn(100)");
+        self.debug("BlurHandler: frame.fadeOut(100)");
         self.frame.stop();
         self.frame.fadeOut(100);
       }
@@ -344,7 +345,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         offset.top += $(node).height();
         self.frame.css(offset);
         if (self.enabled) {
-          self.debug("Focus: frame.fadeIn(250)");
+          self.debug("Focus: frame.fadeIn(250)", self.frame.offset());
           self.frame.stop();
           self.frame.fadeIn(250);
         }
