@@ -45,7 +45,7 @@ function init() {
     cancel: "li:only-child",
     helper: 'clone',
     update: function (event, ui) {
-      var new_list = []
+      var new_list = [];
       $('#enabled_im_list li').each(function(index) {
         new_list.push($(this).attr('id').replace(/^ime_/, ''));
       });
@@ -282,7 +282,6 @@ function addTabFile(files) {
           if(error.name != 'URIError') {
             throw error;
           }
-          console.log(error);
           console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.');
           var reader = new FileReader();
           reader.onload = function(event) {
