@@ -5,6 +5,9 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+// TODO(hungte) SPACE_RESET (reset on error).
+// TODO(hungte) Installable modules (Ex, punctuations, phrase).
+
 GenInp2 = function(name, conf) {
   var self = this;
   self.name = name;
@@ -28,14 +31,17 @@ GenInp2 = function(name, conf) {
   self.keyname = conf.keyname || [];  // upper-cased.
   self.table = conf.chardef || {}; // upper-cased.
   self.selkey = conf.selkey || []; // probably also upper-cased.
-  self.max_keystroke = parseInt(conf.max_keystroke || "0");
+  self.max_composition = parseInt(conf.max_keystroke || "0");
   self.endkey = conf.endkey || "";
   self.opts = {};
 
   // jscin gen_input v1
   if (conf.SELKEY_SHIFT) {
     self.opts.OPT_SELKEY_SHIFT = true;
-    self.selkey = ' ' + self.selkey;
+  }
+
+  if (conf.AUTO_FULLUP) {
+    self.opts.OPT_COMMIT_ON_FULL = true;
   }
 
   if (conf.KEYGROUPS) {
@@ -54,17 +60,16 @@ GenInp2 = function(name, conf) {
   switch (parseInt(conf.space_style || "-1")) {
     case 1:
       // Boshiamy, Dayi
-      self.opts.OPT_SPACE_COMMIT_ON_ANY = true;
+      self.opts.OPT_SELKEY_SHIFT = true;
       break;
 
     case 2:
       // Simplex.
-      self.opts.OPT_SPACE_COMMIT_ON_FULL = true;
+      self.opts.OPT_COMMIT_ON_FULL = true;
       break;
 
     case 4:
       // Windows Array30, Changjei.
-      self.opts.OPT_SPACE_COMMIT_NORMAL = true;
       break;
 
     case 8:
@@ -78,6 +83,20 @@ GenInp2 = function(name, conf) {
     default:
       trace("unknown space_style: ", conf.space_style);
       break;
+  }
+
+  var flag = parseInt(conf.flag || "0");
+  if (flag & 0x80) {  // FLAG_GTAB_PRESS_FULL_AUTO_SEND
+    self.opts.OPT_COMMIT_ON_FULL = true;
+  }
+  if (flag & 0x100) { // FLAG_GTAB_UNIQUE_AUTO_SEND
+    // Only seen on greek.cin
+    self.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE = true;
+  }
+
+  // Adjust any context data.
+  if (self.opts.OPT_SELKEY_SHIFT) {
+    self.selkey = ' ' + self.selkey;
   }
 }
 
@@ -210,6 +229,11 @@ GenInp2.prototype.new_instance = function(ctx) {
     return ctx.composition.length == 0;
   }
 
+  function IsFullComposition(ctx) {
+    return (conf.max_composition &&
+            ctx.composition.length >= conf.max_composition);
+  }
+
   function IsEmptyCandidates(ctx) {
     return ctx.candidates.length == 0;
   }
@@ -250,8 +274,7 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   function AddComposition(ctx, key) {
     trace(ctx, key);
-    if (conf.max_keystroke &&
-        ctx.composition.length >= conf.max_keystroke)
+    if (IsFullComposition(ctx))
       return false;
 
     var newgroup = GetCompositionKeyGroup(ctx, key);
@@ -352,12 +375,19 @@ GenInp2.prototype.new_instance = function(ctx) {
             return ConvertComposition(ctx);
           }
 
-          // See CanDoComposition for more information.
           if (IsCompositionKey(ctx, key) || CanDoComposition(ctx, key)) {
             if (AddComposition(ctx, key)) {
-              if (IsCompositionKey(ctx, key))
-                return ResultProcessed(ctx);
-              return ConvertComposition(ctx);
+              if (conf.opts.OPT_COMMIT_ON_FULL && IsFullComposition(ctx)) {
+                return ConvertComposition(ctx);
+              }
+              if (conf.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE &&
+                  IsSingleCandidate(ctx)) {
+                return ConvertComposition(ctx);
+              }
+              // See CanDoComposition for more information.
+              if (!IsCompositionKey(ctx, key))
+                return ConvertComposition(ctx);
+              return ResultProcessed(ctx);
             }
             return ResultError(ctx);
           }
