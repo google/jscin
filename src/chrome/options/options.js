@@ -419,11 +419,11 @@ function addCinTableToList(metadata, list_id) {
               }
               $(this).dialog("close");
 
-            } }, { text: _('optionReload'),
+            } });
+          if (url) buttons.push({ text: _('optionReload'),
             click: function() {
+              console.log(metadata);
               if (confirm(_("optionAreYouSure"))) {
-                removeCinTable(ename);
-                $('#' + id).remove();
                 addTableUrl(url, metadata.setting);
                 notifyConfigChanged();
               }
