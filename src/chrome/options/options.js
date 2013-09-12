@@ -321,11 +321,13 @@ function addTable(content, url) {
     }
     if (installCinTable(parsed_data, content)) {
       // Update the UI
-      addCinTableToList(parsed_data.metadata, '#enabled_im_list');
+      var name = parsed_data.metadata.ename;
+      addCinTableToList(parsed_data.metadata, '#enabled_im_list', true);
       setAddTableStatus("Table added successfully", false);
+      instance.prefInsertEnabledInputMethod(name);
       notifyConfigChanged();
       if ($('#save_to_drive').is(':checked')) {
-        SaveToDrive(parsed_data.metadata.ename, content);
+        SaveToDrive(name, content);
       }
     } else {
       setAddTableStatus("Table not added", true);
@@ -378,7 +380,7 @@ function installCinTable(data, raw_content) {
   return true;
 }
 
-function addCinTableToList(metadata, list_id) {
+function addCinTableToList(metadata, list_id, do_insert) {
   var ename = metadata.ename;
   var cname = metadata.cname;
   var url = metadata.url;
@@ -390,9 +392,12 @@ function addCinTableToList(metadata, list_id) {
   var display_name = cname + ' (' + ename + ')';
   var builtin_desc = builtin ? ' [' + _("optionBuiltin") + ']' : "";
 
-  $(list_id).append(
-      $('<li class="ui-state-default"></li>').attr('id', id).text(
-          display_name + builtin_desc));
+  var item = $('<li class="ui-state-default"></li>').attr('id', id).text(
+               display_name + builtin_desc);
+  if (do_insert)
+    $(list_id).prepend(item);
+  else
+    $(list_id).append(item);
 
   // TODO(hungte) Show details and dialog to edit this table.
   $('#' + id).prepend(icon).click(
@@ -460,7 +465,7 @@ function addCinTableToList(metadata, list_id) {
 
 function loadCinTables() {
   var metadatas = jscin.getTableMetadatas();
-  var tables = instance.pref.im_enabled_list;
+  var tables = getEnabledList();
   tables.forEach(function (name) {
     addCinTableToList(metadatas[name], '#enabled_im_list');
   });
@@ -478,11 +483,15 @@ function removeCinTable(name) {
   }
   instance.prefRemoveEnabledInputMethod(name);
   jscin.deleteTable(name);
-  jscin.deleteLocalStorage(jscin.kRawDataKeyPrefix + data.metadata.ename);
+  jscin.deleteLocalStorage(jscin.kRawDataKeyPrefix + name);
 }
 
 function notifyConfigChanged() {
   instance.on_config_changed();
+}
+
+function getEnabledList() {
+  return instance.pref.im_enabled_list;
 }
 
 function updateEnabledList(enabled) {

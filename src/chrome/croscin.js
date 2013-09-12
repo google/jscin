@@ -455,9 +455,9 @@ croscin.IME = function() {
     self.log("preferences saved.");
   }
 
-  self.prefAddEnabledInputMethod = function (name) {
+  self.prefInsertEnabledInputMethod = function (name) {
     if (self.pref.im_enabled_list.indexOf(name) < 0) {
-      self.pref.im_enabled_list.push(name);
+      self.pref.im_enabled_list.unshift(name);
       self.prefSetEnabledList(self.pref.im_enabled_list);
     }
   }
