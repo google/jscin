@@ -472,6 +472,7 @@ function removeCinTable(name) {
   }
   instance.prefRemoveEnabledInputMethod(name);
   jscin.deleteTable(name);
+  jscin.deleteLocalStorage(jscin.kRawDataKeyPrefix + data.metadata.ename);
 }
 
 function notifyConfigChanged() {
