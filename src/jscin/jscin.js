@@ -24,7 +24,6 @@ var jscin = {
   kTableDataKeyPrefix: "table_data-",
   kRawDataKeyPrefix: "raw_data-",
   kVersionKey: "version",
-  kCharMapKeyPrefix: "char_map-",
   kCrossQueryKey: "cross_query",
 
   modules: {},

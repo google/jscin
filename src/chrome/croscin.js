@@ -93,8 +93,7 @@ croscin.IME = function() {
       var metadata = jscin.getTableMetadatas();
       self.cross_query[crossQuery] = [
           (metadata && metadata[crossQuery]) ? metadata[crossQuery].cname : "",
-          jscin.readLocalStorage(
-              jscin.kTableDataKeyPrefix + crossQuery, {}).charToKey];
+          self.BuildCharToKeyMap(jscin.getTableData(crossQuery))];
     }
     var cname = self.cross_query[crossQuery][0];
     var char_map = self.cross_query[crossQuery][1];
@@ -317,7 +316,7 @@ croscin.IME = function() {
     return xhr.responseText;
   }
 
-  self.genCharToKeyMap = function(data) {
+  self.BuildCharToKeyMap = function(data) {
     var map = {};
     for(var key in data.chardef) {
       var chs = data.chardef[key];
@@ -336,7 +335,7 @@ croscin.IME = function() {
         }
       }
     }
-    data.charToKey = map;
+    return map;
   }
 
   self.LoadBuiltinTables = function(reload) {
@@ -367,7 +366,6 @@ croscin.IME = function() {
       self.log("croscin.LoadBuiltinTables: Load table:", table_name);
       var ename = metadata['ename'];
       metadata['builtin'] = true;
-      self.genCharToKeyMap(table_content);
       jscin.addTable(ename, metadata, table_content);
     }
   }
