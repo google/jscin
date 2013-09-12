@@ -334,7 +334,7 @@ GenInp2.prototype.new_instance = function(ctx) {
       return ResultError(ctx);
     }
     ShiftState(ctx);
-    if (IsSingleCandidate(ctx)) {
+    if (IsSingleCandidate(ctx) || conf.opts.OPT_SELKEY_SHIFT) {
       CommitText(ctx, 0);
       return ResultCommit(ctx);
     }
