@@ -38,6 +38,10 @@ GenInp2 = function(name, conf) {
     self.selkey = ' ' + self.selkey;
   }
 
+  if (conf.KEYGROUPS) {
+    self.keygroups = conf.KEYGROUPS;
+  }
+
   // gcin
   switch (parseInt(conf.space_style || "-1")) {
     case 1:
@@ -190,12 +194,50 @@ GenInp2.prototype.new_instance = function(ctx) {
     return ctx.candidates.length == 0;
   }
 
+  function GetCompositionKeyGroup(ctx, key) {
+    if (!conf.keygroups)
+      return undefined;
+    for (var g in conf.keygroups) {
+      if (conf.keygroups[g].toUpperCase().indexOf(key.toUpperCase()) >= 0)
+        return g;
+    }
+    return undefined;
+  }
+
+  function CreateCompositionByGroups(ctx, newgroup, key) {
+    trace("new_grouop", newgroup);
+    // modify composition to fit key groups.
+    var key_by_group = {};
+    for (var i = 0; i < ctx.composition.length; i++) {
+      var c = ctx.composition[i];
+      var cg = GetCompositionKeyGroup(ctx, c);
+      // If any composition is not grouped, abort.
+      if (!cg)
+        return false;
+      key_by_group[cg] = c;
+    }
+    trace("key_by_group", key_by_group);
+    key_by_group[newgroup] = key;
+    trace("key_by_group, key updated", key_by_group);
+    ctx.composition = '';
+    Object.keys(key_by_group).sort().forEach(function (g) {
+      ctx.composition += key_by_group[g];
+    });
+    return true;
+    // TODO(hungte) Make an index for DelComposition to delete last entered key,
+    // or only update the displayed composition.
+  }
+
   function AddComposition(ctx, key) {
     trace(ctx, key);
     if (conf.max_keystroke &&
         ctx.composition.length >= conf.max_keystroke)
       return false;
-    ctx.composition += key;
+
+    var newgroup = GetCompositionKeyGroup(ctx, key);
+    if (!newgroup || !CreateCompositionByGroups(ctx, newgroup, key)) {
+      ctx.composition += key;
+    }
     UpdateComposition(ctx);
     PrepareCandidates(ctx);
     return true;
@@ -249,6 +291,8 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   function ProcessCompositionStateKey(ctx, key) {
     if (IsEndKey(ctx, key)) {
+      if (IsEmptyComposition(ctx))
+        return ResultIgnored(ctx);
       trace('IsEndKey', key);
       AddComposition(ctx, key);
       key = ' ';
