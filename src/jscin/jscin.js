@@ -265,15 +265,17 @@ function dump_object(obj, indent) {
 //////////////////////////////////////////////////////////////////////////////
 // Debugging and unit tests
 
-function trace(s) {
+function trace() {
   var e = new Error();
   var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
   var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
-  var msg = prefix + s;
+  var msg = Array.prototype.slice.call(arguments);
+  msg.unshift(prefix);
+
   if (typeof(console) == typeof(undefined)) {
-    print(msg);
+    print.apply(null, msg);
   } else {
-    jscin.log(msg);
+    jscin.log.apply(null, msg);
   }
 }
 
