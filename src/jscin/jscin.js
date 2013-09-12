@@ -27,6 +27,7 @@ var jscin = {
   kCrossQueryKey: "cross_query",
 
   modules: {},
+  addons: [],
   input_methods: {},
 
   debug: false,
@@ -63,7 +64,13 @@ jscin.add_logger = function(logger, context) {
 jscin.register_module = function(name, constructor) {
   var self = jscin;
   self.modules[name] = constructor;
-  self.log("jscin: Registered module:" + name);
+  self.log("jscin: Registered module:", name);
+}
+
+jscin.register_addon = function(name, constructor) {
+  var self = jscin;
+  self.addons.push(constructor);
+  self.log("jscin: Registered addon:", name);
 }
 
 // Input method registration
@@ -101,7 +108,11 @@ jscin.create_input_method = function(name, context, data) {
   }
   self.log("jscin: Created input method instance: ", name);
   var module = jscin.input_methods[name]["module"];
-  return (new module(name, data)).new_instance(context);
+  var instance = (new module(name, data)).new_instance(context);
+  self.addons.forEach(function (addon) {
+    instance = new addon(instance);
+  });
+  return instance;
 }
 
 jscin.get_input_method_label = function(name) {

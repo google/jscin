@@ -59,6 +59,8 @@
     "Type: " },
   "optionQueryKeystrokes": {"message":
     "Display corresponding keystrokes of this input method."},
+  "optionRelatedText": {"message":
+    "Use Related Text input (press Shift + selection keys)."},
   "optionAreYouSure": {"message":
     "Are you sure?" },
 

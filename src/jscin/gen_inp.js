@@ -91,29 +91,6 @@ GenInp.prototype.new_instance = function(inpinfo) {
   self.mcch_hidx = 0;
   self.mcch_eidx = 0;
 
-  // TODO(hungte) Move this to configurable dictionary.
-  // Mapping from Windows and GCIN recommendation.
-  self.allow_ctrl_phrase = true;
-  self.ctrl_phrase = {
-    ',': '\uff0c',
-    '.': '\u3002',
-    '\'': '\u3001',
-    ';': '\uff1b',
-    '/': '\uff1f',  // Unfortunately this don't work on ChromeOS.
-    '[': '\u300c',
-    ']': '\u300d'
-  };
-
-  self.ctrl_shift_phrase = {
-    ':': '\uff1a',
-    '?': '\uff1f',  // Unfortunately this don't work on ChromeOS.
-    '{': '\uff5b',
-    '}': '\uff5d',
-    '!': '\uff01',
-    '(': '\uff08',
-    ')': '\uff09',
-  };
-
   inpinfo.keystroke = '';
   inpinfo.suggest_skeystroke = '';
 
@@ -569,12 +546,6 @@ GenInp.prototype.new_instance = function(inpinfo) {
       len = self.keystroke.length;
 
       if (keyinfo.ctrlKey) {
-        var result = (keyinfo.shiftKey ? self.ctrl_shift_phrase[keyinfo.key] :
-                      self.ctrl_phrase[keyinfo.key]);
-        if (inpinfo.allow_ctrl_phrase && result) {
-          commit_char(inpinfo, result);
-          return jscin.IMKEY_COMMIT;
-        }
         return jscin.IMKEY_IGNORE;  // don't support qphrase
       } else if (keyinfo.shiftKey) {
         if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {

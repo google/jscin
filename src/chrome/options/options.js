@@ -26,6 +26,7 @@ function init() {
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
       "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
       "optionTableDetailTypeHeader", "optionQueryKeystrokes",
+      "optionRelatedText",
       "optionSaveToDrive", "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS", "optionPunctuations",
       "optionAlertChangeSupportNonChromeOS",
@@ -168,6 +169,11 @@ function init() {
       "checked", instance.prefGetQuickPunctuations()).
       click(function() {
     instance.prefSetQuickPunctuations($(this).prop("checked"));
+  });
+  $('#checkRelatedText').prop(
+      "checked", instance.prefGetRelatedText()).
+      click(function() {
+    instance.prefSetRelatedText($(this).prop("checked"));
   });
 
   // To set default check state of checkboxes, do call button("refresh").

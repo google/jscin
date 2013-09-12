@@ -38,6 +38,7 @@ croscin.IME = function() {
   self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
   self.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
   self.kPrefDefaultEnabled = 'croscinPrefDefaultEnabled';
+  self.kPrefRelatedText = 'croscinPrefRelatedText';
 
   self.kPhrasesDatabase = 'croscinPhrasesDatabase';
 
@@ -46,6 +47,7 @@ croscin.IME = function() {
     im_enabled_list: [],
     support_non_chromeos: true,
     quick_punctuations: true,
+    related_text: true,
     default_enabled: true  // Only for non-ChromeOS.
   };
 
@@ -271,6 +273,7 @@ croscin.IME = function() {
       self.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
       self.imctx.allow_ctrl_phrase = self.prefGetQuickPunctuations();
+      self.imctx.allow_related_text = self.prefGetRelatedText();
       self.imctx.phrases = self.phrases;
       self.log("croscin.im:", self.im);
       self.InitializeUI();
@@ -394,6 +397,8 @@ croscin.IME = function() {
         self.kPrefSupportNonChromeOS, self.pref.support_non_chromeos);
     self.pref.default_enabled = jscin.readLocalStorage(
         self.kPrefDefaultEnabled, self.pref.default_enabled);
+    self.pref.related_text = jscin.readLocalStorage(
+        self.kPrefRelatedText, self.pref.related_text);
 
     // Normalize preferences.
     var metadatas = jscin.getTableMetadatas();
@@ -478,6 +483,17 @@ croscin.IME = function() {
     self.pref.quick_punctuations = new_value;
     // TODO(hungte) Change this dirty workaround to IM events.
     self.imctx.allow_ctrl_phrase = new_value;
+    self.SavePreferences();
+  }
+
+  self.prefGetRelatedText = function () {
+    return self.pref.related_text;
+  }
+
+  self.prefSetRelatedText = function (new_value) {
+    self.pref.related_text = new_value;
+    // TODO(hungte) Change this dirty workaround to IM events.
+    self.imctx.allow_related_text = new_value;
     self.SavePreferences();
   }
 

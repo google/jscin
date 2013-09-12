@@ -6,7 +6,6 @@
  */
 
 // TODO(hungte) SPACE_RESET (reset on error).
-// TODO(hungte) Installable modules (Ex, punctuations, phrase).
 
 GenInp2 = function(name, conf) {
   var self = this;
@@ -309,11 +308,6 @@ GenInp2.prototype.new_instance = function(ctx) {
     trace('COMMIT=', ctx.commit);
     // Compatible with gen_inp.
     ctx.cch = text;
-    if (ctx.phrases && ctx.phrases[text]) {
-      var candidates = ctx.phrases[text];
-      ctx.candidates = candidates;
-      UpdateCandidates(ctx);
-    }
     return true;
   }
 
