@@ -39,6 +39,8 @@ croscin.IME = function() {
   self.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
   self.kPrefDefaultEnabled = 'croscinPrefDefaultEnabled';
 
+  self.kPhrasesDatabase = 'croscinPhrasesDatabase';
+
   self.pref = {
     im_default: '',
     im_enabled_list: [],
@@ -269,6 +271,7 @@ croscin.IME = function() {
       self.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
       self.imctx.allow_ctrl_phrase = self.prefGetQuickPunctuations();
+      self.imctx.phrases = self.phrases;
       self.log("croscin.im:", self.im);
       self.InitializeUI();
     } else {
@@ -368,6 +371,13 @@ croscin.IME = function() {
       metadata['builtin'] = true;
       jscin.addTable(ename, metadata, table_content);
     }
+    // Load phrases
+    var phrases = jscin.readLocalStorage(self.kPhrasesDatabase, undefined);
+    if (reload || !phrases) {
+      phrases = JSON.parse(self.LoadExtensionResource("tables/tsi.json"));
+      jscin.writeLocalStorage(self.kPhrasesDatabase, phrases);
+    }
+    self.phrases = phrases;
   }
 
   self.LoadPreferences = function() {
