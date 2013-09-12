@@ -9,19 +9,23 @@
         "2": "ujm",
         "3": "89kilop-,;/.0"
       }
-    }
+    },
+    "detect": { "A": "ㄇ" }
   },
   {
     "ename": "ChangJei",
     "cname": "倉頡",
-    "options": {}
+    "options": {},
+    "detect": { "WIRM": "國" }
   },
   {
     "ename": "SimpleX",
     "cname": "簡易倉頡",
     "options": {
+      "max_keystroke": 2,
       "AUTO_FULLUP": true
-    }
+    },
+    "detect": { "AB": "晴" }
   },
   {
     "ename": "Boshiamy",
@@ -30,14 +34,16 @@
       "SELKEY_SHIFT": true,
       "SPACE_AUTOUP": true,
       "SPACE_RESET": true
-    }
+    },
+    "detect": { "A": "對" }
   },
   {
     "ename": "Dayi",
     "cname": "大易",
     "options": {
       "SELKEY_SHIFT": true
-    }
+    },
+    "detect": { "A": "人" }
   },
   {
     "ename": "Array30",
@@ -47,12 +53,20 @@
       "KEYSTROKE_REMAP": {
         "T": "的"
       }
-    }
+    },
+    "detect": { "A": "一" }
   },
   {
     "ename": "From Table",
     "cname": "由表格指定",
+    "from_table": true,
+    "options": {}
+  },
+  {
+    "ename": "Auto detect",
+    "cname": "自動偵測",
     "default": true,
+    "auto_detect": true,
     "options": {}
   }
 ]

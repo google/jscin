@@ -314,7 +314,7 @@ function addTable(content, url) {
   var parsed_result = parseCin(content);
   if (parsed_result[0]) {
     var parsed_data = parsed_result[1];
-    writeSettingToData(getSettingOption(), parsed_data);
+    writeSettingToData(getSettingOption(parsed_data), parsed_data);
     if (typeof url !== undefined) {
       parsed_data.metadata.url = url;
     }
@@ -355,11 +355,30 @@ function writeSettingToData(setting, parsed_data) {
   }
 }
 
-function getSettingOption() {
+function getSettingOption(data) {
   var setting_options = JSON.parse(
       LoadExtensionResource("options/builtin_options.json"));
   var setting = setting_options[
       document.getElementById("add_table_setting").selectedIndex];
+  if (setting.auto_detect) {
+    var matched = undefined;
+    var from_table = undefined;
+    setting_options.forEach(function (opt) {
+      if (opt.from_table)
+        from_table = opt.from_table;
+      if (!opt.detect || matched)
+        return;
+
+      for (var key in opt.detect) {
+        if (!data.data.chardef[key] ||
+            data.data.chardef[key].indexOf(opt.detect[key]) < 0)
+          return;
+      }
+      console.log("matched:", opt);
+      matched = opt;
+    });
+    return matched || from_table || setting;
+  }
   return setting;
 }
 
