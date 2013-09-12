@@ -450,6 +450,8 @@ croscin.IME = function() {
                             self.pref.quick_punctuations);
     jscin.writeLocalStorage(self.kPrefDefaultEnabled,
                             self.pref.default_enabled);
+    jscin.writeLocalStorage(self.kPrefRelatedText,
+                            self.pref.related_text);
     self.log("preferences saved.");
   }
 
