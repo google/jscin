@@ -3,7 +3,12 @@
     "ename": "Phonetic",
     "cname": "注音",
     "options": {
-      "AUTO_COMPOSE": false
+      "AUTO_COMPOSE": false,
+      "KEYGROUPS": {
+        "1": "1qaz2wxsedcrfv5tgbyhn",
+        "2": "ujm",
+        "3": "89kilop-,;/.0"
+      }
     }
   },
   {
