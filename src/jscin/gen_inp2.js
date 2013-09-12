@@ -42,6 +42,14 @@ GenInp2 = function(name, conf) {
     self.keygroups = conf.KEYGROUPS;
   }
 
+  if (conf.KEYSTROKE_REMAP) {
+    self.override_table = conf.KEYSTROKE_REMAP;
+  }
+
+  if (conf.quickkey) {
+    self.override_table = conf.quickkey;
+  }
+
   // gcin
   switch (parseInt(conf.space_style || "-1")) {
     case 1:
@@ -173,17 +181,29 @@ GenInp2.prototype.new_instance = function(ctx) {
     return true;
   }
 
-  function PrepareCandidates(ctx) {
+  function PrepareCandidates(ctx, allow_override) {
     trace(ctx.composition);
+    var table = conf.table;
+    var key = ctx.composition.toUpperCase();
     // TODO(hungte) Currently cin_parser concats everything into a big string,
     // so candidates is a string. We should make it into an array.
-    ctx.candidates = conf.table[ctx.composition.toUpperCase()] || '';
+    if (allow_override && conf.override_table && conf.override_table[key])
+      table = conf.override_table;
+    ctx.candidates = table[key] || '';
     UpdateCandidates(ctx);
     return ctx.candidates.length > 0;
   }
 
   function IsCompositionKey(ctx, key) {
     return key.toUpperCase() in conf.keyname;
+  }
+
+  function CanDoComposition(ctx, key) {
+    // Some CIN tables like Array30 may include special keys (ex, selection
+    // keys) as part of composition.
+    if (conf.table[(ctx.composition + key).toUpperCase()])
+      return true;
+    return false;
   }
 
   function IsEmptyComposition(ctx) {
@@ -284,19 +304,27 @@ GenInp2.prototype.new_instance = function(ctx) {
     return CommitText(ctx, index);
   }
 
+  function ConvertComposition(ctx) {
+    if (IsEmptyComposition(ctx))
+      return ResultIgnored(ctx);
+    if (!PrepareCandidates(ctx, true)) {
+      return ResultError(ctx);
+    }
+    ShiftState(ctx);
+    if (IsSingleCandidate(ctx)) {
+      CommitText(ctx, 0);
+      return ResultCommit(ctx);
+    }
+    return ResultProcessed(ctx);
+  }
+
   function NotifyError(ctx) {
     trace('BEEP');
     // beep.
   }
 
-  function ProcessCompositionStateKey(ctx, key) {
-    if (IsEndKey(ctx, key)) {
-      if (IsEmptyComposition(ctx))
-        return ResultIgnored(ctx);
-      trace('IsEndKey', key);
-      AddComposition(ctx, key);
-      key = ' ';
-    }
+  function ProcessCompositionStateKey(ctx, ev) {
+    var key = ev.key;
 
     switch (key) {
       case 'Backspace':
@@ -311,36 +339,56 @@ GenInp2.prototype.new_instance = function(ctx) {
         return ResultProcessed(ctx);
 
       case ' ':
-        if (IsEmptyComposition(ctx))
-          return ResultIgnored(ctx);
-        if (!PrepareCandidates(ctx)) {
-          return ResultError(ctx);
-        }
-        ShiftState(ctx);
-        if (IsSingleCandidate(ctx)) {
-          CommitText(ctx, 0);
-          return ResultCommit(ctx);
-        }
-        return ResultProcessed(ctx);
+        return ConvertComposition(ctx);
 
       default:
-        if (!IsCompositionKey(ctx, key)) {
-          if (IsSelectionKey(ctx, key) && !IsEmptyCandidates(ctx)) {
-            if (SelectCommit(ctx, key))
-              return ResultCommit(ctx);
+        // When shift+selection key, always treat it like "selection".
+        if (!ev.shiftKey) {
+          if (IsEndKey(ctx, key)) {
+            trace('IsEndKey', key);
+            if (IsEmptyComposition(ctx))
+              return ResultIgnored(ctx);
+            AddComposition(ctx, key);
+            return ConvertComposition(ctx);
+          }
+
+          // See CanDoComposition for more information.
+          if (IsCompositionKey(ctx, key) || CanDoComposition(ctx, key)) {
+            if (AddComposition(ctx, key)) {
+              if (IsCompositionKey(ctx, key))
+                return ResultProcessed(ctx);
+              return ConvertComposition(ctx);
+            }
             return ResultError(ctx);
           }
-          return ResultIgnored(ctx);
         }
 
-        if (AddComposition(ctx, key))
-          return ResultProcessed(ctx);
-        return ResultError(ctx);
+        if (IsSelectionKey(ctx, key) && !IsEmptyCandidates(ctx)) {
+          if (SelectCommit(ctx, key))
+            return ResultCommit(ctx);
+          return ResultError(ctx);
+        }
+        break;
     }
     return ResultIgnored(ctx);
   }
 
-  function ProcessCandidatesStateKey(ctx, key) {
+  function ProcessCandidatesStateKey(ctx, ev) {
+    var key = ev.key;
+    if (ev.shiftKey) {
+      switch (key) {
+        case ',':
+          key = '<';
+          break;
+        case '.':
+          key = '>';
+          break;
+        default:
+          if (!IsSelectionKey(ctx, key))
+            return ResultIgnored(ctx);
+          break;
+      }
+    }
     switch (key) {
       case 'Esc':
         ResetContext(ctx);
@@ -354,12 +402,14 @@ GenInp2.prototype.new_instance = function(ctx) {
       case 'Left':
       case 'PageUp':
       case 'Up':
+      case '<':
         CycleCandidates(ctx, -1);
         return ResultProcessed(ctx);
 
       case 'Right':
       case 'PageDown':
       case 'Down':
+      case '>':
         CycleCandidates(ctx);
         return ResultProcessed(ctx);
 
@@ -387,14 +437,14 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   self.onKeystroke = function(ctx, ev) {
     trace(ev);
-    if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey || ev.shiftKey)
+    if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
       return ResultIgnored(ctx);
 
     switch (ctx.state) {
       case conf.STATE_COMPOSITION:
-        return ProcessCompositionStateKey(ctx, ev.key);
+        return ProcessCompositionStateKey(ctx, ev);
       case conf.STATE_CANDIDATES:
-        return ProcessCandidatesStateKey(ctx, ev.key);
+        return ProcessCandidatesStateKey(ctx, ev);
     }
     return ResultIgnored(ctx);
   }
