@@ -39,6 +39,10 @@ GenInp2 = function(name, conf) {
     self.opts.OPT_SELKEY_SHIFT = true;
   }
 
+  if (conf.SPACE_AUTOUP) {
+    self.opts.OPT_SPACE_AUTOUP = true;
+  }
+
   if (conf.AUTO_FULLUP) {
     self.opts.OPT_COMMIT_ON_FULL = true;
   }
@@ -58,8 +62,9 @@ GenInp2 = function(name, conf) {
   // gcin
   switch (parseInt(conf.space_style || "-1")) {
     case 1:
-      // Boshiamy, Dayi
+      // Boshiamy
       self.opts.OPT_SELKEY_SHIFT = true;
+      self.opts.OPT_SPACE_AUTOUP = true;
       break;
 
     case 2:
@@ -72,8 +77,8 @@ GenInp2 = function(name, conf) {
       break;
 
     case 8:
-      // Dayi: input:2, select:1 (?)
-      self.opts.OPT_SPACE_COMMIT_DAYI = true;
+      // Dayi.
+      self.opts.OPT_SELKEY_SHIFT = true;
       break;
 
     case -1:
@@ -333,7 +338,7 @@ GenInp2.prototype.new_instance = function(ctx) {
       return ResultError(ctx);
     }
     ShiftState(ctx);
-    if (IsSingleCandidate(ctx) || conf.opts.OPT_SELKEY_SHIFT) {
+    if (IsSingleCandidate(ctx) || conf.opts.OPT_SPACE_AUTOUP) {
       CommitText(ctx, 0);
       return ResultCommit(ctx);
     }

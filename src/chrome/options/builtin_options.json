@@ -17,14 +17,26 @@
     "options": {}
   },
   {
+    "ename": "SimpleX",
+    "cname": "簡易倉頡",
+    "options": {
+      "AUTO_FULLUP": true
+    }
+  },
+  {
     "ename": "Boshiamy",
     "cname": "嘸蝦米",
     "options": {
-      "AUTO_COMPOSE": true,
-      "AUTO_UPCHAR": true,
       "SELKEY_SHIFT": true,
       "SPACE_AUTOUP": true,
       "SPACE_RESET": true
+    }
+  },
+  {
+    "ename": "Dayi",
+    "cname": "大易",
+    "options": {
+      "SELKEY_SHIFT": true
     }
   },
   {
