@@ -365,7 +365,7 @@ function getSettingOption(data) {
     var from_table = undefined;
     setting_options.forEach(function (opt) {
       if (opt.from_table)
-        from_table = opt.from_table;
+        from_table = opt;
       if (!opt.detect || matched)
         return;
 
@@ -417,13 +417,16 @@ function addCinTableToList(metadata, list_id, do_insert) {
   else
     $(list_id).append(item);
 
+  var setting_display_name = (
+      setting ? (setting.cname || "") + " (" + (setting.ename || "") + ")" :
+      _("optionBuiltin"));
+
   // TODO(hungte) Show details and dialog to edit this table.
   $('#' + id).prepend(icon).click(
       function() {
         $('.optionTableDetailName').text(display_name);
         $('.optionTableDetailSource').text(builtin ? _("optionBuiltin") : url);
-        $('.optionTableDetailType').text(setting ? setting.ename :
-          _("optionBuiltin"));
+        $('.optionTableDetailType').text(setting_display_name);
         $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == ename);
         var buttons = [ { text: ' OK ',
           click: function () {
