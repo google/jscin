@@ -301,11 +301,12 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.debug("Snapshot - IM:", result);
       if (!name) {
         self.debug("Remote IM is not ready... good luck.");
+        // TODO(hungte) Don't continue.
         return;
       }
       jscin.register_input_method(name, 'GenInp', 'snapshot');
-      self.imctx = result.imctx;
-      self.im = jscin.create_input_method(name, {}, result.im_data);
+      self.imctx = result.imctx || {};
+      self.im = jscin.create_input_method(name, self.imctx, result.im_data);
     });
   }
 
