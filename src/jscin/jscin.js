@@ -25,6 +25,8 @@ var jscin = {
   kRawDataKeyPrefix: "raw_data-",
   kVersionKey: "version",
   kCrossQueryKey: "cross_query",
+  kModuleNameKey: 'default_module_name',
+  kDefaultModuleName: 'GenInp2',
 
   modules: {},
   addons: [],
@@ -65,6 +67,10 @@ jscin.register_module = function(name, constructor) {
   var self = jscin;
   self.modules[name] = constructor;
   self.log("jscin: Registered module:", name);
+}
+
+jscin.get_registered_modules = function () {
+  return Object.keys(jscin.modules);
 }
 
 jscin.register_addon = function(name, constructor) {
@@ -132,9 +138,10 @@ jscin.reload_configuration = function() {
   var count_ims = 0;
   var any_im = '';
   var metadatas = self.getTableMetadatas();
+  var module_name = self.getDefaultModuleName();
   for (var name in metadatas) {
     // TODO(hungte) support more modules in future.
-    self.register_input_method(name, 'GenInp', metadatas[name].cname);
+    self.register_input_method(name, module_name, metadatas[name].cname);
     if (!any_im)
       any_im = name;
     count_ims++;
@@ -178,6 +185,20 @@ jscin.addTable = function (name, metadata, data) {
 
 jscin.getTableMetadatas = function () {
   return jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+}
+
+jscin.getDefaultModuleName = function () {
+  var name = jscin.readLocalStorage(jscin.kModuleNameKey,
+                                    jscin.kDefaultModuleName);
+  if (jscin.get_registered_modules().indexOf(name) < 0) {
+    trace("Default module not available:", name);
+    name = jscin.kDefaultModuleName;
+  }
+  return name;
+}
+
+jscin.setDefaultModuleName = function (new_value) {
+  jscin.writeLocalStorage(jscin.kModuleNameKey, new_value);
 }
 
 jscin.getTableData = function (name) {

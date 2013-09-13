@@ -176,11 +176,26 @@ function init() {
     instance.prefSetRelatedText($(this).prop("checked"));
   });
 
+
   // To set default check state of checkboxes, do call button("refresh").
   $('#checkDebugMessage').prop("checked", instance.debug).
       click(function() {
-    instance.onDebugModeChange($(this).prop("checked"));
+    instance.setDebugMode($(this).prop("checked"));
   });
+  var module_form = $('#formSelectModule');
+  var def_module = instance.getDefaultModule();
+  module_form.empty();
+  var im_modules = instance.getAvailableModules();
+  im_modules.forEach(function (name) {
+    module_form.append(
+        $('<input type=radio class=radio name=moduleRadio/>').attr("id", name).
+        click(function () {
+          instance.setDefaultModule(name);
+        }));
+    module_form.append($('<label/>').attr("for", name).text(name));
+  });
+  $('#' + def_module).prop("checked", true);
+  $('#formSelectModule').buttonset();
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
 }
@@ -508,7 +523,7 @@ function removeCinTable(name) {
 }
 
 function notifyConfigChanged() {
-  instance.on_config_changed();
+  instance.notifyConfigChanged();
 }
 
 function getEnabledList() {

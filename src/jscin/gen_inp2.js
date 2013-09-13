@@ -524,6 +524,5 @@ GenInp2.prototype.new_instance = function(ctx) {
 }
 
 // Entry stub
-jscin.register_module('GenInp', GenInp2);
-jscin.debug = true;
+jscin.register_module('GenInp2', GenInp2);
 

@@ -520,6 +520,32 @@ croscin.IME = function() {
                             self.pref.default_enabled);
   }
 
+  self.getDefaultModule = function () {
+    return jscin.getDefaultModuleName();
+  }
+
+  self.setDefaultModule = function (new_value) {
+    return jscin.setDefaultModuleName(new_value);
+  }
+
+  self.getAvailableModules = function () {
+    return jscin.get_registered_modules();
+  }
+
+  self.setDebugMode = function(new_value) {
+    console.log("croscin.setDebugMode:", new_value);
+    jscin.writeLocalStorage('debug', new_value);
+    jscin.debug = new_value;
+    self.debug = new_value;
+  }
+
+  self.notifyConfigChanged = function() {
+    // Some configuration is changed - we need to validate and refresh all.
+    self.log("croscin.notifyConfigChanged: notified.");
+    jscin.reload_configuration();
+    self.InitializeUI();
+  }
+
   function Initialize() {
     // Initialization.
     var version = chrome.runtime.getManifest().version;
@@ -690,20 +716,6 @@ croscin.IME.prototype.registerEventHandlers = function() {
     ime_api.onImplCommit.addListener(function () {
       self.Commit.apply(self, arguments);
     });
-  }
-
-  self.onDebugModeChange = function(new_value) {
-    console.log("croscin.onDebugModeChange:", new_value);
-    jscin.writeLocalStorage('debug', new_value);
-    jscin.debug = new_value;
-    self.debug = new_value;
-  }
-
-  self.on_config_changed = function() {
-    // Some configuration is changed - we need to validate and refresh all.
-    self.log("croscin.on_config_changed: notified.");
-    jscin.reload_configuration();
-    self.InitializeUI();
   }
 
   window.jscin = jscin;

@@ -35,6 +35,7 @@
         "input_api/impl_chromeext.js",
         "jscin/jscin.js",
         "jscin/gen_inp.js",
+        "jscin/gen_inp2.js",
         "jscin/mod_related.js",
         "jscin/mod_punctuations.js",
         "content.js"
