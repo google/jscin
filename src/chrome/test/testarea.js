@@ -64,7 +64,8 @@ function test_setMenuItems(labels_array) {
 }
 
 $(function() {
-  chrome.input = { ime: new ChromeInputIME };
+  var ime_api = new ChromeInputIME;
+  chrome.input = { ime: ime_api };
   var impl = new ChromeInputImeImplPage;
 
   chrome.input.ime.onUiMenu.addListener(function (engine) {
@@ -74,7 +75,7 @@ $(function() {
       var label = item.label || item.id;
       ui.append(
           $('<li/>', {text: label}).click(function () {
-            chrome.input.ime.dispatchEvent(
+            ime_api.dispatchEvent(
                 'MenuItemActivated', engine.engineID,
                 engine.menuitems[$(this).index()].id);
           }));
@@ -98,8 +99,9 @@ $(function() {
       ui.append(
           $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
           click(function () {
-            chrome.input.ime.dispatchEvent('CandidateClicked',
-              "", item.id, 'left'); }).
+            console.log("CandidateClicked", item);
+            ime_api.dispatchEvent('CandidateClicked',
+              ime_api.engineID, item.id, 'left'); }).
           prepend($('<span/>', {text: label, "class": "candidate_label"})));
     });
   });
