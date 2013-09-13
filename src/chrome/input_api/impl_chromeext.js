@@ -83,6 +83,7 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
     IpcSnapshotIME: function () {
       self.debug("IpcSnapshotIME");
       return {
+        im_module: jscin.getDefaultModuleName(),
         im_data: jscin.getTableData(croscin.instance.im_name),
         im_name: croscin.instance.im_name,
         imctx: croscin.instance.imctx }; },
@@ -304,7 +305,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         // TODO(hungte) Don't continue.
         return;
       }
-      jscin.register_input_method(name, 'GenInp', 'snapshot');
+      jscin.register_input_method(name, result.im_module, 'snapshot');
       self.imctx = result.imctx || {};
       self.im = jscin.create_input_method(name, self.imctx, result.im_data);
     });
