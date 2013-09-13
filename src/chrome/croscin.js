@@ -47,7 +47,7 @@ croscin.IME = function() {
     im_enabled_list: [],
     support_non_chromeos: true,
     quick_punctuations: true,
-    related_text: true,
+    related_text: false,
     default_enabled: true  // Only for non-ChromeOS.
   };
 
