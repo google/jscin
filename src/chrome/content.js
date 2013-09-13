@@ -5,7 +5,6 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) Get fully serialized jscin, or totally do jscin in content side.
 // TODO(hungte) Support dynamic DOM nodes better.
 // TODO(hungte) Load jquery on demand.
 

@@ -62,6 +62,9 @@ jscin.add_logger = function(logger, context) {
   }
 }
 
+// TODO(hungte) Write a conversion from ChromeOS KeyboardEvent.code
+// to our keys.
+
 // ChromeOS returns key='!' for Shift+1,
 // but translation from Chrome keyCode will be '1' for Shift+1.
 jscin.unshift_key = function(key) {
