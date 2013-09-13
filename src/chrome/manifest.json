@@ -33,6 +33,7 @@
         "input_api/ipc.js",
         "input_api/ime_event.js",
         "input_api/impl_chromeext.js",
+        "jscin/lz-string.js",
         "jscin/jscin.js",
         "jscin/gen_inp.js",
         "jscin/gen_inp2.js",

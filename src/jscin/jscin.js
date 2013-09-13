@@ -262,6 +262,8 @@ jscin.readLocalStorage = function (key, default_value) {
   if (!data) {
     return default_value;
   }
+  if (data[0] == '!')
+    data = LZString.decompress(data.substr(1));
   return JSON.parse(data);
 }
 
@@ -269,7 +271,10 @@ jscin.writeLocalStorage = function (key, data) {
   if (typeof(localStorage) == typeof(undefined)) {
     localStorage = {};
   }
-  localStorage[key] = JSON.stringify(data);
+  var val = JSON.stringify(data);
+  if (val.length > 100)
+    val = '!' + LZString.compress(val);
+  localStorage[key] = val;
 }
 
 jscin.deleteLocalStorage = function (key) {
