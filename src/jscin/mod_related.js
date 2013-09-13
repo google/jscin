@@ -36,7 +36,7 @@ ModRelatedText = function(im) {
   self.onKeystroke = function(ctx, ev) {
     if (!ctx.allow_related_text)
       return self.im.onKeystroke(ctx, ev);
-    var key = ev.key;
+    var key = jscin.unshift_key(ev.key);
     if (!ev.ctrlKey && !ev.altKey && ev.shiftKey &&
         ctx.mcch && ctx.mcch == self.last_mcch &&
         InSelectionKey(ctx, key) &&
