@@ -11,7 +11,8 @@ function parseCin(cin_input) {
   var lines = cin_input.split('\n');
   var data = {};
   var runningcmd = null;
-  var table_command = { 'keyname': 1, 'quick': 1, 'chardef': 1,
+  var table_command = { 'keyname': 1, 'chardef': 1,
+                        'quick': 1, 'quickkey': 1,
                         'KEYSTROKE_REMAP': 1, 'KEYGROUPS': 1 };
 
   var failed = function(lineno, msg) {

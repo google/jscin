@@ -33,30 +33,41 @@ GenInp2 = function(name, conf) {
   self.max_composition = parseInt(conf.max_keystroke || "0");
   self.endkey = conf.endkey || "";
   self.opts = {};
+  // The table to override when converting composition to candidates.
+  self.override_conversion = undefined;
+  // The table to override when composition is not explicitly converted.
+  // Only available for user to select via selection keys.
+  self.override_selection = undefined;
 
-  // jscin gen_input v1
-  if (conf.SELKEY_SHIFT) {
-    self.opts.OPT_SELKEY_SHIFT = true;
+  var opts_remap = {
+    SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
+    SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
+    AUTO_FULLUP: 'OPT_COMMIT_ON_FULL'
+  };
+
+  var conf_remap = {
+    KEYGROUPS: 'keygroups',
+    KEYSTROKE_REMAP: 'override_conversion',
+
+    // quickkey is found on XCIN2.3 (and deprecated in XCIN 2.5).
+    quickkey: 'override_selection',
+    // quick is supported by GCIN.
+    quick: 'override_selection',
+  };
+
+  var key;
+  for (key in opts_remap) {
+    if (key in conf) {
+      self.opts[opts_remap[key]] = conf[key];
+      console.log("remap", key, self.opts);
+    }
   }
 
-  if (conf.SPACE_AUTOUP) {
-    self.opts.OPT_SPACE_AUTOUP = true;
-  }
-
-  if (conf.AUTO_FULLUP) {
-    self.opts.OPT_COMMIT_ON_FULL = true;
-  }
-
-  if (conf.KEYGROUPS) {
-    self.keygroups = conf.KEYGROUPS;
-  }
-
-  if (conf.KEYSTROKE_REMAP) {
-    self.override_table = conf.KEYSTROKE_REMAP;
-  }
-
-  if (conf.quickkey) {
-    self.override_table = conf.quickkey;
+  for (key in conf_remap) {
+    if (key in conf) {
+      self[conf_remap[key]] = conf[key];
+      console.log("remap[conf]", key, self);
+    }
   }
 
   // gcin
@@ -204,17 +215,27 @@ GenInp2.prototype.new_instance = function(ctx) {
     return true;
   }
 
-  function PrepareCandidates(ctx, allow_override) {
+  function PrepareCandidates(ctx, as_convert) {
     trace(ctx.composition);
     var table = conf.table;
     var key = ctx.composition.toUpperCase();
+    if (as_convert) {
+      if (conf.override_conversion && conf.override_conversion[key])
+        table = conf.override_conversion;
+    } else {
+      if (conf.override_selection && conf.override_selection[key])
+        table = conf.override_selection;
+    }
     // TODO(hungte) Currently cin_parser concats everything into a big string,
     // so candidates is a string. We should make it into an array.
-    if (allow_override && conf.override_table && conf.override_table[key])
-      table = conf.override_table;
     ctx.candidates = table[key] || '';
     UpdateCandidates(ctx);
     return ctx.candidates.length > 0;
+  }
+
+  function InOverrideSelection(ctx) {
+    return (conf.override_selection &&
+            conf.override_selection[(ctx.composition).toUpperCase()]);
   }
 
   function IsCompositionKey(ctx, key) {
@@ -240,6 +261,11 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   function IsEmptyCandidates(ctx) {
     return ctx.candidates.length == 0;
+  }
+
+  function InOverrideSelection(ctx) {
+    return (conf.override_selection &&
+            conf.override_selection[ctx.composition.toUpperCase()]);
   }
 
   function GetCompositionKeyGroup(ctx, key) {
@@ -321,6 +347,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function IsEndKey(ctx, key) {
+    trace(ctx, key);
     return conf.endkey && conf.endkey.indexOf(key.toUpperCase()) >= 0;
   }
 
@@ -369,16 +396,24 @@ GenInp2.prototype.new_instance = function(ctx) {
         return ConvertComposition(ctx);
 
       default:
+        // Some keys may be EndKey, SelectionKey, and CompositionKey at the same
+        // time. For Phonetic, EndKey is always used in the end.
+        // For Array30/GCIN, there are three cases for [0-9] (end,sel,comp):
+        //  - L1/L2 QUICK, use Selection Key.
+        //  - W[0-9], use EndKey (CanDoComposition).
         // When shift+selection key, always treat it like "selection".
-        if (!ev.shiftKey) {
-          if (IsEndKey(ctx, key)) {
-            trace('IsEndKey', key);
-            if (IsEmptyComposition(ctx))
-              return ResultIgnored(ctx);
+        while (!ev.shiftKey) {
+
+          if (IsEndKey(ctx, key) && CanDoComposition(ctx, key)) {
             AddComposition(ctx, key);
             return ConvertComposition(ctx);
           }
 
+          if (IsSelectionKey(ctx, key) && InOverrideSelection(ctx, key))
+            break;
+
+          // For Array30/XCIN25, W[0-9] are defined while [0-9] are not
+          // composition keys.
           if (IsCompositionKey(ctx, key) || CanDoComposition(ctx, key)) {
             if (AddComposition(ctx, key)) {
               if (conf.opts.OPT_COMMIT_ON_FULL && IsFullComposition(ctx)) {
@@ -395,6 +430,7 @@ GenInp2.prototype.new_instance = function(ctx) {
             }
             return ResultError(ctx);
           }
+          break;
         }
 
         if (IsSelectionKey(ctx, key) && !IsEmptyCandidates(ctx)) {
