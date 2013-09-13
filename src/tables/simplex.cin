@@ -2,6 +2,7 @@
 %ename simplex
 %cname 簡易倉頡
 %selkey 123456789
+%space_style 2
 %keyname begin
 a 日
 b 月
@@ -13139,7 +13140,7 @@ zd	「
 ze	．
 ze	（
 ze	」
-zf	‧
+zf	•
 zf	）
 zf	﹁
 zg	；
