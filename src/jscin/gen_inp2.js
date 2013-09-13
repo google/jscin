@@ -59,14 +59,12 @@ GenInp2 = function(name, conf) {
   for (key in opts_remap) {
     if (key in conf) {
       self.opts[opts_remap[key]] = conf[key];
-      console.log("remap", key, self.opts);
     }
   }
 
   for (key in conf_remap) {
     if (key in conf) {
       self[conf_remap[key]] = conf[key];
-      console.log("remap[conf]", key, self);
     }
   }
 

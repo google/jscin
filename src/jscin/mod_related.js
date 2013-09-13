@@ -49,7 +49,7 @@ ModRelatedText = function(im) {
     if (result != jscin.IMKEY_COMMIT)
       return result;
 
-    console.log("mod_related on COMMIT", ctx, ev);
+    jscin.log("mod_related on COMMIT", ctx, ev);
     var text = ctx.cch;
     var candidates = ctx.phrases && ctx.phrases[text];
     if (!candidates)

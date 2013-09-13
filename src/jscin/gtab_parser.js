@@ -72,10 +72,8 @@ MyView.prototype.detectEndian = function() {
   var KeyS_first_byte = this.view.getUint8(56);
   // key size should not be more than 255
   if(KeyS_first_byte) {
-    console.log("gtab: little endian");
     this.littleEndian = true;
   } else {
-    console.log("gtab: big endian");
     this.littleEndian = false;
   }
 }
