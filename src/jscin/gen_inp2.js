@@ -138,7 +138,6 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function ResetContext(ctx) {
-    trace(ctx);
     ctx.state = conf.STATE_COMPOSITION;
     ctx.composition = '';
     ctx.candidates = [];
@@ -154,7 +153,6 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function UpdateCandidates(ctx) {
-    trace(ctx);
     // Compatible with gen_inp.
     ctx.mcch = ctx.candidates.substr(
         ctx.candidates_start_index, conf.selkey.length);
@@ -194,7 +192,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function CycleCandidates(ctx, direction) {
-    trace(ctx, direction);
+    trace(ctx.candidates, ctx.candidates_start_index, direction);
     if (!CanCycleCandidates(ctx))
       return false;
     direction = direction || 1;
@@ -301,7 +299,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function AddComposition(ctx, key) {
-    trace(ctx, key);
+    trace(ctx.composition, key);
     if (IsFullComposition(ctx))
       return false;
 
@@ -315,7 +313,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function DelComposition(ctx) {
-    trace(ctx);
+    trace(ctx.composition);
     if (!ctx.composition.length)
       return false;
     ctx.composition = ctx.composition.replace(/.$/, '');
@@ -345,12 +343,12 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function IsEndKey(ctx, key) {
-    trace(ctx, key);
+    trace(key);
     return conf.endkey && conf.endkey.indexOf(key.toUpperCase()) >= 0;
   }
 
   function SelectCommit(ctx, key) {
-    trace(ctx, key);
+    trace(ctx.candidates, ctx.candidates_start_index, key);
     var index = (ctx.candidates_start_index +
                  conf.selkey.indexOf(key.toUpperCase()));
     return CommitText(ctx, index);
@@ -457,6 +455,7 @@ GenInp2.prototype.new_instance = function(ctx) {
           break;
       }
     }
+
     switch (key) {
       case 'Esc':
         ResetContext(ctx);
