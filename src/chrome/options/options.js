@@ -30,6 +30,7 @@ function init() {
       "optionSaveToDrive", "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS", "optionPunctuations",
       "optionAlertChangeSupportNonChromeOS",
+      "optionSelectDefaultInputModule", "optionSandbox",
       "optionDebug", "optionDebugMessage");
 
 
@@ -191,6 +192,7 @@ function init() {
         $('<input type=radio class=radio name=moduleRadio/>').attr("id", name).
         click(function () {
           instance.setDefaultModule(name);
+          alert(_("optionReloadExtensionOrRestart"));
         }));
     module_form.append($('<label/>').attr("for", name).text(name));
   });

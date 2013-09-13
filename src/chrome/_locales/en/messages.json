@@ -81,6 +81,12 @@
     "Debug and development" },
   "optionDebugMessage": {"message":
     "Print debug messages" },
+  "optionSelectDefaultInputModule": {"message":
+    "Select default general input module:" },
+  "optionSandbox": {"message":
+    "Testing sandbox:" },
+  "optionReloadExtensionOrRestart": {"message":
+    "Please reload extension or restart browser." },
 
   "crossQueryAuxText": {"message":
     "Look up: "},

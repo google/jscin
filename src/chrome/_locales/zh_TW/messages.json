@@ -81,6 +81,12 @@
     "除錯與開發" },
   "optionDebugMessage": {"message":
     "印出除錯訊息" },
+  "optionSelectDefaultInputModule": {"message":
+    "選擇預設通用輸入模組:" },
+  "optionSandbox": {"message":
+    "內部測試工具:" },
+  "optionReloadExtensionOrRestart": {"message":
+    "請重新載入 Extension 或重開瀏覽器。" },
 
   "crossQueryAuxText": {"message":
     "反查: "},
