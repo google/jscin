@@ -11,21 +11,21 @@ ModPunctuations = function(im) {
   self.ctrl_phrase = {
     ',': '\uff0c',
     '.': '\u3002',
-    '\'': '\u3001',
+    "'": '\u3001',
     ';': '\uff1b',
-    '/': '\uff1f',  // Unfortunately this don't work on ChromeOS.
+    '/': '\uff1f',  // Unfortunately this don't work well on ChromeOS.
     '[': '\u300c',
     ']': '\u300d'
   };
 
   self.ctrl_shift_phrase = {
-    ':': '\uff1a',
-    '?': '\uff1f',  // Unfortunately this don't work on ChromeOS.
-    '{': '\uff5b',
-    '}': '\uff5d',
-    '!': '\uff01',
-    '(': '\uff08',
-    ')': '\uff09',
+    ';': '\uff1a',
+    '/': '\uff1f',  // Unfortunately this don't work well on ChromeOS.
+    '[': '\uff5b',
+    ']': '\uff5d',
+    '1': '\uff01',
+    '9': '\uff08',
+    '0': '\uff09',
   };
 
   self.onKeystroke = function(ctx, ev) {
@@ -34,11 +34,14 @@ ModPunctuations = function(im) {
     if (!ev.ctrlKey || ev.altKey || !ctx.allow_ctrl_phrase)
       return im.onKeystroke(ctx, ev);
 
+    if (ev.shiftKey)
+      key = jscin.unshift_key(key);
+
     var table = ev.shiftKey ? self.ctrl_shift_phrase : self.ctrl_phrase;
-    if (!table[ev.key])
+    if (!table[key])
       return im.onKeystroke(ctx, ev);
 
-    ctx.cch = table[ev.key];
+    ctx.cch = table[key];
     return jscin.IMKEY_COMMIT;
   }
 

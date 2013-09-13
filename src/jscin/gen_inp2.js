@@ -504,6 +504,7 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   self.onKeystroke = function(ctx, ev) {
     trace(ev);
+    ev.key = jscin.unshift_key(ev.key);
     if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
       return ResultIgnored(ctx);
 

@@ -62,6 +62,17 @@ jscin.add_logger = function(logger, context) {
   }
 }
 
+// ChromeOS returns key='!' for Shift+1,
+// but translation from Chrome keyCode will be '1' for Shift+1.
+jscin.unshift_key = function(key) {
+  var shift_map = '~!@#$%^&*()_+{}:"<>?|';
+  var char_map =  "`1234567890-=[];',./\\";
+  var map_index = shift_map.indexOf(key);
+  if (map_index >= 0)
+    return char_map[map_index];
+  return key;
+}
+
 // Module registration
 jscin.register_module = function(name, constructor) {
   var self = jscin;
