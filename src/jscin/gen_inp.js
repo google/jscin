@@ -55,6 +55,19 @@ GenInp = function(name, conf) {
       this.conf.mode[conf_mapping[k]] = conf[k];
     }
   }
+  // GCIN space_style
+  switch (parseInt(conf.space_style || "-1")) {
+    // Boshiamy
+    case 1: this.conf.mode.INP_MODE_SELKEYSHIFT = true;
+            this.conf.mode.INP_MODE_SPACEAUTOUP = true;
+            break;
+    // Simplex
+    case 2: this.conf.mode.INP_MODE_AUTOFULLUP = true;
+            break;
+    // Dayi
+    case 8: this.conf.mode.INP_MODE_SELKEYSHIFT = true;
+            break;
+  }
   this.conf.modesc = conf.QPHRASE_MODE;  // not support
   this.conf.disable_sel_list = conf.DISABLE_SEL_LIST;
   if (this.conf.disable_sel_list) {
