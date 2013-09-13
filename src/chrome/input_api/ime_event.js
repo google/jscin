@@ -54,11 +54,11 @@ var ImeEvent = {
       case 192:
         return '`';
       case 219:
-        return '{';
+        return '[';
       case 220:
         return '\\';
       case 221:
-        return '}';
+        return ']';
       case 222:
         return "'";
     };
