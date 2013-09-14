@@ -9,6 +9,7 @@
 // TODO(hungte) Indicators for candidates to show "composition state" or
 // "selection only state".
 // TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
+// TODO(hungte) Process KeyboardEvent.code instead of key.
 
 GenInp2 = function(name, conf) {
   var self = this;
@@ -28,6 +29,7 @@ GenInp2 = function(name, conf) {
   self.STATE_CANDIDATES = 2;
 
   self.MAX_GLOB_PAGES = 50;
+  self.GLOB_KEYS = '?*';
 
   // Read and parse from conf (a standard parsed CIN).
   self.cname = conf.cname || name;
@@ -152,6 +154,11 @@ GenInp2.prototype.new_instance = function(ctx) {
   function IsGlobInPattern(pattern) {
     return (pattern.indexOf('?') >= 0 ||
             pattern.indexOf('*') >= 0);
+  }
+
+  function IsGlobKey(key) {
+    // TODO(hungte) Add an option to turn on/off.
+    return conf.GLOB_KEYS.indexOf(key) >= 0;
   }
 
   function GlobFromArray(pattern, array, callback) {
@@ -295,7 +302,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function IsCompositionKey(ctx, key) {
-    return key.toUpperCase() in conf.keyname;
+    return (key.toUpperCase() in conf.keyname) || IsGlobKey(key);
   }
 
   function CanDoComposition(ctx, key) {
@@ -433,8 +440,7 @@ GenInp2.prototype.new_instance = function(ctx) {
     // beep.
   }
 
-  function ProcessCompositionStateKey(ctx, ev) {
-    var key = ev.key;
+  function ProcessCompositionStateKey(ctx, ev, key, input) {
 
     switch (key) {
       case 'Backspace':
@@ -457,7 +463,15 @@ GenInp2.prototype.new_instance = function(ctx) {
         // For Array30/GCIN, there are three cases for [0-9] (end,sel,comp):
         //  - L1/L2 QUICK, use Selection Key.
         //  - W[0-9], use EndKey (CanDoComposition).
-        // When shift+selection key, always treat it like "selection".
+        // When shift+selection key, always treat it like "selection" except
+        // glob keys.
+
+        if (IsGlobKey(input)) {
+          // TODO(hungte) Prevent this workaround.
+          key = input;
+          ev.shiftKey = false;
+        }
+
         while (!ev.shiftKey) {
 
           if (IsEndKey(ctx, key) && CanDoComposition(ctx, key)) {
@@ -499,15 +513,12 @@ GenInp2.prototype.new_instance = function(ctx) {
     return ResultIgnored(ctx);
   }
 
-  function ProcessCandidatesStateKey(ctx, ev) {
-    var key = ev.key;
+  function ProcessCandidatesStateKey(ctx, ev, key, input) {
     if (ev.shiftKey) {
       switch (key) {
         case ',':
-          key = '<';
-          break;
         case '.':
-          key = '>';
+          key = input;
           break;
         default:
           if (!IsSelectionKey(ctx, key))
@@ -564,15 +575,17 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   self.onKeystroke = function(ctx, ev) {
     trace(ev);
-    ev.key = jscin.unshift_key(ev.key);
     if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
       return ResultIgnored(ctx);
 
+    var key = jscin.unshift_key(ev.key);
+    var input = ev.shiftKey ? jscin.shift_key(key) : key;
+
     switch (ctx.state) {
       case conf.STATE_COMPOSITION:
-        return ProcessCompositionStateKey(ctx, ev);
+        return ProcessCompositionStateKey(ctx, ev, key, input);
       case conf.STATE_CANDIDATES:
-        return ProcessCandidatesStateKey(ctx, ev);
+        return ProcessCandidatesStateKey(ctx, ev, key, input);
     }
     return ResultIgnored(ctx);
   }

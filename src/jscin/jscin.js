@@ -76,6 +76,16 @@ jscin.unshift_key = function(key) {
   return key;
 }
 
+// TODO(hungte) Merge with jscin.unshift_key.
+jscin.shift_key = function(key) {
+  var shift_map = '~!@#$%^&*()_+{}:"<>?|';
+  var char_map =  "`1234567890-=[];',./\\";
+  var map_index = char_map.indexOf(key);
+  if (map_index >= 0)
+    return shift_map[map_index];
+  return key;
+}
+
 // Module registration
 jscin.register_module = function(name, constructor) {
   var self = jscin;
