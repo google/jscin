@@ -184,7 +184,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     }
     self.mcch_hidx = idx;
 
-    var result = pick_cch_wild(idx, 1, self.keystroke, self.selkey.length);
+    var result = pick_cch_wild(idx, 1, self.keystroke, inpinfo.selkey.length);
     if (!result.more) {
       inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
     } else {

@@ -6,6 +6,9 @@
  */
 
 // TODO(hungte) SPACE_RESET (reset on error).
+// TODO(hungte) Indicators for candidates to show "composition state" or
+// "selection only state".
+// TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
 
 GenInp2 = function(name, conf) {
   var self = this;
@@ -23,6 +26,8 @@ GenInp2 = function(name, conf) {
   // Declaration of states
   self.STATE_COMPOSITION = 1;
   self.STATE_CANDIDATES = 2;
+
+  self.MAX_GLOB_PAGES = 50;
 
   // Read and parse from conf (a standard parsed CIN).
   self.cname = conf.cname || name;
@@ -137,6 +142,29 @@ GenInp2.prototype.new_instance = function(ctx) {
     return jscin.IMKEY_COMMIT;
   }
 
+  function Glob2Regex(pattern) {
+    return new RegExp("^" + pattern
+        .replace(new RegExp('([\\][\\\\\./^$()!|{}+-])', "g"), "\\$1")
+        .replace(/\?/g, ".").replace(/\*/g, ".*")
+        + "$");
+  }
+
+  function IsGlobInPattern(pattern) {
+    return (pattern.indexOf('?') >= 0 ||
+            pattern.indexOf('*') >= 0);
+  }
+
+  function GlobFromArray(pattern, array, callback) {
+    // Terminates when callback returns true.
+    trace(pattern);
+    var regex = Glob2Regex(pattern);
+    // Currently looping with index is the fastest way to iterate an array.
+    for (var i = 0, len = array.length; i < len; i++) {
+      if (regex.test(array[i]) && callback(array[i]))
+        break;
+    }
+  }
+
   function ResetContext(ctx) {
     ctx.state = conf.STATE_COMPOSITION;
     ctx.composition = '';
@@ -211,20 +239,52 @@ GenInp2.prototype.new_instance = function(ctx) {
     return true;
   }
 
+
+
+  function GlobCandidates(ctx) {
+    var regex = Glob2Regex(ctx.composition.toUpperCase());
+    var lookup = Object.keys(conf.table);
+    ctx.candidates = '';
+
+    // Currently looping with index is the fastest way to iterate an array.
+    for (var i = 0, len = lookup.length; i < len; i++) {
+      if (regex.test(lookup[i])) {
+        ctx.candidates += conf.table[lookup[i]];
+        if (ctx.candidates.length >= conf.MAX_GLOB_PAGES * ctx.selkey.length)
+          break;
+      }
+    }
+    UpdateCandidates(ctx);
+    return ctx.candidates.length > 0;
+  }
+
   function PrepareCandidates(ctx, as_convert) {
     trace(ctx.composition);
     var table = conf.table;
     var key = ctx.composition.toUpperCase();
-    if (as_convert) {
-      if (conf.override_conversion && conf.override_conversion[key])
-        table = conf.override_conversion;
+
+    // Glob (shitf+[8/]) and selection (shift+[0-9]) may share shift key
+    // so we do want to avoid the confusion -- only do glob on conversion.
+    // Also, that helps reducing performance impact.
+    if (as_convert && IsGlobInPattern(key)) {
+      ctx.candidates = '';
+      GlobFromArray(key, Object.keys(table), function (key) {
+        ctx.candidates += table[key];
+        return (ctx.candidates.length >=
+                (conf.MAX_GLOB_PAGES * conf.selkey.length));
+      });
     } else {
-      if (conf.override_selection && conf.override_selection[key])
-        table = conf.override_selection;
+      if (as_convert) {
+        if (conf.override_conversion && conf.override_conversion[key])
+          table = conf.override_conversion;
+      } else {
+        if (conf.override_selection && conf.override_selection[key])
+          table = conf.override_selection;
+      }
+      // TODO(hungte) Currently cin_parser concats everything into a big string,
+      // so candidates is a string. We should make it into an array.
+      ctx.candidates = table[key] || '';
     }
-    // TODO(hungte) Currently cin_parser concats everything into a big string,
-    // so candidates is a string. We should make it into an array.
-    ctx.candidates = table[key] || '';
     UpdateCandidates(ctx);
     return ctx.candidates.length > 0;
   }
