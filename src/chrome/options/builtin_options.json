@@ -54,7 +54,8 @@
         "T": "的"
       }
     },
-    "detect": { "A": "一" }
+    "detect_comment": "AR 40 has / as 貝 instead , AR 26 does not have",
+    "detect": { "A": "一", "/": "虫" }
   },
   {
     "ename": "From Table",
