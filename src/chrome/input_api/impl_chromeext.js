@@ -114,6 +114,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   self.enabled = undefined;
   self.toggleHotKey = 16;  // Shift.
   self.waitForHotkey = false;
+  self.attached = [];
 
   function SendMessage() {
     self.ipc.send.apply(null, arguments);
@@ -131,10 +132,12 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
   function SetEnabled(enabled) {
     self.debug("SetEnabled", enabled, self.enabled);
+    if (enabled && !self.im) {
+      SnapshotIME();
+    }
     if (typeof(self.enabled) == 'undefined') {
       // First time setting enabled.
       self.enabled = enabled;
-      // TODO(hungte) should we show frame?
     } else {
       // Apparently user is already doing something.
       self.enabled = enabled;
@@ -207,11 +210,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function KeyDownEventHandler(ev) {
-    if (!self.im) {
-      self.debug("Key event before IM is ready.");
-      return;
-    }
-
     if (self.waitForHotkey)
       self.waitForHotkey = false;
 
@@ -224,6 +222,11 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
     if (!self.enabled)
       return;
+
+    if (!self.im) {
+      self.debug("ERROR: Key event before IM is ready.");
+      return;
+    }
 
     var ev2 = ImeEvent.ImeKeyEvent(ev);
     var node = ev.target;
@@ -318,14 +321,9 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
     ipc.listen({
       IpcUiReady: function () {
-        self.debug("UIReady",document.activeElement);
-        SendMessage("Activate", self.engineID); // Update menu & pageAction.
-        // Delayed init.
-        if (self.init_node) {
-          self.debug("Found init_node:", self.init_node);
-          FocusHandler({target: self.init_node});
-        }
-        self.init_node = undefined;
+        self.debug("UIReady");
+        self.ui_ready = true;
+        OnUiReady();
       },
 
       IpcRefreshIME: function () {
@@ -346,6 +344,8 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         offset.left += 5;
         // TODO(hungte) Remove jquery -- although height() is hard to replace.
         offset.top += $(node).height();
+        // TODO(hungte) Re-calculate if IME goes outside current DOM
+        // (ex, the iframe for Google Talk).
         self.frame.css(offset);
         if (self.enabled) {
           self.debug("Focus: frame.fadeIn(250)", self.frame.offset());
@@ -365,13 +365,49 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.debug("IpcGetSystemStatus received:", result);
       self._debug = result.debug;
       SetEnabled(result.default_enabled);
+      self.sys_ready = true;
+      OnUiReady();
     });
-    SnapshotIME();
   }
 
-  self.attach = function (node) {
-    node.addEventListener("focus", FocusHandler);
-    node.addEventListener("blur", BlurHandler);
+  function IsEditableNode(node) {
+    return (node.tagName == 'INPUT' || node.tagName == 'TEXTAREA' ||
+            node.getAttribute('contenteditable'));
+  }
+
+  function IsAttached(node) {
+    return self.attached.indexOf(node) >= 0;
+  }
+
+  function OnUiReady() {
+    if (!self.sys_ready || !self.ui_ready)
+      return;
+    SendMessage("Activate", self.engineID); // Update menu & pageAction.
+    ListenOnFocus();
+  }
+
+  function ListenOnFocus() {
+    document.addEventListener("focusin", function (ev) {
+      var node = ev.target;
+      if (!node || !IsEditableNode(node) || IsAttached(node))
+        return;
+      self.attach(node, true);
+    });
+    var node = document.activeElement;
+    if (node && IsEditableNode(node)) {
+      self.attach(node, true);
+    }
+  }
+
+  self.attach = function (node, fire) {
+    if (self.attached.indexOf(node) < 0) {
+      self.debug("impl.attach:", node, fire);
+      self.attached.push(node);
+      node.addEventListener("focus", FocusHandler);
+      node.addEventListener("blur", BlurHandler);
+    }
+    if (fire)
+      FocusHandler({target: node});
   };
 
   self.setFrame = function (frame) {
