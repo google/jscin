@@ -14,11 +14,15 @@ ModRelatedText = function(im) {
     return ctx.selkey.toUpperCase().indexOf(key.toUpperCase()) >= 0;
   }
 
+  function IsEmptyContext(ctx) {
+    return !ctx.mcch && !ctx.keystroke;
+  }
+
   function CommitCandidate(ctx, key) {
     var index = ctx.selkey.toUpperCase().indexOf(key.toUpperCase());
-    if (index >= ctx.mcch.length)
+    if (index >= self.last_mcch.length)
       return false;
-    ctx.cch = ctx.mcch[index];
+    ctx.cch = self.last_mcch[index];
     return true;
   }
 
@@ -26,33 +30,33 @@ ModRelatedText = function(im) {
     var text = ctx.cch;
     var candidates = ctx.phrases && ctx.phrases[text];
     if (!candidates)
-      return;
+      return false;
 
     // Update context to fill fake content.
     self.last_mcch = candidates.substr(0, ctx.selkey.length);
     ctx.mcch = self.last_mcch;
+    return true;
   }
 
   self.onKeystroke = function(ctx, ev) {
-    if (!ctx.allow_related_text)
+    var key = jscin.get_key_val(ev.code);
+
+    console.log("relatedText, key = ", key);
+    if (!ctx.allow_related_text || ev.ctrlKey || ev.altKey || key == 'Shift')
       return self.im.onKeystroke(ctx, ev);
-    var key = jscin.unshift_key(ev.key);
-    if (!ev.ctrlKey && !ev.altKey && ev.shiftKey &&
-        ctx.mcch && ctx.mcch == self.last_mcch &&
-        InSelectionKey(ctx, key) &&
-        CommitCandidate(ctx, key)) {
-      FindRelatedText(ctx);
-      return jscin.IMKEY_COMMIT;
+
+    if (self.last_mcch && ev.type == 'keydown' && ctx.mcch === self.last_mcch) {
+      ctx.mcch = '';
+      if ((ev.shiftKey || ctx.auto_compose) &&
+          InSelectionKey(ctx, key) &&
+          CommitCandidate(ctx, key)) {
+        FindRelatedText(ctx);
+        return jscin.IMKEY_COMMIT;
+      }
     }
 
     var result = im.onKeystroke(ctx, ev);
-    if (result != jscin.IMKEY_COMMIT)
-      return result;
-
-    jscin.log("mod_related on COMMIT", ctx, ev);
-    var text = ctx.cch;
-    var candidates = ctx.phrases && ctx.phrases[text];
-    if (!candidates)
+    if (result != jscin.IMKEY_COMMIT || !IsEmptyContext(ctx))
       return result;
 
     FindRelatedText(ctx);
