@@ -29,14 +29,11 @@ ModPunctuations = function(im) {
   };
 
   self.onKeystroke = function(ctx, ev) {
-    var key = ev.key;
     // TODO(hungte) Find better way to get allow_ctrl_phrase.
     if (!ev.ctrlKey || ev.altKey || !ctx.allow_ctrl_phrase)
       return im.onKeystroke(ctx, ev);
 
-    if (ev.shiftKey)
-      key = jscin.unshift_key(key);
-
+    var key = jscin.get_key_val(ev.code);
     var table = ev.shiftKey ? self.ctrl_shift_phrase : self.ctrl_phrase;
     if (!table[key])
       return im.onKeystroke(ctx, ev);

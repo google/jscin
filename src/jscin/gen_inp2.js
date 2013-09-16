@@ -587,14 +587,14 @@ GenInp2.prototype.new_instance = function(ctx) {
     if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
       return ResultIgnored(ctx);
 
-    var key = jscin.unshift_key(ev.key);
-    var keyChar = ev.shiftKey ? jscin.shift_key(key) : key;
+    var keyCode = jscin.get_key_val(ev.code);
+    var keyChar = ev.key;
 
     switch (ctx.state) {
       case conf.STATE_COMPOSITION:
-        return ProcessCompositionStateKey(ctx, ev, key, keyChar);
+        return ProcessCompositionStateKey(ctx, ev, keyCode, keyChar);
       case conf.STATE_CANDIDATES:
-        return ProcessCandidatesStateKey(ctx, ev, key, keyChar);
+        return ProcessCandidatesStateKey(ctx, ev, keyCode, keyChar);
     }
     return ResultIgnored(ctx);
   }

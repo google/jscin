@@ -32,7 +32,86 @@ var jscin = {
   addons: [],
   input_methods: {},
 
-  debug: false,
+  debug: true,
+
+  // Converts a chrome.input.ime key 'code' to jscin standard keys names.
+  // Note: key codes not listed here must be psased as-is, ex: Esc, Tab.
+  // See input_api/ime_event.js for a complete list.
+  kImeKeyCodeTable: {
+    "ShiftLeft": "Shift",
+    "ShiftRight": "Shift",
+    "ControlLeft": "Control",
+    "ControlRight": "Control",
+    "AltLeft": "Alt",
+    "AltRight": "Alt",
+    "Space": " ",
+    "ArrowLeft": "Left",
+    "ArrowUp": "Up",
+    "ArrowRight": "Right",
+    "ArrowDown": "Down",
+    "Digit0": "0",
+    "Digit1": "1",
+    "Digit2": "2",
+    "Digit3": "3",
+    "Digit4": "4",
+    "Digit5": "5",
+    "Digit6": "6",
+    "Digit7": "7",
+    "Digit8": "8",
+    "Digit9": "9",
+    "KeyA": "A",
+    "KeyB": "B",
+    "KeyC": "C",
+    "KeyD": "D",
+    "KeyE": "E",
+    "KeyF": "F",
+    "KeyG": "G",
+    "KeyH": "H",
+    "KeyI": "I",
+    "KeyJ": "J",
+    "KeyK": "K",
+    "KeyL": "L",
+    "KeyM": "M",
+    "KeyN": "N",
+    "KeyO": "O",
+    "KeyP": "P",
+    "KeyQ": "Q",
+    "KeyR": "R",
+    "KeyS": "S",
+    "KeyT": "T",
+    "KeyU": "U",
+    "KeyV": "V",
+    "KeyW": "W",
+    "KeyX": "X",
+    "KeyY": "Y",
+    "KeyZ": "Z",
+    "Numpad0": "0",
+    "Numpad1": "1",
+    "Numpad2": "2",
+    "Numpad3": "3",
+    "Numpad4": "4",
+    "Numpad5": "5",
+    "Numpad6": "6",
+    "Numpad7": "7",
+    "Numpad8": "8",
+    "Numpad9": "9",
+    "NumpadMultiply": "*",
+    "NumpadAdd": "+",
+    "NumpadSubtract": "-",
+    "NumpadDecimal": ".",
+    "NumpadDivide": "/",
+    "Semicolon": ";",
+    "Equal": "=",
+    "Comma": ",",
+    "Minus": "-",
+    "Period": ".",
+    "Slash": "/",
+    "BackQuote": "`",
+    "BracketLeft": "[",
+    "BracketRight": "]",
+    "Backslash": "\\",
+    "Quote": "'"
+  }
 };
 
 /**
@@ -62,28 +141,8 @@ jscin.add_logger = function(logger, context) {
   }
 }
 
-// TODO(hungte) Write a conversion from ChromeOS KeyboardEvent.code
-// to our keys.
-
-// ChromeOS returns key='!' for Shift+1,
-// but translation from Chrome keyCode will be '1' for Shift+1.
-jscin.unshift_key = function(key) {
-  var shift_map = '~!@#$%^&*()_+{}:"<>?|';
-  var char_map =  "`1234567890-=[];',./\\";
-  var map_index = shift_map.indexOf(key);
-  if (map_index >= 0)
-    return char_map[map_index];
-  return key;
-}
-
-// TODO(hungte) Merge with jscin.unshift_key.
-jscin.shift_key = function(key) {
-  var shift_map = '~!@#$%^&*()_+{}:"<>?|';
-  var char_map =  "`1234567890-=[];',./\\";
-  var map_index = char_map.indexOf(key);
-  if (map_index >= 0)
-    return shift_map[map_index];
-  return key;
+jscin.get_key_val = function (ime_api_key_code) {
+  return jscin.kImeKeyCodeTable[ime_api_key_code] || ime_api_key_code;
 }
 
 // Module registration
