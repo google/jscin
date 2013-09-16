@@ -32,7 +32,7 @@ var jscin = {
   addons: [],
   input_methods: {},
 
-  debug: true,
+  debug: false,
 
   // Converts a chrome.input.ime key 'code' to jscin standard keys names.
   // Note: key codes not listed here must be psased as-is, ex: Esc, Tab.
