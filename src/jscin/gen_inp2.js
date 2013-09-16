@@ -489,7 +489,6 @@ GenInp2.prototype.new_instance = function(ctx) {
 
         if (CanDoComposition(ctx, key)) {
           if (IsEndKey(ctx, key)) {
-            console.log("IsEndKey!");
             AddComposition(ctx, key);
             return ConvertComposition(ctx);
           }

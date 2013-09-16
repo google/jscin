@@ -132,7 +132,6 @@ croscin.IME = function() {
     }
 
     var ret = self.im.onKeystroke(self.imctx, keyData);
-    self.log(dump_inpinfo(self.imctx));
 
     switch (ret) {
       case jscin.IMKEY_COMMIT:
