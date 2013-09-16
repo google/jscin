@@ -249,7 +249,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function ImplCommitText(node, text) {
-    if (node.tagName == 'TEXTAREA' || node.tagName == 'INPUT') {
+    if (node.nodeName == 'TEXTAREA' || node.nodeName == 'INPUT') {
       // input or textarea.
       var newpos = node.selectionStart + text.length;
       node.value = (node.value.substring(0, node.selectionStart) +
@@ -376,8 +376,8 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function IsEditableNode(node) {
-    return (node.tagName == 'INPUT' || node.tagName == 'TEXTAREA' ||
-            node.getAttribute('contenteditable'));
+    return node && (node.nodeName == 'INPUT' || node.nodeName == 'TEXTAREA' ||
+                    node.getAttribute('contenteditable'));
   }
 
   function IsAttached(node) {
@@ -394,12 +394,12 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   function ListenOnFocus() {
     document.addEventListener("focusin", function (ev) {
       var node = ev.target;
-      if (!node || !IsEditableNode(node) || IsAttached(node))
+      if (!IsEditableNode(node) || IsAttached(node))
         return;
       self.attach(node, true);
     });
     var node = document.activeElement;
-    if (node && IsEditableNode(node)) {
+    if (IsEditableNode(node)) {
       self.attach(node, true);
     }
   }
