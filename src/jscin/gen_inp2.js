@@ -39,7 +39,9 @@ GenInp2 = function(name, conf) {
   self.selkey = conf.selkey || []; // probably also upper-cased.
   self.max_composition = parseInt(conf.max_keystroke || "0");
   self.endkey = conf.endkey || "";
-  self.opts = {};
+  self.opts = {
+    OPT_AUTO_COMPOSE: true
+  };
   // The table to override when converting composition to candidates.
   self.override_conversion = undefined;
   // The table to override when composition is not explicitly converted.
@@ -48,6 +50,12 @@ GenInp2 = function(name, conf) {
   // Adjust options (implicitly) by table content.
 
   var key;
+
+  for (var i = 0, len = self.selkey.length; i < len; i++) {
+    var k = self.selkey[i];
+    if (k in self.keyname || self.endkey.indexOf(k) >= 0)
+      self.opts.OPT_AUTO_COMPOSE = false;
+  }
 
   // Adjust options (explicitly) by table commands.
 
@@ -282,8 +290,12 @@ GenInp2.prototype.new_instance = function(ctx) {
 
     // Process override_* tables.
     if (is_autocompose) {
-      if (conf.override_autocompose && conf.override_autocompose[key])
-        table = conf.override_autocompose;
+      if (conf.override_autocompose) {
+        if (conf.override_autocompose[key])
+          table = conf.override_autocompose;
+      } else if (!conf.opts.OPT_AUTO_COMPOSE) {
+        table = {};
+      }
     } else {
       if (conf.override_conversion && conf.override_conversion[key])
         table = conf.override_conversion;
