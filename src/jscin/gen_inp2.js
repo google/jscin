@@ -34,7 +34,7 @@ GenInp2 = function(name, conf) {
   // Read and parse from conf (a standard parsed CIN).
   self.cname = conf.cname || name;
   self.ename = conf.ename || name;
-  self.keyname = conf.keyname || [];  // upper-cased.
+  self.keyname = conf.keyname || {};  // upper-cased.
   self.table = conf.chardef || {}; // upper-cased.
   self.selkey = conf.selkey || []; // probably also upper-cased.
   self.max_composition = parseInt(conf.max_keystroke || "0");
@@ -43,8 +43,13 @@ GenInp2 = function(name, conf) {
   // The table to override when converting composition to candidates.
   self.override_conversion = undefined;
   // The table to override when composition is not explicitly converted.
-  // Only available for user to select via selection keys.
-  self.override_selection = undefined;
+  self.override_autocompose = undefined;
+
+  // Adjust options (implicitly) by table content.
+
+  var key;
+
+  // Adjust options (explicitly) by table commands.
 
   var opts_remap = {
     SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
@@ -57,12 +62,11 @@ GenInp2 = function(name, conf) {
     KEYSTROKE_REMAP: 'override_conversion',
 
     // quickkey is found on XCIN2.3 (and deprecated in XCIN 2.5).
-    quickkey: 'override_selection',
+    quickkey: 'override_autocompose',
     // quick is supported by GCIN.
-    quick: 'override_selection',
+    quick: 'override_autocompose',
   };
 
-  var key;
   for (key in opts_remap) {
     if (key in conf) {
       self.opts[opts_remap[key]] = conf[key];
@@ -175,7 +179,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   function ResetContext(ctx) {
     ctx.state = conf.STATE_COMPOSITION;
     ctx.composition = '';
-    ctx.candidates = [];
+    ctx.candidates = '';
     ctx.commit = '';
     ctx.display_composition = '';
     ctx.candidates_start_index = 0;
@@ -185,6 +189,10 @@ GenInp2.prototype.new_instance = function(ctx) {
     ctx.keystroke = '';
     ctx.mcch = '';
     ctx.cch = '';
+  }
+
+  function ClearCandidates(ctx) {
+    ctx.candidates = '';
   }
 
   function UpdateCandidates(ctx) {
@@ -202,6 +210,8 @@ GenInp2.prototype.new_instance = function(ctx) {
     }
     // Compatible with gen_inp.
     ctx.keystroke = ctx.display_composition;
+
+    PrepareCandidates(ctx, true);
   }
 
   function ShiftState(ctx) {
@@ -246,12 +256,10 @@ GenInp2.prototype.new_instance = function(ctx) {
     return true;
   }
 
-
-
   function GlobCandidates(ctx) {
     var regex = Glob2Regex(ctx.composition.toUpperCase());
     var lookup = Object.keys(conf.table);
-    ctx.candidates = '';
+    ClearCandidates(ctx);
 
     // Currently looping with index is the fastest way to iterate an array.
     for (var i = 0, len = lookup.length; i < len; i++) {
@@ -265,40 +273,36 @@ GenInp2.prototype.new_instance = function(ctx) {
     return ctx.candidates.length > 0;
   }
 
-  function PrepareCandidates(ctx, as_convert) {
+  function PrepareCandidates(ctx, is_autocompose) {
     trace(ctx.composition);
     var table = conf.table;
     var key = ctx.composition.toUpperCase();
 
-    // Glob (shitf+[8/]) and selection (shift+[0-9]) may share shift key
-    // so we do want to avoid the confusion -- only do glob on conversion.
-    // Also, that helps reducing performance impact.
-    if (as_convert && IsGlobInPattern(key)) {
-      ctx.candidates = '';
+    ClearCandidates(ctx);
+
+    // Process override_* tables.
+    if (is_autocompose) {
+      if (conf.override_autocompose && conf.override_autocompose[key])
+        table = conf.override_autocompose;
+    } else {
+      if (conf.override_conversion && conf.override_conversion[key])
+        table = conf.override_conversion;
+    }
+
+    if (IsGlobInPattern(key)) {
       GlobFromArray(key, Object.keys(table), function (key) {
         ctx.candidates += table[key];
         return (ctx.candidates.length >=
                 (conf.MAX_GLOB_PAGES * conf.selkey.length));
       });
     } else {
-      if (as_convert) {
-        if (conf.override_conversion && conf.override_conversion[key])
-          table = conf.override_conversion;
-      } else {
-        if (conf.override_selection && conf.override_selection[key])
-          table = conf.override_selection;
-      }
       // TODO(hungte) Currently cin_parser concats everything into a big string,
       // so candidates is a string. We should make it into an array.
       ctx.candidates = table[key] || '';
     }
+
     UpdateCandidates(ctx);
     return ctx.candidates.length > 0;
-  }
-
-  function InOverrideSelection(ctx) {
-    return (conf.override_selection &&
-            conf.override_selection[(ctx.composition).toUpperCase()]);
   }
 
   function IsCompositionKey(ctx, key) {
@@ -324,11 +328,6 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   function IsEmptyCandidates(ctx) {
     return ctx.candidates.length == 0;
-  }
-
-  function InOverrideSelection(ctx) {
-    return (conf.override_selection &&
-            conf.override_selection[ctx.composition.toUpperCase()]);
   }
 
   function GetCompositionKeyGroup(ctx, key) {
@@ -375,7 +374,6 @@ GenInp2.prototype.new_instance = function(ctx) {
       ctx.composition += key;
     }
     UpdateComposition(ctx);
-    PrepareCandidates(ctx);
     return true;
   }
 
@@ -385,8 +383,6 @@ GenInp2.prototype.new_instance = function(ctx) {
       return false;
     ctx.composition = ctx.composition.replace(/.$/, '');
     UpdateComposition(ctx);
-    PrepareCandidates(ctx);
-    UpdateCandidates(ctx);
     return true;
   }
 
@@ -424,7 +420,7 @@ GenInp2.prototype.new_instance = function(ctx) {
   function ConvertComposition(ctx) {
     if (IsEmptyComposition(ctx))
       return ResultIgnored(ctx);
-    if (!PrepareCandidates(ctx, true)) {
+    if (!PrepareCandidates(ctx, false)) {
       return ResultError(ctx);
     }
     ShiftState(ctx);
@@ -440,7 +436,7 @@ GenInp2.prototype.new_instance = function(ctx) {
     // beep.
   }
 
-  function ProcessCompositionStateKey(ctx, ev, key, input) {
+  function ProcessCompositionStateKey(ctx, ev, key, keyChar) {
 
     switch (key) {
       case 'Backspace':
@@ -459,66 +455,67 @@ GenInp2.prototype.new_instance = function(ctx) {
 
       default:
         // Some keys may be EndKey, SelectionKey, and CompositionKey at the same
-        // time. For Phonetic, EndKey is always used in the end.
-        // For Array30/GCIN, there are three cases for [0-9] (end,sel,comp):
-        //  - L1/L2 QUICK, use Selection Key.
-        //  - W[0-9], use EndKey (CanDoComposition).
-        // When shift+selection key, always treat it like "selection" except
-        // glob keys.
+        // time. Here are the rules:
+        //  - If the key can make a complete composition, it's either End Key or
+        //    Composition key.
+        //    * Do convert if the key is End Key.
+        //  - If there are candidates available, treat it as selection key.
+        //  - Otherwise, assume it's composition key.
+        //  Examples:
+        //   - Phonetic: end=sel=compose for 3467. Endkey is always at last.
+        //   - Array30/GCIN: [0-9] are end/sel/comp.
+        //     * L1/L2 quick: as selection keys.
+        //     * W[0-9]: as endkey.
+        //   - Array30/XCIN25: [0-9] are sel.
+        //     * W[0-9]: must be also considered as composition / end key.
 
-        if (IsGlobKey(input)) {
+        if (IsGlobKey(keyChar)) {
           // TODO(hungte) Prevent this workaround.
-          key = input;
+          key = keyChar;
           ev.shiftKey = false;
         }
 
-        while (!ev.shiftKey) {
-
-          if (IsEndKey(ctx, key) && CanDoComposition(ctx, key)) {
+        if (CanDoComposition(ctx, key)) {
+          if (IsEndKey(ctx, key)) {
+            console.log("IsEndKey!");
             AddComposition(ctx, key);
             return ConvertComposition(ctx);
           }
-
-          if (IsSelectionKey(ctx, key) && InOverrideSelection(ctx, key))
-            break;
-
-          // For Array30/XCIN25, W[0-9] are defined while [0-9] are not
-          // composition keys.
-          if (IsCompositionKey(ctx, key) || CanDoComposition(ctx, key)) {
-            if (AddComposition(ctx, key)) {
-              if (conf.opts.OPT_COMMIT_ON_FULL && IsFullComposition(ctx)) {
-                return ConvertComposition(ctx);
-              }
-              if (conf.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE &&
-                  IsSingleCandidate(ctx)) {
-                return ConvertComposition(ctx);
-              }
-              // See CanDoComposition for more information.
-              if (!IsCompositionKey(ctx, key))
-                return ConvertComposition(ctx);
-              return ResultProcessed(ctx);
-            }
+        } else {
+          if (IsSelectionKey(ctx, key) && !IsEmptyCandidates(ctx)) {
+            if (SelectCommit(ctx, key))
+              return ResultCommit(ctx);
             return ResultError(ctx);
           }
-          break;
         }
 
-        if (IsSelectionKey(ctx, key) && !IsEmptyCandidates(ctx)) {
-          if (SelectCommit(ctx, key))
-            return ResultCommit(ctx);
-          return ResultError(ctx);
+        if (IsCompositionKey(ctx, key) || CanDoComposition(ctx, key)) {
+          if (!AddComposition(ctx, key))
+            return ResultError(tx);
+
+          if (conf.opts.OPT_COMMIT_ON_FULL && IsFullComposition(ctx))
+            return ConvertComposition(ctx);
+
+          if (conf.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE &&
+              IsSingleCandidate(ctx))
+            return ConvertComposition(ctx);
+
+          // Implicit endkeys (Array30/XCIN25 W[0-9])
+          if (!IsCompositionKey(ctx, key))
+            return ConvertComposition(ctx);
+
+          return ResultProcessed(ctx);
         }
-        break;
     }
     return ResultIgnored(ctx);
   }
 
-  function ProcessCandidatesStateKey(ctx, ev, key, input) {
+  function ProcessCandidatesStateKey(ctx, ev, key, keyChar) {
     if (ev.shiftKey) {
       switch (key) {
         case ',':
         case '.':
-          key = input;
+          key = keyChar;
           break;
         default:
           if (!IsSelectionKey(ctx, key))
@@ -579,13 +576,13 @@ GenInp2.prototype.new_instance = function(ctx) {
       return ResultIgnored(ctx);
 
     var key = jscin.unshift_key(ev.key);
-    var input = ev.shiftKey ? jscin.shift_key(key) : key;
+    var keyChar = ev.shiftKey ? jscin.shift_key(key) : key;
 
     switch (ctx.state) {
       case conf.STATE_COMPOSITION:
-        return ProcessCompositionStateKey(ctx, ev, key, input);
+        return ProcessCompositionStateKey(ctx, ev, key, keyChar);
       case conf.STATE_CANDIDATES:
-        return ProcessCandidatesStateKey(ctx, ev, key, input);
+        return ProcessCandidatesStateKey(ctx, ev, key, keyChar);
     }
     return ResultIgnored(ctx);
   }
