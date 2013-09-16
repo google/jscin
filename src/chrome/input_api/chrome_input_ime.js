@@ -230,8 +230,8 @@ var ChromeInputIME = function () {
   function Initialize () {
     self.engineContext = CreateEngineContext(self.kDefaultEngineId);
     self.context_list = {};
-    self.onImplFocus.addListener(function () {
-      return self.dispatchEvent("Focus", EnterContext());
+    self.onImplFocus.addListener(function (token) {
+      return self.dispatchEvent("Focus", EnterContext(), token);
     });
   }
 

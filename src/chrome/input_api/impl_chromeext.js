@@ -69,11 +69,11 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   ime_api.onActivate.addListener(function () {
     ShowPageAction();
   });
-  ime_api.onFocus.addListener(function (context) {
+  ime_api.onFocus.addListener(function (context, guid) {
     // BUG: Try harder to show page action, if haven't.
     ShowPageAction();
     // Notify content.js new context results.
-    ipc.send("Focus", context);
+    ipc.send("Focus", context, guid);
   });
   ime_api.onImplCommitText.addListener(function (contextID, text) {
     ipc.send("ImplCommitText", contextID, text);
@@ -280,7 +280,8 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     var node = ev.target;
     self.debug("on focus", node);
     self.node = node;
-    SendMessage("ImplFocus");
+    self.guid = jscin.guid();
+    SendMessage("ImplFocus", self.guid);
   }
 
   function BlurHandler(ev) {
@@ -332,10 +333,14 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       },
 
       ImplCommitText: function (contextID, text) {
+        if (contextID != self.contextID)
+          return;
         ImplCommitText(self.node, text);
       },
 
-      Focus: function (context) {
+      Focus: function (context, guid) {
+        if (guid != self.guid)
+          return;
         var node = self.node;
         self.contextID = context.contextID;
         AttachKeyEvents(node);
