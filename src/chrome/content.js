@@ -23,7 +23,8 @@ function CreateImeFrame () {
   frame.style.position = "absolute";
   frame.style.backgroundColor = "transparent";
   frame.style.display = "none";
-  document.getElementsByTagName('body')[0].appendChild(frame);
+  var ref = document.getElementsByTagName('body')[0] || document.children[0];
+  ref.appendChild(frame);
   return frame;
 }
 
