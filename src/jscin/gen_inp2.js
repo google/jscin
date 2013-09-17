@@ -505,7 +505,7 @@ GenInp2.prototype.new_instance = function(ctx) {
 
         if (IsCompositionKey(ctx, key) || CanDoComposition(ctx, key)) {
           if (!AddComposition(ctx, key))
-            return ResultError(tx);
+            return ResultError(ctx);
 
           if (conf.opts.OPT_COMMIT_ON_FULL && IsFullComposition(ctx))
             return ConvertComposition(ctx);
