@@ -251,31 +251,9 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function ImplCommitText(node, text) {
-    if (node.nodeName == 'TEXTAREA' || node.nodeName == 'INPUT') {
-      // input or textarea.
-      var newpos = node.selectionStart + text.length;
-      node.value = (node.value.substring(0, node.selectionStart) +
-                    text + node.value.substring(node.selectionEnd));
-      node.selectionStart = newpos;
-      node.selectionEnd = newpos;
-      return;
-    }
-
-    // Probably a [contenteditable] element.
-    var sel = window.self.getSelection();
-    if (sel.rangeCount) {
-      var range = sel.getRangeAt(0);
-      range.deleteContents();
-      var newnode = document.createTextNode(text);
-      range.insertNode(newnode);
-      range = range.cloneRange();
-      range.setStartAfter(newnode);
-      range.setEndAfter(newnode);
-      sel.removeAllRanges();
-      sel.addRange(range);
-      range.commonAncestorContainer.normalize();
-      return;
-    }
+    var ev = document.createEvent("TextEvent");
+    ev.initTextEvent("textInput", true, true, window, text);
+    node.dispatchEvent(ev);
   }
 
   function FocusHandler(ev) {
