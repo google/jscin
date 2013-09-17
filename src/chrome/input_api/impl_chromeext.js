@@ -116,6 +116,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   self.waitForHotkey = false;
   self.attached = [];
 
+  function IsChildFrame() {
+    return window.self !== window.top;
+  }
+
   function SendMessage() {
     self.ipc.send.apply(null, arguments);
   }
@@ -131,7 +135,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function SetEnabled(enabled) {
-    self.debug("SetEnabled", enabled, self.enabled);
+    self.debug("SetEnabled", enabled);
     if (enabled && !self.im) {
       SnapshotIME();
     }
@@ -142,13 +146,11 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       // Apparently user is already doing something.
       self.enabled = enabled;
       if (enabled) {
-        self.debug("setEnabled: frame.fadeIn(100)");
-        self.frame.finish();
-        self.frame.fadeIn(100);
+        self.debug("setEnabled: showFrame");
+        self.showFrame();
       } else {
-        self.debug("setEnabled: frame.fadeOut(100)");
-        self.frame.finish();
-        self.frame.fadeOut(100);
+        self.debug("setEnabled: hideFrame");
+        self.hideFrame();
       }
       // Notify background page to change settings.
       SendMessage('IpcSetDefaultEnabled', enabled);
@@ -260,7 +262,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     }
 
     // Probably a [contenteditable] element.
-    var sel = window.getSelection();
+    var sel = window.self.getSelection();
     if (sel.rangeCount) {
       var range = sel.getRangeAt(0);
       range.deleteContents();
@@ -288,9 +290,8 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     if (self.contextID) {
       self.debug("on blur", self.contextID);
       if (self.enabled) {
-        self.debug("BlurHandler: frame.fadeOut(100)");
-        self.frame.finish();
-        self.frame.fadeOut(100);
+        self.debug("BlurHandler: hideFrame");
+        self.hideFrame();
       }
       DetachKeyEvents(ev.target);
       SendMessage("Blur", self.contextID);
@@ -303,7 +304,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.imctx = undefined;
     SendMessage("IpcSnapshotIME", function (result) {
       var name = result.im_name;
-      self.debug("Snapshot - IM:", result);
+      self.debug("Snapshot - IM:", result, window.self.location);
       if (!name) {
         self.debug("Remote IM is not ready... good luck.");
         // TODO(hungte) Don't continue.
@@ -313,6 +314,35 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.imctx = result.imctx || {};
       self.im = jscin.create_input_method(name, self.imctx, result.im_data);
     });
+  }
+
+  function FindElementByFrame(frame) {
+    var nodes = document.getElementsByTagName('iframe');
+    for (var i = 0, len = nodes.length; i < len; i++) {
+      if (nodes[i].contentWindow == frame)
+        return nodes[i];
+    }
+    return undefined;
+  }
+
+  function SendFrameMessage(view, command, arg) {
+    view.postMessage({ ime: 'frame', command: command, arg: arg}, '*');
+  }
+
+  function GetFrameMessage(ev) {
+    if (!ev.data || ev.data.ime != 'frame')
+      return undefined;
+    return ev.data;
+  }
+
+  function AddFrameOffset(offset, frame) {
+    frame = FindElementByFrame(frame);
+    if (!frame)
+      return offset;
+    var frame_offset = GetAbsoluteOffset(frame);
+    offset.left += frame_offset.left;
+    offset.top += frame_offset.top;
+    return offset;
   }
 
   function InitContent() {
@@ -345,17 +375,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.contextID = context.contextID;
         AttachKeyEvents(node);
 
-        var offset = GetAbsoluteOffset(node);
-        offset.left += 5;
-        // TODO(hungte) Remove jquery -- although height() is hard to replace.
-        offset.top += $(node).height();
-        // TODO(hungte) Re-calculate if IME goes outside current DOM
-        // (ex, the iframe for Google Talk).
-        self.frame.css(offset);
+        self.attachFrame(node);
         if (self.enabled) {
-          self.debug("Focus: frame.fadeIn(250)", self.frame.offset());
-          self.frame.finish();
-          self.frame.fadeIn(250);
+          self.debug("Focus: showFrame");
+          self.showFrame(true);
         }
       },
 
@@ -366,11 +389,31 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       }
     });
 
+    window.addEventListener("message", function (e) {
+      var msg = GetFrameMessage(e);
+      if (!msg)
+        return;
+
+      switch (msg.command) {
+        case 'hide':
+          self.hideFrame();
+          break;
+        case 'show':
+          self.showFrame();
+          break;
+        case 'move':
+          self.moveFrame(AddFrameOffset(msg.arg, e.source));
+          break;
+      }
+    });
+
     SendMessage('IpcGetSystemStatus', function (result) {
-      self.debug("IpcGetSystemStatus received:", result);
+      self.debug("IpcGetSystemStatus received:", result, window.self.location);
       self._debug = result.debug;
       SetEnabled(result.default_enabled);
       self.sys_ready = true;
+      if (IsChildFrame())
+        self.ui_ready = true;
       OnUiReady();
     });
   }
@@ -417,6 +460,64 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
   self.setFrame = function (frame) {
     self.frame = frame;
+  }
+
+  self.showFrame = function (long_animation) {
+    if (!self.frame)
+      return SendFrameMessage(window.top, "show");
+    self.frame.finish();
+    self.frame.fadeIn(long_animation ? 250 : 100);
+  }
+
+  self.hideFrame = function () {
+    if (!self.frame)
+      return SendFrameMessage(window.top, 'hide');
+    self.frame.finish();
+    self.frame.fadeOut(100);
+  }
+
+  self.attachFrame = function (node) {
+    var offset = GetAbsoluteOffset(node);
+    // TODO(hungte) Remove jquery -- although height() is hard to replace.
+    var node_height = $(node).height();
+    offset.node_height = node_height;
+    self.moveFrame(offset);
+  }
+
+  function getPageHeight() {
+    var b = document.body;
+    var e = document.documentElement;
+    return Math.max(b.scrollHeight, e.scrollHeight,
+        b.offsetHeight, e.offsetHeight,
+        b.clientHeight, e.clientHeight);
+  }
+
+  function getPageWidth() {
+    var b = document.body;
+    var e = document.documentElement;
+    return Math.max(b.scrollWidth, e.scrollWidth,
+        b.offsetWidth, e.offsetWidth,
+        b.clientWidth, e.clientWidth);
+  }
+
+  self.moveFrame = function (offset) {
+    if (IsChildFrame())
+      return SendFrameMessage(window.parent, 'move', offset);
+
+    // Recalculate where is the best place to show IME frame, to prevent moving
+    // that outside top level DOM (ex, chat windows).
+    var min_width = 300, min_height = 150;
+    if (offset.top + offset.node_height + min_height >= getPageHeight())
+      offset.top -= min_height;
+    else
+      offset.top += offset.node_height;
+
+    if (offset.left + min_width >= getPageWidth())
+      offset.left = getPageHeight() - min_width;
+    else
+      offset.left += 5;
+
+    self.frame.css(offset);
   }
 
   self.setInitNode = function (node) {

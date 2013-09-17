@@ -38,7 +38,8 @@ function init () {
   var impl = new ChromeInputImeImplChromeExtension('content');
   impl.debug("Extension IME installed.");
   impl.init();
-  impl.setFrame($(CreateImeFrame()));
+  if (window.self === window.top)
+    impl.setFrame($(CreateImeFrame()));
 }
 
 // For content.js we can't wait for readystatechange - that is controlled by
