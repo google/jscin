@@ -193,7 +193,8 @@ GenInp2.prototype.new_instance = function(ctx) {
     ctx.candidates_start_index = 0;
 
     // Flag for addons.
-    ctx.auto_compose = conf.opts.OPT_AUTO_COMPOSE || conf.override_autocompose;
+    ctx.auto_compose = (
+        conf.opts.OPT_AUTO_COMPOSE || conf.override_autocompose) ? true : false;
 
     // Compatible with gen_inp.
     ctx.selkey = conf.selkey;
