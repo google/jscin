@@ -463,14 +463,14 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   self.showFrame = function (long_animation) {
-    if (!self.frame)
+    if (IsChildFrame())
       return SendFrameMessage(window.top, "show");
     self.frame.finish();
     self.frame.fadeIn(long_animation ? 250 : 100);
   }
 
   self.hideFrame = function () {
-    if (!self.frame)
+    if (IsChildFrame())
       return SendFrameMessage(window.top, 'hide');
     self.frame.finish();
     self.frame.fadeOut(100);
@@ -504,18 +504,22 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     if (IsChildFrame())
       return SendFrameMessage(window.parent, 'move', offset);
 
+    self.debug("moveFrame, orig:", offset);
+
     // Recalculate where is the best place to show IME frame, to prevent moving
     // that outside top level DOM (ex, chat windows).
     var min_width = 300, min_height = 150;
-    if (offset.top + offset.node_height + min_height >= getPageHeight())
+    if (offset.top + offset.node_height + min_height > getPageHeight())
       offset.top -= min_height;
     else
       offset.top += offset.node_height;
 
-    if (offset.left + min_width >= getPageWidth())
-      offset.left = getPageHeight() - min_width;
+    if (offset.left + min_width > getPageWidth())
+      offset.left = getPageWidth() - min_width;
     else
       offset.left += 5;
+    self.debug("moveFrame, page wXH:", getPageWidth(), getPageHeight(),
+               ", final:", offset);
 
     self.frame.css(offset);
   }
