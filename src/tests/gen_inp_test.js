@@ -7,34 +7,22 @@ load('../jscin/gen_inp2.js');
 load('../jscin/cin_parser.js');
 // jscin.debug = true;
 
-var codeMap = {
-    ";": "Semicolon",
-    "=": "Equal",
-    ",": "Comma",
-    "-": "Minus",
-    ".": "Period",
-    "/": "Slash",
-    "`": "BackQuote",
-    "[": "BracketLeft",
-    "]": "BracketRight",
-    "\\": "Backslash",
-    "'": "Quote",
-    " ": "Space"
-};
+function build_reverse_map(from) {
+  var to = {};
+  for (var k in from) {
+    if (from[k] in to)
+      continue;
+    to[from[k]] = k;
+  }
+  return to;
+}
 
 function simulate(inst, inpinfo, input, expect) {
+  var c2code = build_reverse_map(jscin.kImeKeyCodeTable);
   for (var i in input) {
-    var digits = "0123456789";
-    var alphabets = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    var code = input[i].toUpperCase();
-    if (code in codeMap) {
-      code = codeMap[code];
-    } else if (digits.indexOf(code) >= 0)
-      code = 'Digit' + code;
-    else if (alphabets.indexOf(code) >= 0)
-      code = 'Key' + code;
-    else {
-      print("Sorry, unknown input: ", code);
+    var code = c2code[input[i].toUpperCase()] || '';
+    if (code == '') {
+      print("Sorry, unknown input: ", input[i]);
       return false;
     }
 
