@@ -326,6 +326,10 @@ jscin.reloadNonBuiltinTables = function () {
 //////////////////////////////////////////////////////////////////////////////
 // Platform-dependent utilities
 
+jscin.hasLzString = function () {
+  return typeof(LZString) != typeof(undefined);
+}
+
 jscin.readLocalStorage = function (key, default_value) {
   if (typeof(localStorage) == typeof(undefined)) {
     localStorage = {};
@@ -334,8 +338,13 @@ jscin.readLocalStorage = function (key, default_value) {
   if (!data) {
     return default_value;
   }
-  if (data[0] == '!')
+  if (data[0] == '!') {
+    if (!jscin.hasLzString()) {
+      jscin.error("LZ-String not available. Dropping storage key:", key);
+      return default_value;
+    }
     data = LZString.decompress(data.substr(1));
+  }
   return JSON.parse(data);
 }
 
@@ -344,7 +353,7 @@ jscin.writeLocalStorage = function (key, data) {
     localStorage = {};
   }
   var val = JSON.stringify(data);
-  if (val.length > 100)
+  if (val.length > 100 && jscin.hasLzString())
     val = '!' + LZString.compress(val);
   localStorage[key] = val;
 }
