@@ -38,6 +38,9 @@ z Ｚ
 %keyname end
 %chardef begin
 a     對
-a     对
-a     対
+o     ○
+o     〇
+oo    口
+oo    □
+oo    囗
 %chardef end

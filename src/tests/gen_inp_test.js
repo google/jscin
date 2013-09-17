@@ -108,9 +108,9 @@ function main() {
     }, {
       table: "test_boshiamy.cin",
       test: [
-        { input: "a ", result: "對" },
-        { input: "a1", result: "对" },
-        { input: "a2", result: "対" },
+        { input: "a ", result: "對", 0: {selkey: ' 1234567890'} },
+        { input: "o ", result: "○", 0: {mcch: '○〇'} },
+        { input: "o1", result: "〇" },
       ]
     }, {
       table: "test_dayi3p.cin",
@@ -129,12 +129,14 @@ function main() {
         { input: "- 1", result: "ㄦ" },
         { input: "- 2", result: "兒" },
         { input: "283", result: "打" },  // single candidate
-        { input: "823", result: "打", 1: {keystroke: 'ㄉㄚ'} },  // key group
+        { input: "8283", result: "打", 1: {keystroke: 'ㄉㄚ'} },  // key group
         { input: "5j41", result: "住" },
         { input: "5j42", result: "著" },
         { input: "5j4  5", result: "莇" },  // candidate in 3rd page
         { input: "5j4j541", result: "住住",
           3: {'cch': '住', ret: jscin.IMKEY_COMMIT}},
+        { input: "-  ", result: "ㄦ" },  // space to commit if few candidate
+        { input: "5j4    2", result: "著" },  // space to next page if more than one page
       ]
     }
   ];
