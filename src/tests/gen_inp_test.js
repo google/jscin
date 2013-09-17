@@ -17,7 +17,8 @@ function build_reverse_map(from) {
   return to;
 }
 
-function simulate(inst, inpinfo, input, expect) {
+function simulate(inst, inpinfo, input, result, expects) {
+  var committed = '';
   var c2code = build_reverse_map(jscin.kImeKeyCodeTable);
   for (var i in input) {
     var code = c2code[input[i].toUpperCase()] || '';
@@ -31,18 +32,39 @@ function simulate(inst, inpinfo, input, expect) {
     var ret = inst.onKeystroke(inpinfo, keyinfo);
     print('ret=', ret, ", inpinfo: ", dump_inpinfo(inpinfo));
 
-    // Only allow COMMIT in end of input.
-    var expected_ret = ((parseInt(i) + 1 == input.length) ?
-                        jscin.IMKEY_COMMIT : jscin.IMKEY_ABSORB);
-    if (ret != expected_ret) {
-      print("test failed: ret=", ret, ", expected: ", expected_ret);
+    var expect;
+    if (!expects || expects[i] == undefined) {
+      // By default, only allow COMMIT in end of input.
+      expect = { ret: parseInt(i)+1 == input.length ?
+          jscin.IMKEY_COMMIT  : jscin.IMKEY_ABSORB};
+    } else {
+      expect = expects[i];
+    }
+
+    var ok = true;
+    var to_check = ['keystroke', 'mcch', 'cch', 'selkey'];
+    to_check.forEach(function (name) {
+      if (expect[name] != undefined) {
+        if (inpinfo[name] != expect[name]) {
+          print('test failed: ', name, '=', inpinfo[name], ', expected: ', expect[name]);
+          ok = false;
+        }
+      }
+    });
+    if (expect.ret != undefined && ret != expect.ret) {
+      print("test failed: ret=", ret, ", expected: ", expect.ret);
+      ok = false;
+    }
+    if (!ok) {
       return false;
     }
+    if (ret == jscin.IMKEY_COMMIT)
+      committed += inpinfo.cch;
   }
 
-  if (inpinfo.cch == expect)
+  if (committed == result)
     return true;
-  print("test failed: input=", input, ", expect: ", expect);
+  print("test failed: input=", input, ", expect: ", result);
   return false;
 }
 
@@ -106,9 +128,13 @@ function main() {
         { input: "z ", result: "ㄈ" },
         { input: "- 1", result: "ㄦ" },
         { input: "- 2", result: "兒" },
-        { input: "283", result: "打" },
+        { input: "283", result: "打" },  // single candidate
+        { input: "823", result: "打", 1: {keystroke: 'ㄉㄚ'} },  // key group
         { input: "5j41", result: "住" },
         { input: "5j42", result: "著" },
+        { input: "5j4  5", result: "莇" },  // candidate in 3rd page
+        { input: "5j4j541", result: "住住",
+          3: {'cch': '住', ret: jscin.IMKEY_COMMIT}},
       ]
     }
   ];
@@ -123,7 +149,7 @@ function main() {
     var inst = jscin.create_input_method(name, inpinfo);
     test.test.forEach(function (entry) {
       total_tested++;
-      if (!simulate(inst, inpinfo, entry.input, entry.result))
+      if (!simulate(inst, inpinfo, entry.input, entry.result, entry))
         failure++;
     });
     if (failure) {
