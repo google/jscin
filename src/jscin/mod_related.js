@@ -41,7 +41,7 @@ ModRelatedText = function(im) {
   self.onKeystroke = function(ctx, ev) {
     var key = jscin.get_key_val(ev.code);
 
-    console.log("relatedText, key = ", key);
+    jscin.log("relatedText, key = ", key);
     if (!ctx.allow_related_text || ev.ctrlKey || ev.altKey || key == 'Shift')
       return self.im.onKeystroke(ctx, ev);
 
