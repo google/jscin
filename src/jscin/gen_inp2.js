@@ -36,7 +36,8 @@ GenInp2 = function(name, conf) {
   self.ename = conf.ename || name;
   self.keyname = conf.keyname || {};  // upper-cased.
   self.table = conf.chardef || {}; // upper-cased.
-  self.selkey = conf.selkey || []; // probably also upper-cased.
+  self.selkey = conf.selkey || ''; // probably also upper-cased.
+  self.selkey2 = conf.selkey2 || '';
   self.max_composition = parseInt(conf.max_keystroke || "0");
   self.endkey = conf.endkey || "";
   self.opts = {
@@ -418,7 +419,8 @@ GenInp2.prototype.new_instance = function(ctx) {
   }
 
   function IsSelectionKey(ctx, key) {
-    return conf.selkey.indexOf(key.toUpperCase()) >= 0;
+    return conf.selkey.indexOf(key.toUpperCase()) >= 0 ||
+           conf.selkey2.indexOf(key.toUpperCase()) >= 0;
   }
 
   function IsEndKey(ctx, key) {
@@ -428,8 +430,10 @@ GenInp2.prototype.new_instance = function(ctx) {
 
   function SelectCommit(ctx, key) {
     trace(ctx.candidates, ctx.candidates_start_index, key);
-    var index = (ctx.candidates_start_index +
-                 conf.selkey.indexOf(key.toUpperCase()));
+    var key_idx = conf.selkey.indexOf(key.toUpperCase());
+    if (key_idx < 0)
+      key_idx = conf.selkey2.indexOf(key.toUpperCase());
+    var index = (ctx.candidates_start_index + key_idx);
     return CommitText(ctx, index);
   }
 

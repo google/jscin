@@ -67,7 +67,7 @@ function simulate(inst, inpinfo, input, result, expects) {
   return false;
 }
 
-function loadTableFromFile(filename) {
+function loadTableFromFile(filename, extra_option) {
   var content = read(filename);
   var results = parseCin(content);
   if (!results[0]) {
@@ -77,6 +77,9 @@ function loadTableFromFile(filename) {
   var table_metadata = results[1].metadata;
   var table_data = results[1].data;
   var name = table_metadata.ename;
+  for (var option in extra_option) {
+    table_data[option] = extra_option[option];
+  }
   jscin.addTable(name, table_metadata, table_data);
   return name;
 }
@@ -137,6 +140,13 @@ function main() {
         { input: "-  ", result: "ㄦ" },  // space to commit if few candidate
         { input: "5j4    2", result: "著" },  // space to next page if more than one page
       ]
+    }, {
+      table: "test_phone.cin",
+      extra_option: { 'selkey2': 'ASDFGHJKL' },
+      test: [
+        { input: "5j4j541", result: "註至",
+          3: {ret: jscin.IMKEY_COMMIT}},
+      ]
     }
   ];
 
@@ -144,7 +154,7 @@ function main() {
   var total_tested = 0;
   test_list.forEach(function (test) {
     var failure = 0;
-    var name = loadTableFromFile(test.table);
+    var name = loadTableFromFile(test.table, test.extra_option || {});
     jscin.reload_configuration();
     var inpinfo = {};
     var inst = jscin.create_input_method(name, inpinfo);
