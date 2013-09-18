@@ -65,7 +65,9 @@
   "optionGeneral": {"message":
     "一般性設定" },
   "optionSupportNonChromeOS": {"message":
-    "在非 ChromeOS 的環境上一樣預設啟動輸入法" },
+    "支援非 ChromeOS 的環境" },
+  "optionDefaultEnabledNonCros": {"message":
+    "在非 ChromeOS 的環境上預設自動啟用" },
   "optionPunctuations": {"message":
     "支援快速輸入中文標點符號 (Ctrl + ,.';[]...) " },
   "optionRelatedText": {"message":

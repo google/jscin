@@ -48,7 +48,7 @@ croscin.IME = function() {
     support_non_chromeos: true,
     quick_punctuations: true,
     related_text: false,
-    default_enabled: true  // Only for non-ChromeOS.
+    default_enabled: false  // Only for non-ChromeOS.
   };
 
   self.engineID = self.kEngineId;

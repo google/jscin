@@ -92,11 +92,7 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
       self.debug("IpcGetSystemStatus");
       return {
         default_enabled: croscin.instance.prefGetDefaultEnabled(),
-        debug: croscin.instance.debug }; },
-
-    IpcSetDefaultEnabled: function (new_value) {
-      self.debug("IpcSetDefaultEnabled", new_value);
-      return croscin.instance.prefSetDefaultEnabled(new_value); }
+        debug: croscin.instance.debug }; }
 
   }, function () {
     self.debug("Ipc Uncaught event:", arguments);
@@ -136,9 +132,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
   function SetEnabled(enabled) {
     self.debug("SetEnabled", enabled);
-    if (enabled && !self.im) {
-      SnapshotIME();
-    }
     if (typeof(self.enabled) == 'undefined') {
       // First time setting enabled.
       self.enabled = enabled;
@@ -152,8 +145,9 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.debug("setEnabled: hideFrame");
         self.hideFrame();
       }
-      // Notify background page to change settings.
-      SendMessage('IpcSetDefaultEnabled', enabled);
+    }
+    if (enabled && !self.im) {
+      SnapshotIME();
     }
   }
 
@@ -234,7 +228,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     var node = ev.target;
     self.debug("impl.KeyDownEventHandler", ev, ev2);
 
-    // Simulation by SnapshotIME.
     if (ProcessKeyEvent(ev2)) {
       ev.preventDefault();
     }
@@ -331,8 +324,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     ipc.listen({
       IpcUiReady: function () {
         self.debug("UIReady");
-        self.ui_ready = true;
-        OnUiReady();
+        SendMessage("Activate", self.engineID); // Update menu & pageAction.
       },
 
       IpcRefreshIME: function () {
@@ -389,10 +381,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.debug("IpcGetSystemStatus received:", result, window.self.location);
       self._debug = result.debug;
       SetEnabled(result.default_enabled);
-      self.sys_ready = true;
-      if (IsChildFrame())
-        self.ui_ready = true;
-      OnUiReady();
+      ListenOnFocus();
     });
   }
 
@@ -403,13 +392,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
   function IsAttached(node) {
     return self.attached.indexOf(node) >= 0;
-  }
-
-  function OnUiReady() {
-    if (!self.sys_ready || !self.ui_ready)
-      return;
-    SendMessage("Activate", self.engineID); // Update menu & pageAction.
-    ListenOnFocus();
   }
 
   function ListenOnFocus() {
