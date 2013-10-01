@@ -1,0 +1,25 @@
+<html>
+<head>
+<script type="text/javascript">
+function loaded() {
+  document.getElementById('nacl').addEventListener('message', handleMessage,
+    false);
+}
+function handleMessage(ev) {
+  console.log("received", ev.data);
+}
+function clicked() {
+  document.getElementById('nacl').postMessage("onKeystroke:j");
+  document.getElementById('nacl').postMessage("onKeystroke:i");
+  document.getElementById('nacl').postMessage("onKeystroke:3");
+  document.getElementById('nacl').postMessage("onKeystroke:Enter");
+}
+</script>
+</head>
+<body onload="loaded();">
+<h1> Chewing NaCl test </h1>
+<embed name="nacl_module" width="0" height="0" type="application/x-nacl"
+       id="nacl" src="newlib/Debug/chewing.nmf" />
+<input type="button" onClick="clicked();" value="Click Test"></input>
+</body>
+</html>

@@ -1,0 +1,12 @@
+A sample NaCl based input module for jscin - using libchewing.
+
+To build this:
+
+  1. Create a "libchewing" subfolder and fetch libchewing source code in it.
+  2. Enter libchewing, ./configure && make
+  3. Get your Native Client SDK ready, and set NACL_SDK_ROOT properly.
+  4. make
+
+To test:
+  1. $NACL_SDK_ROOT/tools/httpd.py --no_dir_check &
+  2. Open browser and http://localhost:5103/test.html

@@ -2,3 +2,6 @@
 .*.swp
 # V8(d8) readline history
 .d8_history
+# Nacl build out
+newlib
+nacl/libchewing/libchewing
