@@ -63,6 +63,11 @@ ModRelatedText = function(im) {
     return result;
   }
 
+  self.getExpectedKeys = function(ctx) {
+    // TODO(hungte) This may be buggy.
+    return im.getExpectedKeys(ctx);
+  }
+
   return self;
 }
 

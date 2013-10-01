@@ -255,6 +255,12 @@ croscin.IME = function() {
     self.SetCandidatesWindowProperty({
       auxiliaryText: self.im_label,
       auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
+
+    // Hint for IME to get key expections.
+    if (ime_api.onImplExpectedKeys) {
+      ime_api.dispatchEvent("ImplExpectedKeys",
+          self.im.getExpectedKeys(self.imctx));
+    }
   }
 
   self.ActivateInputMethod = function(name) {

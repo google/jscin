@@ -606,6 +606,24 @@ GenInp2.prototype.new_instance = function(ctx) {
     return ResultIgnored(ctx);
   }
 
+  self.getExpectedKeys = function(ctx) {
+    var keys = Object.keys(conf.keyname).concat(conf.endkey.split(''));
+    // Space and Esc works only when there's stuff to input.
+    if (ctx.composition || ctx.candidates) {
+      keys = keys.concat([' ', 'Esc']);
+    }
+    if (ctx.composition) {
+      keys.push('Backspace');
+    }
+    if (ctx.candidates) {
+      keys = keys.concat(conf.selkey.split('')).
+          concat(['Left', 'Up', 'Down', 'Right', 'PageUp', 'PageDown',
+                  'Shift ,', 'Shift .']);
+    }
+
+    return keys;
+  }
+
   // ------------------------------------------------
   return self;
 }

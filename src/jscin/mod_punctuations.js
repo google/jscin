@@ -28,6 +28,16 @@ ModPunctuations = function(im) {
     '0': '\uff09',
   };
 
+  // build key map
+  var keys = [];
+  Object.keys(self.ctrl_phrase).forEach(function (k) {
+    keys.push('Ctrl ' + k);
+  });
+  Object.keys(self.ctrl_shift_phrase).forEach(function (k) {
+    keys.push('Ctrl Shift ' + k);
+  });
+  self.expected_keys = keys;
+
   self.onKeystroke = function(ctx, ev) {
     // TODO(hungte) Find better way to get allow_ctrl_phrase.
     if (!ev.ctrlKey || ev.altKey || !ctx.allow_ctrl_phrase)
@@ -40,6 +50,12 @@ ModPunctuations = function(im) {
 
     ctx.cch = table[key];
     return jscin.IMKEY_COMMIT;
+  }
+
+  self.getExpectedKeys = function(ctx) {
+    if (ctx.allow_ctrl_phrase)
+      return im.getExpectedKeys(ctx).concat(self.expected_keys);
+    return im.getExpectedKeys(ctx);
   }
 
   return self;

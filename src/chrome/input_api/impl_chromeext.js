@@ -61,11 +61,6 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   ime_api.onUiCandidateWindow.addListener(
       ForwardUiToImeFrame("UiCandidateWindow"));
 
-  // Send a refresh for content.js when any menu item is clicked.
-  ime_api.onMenuItemActivated.addListener(function () {
-    ipc.send("IpcRefreshIME");
-  });
-
   ime_api.onActivate.addListener(function () {
     ShowPageAction();
   });
@@ -78,22 +73,16 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   ime_api.onImplCommitText.addListener(function (contextID, text) {
     ipc.send("ImplCommitText", contextID, text);
   });
+  ime_api.onImplExpectedKeys.addListener(function (keys) {
+    ipc.send("ImplExpectedKeys", keys);
+  });
 
   ipc.listen({
-    IpcSnapshotIME: function () {
-      self.debug("IpcSnapshotIME");
-      return {
-        im_module: jscin.getDefaultModuleName(),
-        im_data: jscin.getTableData(croscin.instance.im_name),
-        im_name: croscin.instance.im_name,
-        imctx: croscin.instance.imctx }; },
-
     IpcGetSystemStatus: function () {
       self.debug("IpcGetSystemStatus");
       return {
         default_enabled: croscin.instance.prefGetDefaultEnabled(),
         debug: croscin.instance.debug }; }
-
   }, function () {
     self.debug("Ipc Uncaught event:", arguments);
     return ime_api.dispatchEvent.apply(null, arguments);
@@ -136,9 +125,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.hideFrame();
       }
     }
-    if (enabled && !self.im) {
-      SnapshotIME();
-    }
   }
 
   function KeyUpEventHandler(ev) {
@@ -151,48 +137,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       SetEnabled(!self.enabled);
     }
     self.waitForHotkey = false;
-  }
-
-  function UpdateUI() {
-    self.debug("UpdateUI");
-    var imctx = self.imctx;
-    SendMessage("ImplUpdateUI", imctx.keystroke, imctx.mcch, imctx.selkey);
-  }
-
-  // Same as croscin.ProcessKeyEvent. Need self.im*.
-  function ProcessKeyEvent(ev) {
-    self.debug("ProcessKeyEvent:", ev.key);
-
-    // Currently all of the modules uses key down.
-    if (ev.type != 'keydown') {
-      return false;
-    }
-    var ret = self.im.onKeystroke(self.imctx, ev);
-
-    switch (ret) {
-      case jscin.IMKEY_COMMIT:
-        self.debug("im.onKeystroke: return IMKEY_COMMIT");
-        UpdateUI();
-        // croscin may have extra UI processing when committing text (ex,
-        // cross-query) so we don't want to do ImplCommitText directly. Let's
-        // route back to croscin.
-        SendMessage("ImplCommit", self.imctx.cch);
-        return true;
-
-      case jscin.IMKEY_ABSORB:
-        self.debug("im.onKeystroke: return IMKEY_ABSORB");
-        UpdateUI();
-        return true;
-
-      case jscin.IMKEY_IGNORE:
-        self.debug("im.onKeystroke: return IMKEY_IGNORE");
-        UpdateUI();
-        return false;
-    }
-
-    // default: Unknown return value.
-    self.debug("ProcessKeyEvent: Unknown return value:", ret);
-    return false;
   }
 
   function KeyDownEventHandler(ev) {
@@ -209,17 +153,24 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     if (!self.enabled)
       return;
 
-    if (!self.im) {
-      self.debug("ERROR: Key event before IM is ready.");
-      return;
-    }
-
     var ev2 = ImeEvent.ImeKeyEvent(ev);
     var node = ev.target;
     self.debug("impl.KeyDownEventHandler", ev, ev2);
+    if (self.im_keys) {
+      // Serialize ev2.key
+      var k = jscin.get_key_val(ev2.code);
+      if (ev2.shiftKey)
+        k = 'Shift ' + k;
+      if (ev2.altKey)
+        k = 'Alt ' + k;
+      if (ev2.ctrlKey)
+        k = 'Ctrl ' + k;
 
-    if (ProcessKeyEvent(ev2)) {
-      ev.preventDefault();
+      if (self.im_keys.indexOf(k) >= 0) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        SendMessage('KeyEvent', self.engineID, ev2);
+      }
     }
   }
 
@@ -257,23 +208,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       SendMessage("Blur", self.contextID);
       self.contextID = undefined;
     }
-  }
-
-  function SnapshotIME() {
-    self.im = undefined;
-    self.imctx = undefined;
-    SendMessage("IpcSnapshotIME", function (result) {
-      var name = result.im_name;
-      self.debug("Snapshot - IM:", result, window.self.location);
-      if (!name) {
-        self.debug("Remote IM is not ready... good luck.");
-        // TODO(hungte) Don't continue.
-        return;
-      }
-      jscin.register_input_method(name, result.im_module, 'snapshot');
-      self.imctx = result.imctx || {};
-      self.im = jscin.create_input_method(name, self.imctx, result.im_data);
-    });
   }
 
   function FindElementByFrame(frame) {
@@ -316,15 +250,14 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         SendMessage("Activate", self.engineID); // Update menu & pageAction.
       },
 
-      IpcRefreshIME: function () {
-        // Need to request for another snapshot.
-        SnapshotIME();
-      },
-
       ImplCommitText: function (contextID, text) {
         if (contextID != self.contextID)
           return;
         ImplCommitText(self.node, text);
+      },
+
+      ImplExpectedKeys: function (keys) {
+        self.im_keys = keys;
       },
 
       Focus: function (context, guid) {

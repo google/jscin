@@ -611,6 +611,28 @@ GenInp.prototype.new_instance = function(inpinfo) {
     trace('NotImplemented');
     return 0;
   }
+  self.getExpectedKeys = function(inpinfo) {
+    var conf = ime.header;
+    var ctx = inpinfo;
+
+    // Note following rules are copied from gen_inp2. Not fully tested under
+    // gen_inp.
+    var keys = Object.keys(conf.keyname).concat(conf.endkey.split(''));
+    // Space and Esc works only when there's stuff to input.
+    if (ctx.keystroke || ctx.mcch) {
+      keys = keys.concat([' ', 'Esc']);
+    }
+    if (ctx.keystroke) {
+      keys.push('Backspace');
+    }
+    if (ctx.mcch) {
+      keys = keys.concat(conf.selkey.split('')).
+          concat(['Left', 'Up', 'Down', 'Right', 'PageUp', 'PageDown',
+                  'Shift ,', 'Shift .']);
+    }
+
+    return keys;
+  }
   return self;
 }
 

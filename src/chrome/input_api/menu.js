@@ -11,7 +11,8 @@ $(function() {
   }
 
   ime_api.onUiMenu.addListener(function (engine) {
-    console.log("got onUiMenu", arguments);
+    if (console)
+      console.log("got onUiMenu", arguments);
     var ui = $('#menu');
     ui.empty();
     engine.menuitems.forEach(function (item) {
