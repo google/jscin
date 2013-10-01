@@ -5,7 +5,6 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) Support dynamic DOM nodes better.
 // TODO(hungte) Load jquery on demand.
 
 function CreateImeFrame () {
@@ -36,6 +35,7 @@ function init () {
   if (window.navigator.userAgent.indexOf(' CrOS ') >= 0)
     return;
 
+  // TODO(hungte) Find way to get croscin.instance.prefGetSupportNonChromeOS().
   var impl = new ChromeInputImeImplChromeExtension('content');
   impl.debug("Extension IME installed.");
   impl.init();

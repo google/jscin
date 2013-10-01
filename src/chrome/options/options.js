@@ -40,7 +40,7 @@ function init() {
     connectWith: ".sortable",
     helper: 'clone'
   }).disableSelection();
-  /* TODO(hungte) Reject when #enabled_im_list has nothing. */
+
   $('#enabled_im_list').sortable({
     revert: true,
     connectWith: ".sortable",
