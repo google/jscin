@@ -394,6 +394,9 @@ function dump_object(obj, indent) {
 // Debugging and unit tests
 
 function trace() {
+  if (!jscin.debug || typeof(console) != typeof(undefined))
+    return;
+
   var e = new Error();
   var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
   var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
