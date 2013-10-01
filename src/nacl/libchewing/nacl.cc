@@ -74,10 +74,20 @@ class ChewingInstance: public pp::Instance {
     pthread_t main_thread;
     pthread_create(&main_thread, NULL, chewing_init_context, (void*)this);
   }
+
   virtual ~ChewingInstance() {
     if (ctx)
       chewing_delete(ctx);
   }
+
+  virtual void Debug(const string &message) {
+    PostMessage(pp::Var("console.log:" + message));
+  }
+
+  virtual void Debug(const string &message, const string &detail) {
+    PostMessage(pp::Var("console.log:" + message + ", " + detail));
+  }
+
   virtual void HandleMessage(const pp::Var &var_message) {
     // Due to current PPAPI limitation, we need to serialize anything to simple
     // string before sending to native client.
@@ -100,16 +110,42 @@ class ChewingInstance: public pp::Instance {
         break;
       }
     }
-    PostMessage(pp::Var(handled ? "handled" : "not handled"));
 
-    if (!handled)
+    Debug(handled ? "handled" : "not handled");
+
+    if (!handled) {
         chewing_handle_Default(ctx, msg[0]);
-
+        chewing_cand_Enumerate(ctx);
+        if (chewing_cand_TotalChoice(ctx) > 0) {
+          Debug("cand_enumerate");
+          while (chewing_cand_hasNext(ctx)) {
+            char *s = chewing_cand_String(ctx);
+            Debug("candidates", s);
+            chewing_free(s);
+          }
+        } else {
+          if (chewing_buffer_Check(ctx)) {
+            char *s = chewing_buffer_String(ctx);
+            Debug("buffer", s);
+            chewing_free(s);
+          }
+        }
+        if (chewing_zuin_Check(ctx)) {
+          int czuins = 0;
+          char *s = chewing_zuin_String(ctx, &czuins);
+          Debug("zuin", s);
+          chewing_free(s);
+        }
+        if (chewing_aux_Check(ctx)) {
+          char *s = chewing_aux_String(ctx);
+          Debug("aux", s);
+          chewing_free(s);
+        }
+    }
     if (chewing_commit_Check(ctx)) {
       char *s = chewing_commit_String(ctx);
-      // TODO(hungte) Encode results.
-      PostMessage(pp::Var(s));
-      free(s);
+      Debug("commit", s);
+      chewing_free(s);
     }
   }
 };
@@ -124,6 +160,7 @@ void *chewing_init_context(void *arg) {
   chewing_set_candPerPage(ctx, 9);
   chewing_set_maxChiSymbolLen(ctx, 16);
   chewing_set_addPhraseDirection(ctx, 1);
+  chewing_set_candPerPage(ctx, 10);
   chewing_set_selKey(ctx, chewing_SelKeys, 10);
   chewing_set_spaceAsSelection(ctx, 1);
   return NULL;

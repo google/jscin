@@ -14,11 +14,9 @@ LIBCHEWING_HOME ?= libchewing
 
 NACL_SDK_ROOT ?= $(abspath $(CURDIR)/../../../../nacl_sdk)
 include $(NACL_SDK_ROOT)/tools/common.mk
-CFLAGS += -DUNDER_POSIX -DHAVE_STRTOK_R -DHAVE_CONFIG_H -I.
-CFLAGS += -I$(LIBCHEWING_HOME)/include -I$(LIBCHEWING_HOME)/include/internal
+CFLAGS += -DHAVE_CONFIG_H -I. -I$(LIBCHEWING_HOME)/src
 CFLAGS += -I$(LIBCHEWING_HOME)/src/porting_layer/include
-CFLAGS += -I$(LIBCHEWING_HOME)/src
-CFLAGS += -DLIBDIR=\"/data\" -DTEMP_HASH
+CFLAGS += -I$(LIBCHEWING_HOME)/include -I$(LIBCHEWING_HOME)/include/internal
 
 TARGET = chewing
 LIBS = $(DEPS) ppapi_cpp ppapi nacl_io pthread jsoncpp
