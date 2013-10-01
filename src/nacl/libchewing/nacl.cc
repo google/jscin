@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <pthread.h>  // for nacl_io
 #include <stdlib.h>
@@ -54,24 +55,20 @@ ChewingKeyMapping special_key_mappings[] = {
   { "Delete", chewing_handle_Del, },
 };
 
-static int chewing_SelKeys[11] = {
-  '1','2','3','4','5','6','7','8','9','0',0,
-};
-
 void *chewing_init_context(void *arg);
 
 class ChewingInstance: public pp::Instance {
  public:
   ChewingContext *ctx;
-  explicit ChewingInstance(PP_Instance instance): pp::Instance(instance) {
+  explicit ChewingInstance(PP_Instance instance):
+    pp::Instance(instance), ctx(NULL) {
     char chewing_path[] = "CHEWING_PATH=/data";
     nacl_io_init_ppapi(instance, pp::Module::Get()->get_browser_interface());
-    ctx = NULL;
-    putenv(chewing_path);
     if (mount("libchewing/data", "/data", "httpfs", 0, "") != 0) {
       PostMessage(pp::Var("can't mount"));
       return;
     }
+    putenv(chewing_path);
     chewing_Init("/data", ".");
     pthread_t main_thread;
     pthread_create(&main_thread, NULL, chewing_init_context, (void*)this);
@@ -97,19 +94,39 @@ class ChewingInstance: public pp::Instance {
     Json::Value value(Json::objectValue);
 
     // TODO(hungte) Probably just access context internal buffer so we don't
-    // need to waste time doing calloc/free.
+    // need to waste time doing calloc/free... reading ChewingOutput directly.
 
-    // TODO(hungte) deal with candidate enumeration.
-    chewing_cand_Enumerate(ctx);
+    // chewing_cand_CheckDone does not do what we expect...
     if (chewing_cand_TotalChoice(ctx) > 0) {
+      chewing_cand_Enumerate(ctx);
       Json::Value cand = Json::Value(Json::arrayValue);
-      while (chewing_cand_hasNext(ctx)) {
+      int i, len = chewing_cand_ChoicePerPage(ctx);
+      for (i = 0; i < len && chewing_cand_hasNext(ctx); i++) {
         s = chewing_cand_String(ctx);
         cand.append(Json::Value(s));
         chewing_free(s);
       }
       value["cand"] = cand;
+      value["cand_ChoicePerPage"] = Json::Value(len);
+      value["cand_TotalPage"] = Json::Value(chewing_cand_TotalPage(ctx));
+      value["cand_CurrentPage"] = Json::Value(chewing_cand_CurrentPage(ctx));
     }
+
+    {
+      IntervalType it;
+      Json::Value intervals = Json::Value(Json::arrayValue);
+      chewing_interval_Enumerate(ctx);
+      while (chewing_interval_hasNext(ctx)) {
+        chewing_interval_Get(ctx, &it);
+        Json::Value itv = Json::Value(Json::objectValue);
+        itv["from"] = Json::Value(it.from);
+        itv["to"] = Json::Value(it.to);
+        intervals.append(itv);
+      }
+      if (intervals.size() > 0)
+        value["interval"] = intervals;
+    }
+
 
     if (chewing_buffer_Check(ctx)) {
       s = chewing_buffer_String(ctx);
@@ -132,13 +149,18 @@ class ChewingInstance: public pp::Instance {
       chewing_free(s);
     }
     value["cursor"] = Json::Value(chewing_cursor_Current(ctx));
+    if (chewing_keystroke_CheckIgnore(ctx))
+      value["ignore"] = Json::Value(true);
+    if (chewing_keystroke_CheckAbsorb(ctx))
+      value["absorb"] = Json::Value(true);
+
     PostMessage(pp::Var("context:" + writer.write(value)));
   }
 
   virtual void HandleMessage(const pp::Var &var_message) {
     // Due to current PPAPI limitation, we need to serialize anything to simple
     // string before sending to native client.
-    if (!var_message.is_string())
+    if (!ctx || !var_message.is_string())
       return;
 
     // Check message type.
@@ -153,7 +175,7 @@ class ChewingInstance: public pp::Instance {
       ChewingKeyMapping *map = &special_key_mappings[i];
       if (msg == map->keyname) {
         map->handler(ctx);
-        handled =true;
+        handled = true;
         break;
       }
     }
@@ -165,18 +187,26 @@ class ChewingInstance: public pp::Instance {
 };
 
 void *chewing_init_context(void *arg) {
-  ChewingInstance *instance = (ChewingInstance*)arg;
-  ChewingContext *ctx = chewing_new();
-  instance->ctx = ctx;
-  // Set keyboard type
-  chewing_set_KBType(instance->ctx, chewing_KBStr2Num((char*)"KB_DEFAULT"));
+  int selkeys[MAX_SELKEY] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
 
-  chewing_set_candPerPage(ctx, 9);
+  ChewingInstance *instance = (ChewingInstance*)arg;
+  /* chewing_new will do fopen/fread so we must call it inside a dedicated
+   * thread. */
+  ChewingContext *ctx = chewing_new();
+
+  // Set keyboard type
+  chewing_set_KBType(ctx, chewing_KBStr2Num((char*)"KB_DEFAULT"));
+
   chewing_set_maxChiSymbolLen(ctx, 16);
   chewing_set_addPhraseDirection(ctx, 1);
-  chewing_set_candPerPage(ctx, 10);
-  chewing_set_selKey(ctx, chewing_SelKeys, 10);
   chewing_set_spaceAsSelection(ctx, 1);
+  // chewing_set_selKey does not really take the len arg and takes a hard-coded
+  // value for memcpy size. How amazing!
+  int nSelKeys = ARRAYSIZE(selkeys);
+  assert(nSelKeys >= MAX_SELKEY);
+  chewing_set_selKey(ctx, selkeys, nSelKeys);
+  chewing_set_candPerPage(ctx, std::min(nSelKeys, MAX_SELKEY));
+  instance->ctx = ctx;
   return NULL;
 }
 
