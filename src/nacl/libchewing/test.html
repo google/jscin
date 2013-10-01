@@ -6,7 +6,14 @@ function loaded() {
     false);
 }
 function handleMessage(ev) {
-  console.log("received", ev.data);
+  var kContext = "context:"
+  var index = ev.data.indexOf(kContext);
+  if (index >= 0) {
+    index += kContext.length;
+    console.log("received", JSON.parse(ev.data.substr(index)));
+  } else {
+    console.log("received", ev.data);
+  }
 }
 function clicked() {
   document.getElementById('nacl').postMessage("onKeystroke:j");
@@ -14,8 +21,15 @@ function clicked() {
   document.getElementById('nacl').postMessage("onKeystroke:3");
   document.getElementById('nacl').postMessage("onKeystroke:g");
   document.getElementById('nacl').postMessage("onKeystroke:4");
-  document.getElementById('nacl').postMessage("onKeystroke:ArrowDown");
+  document.getElementById('nacl').postMessage("onKeystroke:Down");
+  document.getElementById('nacl').postMessage("onKeystroke:Right");
+  document.getElementById('nacl').postMessage("onKeystroke:Right");
   document.getElementById('nacl').postMessage("onKeystroke:3");
+  document.getElementById('nacl').postMessage("onKeystroke:Left");
+  document.getElementById('nacl').postMessage("onKeystroke:Left");
+  document.getElementById('nacl').postMessage("onKeystroke:Left");
+  document.getElementById('nacl').postMessage("onKeystroke:Down");
+  document.getElementById('nacl').postMessage("onKeystroke:1");
   document.getElementById('nacl').postMessage("onKeystroke:5");
   document.getElementById('nacl').postMessage("onKeystroke:j");
   document.getElementById('nacl').postMessage("onKeystroke:/");

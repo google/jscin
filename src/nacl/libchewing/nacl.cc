@@ -15,6 +15,7 @@
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
 #include "nacl_io/nacl_io.h"
+#include "json/writer.h"
 
 #include "chewing.h"
 
@@ -38,18 +39,18 @@ ChewingKeyMapping special_key_mappings[] = {
   { "Backspace", chewing_handle_Backspace, },
   { "Tab", chewing_handle_Tab, },
   { "Enter", chewing_handle_Enter, },
-  { "ShiftLeft", chewing_handle_ShiftLeft, },
+  { "Shift", chewing_handle_ShiftLeft, },
   { "CapsLock", chewing_handle_Capslock, },
   { "Esc", chewing_handle_Esc, },
-  { "Space", chewing_handle_Space, },
+  { " ", chewing_handle_Space, },
   { "PageUp", chewing_handle_PageUp, },
   { "PageDown", chewing_handle_PageDown, },
   { "End", chewing_handle_End, },
   { "Home", chewing_handle_Home, },
-  { "ArrowLeft", chewing_handle_Left, },
-  { "ArrowUp", chewing_handle_Up, },
-  { "ArrowRight", chewing_handle_Right, },
-  { "ArrowDown", chewing_handle_Down, },
+  { "Left", chewing_handle_Left, },
+  { "Up", chewing_handle_Up, },
+  { "Right", chewing_handle_Right, },
+  { "Down", chewing_handle_Down, },
   { "Delete", chewing_handle_Del, },
 };
 
@@ -90,6 +91,50 @@ class ChewingInstance: public pp::Instance {
     PostMessage(pp::Var("console.log:" + message + ", " + detail));
   }
 
+  virtual void ReturnContext() {
+    char *s;
+    Json::FastWriter writer;
+    Json::Value value(Json::objectValue);
+
+    // TODO(hungte) Probably just access context internal buffer so we don't
+    // need to waste time doing calloc/free.
+
+    // TODO(hungte) deal with candidate enumeration.
+    chewing_cand_Enumerate(ctx);
+    if (chewing_cand_TotalChoice(ctx) > 0) {
+      Json::Value cand = Json::Value(Json::arrayValue);
+      while (chewing_cand_hasNext(ctx)) {
+        s = chewing_cand_String(ctx);
+        cand.append(Json::Value(s));
+        chewing_free(s);
+      }
+      value["cand"] = cand;
+    }
+
+    if (chewing_buffer_Check(ctx)) {
+      s = chewing_buffer_String(ctx);
+      value["buffer"] = Json::Value(s);
+      chewing_free(s);
+    }
+    if (chewing_bopomofo_Check(ctx)) {
+      s = chewing_bopomofo_String(ctx);
+      value["bopomofo"] = Json::Value(s);
+      chewing_free(s);
+    }
+    if (chewing_aux_Check(ctx)) {
+      s = chewing_aux_String(ctx);
+      value["aux"] = Json::Value(s);
+      chewing_free(s);
+    }
+    if (chewing_commit_Check(ctx)) {
+      s = chewing_commit_String(ctx);
+      value["commit"] = Json::Value(s);
+      chewing_free(s);
+    }
+    value["cursor"] = Json::Value(chewing_cursor_Current(ctx));
+    PostMessage(pp::Var("context:" + writer.write(value)));
+  }
+
   virtual void HandleMessage(const pp::Var &var_message) {
     // Due to current PPAPI limitation, we need to serialize anything to simple
     // string before sending to native client.
@@ -112,40 +157,10 @@ class ChewingInstance: public pp::Instance {
         break;
       }
     }
-
     if (!handled) {
         chewing_handle_Default(ctx, msg[0]);
-        chewing_cand_Enumerate(ctx);
-        if (chewing_cand_TotalChoice(ctx) > 0) {
-          Debug("cand_enumerate");
-          while (chewing_cand_hasNext(ctx)) {
-            char *s = chewing_cand_String(ctx);
-            Debug("candidates", s);
-            chewing_free(s);
-          }
-        } else {
-          if (chewing_buffer_Check(ctx)) {
-            char *s = chewing_buffer_String(ctx);
-            Debug("buffer", s);
-            chewing_free(s);
-          }
-        }
-        if (chewing_bopomofo_Check(ctx)) {
-          char *s = chewing_bopomofo_String(ctx);
-          Debug("bopomofo", s);
-          chewing_free(s);
-        }
-        if (chewing_aux_Check(ctx)) {
-          char *s = chewing_aux_String(ctx);
-          Debug("aux", s);
-          chewing_free(s);
-        }
     }
-    if (chewing_commit_Check(ctx)) {
-      char *s = chewing_commit_String(ctx);
-      Debug("commit", s);
-      chewing_free(s);
-    }
+    ReturnContext();
   }
 };
 
