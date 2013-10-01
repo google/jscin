@@ -120,16 +120,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.ipc.send.apply(null, arguments);
   }
 
-  function AttachKeyEvents(node) {
-    node.addEventListener('keydown', KeyDownEventHandler);
-    node.addEventListener('keyup', KeyUpEventHandler);
-  }
-
-  function DetachKeyEvents(node) {
-    node.removeEventListener('keydown', KeyDownEventHandler);
-    node.removeEventListener('keyup', KeyUpEventHandler);
-  }
-
   function SetEnabled(enabled) {
     self.debug("SetEnabled", enabled);
     if (typeof(self.enabled) == 'undefined') {
@@ -264,7 +254,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.debug("BlurHandler: hideFrame");
         self.hideFrame();
       }
-      DetachKeyEvents(ev.target);
       SendMessage("Blur", self.contextID);
       self.contextID = undefined;
     }
@@ -343,7 +332,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
           return;
         var node = self.node;
         self.contextID = context.contextID;
-        AttachKeyEvents(node);
 
         self.attachFrame(node);
         if (self.enabled) {
@@ -381,7 +369,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       self.debug("IpcGetSystemStatus received:", result, window.self.location);
       self._debug = result.debug;
       SetEnabled(result.default_enabled);
-      ListenOnFocus();
+      ListenEvents();
     });
   }
 
@@ -394,13 +382,24 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     return self.attached.indexOf(node) >= 0;
   }
 
-  function ListenOnFocus() {
+  function ListenEvents() {
+    document.addEventListener("keydown", function (ev) {
+      if (ev.target != self.node)
+        return;
+      return KeyDownEventHandler(ev);
+    }, true);
+    document.addEventListener("keyup", function (ev) {
+      if (ev.target != self.node)
+        return;
+      return KeyUpEventHandler(ev);
+    }, true);
     document.addEventListener("focusin", function (ev) {
       var node = ev.target;
       if (!IsEditableNode(node) || IsAttached(node))
         return;
       self.attach(node, true);
     });
+
     var node = document.activeElement;
     if (IsEditableNode(node)) {
       self.attach(node, true);
