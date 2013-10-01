@@ -21,7 +21,6 @@ CFLAGS += -I$(LIBCHEWING_HOME)/include -I$(LIBCHEWING_HOME)/include/internal
 TARGET = chewing
 LIBS = $(DEPS) ppapi_cpp ppapi nacl_io pthread jsoncpp
 SIMPLE_SOURCES = \
-	$(LIBCHEWING_HOME)/src/char.c \
 	$(LIBCHEWING_HOME)/src/chewingio.c \
 	$(LIBCHEWING_HOME)/src/chewingutil.c \
 	$(LIBCHEWING_HOME)/src/choice.c \

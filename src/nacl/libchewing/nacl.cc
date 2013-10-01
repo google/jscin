@@ -4,8 +4,8 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-#include <cstdio>
-#include <string>
+#include <stdio.h>
+#include <string.h>
 
 #include <pthread.h>  // for nacl_io
 #include <stdlib.h>
@@ -71,6 +71,7 @@ class ChewingInstance: public pp::Instance {
       PostMessage(pp::Var("can't mount"));
       return;
     }
+    chewing_Init("/data", ".");
     pthread_t main_thread;
     pthread_create(&main_thread, NULL, chewing_init_context, (void*)this);
   }
@@ -78,6 +79,7 @@ class ChewingInstance: public pp::Instance {
   virtual ~ChewingInstance() {
     if (ctx)
       chewing_delete(ctx);
+    chewing_Terminate();
   }
 
   virtual void Debug(const string &message) {
@@ -111,8 +113,6 @@ class ChewingInstance: public pp::Instance {
       }
     }
 
-    Debug(handled ? "handled" : "not handled");
-
     if (!handled) {
         chewing_handle_Default(ctx, msg[0]);
         chewing_cand_Enumerate(ctx);
@@ -130,10 +130,9 @@ class ChewingInstance: public pp::Instance {
             chewing_free(s);
           }
         }
-        if (chewing_zuin_Check(ctx)) {
-          int czuins = 0;
-          char *s = chewing_zuin_String(ctx, &czuins);
-          Debug("zuin", s);
+        if (chewing_bopomofo_Check(ctx)) {
+          char *s = chewing_bopomofo_String(ctx);
+          Debug("bopomofo", s);
           chewing_free(s);
         }
         if (chewing_aux_Check(ctx)) {
