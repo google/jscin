@@ -1,10 +1,12 @@
 <html>
 <head>
 <script type="text/javascript">
+
 function loaded() {
   document.getElementById('nacl').addEventListener('message', handleMessage,
     false);
 }
+
 function handleMessage(ev) {
   var kContext = "context:";
   var index = ev.data.indexOf(kContext);
@@ -15,26 +17,28 @@ function handleMessage(ev) {
     console.log("received", ev.data);
   }
 }
+
 function clicked() {
-  document.getElementById('nacl').postMessage("onKeystroke:j");
-  document.getElementById('nacl').postMessage("onKeystroke:i");
-  document.getElementById('nacl').postMessage("onKeystroke:3");
-  document.getElementById('nacl').postMessage("onKeystroke:g");
-  document.getElementById('nacl').postMessage("onKeystroke:4");
-  document.getElementById('nacl').postMessage("onKeystroke:Down");
-  document.getElementById('nacl').postMessage("onKeystroke:Right");
-  document.getElementById('nacl').postMessage("onKeystroke:Right");
-  document.getElementById('nacl').postMessage("onKeystroke:3");
-  document.getElementById('nacl').postMessage("onKeystroke:Left");
-  document.getElementById('nacl').postMessage("onKeystroke:Left");
-  document.getElementById('nacl').postMessage("onKeystroke:Left");
-  document.getElementById('nacl').postMessage("onKeystroke:Down");
-  document.getElementById('nacl').postMessage("onKeystroke:1");
-  document.getElementById('nacl').postMessage("onKeystroke:5");
-  document.getElementById('nacl').postMessage("onKeystroke:j");
-  document.getElementById('nacl').postMessage("onKeystroke:/");
-  document.getElementById('nacl').postMessage("onKeystroke: ");
-  document.getElementById('nacl').postMessage("onKeystroke:Enter");
+  var node = document.getElementById('nacl');
+  node.postMessage("key:j");
+  node.postMessage("key:i");
+  node.postMessage("key:3");
+  node.postMessage("key:g");
+  node.postMessage("key:4");
+  node.postMessage("key:Down");
+  node.postMessage("key:Right");
+  node.postMessage("key:Right");
+  node.postMessage("key:3");
+  node.postMessage("key:Left");
+  node.postMessage("key:Left");
+  node.postMessage("key:Left");
+  node.postMessage("key:Down");
+  node.postMessage("key:1");
+  node.postMessage("key:5");
+  node.postMessage("key:j");
+  node.postMessage("key:/");
+  node.postMessage("key: ");
+  node.postMessage("key:Enter");
 }
 </script>
 </head>

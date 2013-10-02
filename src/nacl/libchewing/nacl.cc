@@ -2,6 +2,13 @@
 /**
  * @fileoverview NaCl loader for libchewing.
  * @author hungte@google.com (Hung-Te Lin)
+ *
+ * Accept messages:
+ *  key:<KEY NAME>
+ *
+ * Output messages:
+ *  debug:<DEBUG MESSAGE>
+ *  context:<IM context>
  */
 
 #include <stdio.h>
@@ -22,6 +29,7 @@
 #include "chewing-private.h"
 
 using std::string;
+
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 
 extern "C" size_t getpagesize() {
@@ -59,18 +67,29 @@ ChewingKeyMapping special_key_mappings[] = {
 void *chewing_init_context(void *arg);
 
 class ChewingInstance: public pp::Instance {
+ protected:
+  const string kMsgDebugPrefix;
+  const string kMsgContextPrefix;
+  const string kMsgKeyPrefix;
+
  public:
   ChewingContext *ctx;
-  explicit ChewingInstance(PP_Instance instance):
-    pp::Instance(instance), ctx(NULL) {
-    char chewing_path[] = "CHEWING_PATH=/data";
+
+  explicit ChewingInstance(PP_Instance instance): pp::Instance(instance),
+      kMsgDebugPrefix("debug:"), kMsgContextPrefix("context:"),
+      kMsgKeyPrefix("key:"), ctx(NULL) {
+
+    const char *data_dir = "/data";
     nacl_io_init_ppapi(instance, pp::Module::Get()->get_browser_interface());
-    if (mount("libchewing/data", "/data", "httpfs", 0, "") != 0) {
+    if (mount("libchewing/data", data_dir, "httpfs", 0, "") != 0) {
       PostMessage(pp::Var("can't mount"));
       return;
     }
+    // Note chewing library does not really take path on its Init...
+    // So we always need to do putenv.
+    char chewing_path[] = "CHEWING_PATH=/data";
     putenv(chewing_path);
-    chewing_Init("/data", ".");
+    chewing_Init(data_dir, ".");
     pthread_t main_thread;
     pthread_create(&main_thread, NULL, chewing_init_context, (void*)this);
   }
@@ -81,12 +100,9 @@ class ChewingInstance: public pp::Instance {
     chewing_Terminate();
   }
 
-  virtual void Debug(const string &message) {
-    PostMessage(pp::Var("console.log:" + message));
-  }
-
-  virtual void Debug(const string &message, const string &detail) {
-    PostMessage(pp::Var("console.log:" + message + ", " + detail));
+  virtual void Debug(const string &message, const string &detail="") {
+    PostMessage(pp::Var(kMsgDebugPrefix + message + (
+        detail.empty() ? ", " : "") + detail));
   }
 
   virtual void ReturnContext() {
@@ -173,7 +189,7 @@ class ChewingInstance: public pp::Instance {
     value["edit_pos"] = value["cursor"];
     // lcch should be already handled when building interval.
 
-    PostMessage(pp::Var("context:" + writer.write(value)));
+    PostMessage(pp::Var(kMsgContextPrefix + writer.write(value)));
   }
 
   virtual void HandleMessage(const pp::Var &var_message) {
@@ -184,10 +200,9 @@ class ChewingInstance: public pp::Instance {
 
     // Check message type.
     string msg(var_message.AsString());
-    const string kOnKeystroke = "onKeystroke:";
-    if (msg.find_first_of(kOnKeystroke) != 0)
+    if (msg.find_first_of(kMsgKeyPrefix) != 0)
       return;
-    msg = msg.substr(kOnKeystroke.size());
+    msg = msg.substr(kMsgKeyPrefix.size());
 
     bool handled = false;
     for (int i = 0; i < ARRAYSIZE(special_key_mappings); i++) {
