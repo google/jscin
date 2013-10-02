@@ -151,7 +151,7 @@ croscin.IME = function() {
         return false;
 
       case jscin.IMKEY_DELAY:
-        // UI will be updated later.
+        // UI will be updated later, see im.set_notifier.
         return true;
     }
 
@@ -310,6 +310,14 @@ croscin.IME = function() {
       self.log("croscin.ActivateInputMethod: Started:", name);
       self.imctx = {};
       self.im = jscin.create_input_method(name, self.imctx);
+      // For delayed response (ex, external IM modules, see IMKEY_DELAY).
+      self.im.set_notifier(function () {
+        self.UpdateUI();
+        if (self.imctx.cch) {
+          self.Commit(self.imctx.cch);
+          self.imctx.cch = '';
+        }
+      });
       self.im_name = name;
       self.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
