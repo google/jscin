@@ -149,6 +149,10 @@ croscin.IME = function() {
         self.log("im.onKeystroke: return IMKEY_IGNORE");
         self.UpdateUI();
         return false;
+
+      case jscin.IMKEY_DELAY:
+        // UI will be updated later.
+        return true;
     }
 
     // default: Unknown return value.

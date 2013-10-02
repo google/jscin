@@ -13,6 +13,7 @@ var jscin = {
   IMKEY_ABSORB: 0x0,
   IMKEY_COMMIT: 0x1,
   IMKEY_IGNORE: 0x2,
+  IMKEY_DELAY:  0x4,
 
   'MCCH_ONEPG': 0,
   'MCCH_BEGIN': 1,
