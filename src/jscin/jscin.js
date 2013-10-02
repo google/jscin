@@ -14,11 +14,7 @@ var jscin = {
   IMKEY_COMMIT: 0x1,
   IMKEY_IGNORE: 0x2,
   IMKEY_DELAY:  0x4,
-
-  'MCCH_ONEPG': 0,
-  'MCCH_BEGIN': 1,
-  'MCCH_MIDDLE': 2,
-  'MCCH_END': 3,
+  IMKEY_UNKNOWN: 0x100,
 
   // Configuration key names.
   kTableMetadataKey: "table_metadata",

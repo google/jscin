@@ -104,6 +104,11 @@ GenInp.prototype.new_instance = function(inpinfo) {
   self.mcch_hidx = 0;
   self.mcch_eidx = 0;
 
+  self.MCCH_ONEPG = 0;
+  self.MCCH_BEGIN = 1;
+  self.MCCH_MIDDLE = 2;
+  self.MCCH_END = 3;
+
   inpinfo.keystroke = '';
   inpinfo.suggest_skeystroke = '';
 
@@ -115,7 +120,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
   inpinfo.keystroke = '';
   inpinfo.mcch = [];
-  inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+  inpinfo.mcch_pgstate = self.MCCH_ONEPG;
   inpinfo.lcch = [];
   inpinfo.cch_publish = '';
 
@@ -135,7 +140,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.mcch = [];
     self.keystroke = '';
     self.mode = {};
-    inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+    inpinfo.mcch_pgstate = self.MCCH_ONEPG;
     self.mcch_list = [];
     self.mkey_list = [];
   }
@@ -186,9 +191,9 @@ GenInp.prototype.new_instance = function(inpinfo) {
 
     var result = pick_cch_wild(idx, 1, self.keystroke, inpinfo.selkey.length);
     if (!result.more) {
-      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+      inpinfo.mcch_pgstate = self.MCCH_ONEPG;
     } else {
-      inpinfo.mcch_pgstate = jscin.MCCH_BEGIN;
+      inpinfo.mcch_pgstate = self.MCCH_BEGIN;
     }
 
     inpinfo.mcch = result.mcch;
@@ -210,9 +215,9 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
 
     if (mcch.length <= inpinfo.selkey.length) {
-      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+      inpinfo.mcch_pgstate = self.MCCH_ONEPG;
     } else {
-      inpinfo.mcch_pgstate = jscin.MCCH_BEGIN;
+      inpinfo.mcch_pgstate = self.MCCH_BEGIN;
       self.mcch_list = mcch;
       self.mcch_hidx = 0;
     }
@@ -244,7 +249,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     inpinfo.keystroke = '';
     inpinfo.mcch = [];
     inpinfo.cch_publish = ''; // TODO
-    inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+    inpinfo.mcch_pgstate = self.MCCH_ONEPG;
 
     self.mode.INPINFO_MODE_MCCH = false;
     self.mode.INPINFO_MODE_INWILD = false;
@@ -326,13 +331,13 @@ GenInp.prototype.new_instance = function(inpinfo) {
       if (self.mcch_hidx == 0) {
         trace('');
         inpinfo.mcch_pgstate = self.mcch_hidx + n_pg < self.mcch_list.length ?
-            jscin.MCCH_BEGIN : jscin.MCCH_ONEPG;
+            self.MCCH_BEGIN : self.MCCH_ONEPG;
       } else if (self.mcch_hidx + n_pg < self.mcch_list.length) {
         trace('');
-        inpinfo.mcch_pgstate = jscin.MCCH_MIDDLE;
+        inpinfo.mcch_pgstate = self.MCCH_MIDDLE;
       } else {
         trace('');
-        inpinfo.mcch_pgstate = jscin.MCCH_END;
+        inpinfo.mcch_pgstate = self.MCCH_END;
       }
     } else {
       // wild mode
@@ -344,7 +349,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
     trace('');
     var ret = 0;
     switch (inpinfo.mcch_pgstate) {
-      case jscin.MCCH_ONEPG:
+      case self.MCCH_ONEPG:
         switch (key) {
           case ' ':
             if (self.conf.mode.INP_MODE_AUTOUPCHAR)
@@ -363,7 +368,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
         }
         break;
 
-      case jscin.MCCH_END:
+      case self.MCCH_END:
         switch (key) {
           case ' ':
           case '>':
@@ -380,7 +385,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
         }
         break;
 
-      case jscin.MCCH_BEGIN:
+      case self.MCCH_BEGIN:
         switch (key) {
           case ' ':
           case '>':
@@ -464,7 +469,7 @@ GenInp.prototype.new_instance = function(inpinfo) {
       inpinfo.keystroke = self.display_keystroke.join('');
       inpinfo.mcch = '';
       inpinfo.cch_publish = '';
-      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+      inpinfo.mcch_pgstate = self.MCCH_ONEPG;
       self.mode = {};
       if (conf.mode.INP_MODE_WILDON && self.keystroke.match(/[*?]/)) {
         self.mode.INPINFO_MODE_INWILD = true;
@@ -476,13 +481,13 @@ GenInp.prototype.new_instance = function(inpinfo) {
     } else if (keyinfo.key == 'Esc' && len) {
       reset_keystroke(inpinfo);
       inpinfo.cch_publish = '';
-      inpinfo.mcch_pgstate = jscin.MCCH_ONEPG;
+      inpinfo.mcch_pgstate = self.MCCH_ONEPG;
       return jscin.IMKEY_ABSORB;
     } else if (keyinfo.key == ' ') {
       inpinfo.cch_publish = '';
       if (conf.mode.INP_MODE_SPACEAUTOUP &&
           (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
-          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != jscin.MCCH_ONEPG))
+          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != self.MCCH_ONEPG))
       {
         trace('');
         if (mcch_choosech(inpinfo, -1)) {
