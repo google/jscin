@@ -140,7 +140,7 @@ var ChromeInputIME = function () {
       return;
     }
     SetDefinedParams(context.composition, parameters,
-        'text', 'selectionStart', 'selectionEnd', 'cursor');
+        'text', 'selectionStart', 'selectionEnd', 'cursor', 'segments');
     self.dispatchEvent("UiComposition", context);
   };
 
@@ -155,6 +155,7 @@ var ChromeInputIME = function () {
     context.composition.selectionStart = 0;
     context.composition.selectionEnd = 0;
     context.composition.cursor = 0;
+    context.composition.segments = [];
     self.dispatchEvent("UiComposition", context);
   };
 

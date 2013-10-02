@@ -199,20 +199,50 @@ croscin.IME = function() {
     self.UpdateMenu();
   }
 
-  self.UpdateComposition = function(text) {
+  self.UpdateComposition = function(keystroke, buffer, cursor) {
     var arg = self.GetContextArg();
-    self.log("croscin.UpdateComposition:", text);
-    if (text) {
-      arg.text = text;
-      // Select everything in composition.
-      arg.selectionStart = 0;
-      arg.selectionEnd = text.length;
-      arg.cursor = text.length;
+    // Format: buffer...|cursor-keystroke...buffer
+    keystroke = keystroke || '';
+    buffer = buffer || [];
+    var buffer_text = buffer.join('');
+    var all_text = buffer_text + keystroke;
+    self.log("croscin.UpdateComposition:", all_text);
+    if (typeof(cursor) == undefined)
+      cursor = all_text.length;
+    if (all_text) {
+      arg.cursor = cursor;
+      // Selection to show where keystrokes are.
+      arg.selectionStart = cursor;
+      arg.selectionEnd = cursor + keystroke.length;
+      arg.text = (buffer_text.substring(0, cursor) + keystroke +
+                  buffer_text.substring(cursor));
+      if (buffer_text) {
+        arg.segments = [];
+        for (var i = 0, len = buffer.length, total = 0; i < len; i++) {
+          if (cursor >= total && cursor < total + buffer[i].length) {
+            var next = total + keystroke.length + buffer[i].length;
+            // cursor will split segment: [total, cursor); [cursor, next).
+            if (cursor > total) {
+              arg.segments.push({
+                start: total, end: cursor, style: "underline"});
+            }
+            if (next > cursor) {
+              arg.segments.push({
+                start: cursor + keystroke.length, end: next, style: "underline"});
+            }
+            total = next;
+          } else {
+            arg.segments.push({
+              start: total, end: total + buffer[i].length, style: "underline"});
+            total += buffer[i].length;
+          }
+        }
+      }
       self.ime_api.setComposition(arg);
     } else {
       self.ime_api.clearComposition(arg);
     }
-    return text;
+    return all_text;
   }
 
   self.UpdateCandidates = function(candidate_list, labels) {
@@ -241,20 +271,22 @@ croscin.IME = function() {
     return candidate_list.length > 0;
   }
 
-  self.UpdateUI = function(keystroke, mcch, selkey) {
+  self.UpdateUI = function(keystroke, mcch, selkey, lcch, cursor) {
     if (arguments.length == 0) {
       keystroke = self.imctx.keystroke;
       mcch = self.imctx.mcch;
       selkey = self.imctx.selkey;
+      lcch = self.imctx.lcch;
+      cursor = self.imctx.edit_pos;
     }
 
     var has_composition, has_candidates;
     // process:
     //  - keystroke
-    has_composition = self.UpdateComposition(keystroke);
+    has_composition = self.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
     has_candidates = self.UpdateCandidates(mcch, selkey);
-    //  - (TODO) lcch, cch_publish
+    //  - (TODO) cch_publish
 
     self.SetCandidatesWindowProperty({
       auxiliaryText: self.im_label,

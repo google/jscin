@@ -61,7 +61,8 @@ $(function() {
         // The special rendering way, for better visual feedback.
         ui = $('body');
         if (!engine.candidate_window.visible) {
-          ui.css({opacity: 0.8});
+          // We can only lower opacity if composition is also blank.
+          // ui.css({opacity: 0.8});
           $('#imePanel #candidates').hide();
         } else {
           $('#imePanel #candidates').show();
@@ -72,7 +73,56 @@ $(function() {
 
     UiComposition: function (context) {
       var ui = $('#imePanel #composition');
-      ui.text((context ? context.composition.text : "" )+ nbsp);
+      var arg = context.composition;
+      function get(key, def) {
+        var val = arg[key];
+        return (typeof(arg[key]) == typeof(undefined)) ? def : val;
+      }
+      console.log("arg", arg);
+      var text = get('text', '');
+      var selectionStart = get('selectionStart', 0);
+      var selectionEnd = get('selectionEnd', text.length);
+      var cursor = get('cursor', text.length);
+      var segments = get('segments', []);
+      var i, len;
+      var data = [];
+      for (i = 0, len = text.length; i < len; i++) {
+        data.push({text: text[i]});
+      }
+      data.push({text: nbsp});
+      data[cursor].cursor = true;
+      for (i = selectionStart; i < selectionEnd; i++) {
+        data[i].selected = true;
+      }
+      for (i = 0; i < segments.length; i++) {
+        for (var idx = segments[i].start; idx < segments[i].end; idx++) {
+          data[idx].segment = (i + 1);
+        }
+      }
+      ui.empty();
+      var node = $('<span/>');
+      var segi = undefined;
+      for (i = 0, len = data.length; i < len; i++) {
+        if (data[i].segment != segi) {
+          // new segment.
+          ui.append(node);
+          segi = data[i].segment;
+          node = $('<span/>');
+          if (segi)
+            node.attr('class', 'segment');
+        }
+        var newdata = document.createTextNode(data[i].text);
+        if (data[i].cursor) {
+          var cursor = $('<span class="cursor">');
+          if (segi) {
+            newdata = cursor.append(newdata);
+          } else {
+            node.append(cursor);
+          }
+        }
+        node.append(newdata);
+      }
+      ui.append(node);
     },
 
     UiCandidates: function (context) {
