@@ -194,9 +194,12 @@ jscin.create_input_method = function(name, context, data) {
   }
   self.log("jscin: Created input method instance: ", name);
   var module = jscin.input_methods[name]["module"];
-  var instance = (new module(name, data)).new_instance(context);
+  if (!data)
+    data = jscin.getTableData(name);
+  var instance = new module(name, data);
+  instance.init(context);
   self.addons.forEach(function (addon) {
-    instance = new addon(instance);
+    instance = new addon('addon', instance);
   });
   return instance;
 }

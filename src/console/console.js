@@ -9,6 +9,7 @@
 jscin_url = '../jscin/'
 load(jscin_url + 'jscin.js');
 load(jscin_url + 'cin_parser.js');
+load(jscin_url + 'base_inp.js');
 load(jscin_url + 'gen_inp2.js');
 
 var imctx = {};

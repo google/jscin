@@ -2,6 +2,7 @@
 // Author: kcwu@google.com (Kuang-che Wu)
 
 load('../jscin/jscin.js');
+load('../jscin/base_inp.js');
 load('../jscin/gen_inp2.js');
 load('../jscin/cin_parser.js');
 // jscin.debug = true;
