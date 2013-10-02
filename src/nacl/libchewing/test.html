@@ -6,7 +6,7 @@ function loaded() {
     false);
 }
 function handleMessage(ev) {
-  var kContext = "context:"
+  var kContext = "context:";
   var index = ev.data.indexOf(kContext);
   if (index >= 0) {
     index += kContext.length;

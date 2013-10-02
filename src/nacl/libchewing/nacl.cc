@@ -19,6 +19,7 @@
 #include "json/writer.h"
 
 #include "chewing.h"
+#include "chewing-private.h"
 
 using std::string;
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
@@ -112,27 +113,38 @@ class ChewingInstance: public pp::Instance {
       value["cand_CurrentPage"] = Json::Value(chewing_cand_CurrentPage(ctx));
     }
 
+    if (chewing_buffer_Check(ctx)) {
+      s = chewing_buffer_String(ctx);
+      value["buffer"] = Json::Value(s);
+      chewing_free(s);
+    }
+
     {
       IntervalType it;
       Json::Value intervals = Json::Value(Json::arrayValue);
+      Json::Value lcch = Json::Value(Json::arrayValue);
       chewing_interval_Enumerate(ctx);
       while (chewing_interval_hasNext(ctx)) {
         chewing_interval_Get(ctx, &it);
         Json::Value itv = Json::Value(Json::objectValue);
         itv["from"] = Json::Value(it.from);
         itv["to"] = Json::Value(it.to);
+        char *text = (char*)calloc(it.to - it.from + 1, MAX_UTF8_SIZE);
+        text[0] = 0;
+        for (int i = it.from; i < it.to; i++) {
+          strcat(text, (char *)ctx->output->chiSymbolBuf[i].s);
+        }
+        itv["text"] = Json::Value(text);
+        lcch.append(Json::Value(text));
+        free(text);
         intervals.append(itv);
       }
-      if (intervals.size() > 0)
+      if (intervals.size() > 0) {
         value["interval"] = intervals;
+        value["lcch"] = lcch;
+      }
     }
 
-
-    if (chewing_buffer_Check(ctx)) {
-      s = chewing_buffer_String(ctx);
-      value["buffer"] = Json::Value(s);
-      chewing_free(s);
-    }
     if (chewing_bopomofo_Check(ctx)) {
       s = chewing_bopomofo_String(ctx);
       value["bopomofo"] = Json::Value(s);
@@ -153,6 +165,13 @@ class ChewingInstance: public pp::Instance {
       value["ignore"] = Json::Value(true);
     if (chewing_keystroke_CheckAbsorb(ctx))
       value["absorb"] = Json::Value(true);
+
+    // XCIN compatible fields
+    value["keystroke"] = value["bopomofo"];
+    value["mcch"] = value["cand"];
+    value["cch"] = value["commit"];
+    value["edit_pos"] = value["cursor"];
+    // lcch should be already handled when building interval.
 
     PostMessage(pp::Var("context:" + writer.write(value)));
   }

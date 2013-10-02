@@ -11,6 +11,7 @@ VALID_TOOLCHAINS := newlib
 # Redefine this to your libchewing source home.
 # Also create "data" symlink folder to point into the data in libchewing.
 LIBCHEWING_HOME ?= libchewing
+LIBCHEWING_URL ?= https://github.com/chewing/libchewing.git
 
 NACL_SDK_ROOT ?= $(abspath $(CURDIR)/../../../../nacl_sdk)
 include $(NACL_SDK_ROOT)/tools/common.mk
@@ -36,6 +37,12 @@ SIMPLE_SOURCES = \
 	$(LIBCHEWING_HOME)/src/porting_layer/src/plat_path.c \
 	mem_hash.c \
 	nacl.cc
+
+$(LIBCHEWING_HOME):
+	git clone $(LIBCHEWING_URL)
+	echo "Please remember to build the data pack in $(LIBCHEWING_HOME)."
+
+$(LIBCHEWING_HOME)/src/chewingio.c:	$(LIBCHEWING_HOME)
 
 OVERRIDE_CFLAGS = $(CFLAGS) -DOVERRIDE_HASH
 
