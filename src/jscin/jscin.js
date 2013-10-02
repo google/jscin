@@ -210,6 +210,31 @@ jscin.get_input_method_label = function(name) {
   return jscin.input_methods[name].label;
 }
 
+// Extends base input module (class inheritance).
+jscin.extend_input_method = function (overrides, base) {
+  if (!base) {
+    base = jscin.base_input_method;
+    if (!base) {
+      jscin.log("jscin: No base input method defined.");
+      return;
+    }
+  }
+  var f = function (name, conf) {
+    this.parent = base.prototype;
+    base.call(this, name, conf);
+    if (overrides.constructor)
+      overrides.constructor.apply(this, arguments);
+  }
+  f.prototype = Object.create(base.prototype);
+  for (var k in overrides) {
+    if (k == 'constructor')
+      continue;
+    f.prototype[k] = overrides[k];
+  }
+  return f;
+}
+
+
 jscin.reload_configuration = function() {
   var self = jscin;
 
