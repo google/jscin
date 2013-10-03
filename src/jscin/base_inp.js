@@ -69,7 +69,7 @@ jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
   if (has_keystroke || has_lcch)
     keys = keys.concat(['Backspace']);
   if (has_lcch)
-    keys = keys.concat(['Enter']);
+    keys = keys.concat(['Enter', 'Home', 'End']);
   if (has_mcch)
     keys = keys.concat((this.selkey || '').split(''));
   if (has_lcch || has_mcch)
