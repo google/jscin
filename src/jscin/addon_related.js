@@ -14,8 +14,9 @@ jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
   keystroke: function (ctx, ev)
   {
     var self = this;
+
     function InSelectionKey(ctx, key) {
-      return ctx.selkey.toUpperCase().indexOf(key.toUpperCase()) >= 0;
+      return ctx.selkey.indexOf(key) >= 0;
     }
 
     function IsEmptyContext(ctx) {
@@ -23,7 +24,7 @@ jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
     }
 
     function CommitCandidate(ctx, key) {
-      var index = ctx.selkey.toUpperCase().indexOf(key.toUpperCase());
+      var index = ctx.selkey.indexOf(key);
       if (index >= self.last_mcch.length)
         return false;
       ctx.cch = self.last_mcch[index];

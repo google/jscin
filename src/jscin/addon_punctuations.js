@@ -19,13 +19,13 @@ jscin.register_addon('AddonPunctuations', jscin.extend_input_method({
     };
 
     this.ctrl_shift_phrase = {
-      ';': '\uff1a',
-      '/': '\uff1f',  // Unfortunately this don't work well on ChromeOS.
-      '[': '\uff5b',
-      ']': '\uff5d',
-      '1': '\uff01',
-      '9': '\uff08',
-      '0': '\uff09',
+      ':': '\uff1a',
+      '?': '\uff1f',  // Unfortunately this don't work well on ChromeOS.
+      '{': '\uff5b',
+      '}': '\uff5d',
+      '!': '\uff01',
+      '(': '\uff08',
+      ')': '\uff09',
     };
 
     // build key map
@@ -34,7 +34,7 @@ jscin.register_addon('AddonPunctuations', jscin.extend_input_method({
       keys.push('Ctrl ' + k);
     });
     Object.keys(this.ctrl_shift_phrase).forEach(function (k) {
-      keys.push('Ctrl Shift ' + k);
+      keys.push('Ctrl ' + k);
     });
     this.expected_keys = keys;
   },

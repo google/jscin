@@ -16,9 +16,11 @@ jscin.base_input_method = function(name, conf) {
   this.cname = conf.cname || name;
   this.ename = conf.ename || name;
   this.keyname = conf.keyname || {};
-  this.selkey = conf.selkey || ''; // probably also upper-cased.
-  this.selkey2 = conf.selkey2 || '';
-  this.endkey = conf.endkey || "";
+  // Only table-commands (keyname, chardef) will be lowercased.
+  // Any one line params must be normalized to lower case.
+  this.selkey = (conf.selkey || '').toLowerCase();
+  this.selkey2 = (conf.selkey2 || '').toLowerCase();
+  this.endkey = (conf.endkey || '').toLowerCase();
 }
 
 // Called when the IM is first initialized.

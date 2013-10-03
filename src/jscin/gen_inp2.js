@@ -203,7 +203,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
       trace(ctx.composition);
       ctx.display_composition = '';
       for (var i = 0; i < ctx.composition.length; i++) {
-        var c = ctx.composition[i].toUpperCase()
+        var c = ctx.composition[i];
         ctx.display_composition += self.keyname[c] || c;
       }
       // Compatible with gen_inp.
@@ -255,7 +255,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     }
 
     function GlobCandidates(ctx) {
-      var regex = Glob2Regex(ctx.composition.toUpperCase());
+      var regex = Glob2Regex(ctx.composition);
       var lookup = Object.keys(self.table);
       ClearCandidates(ctx);
 
@@ -274,7 +274,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     function PrepareCandidates(ctx, is_autocompose) {
       trace(ctx.composition);
       var table = self.table;
-      var key = ctx.composition.toUpperCase();
+      var key = ctx.composition;
 
       ClearCandidates(ctx);
 
@@ -308,13 +308,13 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     }
 
     function IsCompositionKey(ctx, key) {
-      return (key.toUpperCase() in self.keyname) || IsGlobKey(key);
+      return (key in self.keyname) || IsGlobKey(key);
     }
 
     function CanDoComposition(ctx, key) {
       // Some CIN tables like Array30 may include special keys (ex, selection
       // keys) as part of composition.
-      if (self.table[(ctx.composition + key).toUpperCase()])
+      if (self.table[ctx.composition + key])
         return true;
       return false;
     }
@@ -336,7 +336,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
       if (!self.keygroups)
         return undefined;
       for (var g in self.keygroups) {
-        if (self.keygroups[g].toUpperCase().indexOf(key.toUpperCase()) >= 0)
+        if (self.keygroups[g].indexOf(key) >= 0)
           return g;
       }
       return undefined;
@@ -404,20 +404,20 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     }
 
     function IsSelectionKey(ctx, key) {
-      return self.selkey.indexOf(key.toUpperCase()) >= 0 ||
-             self.selkey2.indexOf(key.toUpperCase()) >= 0;
+      return self.selkey.indexOf(key) >= 0 ||
+             self.selkey2.indexOf(key) >= 0;
     }
 
     function IsEndKey(ctx, key) {
       trace(key);
-      return self.endkey && self.endkey.indexOf(key.toUpperCase()) >= 0;
+      return self.endkey && self.endkey.indexOf(key) >= 0;
     }
 
     function SelectCommit(ctx, key) {
       trace(ctx.candidates, ctx.candidates_start_index, key);
-      var key_idx = self.selkey.indexOf(key.toUpperCase());
+      var key_idx = self.selkey.indexOf(key);
       if (key_idx < 0)
-        key_idx = self.selkey2.indexOf(key.toUpperCase());
+        key_idx = self.selkey2.indexOf(key);
       var index = (ctx.candidates_start_index + key_idx);
       return CommitText(ctx, index);
     }

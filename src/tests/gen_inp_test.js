@@ -92,7 +92,7 @@ function main() {
       table: "test_ar30_gcin.cin",
       test: [
         { input: "lox ", result: "我" },
-        { input: "AA3", result: "武" },
+        { input: "aa3", result: "武" },
         { input: "t ", result: "的" },
         { input: "t1", result: "隨" },
         { input: "w ", result: "女" },

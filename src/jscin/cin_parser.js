@@ -60,7 +60,8 @@ function parseCin(cin_input) {
       m = line.match(/^\s*(\S+)\s+(\S+)/);
       if (m) {
         var key = m[1];
-        key = key.toUpperCase();
+        // TODO(hungte) Don't convert if %keep_key_case is found.
+        key = key.toLowerCase();
         if (data[cmd][key] == undefined)
           data[cmd][key] = '';
         data[cmd][key] += m[2];

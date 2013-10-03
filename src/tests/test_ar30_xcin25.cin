@@ -40,12 +40,12 @@ z 1⇣
 , 8⇣
 %keyname end
 %chardef begin
-lox 我		*
+LOX 我		*
 w 女
-t 隨
+T 隨
 t 民
 w1 ，
 w1 、
-w2 （
+W2 （
 w2 ）
 %chardef end

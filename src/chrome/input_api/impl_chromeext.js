@@ -156,11 +156,11 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     var ev2 = ImeEvent.ImeKeyEvent(ev);
     var node = ev.target;
     self.debug("impl.KeyDownEventHandler", ev, ev2);
+
     if (self.im_accepted_keys) {
-      // Serialize ev2.key
-      var k = jscin.get_key_val(ev2.code);
-      if (ev2.shiftKey)
-        k = 'Shift ' + k;
+      // Note Shift is not handled here, because we can't determine if the
+      // keyboard mapping is same as we expected, for [0-9] and symbols.
+      var k = ev2.key;
       if (ev2.altKey)
         k = 'Alt ' + k;
       if (ev2.ctrlKey)

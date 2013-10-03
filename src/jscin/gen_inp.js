@@ -66,7 +66,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     this.conf.modesc = conf.QPHRASE_MODE;  // not support
     this.conf.disable_sel_list = conf.DISABLE_SEL_LIST;
     if (this.conf.disable_sel_list) {
-      this.conf.disable_sel_list = this.conf.disable_sel_list.toUpperCase();
+      this.conf.disable_sel_list = this.conf.disable_sel_list.toLowerCase();
     }
     this.conf.kremap = conf.KEYSTROKE_REMAP;
     this.conf.keygroups = conf.KEYGROUPS;
@@ -408,7 +408,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
 
       function determine_group(key) {
         for (var g in self.conf.keygroups) {
-          if (self.conf.keygroups[g].toUpperCase().indexOf(key) >= 0) {
+          if (self.conf.keygroups[g].indexOf(key) >= 0) {
             return g;
           }
         }
@@ -422,11 +422,11 @@ jscin.register_module('GenInp', jscin.extend_input_method({
         key_by_group[g] = self.keystroke[i];
       }
 
-      var g = determine_group(keyinfo.key.toUpperCase());
+      var g = determine_group(keyinfo.key);
       if (!g)
         return false;
 
-      key_by_group[g] = keyinfo.key.toUpperCase();
+      key_by_group[g] = keyinfo.key;
 
       // reconstruct keystroke sequence
       var groups_in_order = Object.keys(key_by_group).sort();
@@ -525,8 +525,8 @@ jscin.register_module('GenInp', jscin.extend_input_method({
         var endkey_pressed = false;
 
         inpinfo.cch_publish = '';
-        var wch = ime.header.keyname[keyinfo.key.toUpperCase()];
-        var selkey_idx = ime.header.selkey.indexOf(keyinfo.key.toUpperCase());
+        var wch = ime.header.keyname[keyinfo.key];
+        var selkey_idx = ime.header.selkey.indexOf(keyinfo.key);
         if (ime.header.endkey.indexOf(
             self.keystroke[self.keystroke.length-1]) >=0 ) {
           endkey_pressed = true;
@@ -536,7 +536,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
           if (len == 1 && conf.disable_sel_list &&
               conf.disable_sel_list.indexOf(
                   self.keystroke[self.keystroke.length-1]) >= 0) {
-            wch = keyinfo.key.toUpperCase();
+            wch = keyinfo.key;
           } else {
             return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
                                                          return_wrong());
@@ -582,7 +582,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
           return return_wrong();
         }
 
-        self.keystroke += keyinfo.key.toUpperCase();
+        self.keystroke += keyinfo.key;
 
         if (keyinfo.key.match(/^[*?]$/)) {
           self.display_keystroke.push(keyinfo.key);
@@ -597,7 +597,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
           self.mode.INPINFO_MODE_SPACE = false;
         }
         if (conf.mode.INP_MODE_ENDKEY && len>1 &&
-            ime.header.endkey.indexOf(keyinfo.key.toUpperCase()) >= 0) {
+            ime.header.endkey.indexOf(keyinfo.key) >= 0) {
           return commit_keystroke(inpinfo);
         } else if (conf.mode.INP_MODE_AUTOFULLUP && len == max_len) {
           return commit_keystroke(inpinfo);
