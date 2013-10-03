@@ -11,9 +11,9 @@ function parseCin(cin_input) {
   var lines = cin_input.split('\n');
   var data = {};
   var runningcmd = null;
-  var table_command = { 'keyname': 1, 'chardef': 1,
-                        'quick': 1, 'quickkey': 1,
-                        'KEYSTROKE_REMAP': 1, 'KEYGROUPS': 1 };
+  var table_command = {keyname: 1, chardef: 1,
+                       quick: 1, quickkey: 1,
+                       KEYSTROKE_REMAP: 1, KEYGROUPS: 1 };
 
   var failed = function(lineno, msg) {
     return [false, 'line ' + (lineno+1) + ': ' + msg];
@@ -87,13 +87,20 @@ function parseCin(cin_input) {
                     ' missing');
   }
 
+  // TODO(hungte) Add more module parsers.
+  var module = undefined;
+  if (data.EXTENSION_ID)
+    module = 'CrExtInp';
+
   var parsed_data = {
-    'metadata': {
-      'ename': data.ename,
-      'cname': data.cname,
+    metadata: {
+      ename: data.ename,
+      cname: data.cname,
+      module: module,
     },
-    'data': data,
+    data: data,
   };
+  console.log('parse file:', data.ename, parsed_data);
 
   return [true, parsed_data];
 }

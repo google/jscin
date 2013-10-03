@@ -252,10 +252,11 @@ var jscin = {
     var count_ims = 0;
     var any_im = '';
     var metadatas = self.getTableMetadatas();
-    var module_name = self.getDefaultModuleName();
+    var def_module = self.getDefaultModuleName();
     for (var name in metadatas) {
-      // TODO(hungte) support more modules in future.
-      self.register_input_method(name, module_name, metadatas[name].cname);
+      var module = metadatas[name].module;
+      module = (module in self.modules) ? module : def_module;
+      self.register_input_method(name, module, metadatas[name].cname);
       if (!any_im)
         any_im = name;
       count_ims++;
