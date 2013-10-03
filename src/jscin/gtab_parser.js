@@ -1,6 +1,3 @@
-var MAX_GTAB_QUICK_KEYS = 46;
-var CH_SZ = 4;
-
 // typedef struct {
 //   char quick1[MAX_GTAB_QUICK_KEYS][10][CH_SZ];
 //   char quick2[MAX_GTAB_QUICK_KEYS][MAX_GTAB_QUICK_KEYS][10][CH_SZ];
@@ -29,56 +26,70 @@ var CH_SZ = 4;
 //   };
 // };
 
-function decode_utf8(s) {
-  return decodeURIComponent(escape(s));
-}
+function parseGtab(arraybuffer) {
 
-function MyView (view) {
-  this.view = view;
-  this.offset = 0;
-  this.littleEndian = false;
-}
+  var MAX_GTAB_QUICK_KEYS = 46;
+  var CH_SZ = 4;
 
-MyView.prototype.getUint8 = function() {
-  return this.view.getUint8(this.offset++);
-};
-
-MyView.prototype.getUint32 = function() {
-  var n = this.view.getUint32(this.offset, this.littleEndian);
-  this.offset += 4;
-  return n;
-}
-
-MyView.prototype.getUint64 = function() {
-  var n = this.view.getUint64(this.offset, this.littleEndian);
-  this.offset += 8;
-  return n;
-}
-
-MyView.prototype.getString = function(len) {
-  var ret = '';
-  for(var j = 0; j < len; j++) {
-    var c = this.view.getUint8(this.offset + j);
-    if(c == 0) {
-      break;
-    }
-    ret += String.fromCharCode(c);
+  function decode_utf8(s) {
+    return decodeURIComponent(escape(s));
   }
-  this.offset += len;
-  return decode_utf8(ret);
-}
 
-MyView.prototype.detectEndian = function() {
-  var KeyS_first_byte = this.view.getUint8(56);
-  // key size should not be more than 255
-  if(KeyS_first_byte) {
-    this.littleEndian = true;
-  } else {
+  function checkAndConcat(key, ch) {
+    if(key[0] == '%') {
+      throw "key cannot start with '%'";
+    }
+    if(/\s/.test(key)) {
+      throw "key cannot contain space characters";
+    }
+    return key + ' ' + ch + '\n';
+  }
+
+  function MyView (view) {
+    this.view = view;
+    this.offset = 0;
     this.littleEndian = false;
   }
-}
 
-function parseGtab(arraybuffer) {
+  MyView.prototype.getUint8 = function() {
+    return this.view.getUint8(this.offset++);
+  };
+
+  MyView.prototype.getUint32 = function() {
+    var n = this.view.getUint32(this.offset, this.littleEndian);
+    this.offset += 4;
+    return n;
+  }
+
+  MyView.prototype.getUint64 = function() {
+    var n = this.view.getUint64(this.offset, this.littleEndian);
+    this.offset += 8;
+    return n;
+  }
+
+  MyView.prototype.getString = function(len) {
+    var ret = '';
+    for(var j = 0; j < len; j++) {
+      var c = this.view.getUint8(this.offset + j);
+      if(c == 0) {
+        break;
+      }
+      ret += String.fromCharCode(c);
+    }
+    this.offset += len;
+    return decode_utf8(ret);
+  }
+
+  MyView.prototype.detectEndian = function() {
+    var KeyS_first_byte = this.view.getUint8(56);
+    // key size should not be more than 255
+    if(KeyS_first_byte) {
+      this.littleEndian = true;
+    } else {
+      this.littleEndian = false;
+    }
+  }
+
   var cin = '';
   var myView = new MyView(new DataView(arraybuffer));
   var th = {};
@@ -172,14 +183,4 @@ function parseGtab(arraybuffer) {
   cin += '%chardef end\n';
 
   return cin;
-}
-
-function checkAndConcat(key, ch) {
-  if(key[0] == '%') {
-    throw "key cannot start with '%'";
-  }
-  if(/\s/.test(key)) {
-    throw "key cannot contain space characters";
-  }
-  return key + ' ' + ch + '\n';
 }
