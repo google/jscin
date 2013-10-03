@@ -121,12 +121,17 @@ var ImeEvent = {
     var code = this.JsKeyCode2ImeKeyCode(ev.keyCode);
     var key = jscin.get_key_val(code);
 
-    if (ev.shiftKey) {
-      var shift_map = 'abcdefghijklmnopqrstuvwxyz~!@#$%^&*()_+{}:"<>?|';
-      var char_map =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ`1234567890-=[];',./\\";
-      var index = char_map.indexOf(key);
-      if (index >= 0)
-        key = shift_map[index];
+    if (key.length == 1) {
+      if (ev.shiftKey) {
+        var shift_map = '~!@#$%^&*()_+{}:"<>?|';
+        var char_map =  "`1234567890-=[];',./\\";
+        var index = char_map.indexOf(key);
+        if (index >= 0)
+          key = shift_map[index];
+      } else {
+        if (key >= 'A' && key <= 'Z')
+          key = key.toLowerCase();
+      }
     }
 
     return {
