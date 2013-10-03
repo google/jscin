@@ -20,6 +20,9 @@ function SetElementsText() {
   }
 }
 
+var BuiltinIMs = JSON.parse(
+    LoadExtensionResource("tables/builtin.json"));
+
 function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
@@ -427,8 +430,8 @@ function installCinTable(data, raw_content) {
 function addCinTableToList(metadata, list_id, do_insert) {
   var ename = metadata.ename;
   var cname = metadata.cname;
-  var url = metadata.url;
-  var builtin = metadata.builtin;
+  var url = metadata.url || '';
+  var builtin = metadata.builtin && (metadata.ename in BuiltinIMs)
   var setting = metadata.setting;
   var id = 'ime_' + ename;
   var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
