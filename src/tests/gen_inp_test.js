@@ -29,7 +29,7 @@ function simulate(inst, inpinfo, input, result, expects) {
 
     var keyinfo = {type: 'keydown', key: input[i], code: code};
     // print(dump_object(keyinfo));
-    var ret = inst.keystroke(inpinfo, keyinfo);
+    var ret = inst.keystroke(inpinfo, keyinfo, jscin.get_key_val(keyinfo.code));
     print('ret=', ret, ", inpinfo: ", dump_inpinfo(inpinfo));
 
     var expect;

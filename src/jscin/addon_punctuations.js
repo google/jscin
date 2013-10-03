@@ -39,18 +39,17 @@ jscin.register_addon('AddonPunctuations', jscin.extend_input_method({
     this.expected_keys = keys;
   },
 
-  keystroke: function (ctx, ev)
+  keystroke: function (ctx, ev, k)
   {
     // TODO(hungte) Find better way to get allow_ctrl_phrase.
     if (!ev.ctrlKey || ev.altKey || !ctx.allow_ctrl_phrase)
-      return this.im.keystroke(ctx, ev);
+      return this.im.keystroke(ctx, ev, k);
 
-    var key = jscin.get_key_val(ev.code);
     var table = ev.shiftKey ? this.ctrl_shift_phrase : this.ctrl_phrase;
-    if (!table[key])
-      return this.im.keystroke(ctx, ev);
+    if (!table[k])
+      return this.im.keystroke(ctx, ev, k);
 
-    ctx.cch = table[key];
+    ctx.cch = table[k];
     return jscin.IMKEY_COMMIT;
   },
 

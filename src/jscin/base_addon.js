@@ -21,8 +21,8 @@ jscin.base_input_addon = jscin.extend_input_method({
     return this.im.reset_context(ctx);
   },
 
-  keystroke: function (ctx, ev) {
-    return this.im.keystroke(ctx, ev);
+  keystroke: function (ctx, ev, k) {
+    return this.im.keystroke(ctx, ev, k);
   },
 
   show_keystroke: function (ctx, text) {

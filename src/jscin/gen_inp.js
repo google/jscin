@@ -118,7 +118,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     inpinfo.cch_publish = '';
   },
 
-  keystroke: function (inpinfo, keyinfo)
+  keystroke: function (inpinfo, keyinfo, k)
   {
     var self = this.instance;
     var ime = this;

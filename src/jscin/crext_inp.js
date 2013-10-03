@@ -9,7 +9,6 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
 
   constructor: function (name, conf)
   {
-    jscin.log("CrExtInp", name, conf);
     var self = this;
     self.opts = {
       OPT_LOWERCASE: conf.LOWERCASE
@@ -19,11 +18,9 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
     // TODO(hungte) Move the IM protocol to standalone JS.
 
     // Jscin IM protocol v1: (jscin/crext_inip.js)
-    //  jscin->im: {type: 'jscin_im_v1', key: <key>}
-    //  im->jscin: {type: 'jscin_im_v1, im: <context> }
+    //  jscin->im: {type: 'jscin_im_v1', command: <command>, args: <args>}
+    //  im->jscin: {type: 'jscin_im_v1, command: <command>, result: <result> }
     self.kJscinType = 'jscin_im_v1';
-    self.kJscinKeyName = 'key';
-    self.kJscinImName = 'im';
 
     chrome.runtime.onMessageExternal.addListener(
         function (request, sender, senderResponse) {
@@ -31,7 +28,11 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
             return;
           if (request.type != self.kJscinType)
               return;
-          var data = request[self.kJscinImName];
+          if (request.command != 'keystroke') {
+            jscin.log("unsupported command from extension", request.command);
+            return;
+          }
+          var data = request.result;
           jscin.log("crext_inp received", data);
           self.ctx.keystroke = data.keystroke || '';
           self.ctx.mcch = data.mcch || '';
@@ -42,10 +43,9 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
         });
   },
 
-  keystroke: function (ctx, ev)
+  keystroke: function (ctx, ev, k)
   {
     var self = this;
-    var k = jscin.get_key_val(ev.code);
     if (self.opts.OPT_LOWERCASE && k.length == 1)
       k = k.toLowerCase();
 
@@ -53,7 +53,8 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
     // TODO(hungte) keystroke should be handled in ext side.
     chrome.runtime.sendMessage(self.extension_id, {
       type: self.kJscinType,
-      key: k});
+      command: 'keystroke',
+      args: [ctx, ev, k]});
 
     // TODO prevent race condition.
     self.ctx = ctx;

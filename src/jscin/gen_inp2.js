@@ -139,7 +139,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
         self.opts.OPT_AUTO_COMPOSE || self.override_autocompose) ? true : false;
   },
 
-  keystroke: function (ctx, ev) {
+  keystroke: function (ctx, ev, keyCode) {
     var self = this;
 
     // TODO(hungte) Will these inside definitions make it slow?
@@ -584,7 +584,6 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
       return ResultIgnored(ctx);
 
-    var keyCode = jscin.get_key_val(ev.code);
     var keyChar = ev.key;
 
     switch (ctx.state) {
