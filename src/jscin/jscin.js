@@ -6,10 +6,13 @@
  */
 
 /**
- * The root namespace with constants
+ * The root namespace for JsCIN.
  */
 
 var jscin = {
+
+  // -------------------------------------------------------------------
+  // Constants
   IMKEY_ABSORB: 0x0,
   IMKEY_COMMIT: 0x1,
   IMKEY_IGNORE: 0x2,
@@ -24,12 +27,6 @@ var jscin = {
   kCrossQueryKey: "cross_query",
   kModuleNameKey: 'default_module_name',
   kDefaultModuleName: 'GenInp2',
-
-  modules: {},
-  addons: [],
-  input_methods: {},
-
-  debug: false,
 
   // Converts a chrome.input.ime key 'code' to jscin standard keys names.
   // Note: key codes not listed here must be psased as-is, ex: Esc, Tab.
@@ -108,292 +105,315 @@ var jscin = {
     "BracketRight": "]",
     "Backslash": "\\",
     "Quote": "'"
-  }
-};
+  },
 
-/**
- * Utilities
- */
+  // -------------------------------------------------------------------
+  // Variables
+  modules: {},
+  addons: [],
+  input_methods: {},
 
-// Logging / tracing utility.
-jscin.log = function() {
-  if (!jscin.debug)
-    return;
-  jscin.error.apply(jscin, arguments);
-}
+  debug: false,
 
-jscin.error = function() {
-  if (typeof(console) == typeof(undefined)) {
-    print.apply(null, arguments);
-  } else {
-    console.log.apply(console, arguments);
-  }
-}
+  // -------------------------------------------------------------------
+  // Utilities
 
-jscin.add_logger = function(logger, context) {
-  var old_logger = jscin.log;
-  jscin.log = function() {
-    logger.apply(context, arguments);
-    old_logger.apply(null, arguments);
-  }
-}
-
-jscin.get_key_val = function (ime_api_key_code) {
-  return jscin.kImeKeyCodeTable[ime_api_key_code] || ime_api_key_code;
-}
-
-// Module registration
-jscin.register_module = function(name, constructor) {
-  var self = jscin;
-  self.modules[name] = constructor;
-  self.log("jscin: Registered module:", name);
-}
-
-jscin.get_registered_modules = function () {
-  return Object.keys(jscin.modules);
-}
-
-jscin.register_addon = function(name, constructor) {
-  var self = jscin;
-  self.addons.push(constructor);
-  self.log("jscin: Registered addon:", name);
-}
-
-// Input method registration
-jscin.register_input_method = function(name, module_name, cname) {
-  var self = jscin;
-  if (!(module_name in self.modules)) {
-    self.log("jscin: Unknown module:", module_name);
-    return false;
-  }
-  self.input_methods[name] = {
-    'label': cname,
-    'module': self.modules[module_name] };
-  self.log("jscin: Registered input method: ", name);
-}
-
-// Un-register an input method
-jscin.unregister_input_method = function(name) {
-  var self = jscin;
-  if (!(name in self.input_methods)) {
-    self.log("jscin: Unknown input method: " + name);
-    return false;
-  }
-  delete self.input_methods[name]
-  self.log("jscin: Un-registered input method: ", name);
-
-  // TODO(hungte) Remove active instances?
-}
-
-// Create input method instance
-jscin.create_input_method = function(name, context, data) {
-  var self = jscin;
-  if (!(name in self.input_methods)) {
-    self.log("jscin: Unknown input method: ", name);
-    return false;
-  }
-  self.log("jscin: Created input method instance: ", name);
-  var module = jscin.input_methods[name]["module"];
-  if (!data)
-    data = jscin.getTableData(name);
-  var instance = new module(name, data);
-  instance.init(context);
-  self.addons.forEach(function (addon) {
-    instance = new addon('addon', instance);
-  });
-  return instance;
-}
-
-jscin.get_input_method_label = function(name) {
-  var self = jscin;
-  if (!(name in self.input_methods)) {
-    self.log("jscin: Unknown input method: ", name);
-    return null;
-  }
-  return jscin.input_methods[name].label;
-}
-
-// Extends base input module (class inheritance).
-jscin.extend_input_method = function (overrides, base) {
-  if (!base) {
-    base = jscin.base_input_method;
-    if (!base) {
-      jscin.log("jscin: No base input method defined.");
+  // Logging / tracing utility.
+  log: function () {
+    if (!jscin.debug)
       return;
-    }
-  }
-  var f = function (name, conf) {
-    this.parent = base.prototype;
-    base.call(this, name, conf);
-    if (overrides.constructor)
-      overrides.constructor.apply(this, arguments);
-  }
-  f.prototype = Object.create(base.prototype);
-  for (var k in overrides) {
-    if (k == 'constructor')
-      continue;
-    f.prototype[k] = overrides[k];
-  }
-  return f;
-}
+    jscin.error.apply(jscin, arguments);
+  },
 
-
-jscin.reload_configuration = function() {
-  var self = jscin;
-
-  // Reset input methods
-  self.input_methods = {};
-  var count_ims = 0;
-  var any_im = '';
-  var metadatas = self.getTableMetadatas();
-  var module_name = self.getDefaultModuleName();
-  for (var name in metadatas) {
-    // TODO(hungte) support more modules in future.
-    self.register_input_method(name, module_name, metadatas[name].cname);
-    if (!any_im)
-      any_im = name;
-    count_ims++;
-  }
-
-  if (count_ims < 1) {
-    self.debug = true;
-    self.log("jscin.reload_configuration: No input methods available.");
-  }
-  if (localStorage)
-    self.log("jscin.localStorage:", Object.keys(localStorage));
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Table and local storage management
-
-jscin.getCrossQuery = function () {
-  return jscin.readLocalStorage(jscin.kCrossQueryKey);
-}
-
-jscin.setCrossQuery = function (ime) {
-  return jscin.writeLocalStorage(jscin.kCrossQueryKey, ime);
-}
-
-jscin.getLocalStorageVersion = function () {
-  return jscin.readLocalStorage(jscin.kVersionKey, 0);
-}
-
-jscin.setLocalStorageVersion = function (version) {
-  return jscin.writeLocalStorage(jscin.kVersionKey, version);
-}
-
-jscin.addTable = function (name, metadata, data) {
-  // print('addTable(' + name + ',' + metadata);
-  var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
-  metadata.ename = name;
-  table_metadata[name] = metadata;
-  jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
-  jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + name, data);
-}
-
-jscin.getTableMetadatas = function () {
-  return jscin.readLocalStorage(jscin.kTableMetadataKey, {});
-}
-
-jscin.getDefaultModuleName = function () {
-  var name = jscin.readLocalStorage(jscin.kModuleNameKey,
-                                    jscin.kDefaultModuleName);
-  if (jscin.get_registered_modules().indexOf(name) < 0) {
-    trace("Default module not available:", name);
-    name = jscin.kDefaultModuleName;
-  }
-  return name;
-}
-
-jscin.setDefaultModuleName = function (new_value) {
-  jscin.writeLocalStorage(jscin.kModuleNameKey, new_value);
-}
-
-jscin.getTableData = function (name) {
-  return jscin.readLocalStorage(jscin.kTableDataKeyPrefix + name);
-}
-
-jscin.deleteTable = function (name) {
-  var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
-  delete table_metadata[name];
-  jscin.deleteLocalStorage(jscin.kTableDataKeyPrefix + name);
-  jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
-}
-
-jscin.reloadNonBuiltinTables = function () {
-  var metadatas = jscin.getTableMetadatas();
-  for (name in metadatas) {
-    var table = metadatas[name];
-    if (table.builtin)
-      continue;
-
-    var content = jscin.readLocalStorage(jscin.kRawDataKeyPrefix + name, "");
-    var parsed_result = parseCin(content);
-    if (parsed_result[0]) {
-      var parsed_data = parsed_result[1];
-      parsed_data.metadata.setting = table.setting;
-      for (var option in table.setting.options) {
-        parsed_data.data[option] = table.setting.options[option];
-      }
-      if (typeof table.url !== undefined) {
-        parsed_data.metadata.url = table.url;
-      }
-      jscin.addTable(parsed_data.metadata.ename, parsed_data.metadata, parsed_data.data);
-      jscin.log("jscin: Reload table: ", name);
+  error: function () {
+    if (typeof(console) == typeof(undefined)) {
+      print.apply(null, arguments);
     } else {
-      jscin.error("jscin: Parse error when reloading table: ", name);
+      console.log.apply(console, arguments);
+    }
+  },
+
+  add_logger: function (logger, context) {
+    var old_logger = jscin.log;
+    jscin.log = function () {
+      logger.apply(context, arguments);
+      old_logger.apply(null, arguments);
+    }
+  },
+
+  get_key_val: function (ime_api_key_code) {
+    return jscin.kImeKeyCodeTable[ime_api_key_code] || ime_api_key_code;
+  },
+
+  // Module registration
+  register_module: function (name, constructor) {
+    var self = jscin;
+    self.modules[name] = constructor;
+    self.log("jscin: Registered module:", name);
+  },
+
+  get_registered_modules: function () {
+    return Object.keys(jscin.modules);
+  },
+
+  register_addon: function (name, constructor) {
+    var self = jscin;
+    self.addons.push(constructor);
+    self.log("jscin: Registered addon:", name);
+  },
+
+  // Input method registration
+  register_input_method: function (name, module_name, cname) {
+    var self = jscin;
+    if (!(module_name in self.modules)) {
+      self.log("jscin: Unknown module:", module_name);
       return false;
     }
-  }
-  return true;
-}
+    self.input_methods[name] = {
+      'label': cname,
+      'module': self.modules[module_name] };
+    self.log("jscin: Registered input method: ", name);
+  },
 
-//////////////////////////////////////////////////////////////////////////////
-// Platform-dependent utilities
+  // Un-register an input method
+  unregister_input_method: function (name) {
+    var self = jscin;
+    if (!(name in self.input_methods)) {
+      self.log("jscin: Unknown input method: " + name);
+      return false;
+    }
+    delete self.input_methods[name]
+    self.log("jscin: Un-registered input method: ", name);
 
-jscin.hasLzString = function () {
-  return typeof(LZString) != typeof(undefined);
-}
+    // TODO(hungte) Remove active instances?
+  },
 
-jscin.readLocalStorage = function (key, default_value) {
-  if (typeof(localStorage) == typeof(undefined)) {
-    localStorage = {};
-  }
-  var data = localStorage[key];
-  if (!data) {
-    return default_value;
-  }
-  if (data[0] == '!') {
-    if (!jscin.hasLzString()) {
-      jscin.error("LZ-String not available. Dropping storage key:", key);
+  // Create input method instance
+  create_input_method: function (name, context, data) {
+    var self = jscin;
+    if (!(name in self.input_methods)) {
+      self.log("jscin: Unknown input method: ", name);
+      return false;
+    }
+    self.log("jscin: Created input method instance: ", name);
+    var module = jscin.input_methods[name]["module"];
+    if (!data)
+      data = jscin.getTableData(name);
+    var instance = new module(name, data);
+    instance.init(context);
+    self.addons.forEach(function (addon) {
+      instance = new addon('addon', instance);
+    });
+    return instance;
+  },
+
+  get_input_method_label: function (name) {
+    var self = jscin;
+    if (!(name in self.input_methods)) {
+      self.log("jscin: Unknown input method: ", name);
+      return null;
+    }
+    return jscin.input_methods[name].label;
+  },
+
+  // Extends base input module (class inheritance).
+  extend_input_method: function (overrides, base) {
+    if (!base) {
+      base = jscin.base_input_method;
+      if (!base) {
+        jscin.log("jscin: No base input method defined.");
+        return;
+      }
+    }
+    var f = function (name, conf) {
+      this.parent = base.prototype;
+      base.call(this, name, conf);
+      if (overrides.constructor)
+        overrides.constructor.apply(this, arguments);
+    }
+    f.prototype = Object.create(base.prototype);
+    for (var k in overrides) {
+      if (k == 'constructor')
+        continue;
+      f.prototype[k] = overrides[k];
+    }
+    return f;
+  },
+
+  reload_configuration: function () {
+    var self = jscin;
+
+    // Reset input methods
+    self.input_methods = {};
+    var count_ims = 0;
+    var any_im = '';
+    var metadatas = self.getTableMetadatas();
+    var module_name = self.getDefaultModuleName();
+    for (var name in metadatas) {
+      // TODO(hungte) support more modules in future.
+      self.register_input_method(name, module_name, metadatas[name].cname);
+      if (!any_im)
+        any_im = name;
+      count_ims++;
+    }
+
+    if (count_ims < 1) {
+      self.debug = true;
+      self.log("jscin.reload_configuration: No input methods available.");
+    }
+    if (localStorage)
+      self.log("jscin.localStorage:", Object.keys(localStorage));
+  },
+
+  // Table and local storage management
+  getCrossQuery: function () {
+    return jscin.readLocalStorage(jscin.kCrossQueryKey);
+  },
+
+  setCrossQuery: function (ime) {
+    return jscin.writeLocalStorage(jscin.kCrossQueryKey, ime);
+  },
+
+  getLocalStorageVersion: function () {
+    return jscin.readLocalStorage(jscin.kVersionKey, 0);
+  },
+
+  setLocalStorageVersion: function (version) {
+    return jscin.writeLocalStorage(jscin.kVersionKey, version);
+  },
+
+  addTable: function (name, metadata, data) {
+    var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+    metadata.ename = name;
+    table_metadata[name] = metadata;
+    jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+    jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + name, data);
+  },
+
+  getTableMetadatas: function () {
+    return jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+  },
+
+  getDefaultModuleName: function () {
+    var name = jscin.readLocalStorage(jscin.kModuleNameKey,
+                                      jscin.kDefaultModuleName);
+    if (jscin.get_registered_modules().indexOf(name) < 0) {
+      trace("Default module not available:", name);
+      name = jscin.kDefaultModuleName;
+    }
+    return name;
+  },
+
+  setDefaultModuleName: function (new_value) {
+    jscin.writeLocalStorage(jscin.kModuleNameKey, new_value);
+  },
+
+  getTableData: function (name) {
+    return jscin.readLocalStorage(jscin.kTableDataKeyPrefix + name);
+  },
+
+  deleteTable: function (name) {
+    var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
+    delete table_metadata[name];
+    jscin.deleteLocalStorage(jscin.kTableDataKeyPrefix + name);
+    jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+  },
+
+  reloadNonBuiltinTables: function () {
+    var metadatas = jscin.getTableMetadatas();
+    for (name in metadatas) {
+      var table = metadatas[name];
+      if (table.builtin)
+        continue;
+
+      var content = jscin.readLocalStorage(jscin.kRawDataKeyPrefix + name, "");
+      var parsed_result = parseCin(content);
+      if (parsed_result[0]) {
+        var parsed_data = parsed_result[1];
+        parsed_data.metadata.setting = table.setting;
+        for (var option in table.setting.options) {
+          parsed_data.data[option] = table.setting.options[option];
+        }
+        if (typeof table.url !== undefined) {
+          parsed_data.metadata.url = table.url;
+        }
+        jscin.addTable(parsed_data.metadata.ename, parsed_data.metadata, parsed_data.data);
+        jscin.log("jscin: Reload table: ", name);
+      } else {
+        jscin.error("jscin: Parse error when reloading table: ", name);
+        return false;
+      }
+    }
+    return true;
+  },
+
+  // Platform-dependent utilities
+
+  hasLzString: function () {
+    return typeof(LZString) != typeof(undefined);
+  },
+
+  readLocalStorage: function (key, default_value) {
+    if (typeof(localStorage) == typeof(undefined)) {
+      localStorage = {};
+    }
+    var data = localStorage[key];
+    if (!data) {
       return default_value;
     }
-    data = LZString.decompress(data.substr(1));
-  }
-  return JSON.parse(data);
-}
+    if (data[0] == '!') {
+      if (!jscin.hasLzString()) {
+        jscin.error("LZ-String not available. Dropping storage key:", key);
+        return default_value;
+      }
+      data = LZString.decompress(data.substr(1));
+    }
+    return JSON.parse(data);
+  },
 
-jscin.writeLocalStorage = function (key, data) {
-  if (typeof(localStorage) == typeof(undefined)) {
-    localStorage = {};
-  }
-  var val = JSON.stringify(data);
-  if (val.length > 100 && jscin.hasLzString())
-    val = '!' + LZString.compress(val);
-  localStorage[key] = val;
-}
+  writeLocalStorage: function (key, data) {
+    if (typeof(localStorage) == typeof(undefined)) {
+      localStorage = {};
+    }
+    var val = JSON.stringify(data);
+    if (val.length > 100 && jscin.hasLzString())
+      val = '!' + LZString.compress(val);
+    localStorage[key] = val;
+  },
 
-jscin.deleteLocalStorage = function (key) {
-  delete localStorage[key];
-}
+  deleteLocalStorage: function (key) {
+    delete localStorage[key];
+  },
 
-jscin.guid = function () {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-        .toString(16).substring(1);
+  guid: function () {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16).substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
   }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-      s4() + '-' + s4() + s4() + s4();
+
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Global debugging and unit tests
+
+function trace() {
+  if (!jscin.debug || typeof(console) != typeof(undefined))
+    return;
+
+  var e = new Error();
+  var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
+  var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
+  var msg = Array.prototype.slice.call(arguments);
+  msg.unshift(prefix);
+
+  if (typeof(console) == typeof(undefined)) {
+    print.apply(null, msg);
+  } else {
+    jscin.log.apply(null, msg);
+  }
 }
 
 // TODO(hungte) some place for global configuration data.
@@ -413,26 +433,6 @@ function dump_object(obj, indent) {
     s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
   }
   return s;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Debugging and unit tests
-
-function trace() {
-  if (!jscin.debug || typeof(console) != typeof(undefined))
-    return;
-
-  var e = new Error();
-  var m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
-  var prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
-  var msg = Array.prototype.slice.call(arguments);
-  msg.unshift(prefix);
-
-  if (typeof(console) == typeof(undefined)) {
-    print.apply(null, msg);
-  } else {
-    jscin.log.apply(null, msg);
-  }
 }
 
 function dump_inpinfo(inpinfo) {
