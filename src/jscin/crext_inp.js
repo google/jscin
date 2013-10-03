@@ -48,16 +48,13 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
         });
   },
 
-  keystroke: function (ctx, ev, k)
+  keystroke: function (ctx, ev)
   {
     var self = this;
-    if (self.opts.OPT_KEEP_KEY_CASE && k.toLowerCase() == ev.key)
-      k = ev.key;
-
     chrome.runtime.sendMessage(self.extension_id, {
       type: self.kJscinType,
       command: 'keystroke',
-      args: [ctx, ev, k]});
+      args: [ctx, ev]});
 
     // TODO prevent race condition.
     self.ctx = ctx;

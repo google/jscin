@@ -444,7 +444,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
 
     // ------------------------------------------
     // main entry
-    this.process_keystroke = function (inpinfo, keyinfo, k) {
+    this.process_keystroke = function (inpinfo, keyinfo) {
       var conf = self.conf;
 
       var len = self.keystroke.length;
@@ -611,8 +611,8 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     };
   },
 
-  keystroke: function (inpinfo, keyinfo, k)
+  keystroke: function (inpinfo, keyinfo)
   {
-    return this.process_keystroke(inpinfo, keyinfo, k);
+    return this.process_keystroke(inpinfo, keyinfo);
   }
 }));

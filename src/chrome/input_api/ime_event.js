@@ -114,10 +114,9 @@ var ImeEvent = {
   },
 
   ImeKeyEvent: function(ev) {
-    // Converts a KeyboardEvent to chrome.input.ime Key Event.
-    // The real W3C KeyboardEvent is slightly different from the KeyboardEvent
-    // expected in Chrome Extension input API, so let's make a mini
-    // implementation.
+    // Converts a KeyboardEvent to chrome.input.ime KeyboardEvent.
+    // The real W3C KeyboardEvent is slightly different from Chrome Extension
+    // input API, so let's make a mini implementation.
     var code = this.JsKeyCode2ImeKeyCode(ev.keyCode);
     var key = jscin.get_key_val(code);
 

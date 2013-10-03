@@ -11,7 +11,7 @@ jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
     this.last_mcch = undefined;
   },
 
-  keystroke: function (ctx, ev, k)
+  keystroke: function (ctx, ev)
   {
     var self = this;
     function InSelectionKey(ctx, key) {
@@ -42,12 +42,13 @@ jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
       return true;
     }
 
-    jscin.log("relatedText, key = ", k);
+    jscin.log("relatedText, key = ", ev.code);
     if (!ctx.allow_related_text || ev.ctrlKey || ev.altKey || k == 'Shift')
-      return this.im.keystroke(ctx, ev, k);
+      return this.im.keystroke(ctx, ev);
 
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
       ctx.mcch = '';
+      var k = jscin.get_key_val(ev.code);
       if ((ev.shiftKey || ctx.auto_compose) &&
           InSelectionKey(ctx, k) &&
           CommitCandidate(ctx, k)) {
@@ -55,7 +56,7 @@ jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
         return jscin.IMKEY_COMMIT;
       }
     }
-    var result = this.im.keystroke(ctx, ev, k);
+    var result = this.im.keystroke(ctx, ev);
     if (result != jscin.IMKEY_COMMIT || !IsEmptyContext(ctx))
       return result;
     FindRelatedText(ctx);

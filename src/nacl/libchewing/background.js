@@ -72,8 +72,9 @@ document.addEventListener( 'readystatechange', function() {
       debug("Unsupported command", msg.command);
       return;
     }
-    // keystrok: context, ev, k
-    var k = msg.args[2];
+    // keystroke: context, ev
+    // TODO(hungte) How to decide using .key or .code?
+    var k = msg.args[1].key;
     nacl.postMessage(PackNaclKeyCommand(k));
   }
 

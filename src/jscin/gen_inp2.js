@@ -9,7 +9,6 @@
 // TODO(hungte) Indicators for candidates to show "composition state" or
 // "selection only state".
 // TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
-// TODO(hungte) Process KeyboardEvent.code instead of key.
 
 jscin.register_module('GenInp2', jscin.extend_input_method({
 
@@ -299,8 +298,8 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
                   (self.MAX_GLOB_PAGES * self.selkey.length));
         });
       } else {
-        // TODO(hungte) Currently cin_parser concats everything into a big string,
-        // so candidates is a string. We should make it into an array.
+        // TODO(hungte) Currently cin_parser concats everything into a big
+        // string, so candidates is a string. We should make it into an array.
         ctx.candidates = table[key] || '';
       }
 
@@ -363,8 +362,8 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
         ctx.composition += key_by_group[g];
       });
       return true;
-      // TODO(hungte) Make an index for DelComposition to delete last entered key,
-      // or only update the displayed composition.
+      // TODO(hungte) Make an index for DelComposition to delete last entered
+      // key, or only update the displayed composition.
     }
 
     function AddComposition(ctx, key) {
@@ -442,7 +441,8 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
       // beep.
     }
 
-    function ProcessCompositionStateKey(ctx, ev, key, keyChar) {
+    function ProcessCompositionStateKey(ctx, ev) {
+      var key = ev.key;
 
       switch (key) {
         case 'Backspace':
@@ -460,10 +460,10 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
           return ConvertComposition(ctx);
 
         default:
-          // Some keys may be EndKey, SelectionKey, and CompositionKey at the same
-          // time. Here are the rules:
-          //  - If the key can make a complete composition, it's either End Key or
-          //    Composition key.
+          // Some keys may be EndKey, SelectionKey, and CompositionKey at the
+          // same time. Here are the rules:
+          //  - If the key can make a complete composition, it's either End Key
+          //    or Composition key.
           //    * Do convert if the key is End Key.
           //  - If there are candidates available, treat it as selection key.
           //  - Otherwise, assume it's composition key.
@@ -474,12 +474,6 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
           //     * W[0-9]: as endkey.
           //   - Array30/XCIN25: [0-9] are sel.
           //     * W[0-9]: must be also considered as composition / end key.
-
-          if (IsGlobKey(keyChar)) {
-            // TODO(hungte) Prevent this workaround.
-            key = keyChar;
-            ev.shiftKey = false;
-          }
 
           if (CanDoComposition(ctx, key)) {
             if (IsEndKey(ctx, key)) {
@@ -515,19 +509,8 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
       return ResultIgnored(ctx);
     }
 
-    function ProcessCandidatesStateKey(ctx, ev, key, keyChar) {
-      if (ev.shiftKey) {
-        switch (key) {
-          case ',':
-          case '.':
-            key = keyChar;
-            break;
-          default:
-            if (!IsSelectionKey(ctx, key))
-              return ResultIgnored(ctx);
-            break;
-        }
-      }
+    function ProcessCandidatesStateKey(ctx, ev) {
+      var key = ev.key;
 
       switch (key) {
         case 'Esc':
@@ -542,14 +525,12 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
         case 'Left':
         case 'PageUp':
         case 'Up':
-        case '<':
           CycleCandidates(ctx, -1);
           return ResultProcessed(ctx);
 
         case 'Right':
         case 'PageDown':
         case 'Down':
-        case '>':
           CycleCandidates(ctx);
           return ResultProcessed(ctx);
 
@@ -575,30 +556,31 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
       }
     }
 
-    this.ProcessKeystroke = function(ctx, ev, k) {
+    this.ProcessKeystroke = function(ctx, ev) {
       trace(ev);
       if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
         return ResultIgnored(ctx);
 
       switch (ctx.state) {
         case this.STATE_COMPOSITION:
-          return ProcessCompositionStateKey(ctx, ev, k, ev.key);
+          return ProcessCompositionStateKey(ctx, ev);
         case this.STATE_CANDIDATES:
-          return ProcessCandidatesStateKey(ctx, ev, k, ev.key);
+          return ProcessCandidatesStateKey(ctx, ev);
       }
       return ResultIgnored(ctx);
     };
   },
 
-  keystroke: function (ctx, ev, keyCode) {
-    return this.ProcessKeystroke(ctx, ev, keyCode);
+  keystroke: function (ctx, ev) {
+    return this.ProcessKeystroke(ctx, ev);
   },
 
   get_accepted_keys: function (ctx)
   {
     var keys = this.super.get_accepted_keys.call(this, ctx);
-    if (ctx.candidates) {
-      keys = keys.concat(['PageUp', 'PageDown', 'Shift ,', 'Shift .']);
+    keys = keys.concat(this.GLOB_KEYS.split(''));
+    if (ctx.candidates.length) {
+      keys = keys.concat(['PageUp', 'PageDown']);
     }
     return keys;
   }

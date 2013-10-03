@@ -44,7 +44,7 @@ jscin.base_input_method.prototype.reset_context = function (ctx) {
 }
 
 // Called when a new key event is sent to IM.
-jscin.base_input_method.prototype.keystroke = function (ctx, ev, k) {
+jscin.base_input_method.prototype.keystroke = function (ctx, ev) {
   return jscin.IMKEY_UNKNOWN;
 }
 

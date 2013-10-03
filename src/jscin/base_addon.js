@@ -24,7 +24,7 @@ jscin.base_input_addon.prototype.reset_context = function (ctx) {
 }
 
 // Called when a new key event is sent to IM.
-jscin.base_input_addon.prototype.keystroke = function (ctx, ev, k) {
+jscin.base_input_addon.prototype.keystroke = function (ctx, ev) {
   return this.im.keystroke.apply(this.im, arguments);
 }
 

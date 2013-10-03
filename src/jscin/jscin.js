@@ -28,8 +28,9 @@ var jscin = {
   kModuleNameKey: 'default_module_name',
   kDefaultModuleName: 'GenInp2',
 
-  // Converts a chrome.input.ime key 'code' to jscin standard keys names.
-  // Note: key codes not listed here must be psased as-is, ex: Esc, Tab.
+  // Converts a chrome.input.ime KeyboardEvent.code to jscin standard key names.
+  // Note this is almost identical to KeyboardEvent.key except shift states.
+  // Note: key codes not listed here should be passed as-is, ex: Esc, Tab.
   // See input_api/ime_event.js for a complete list.
   kImeKeyCodeTable: {
     "ShiftLeft": "Shift",
