@@ -79,16 +79,24 @@ class ChewingInstance: public pp::Instance {
       kMsgDebugPrefix("debug:"), kMsgContextPrefix("context:"),
       kMsgKeyPrefix("key:"), ctx(NULL) {
 
-    const char *data_dir = "/data";
+    const char *data_dir = "/data", *user_data_dir = "/user_data";
     nacl_io_init_ppapi(instance, pp::Module::Get()->get_browser_interface());
     if (mount("libchewing/data", data_dir, "httpfs", 0, "") != 0) {
-      PostMessage(pp::Var("can't mount"));
+      PostMessage(pp::Var("can't mount data"));
+      return;
+    }
+    // TODO(hungte) change memfs to html5fs.
+    if (mount("", user_data_dir, "html5fs", 0,
+              "type=PERSISTENT,expected_size=1048576") != 0) {
+      PostMessage(pp::Var("can't mount user data"));
       return;
     }
     // Note chewing library does not really take path on its Init...
     // So we always need to do putenv.
     char chewing_path[] = "CHEWING_PATH=/data";
+    char chewing_user_path[] = "CHEWING_USER_PATH=/user_data";
     putenv(chewing_path);
+    putenv(chewing_user_path);
     chewing_Init(data_dir, ".");
     pthread_t main_thread;
     pthread_create(&main_thread, NULL, chewing_init_context, (void*)this);
