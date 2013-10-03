@@ -5,43 +5,50 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) Rewrite all function calls with func.apply.
+jscin.base_input_addon = function(name, im) {
+  jscin.log('Creating Addon', name, im.name);
+  this.im = im;
+  this.name = name;
+};
 
-jscin.base_input_addon = jscin.extend_input_method({
-  constructor: function (name, im) {
-    this.im = im;
-  },
+// Note currently addon.init is almost never called.
 
-  init: function (ctx) {
-    return this.im.init(ctx);
-  },
+// Called when the IM is first initialized.
+jscin.base_input_addon.prototype.init = function (ctx) {
+  return this.im.reset_context.apply(this.im, arguments);
+}
 
-  // Called when IM or system wants to reset input context.
-  reset_context: function (ctx) {
-    return this.im.reset_context(ctx);
-  },
+// Called when IM or system wants to reset input context.
+jscin.base_input_addon.prototype.reset_context = function (ctx) {
+  return this.im.reset_context.apply(this.im, arguments);
+}
 
-  keystroke: function (ctx, ev, k) {
-    return this.im.keystroke(ctx, ev, k);
-  },
+// Called when a new key event is sent to IM.
+jscin.base_input_addon.prototype.keystroke = function (ctx, ev, k) {
+  return this.im.keystroke.apply(this.im, arguments);
+}
 
-  show_keystroke: function (ctx, text) {
-    return this.im.show_keystroke(ctx, text);
-  },
+// Called when system wants to query corresponding key strokes for given text.
+jscin.base_input_addon.prototype.show_keystroke = function (ctx, text) {
+  return this.im.show_keystroke.apply(this.im, arguments);
+}
 
-  get_accepted_keys: function (ctx) {
-    return this.im.get_accepted_keys(ctx);
-  },
+// Called when system wants to get a list of allowed key strokes.
+jscin.base_input_addon.prototype.get_accepted_keys = function (ctx) {
+  return this.im.get_accepted_keys.apply(this.im, arguments);
+}
 
-  set_notifier: function (f) {
-    return this.im.set_notifier(f);
-  },
+// Provides a notifier for IM to invoke when context has been modified.
+jscin.base_input_addon.prototype.set_notifier = function (f) {
+  return this.im.set_notifier.apply(this.im, arguments);
+}
 
-  notify: function () {
-    return this.im.notify();
-  },
+// Used by IM to notify system something is changed (see set_notifier).
+jscin.base_input_addon.prototype.notify = function () {
+  return this.im.notify.apply(this.im, arguments);
+}
 
-  terminate: function (ctx) {
-    return this.im.terminate(ctx);
-  }
-});
+// Called when then system is going to shutdown IM.
+jscin.base_input_addon.prototype.terminate = function (ctx) {
+  return this.im.terminate.apply(this.im, arguments);
+}

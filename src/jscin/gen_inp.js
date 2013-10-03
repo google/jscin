@@ -105,7 +105,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
 
   reset_context: function (inpinfo)
   {
-    this.parent.reset_context.call(this, inpinfo);
+    this.super.reset_context.call(this, inpinfo);
     var ime = this;
     if (!this.conf.mode.INP_MODE_SELKEYSHIFT) {
       inpinfo.selkey = ime.header.selkey;

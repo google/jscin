@@ -225,19 +225,22 @@ var jscin = {
         return;
       }
     }
-    var f = function (name, conf) {
-      this.parent = base.prototype;
-      base.call(this, name, conf);
-      if (overrides.constructor)
+    var im = function () {
+      base.apply(this, arguments);
+      if (overrides.constructor) {
         overrides.constructor.apply(this, arguments);
+      }
     }
-    f.prototype = Object.create(base.prototype);
+    im.prototype = Object.create(base.prototype);
+    im.prototype.constructor = im;
+    // TODO(hungte) Create a tiny object to stub all .super calls.
+    im.prototype.super = base.prototype;
     for (var k in overrides) {
       if (k == 'constructor')
         continue;
-      f.prototype[k] = overrides[k];
+      im.prototype[k] = overrides[k];
     }
-    return f;
+    return im;
   },
 
   reload_configuration: function () {

@@ -6,7 +6,7 @@
  */
 
 jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
-  constructor: function (name, conf)
+  constructor: function (name, im)
   {
     this.last_mcch = undefined;
   },

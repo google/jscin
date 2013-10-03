@@ -6,15 +6,8 @@
  */
 
 jscin.base_input_method = function(name, conf) {
+  jscin.log('Creating IM', name, conf);
   this.name = name;
-
-  if (!conf) {
-    trace('failed to load ', name);
-    return;
-  }
-
-  trace('Conf loaded', name);
-
   // Read and parse from conf (a standard parsed CIN).
   this.cname = conf.cname || name;
   this.ename = conf.ename || name;

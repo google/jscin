@@ -6,7 +6,7 @@
  */
 
 jscin.register_addon('AddonPunctuations', jscin.extend_input_method({
-  constructor: function (name, conf)
+  constructor: function (name, im)
   {
     this.ctrl_phrase = {
       ',': '\uff0c',

@@ -126,7 +126,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
   reset_context: function (ctx)
   {
     var self = this;
-    self.parent.reset_context.call(self, ctx);
+    self.super.reset_context.call(self, ctx);
     ctx.state = self.STATE_COMPOSITION;
     ctx.composition = '';
     ctx.candidates = '';
@@ -597,7 +597,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
 
   get_accepted_keys: function (ctx)
   {
-    var keys = this.parent.get_accepted_keys.call(this, ctx);
+    var keys = this.super.get_accepted_keys.call(this, ctx);
     if (ctx.candidates) {
       keys = keys.concat(['PageUp', 'PageDown', 'Shift ,', 'Shift .']);
     }
