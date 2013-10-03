@@ -221,7 +221,8 @@ class ChewingInstance: public pp::Instance {
         break;
       }
     }
-    if (!handled) {
+    // Some special keys, like Ctrl, should not be mis-handled.
+    if (!handled && msg.size() == 1) {
         chewing_handle_Default(ctx, msg[0]);
     }
     ReturnContext();
