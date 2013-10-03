@@ -11,9 +11,14 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
   {
     var self = this;
     self.opts = {
-      OPT_LOWERCASE: conf.LOWERCASE
+      OPT_KEEP_KEY_CASE: conf.keep_key_case
     };
     self.extension_id = conf.EXTENSION_ID;
+
+    var flag = parseInt(conf.flag || "0");
+    if (flag & 0x1) { // FLAG_KEEP_KEY_CASE
+      self.opts.OPT_KEEP_KEY_CASE = true;
+    }
 
     // TODO(hungte) Move the IM protocol to standalone JS.
 
@@ -46,11 +51,9 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
   keystroke: function (ctx, ev, k)
   {
     var self = this;
-    if (self.opts.OPT_LOWERCASE && k.length == 1)
-      k = k.toLowerCase();
+    if (self.opts.OPT_KEEP_KEY_CASE && k.toLowerCase() == ev.key)
+      k = ev.key;
 
-    jscin.log("CrExt: key = ", k);
-    // TODO(hungte) keystroke should be handled in ext side.
     chrome.runtime.sendMessage(self.extension_id, {
       type: self.kJscinType,
       command: 'keystroke',
