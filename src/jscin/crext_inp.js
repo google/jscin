@@ -24,7 +24,8 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
 
     // Jscin IM protocol v1: (jscin/crext_inip.js)
     //  jscin->im: {type: 'jscin_im_v1', command: <command>, args: <args>}
-    //  im->jscin: {type: 'jscin_im_v1, command: <command>, result: <result> }
+    //  im->jscin: {type: 'jscin_im_v1, command: <command>, result: <result>,
+    //              context: <context> }
     self.kJscinType = 'jscin_im_v1';
 
     chrome.runtime.onMessageExternal.addListener(
@@ -37,13 +38,13 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
             jscin.log("unsupported command from extension", request.command);
             return;
           }
-          var data = request.result;
-          jscin.log("crext_inp received", data);
-          self.ctx.keystroke = data.keystroke || '';
-          self.ctx.mcch = data.mcch || '';
-          self.ctx.cch = data.cch || '';
-          self.ctx.lcch = data.lcch || [];
-          self.ctx.edit_pos = data.edit_pos;
+          var ctx = request.context;
+          jscin.log("crext_inp received new context", ctx);
+          self.ctx.keystroke = ctx.keystroke || '';
+          self.ctx.mcch = ctx.mcch || '';
+          self.ctx.cch = ctx.cch || '';
+          self.ctx.lcch = ctx.lcch || [];
+          self.ctx.edit_pos = ctx.edit_pos;
           self.notify();
         });
   },

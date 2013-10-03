@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "libChewing for JSCIN",
-  "version": "0.0.2",
+  "version": "0.0.3",
 
   "description": "Chewing module for JSCIN.",
   "background": { "page": "background.html" },

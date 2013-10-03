@@ -20,7 +20,8 @@ document.addEventListener( 'readystatechange', function() {
 
   // Jscin IM protocol v1: (jscin/crext_inip.js)
   //  jscin->im: {type: 'jscin_im_v1', command: <command>, args: <args>}
-  //  im->jscin: {type: 'jscin_im_v1, command: <command>, result: <result> }
+  //  im->jscin: {type: 'jscin_im_v1, command: <command>,
+  //              result: <result>, context: <context> }
   var kJscinType = 'jscin_im_v1';
   var kJscinKeystrokeCommand = "keystroke";
 
@@ -59,8 +60,8 @@ document.addEventListener( 'readystatechange', function() {
     return (msg && msg.type == kJscinType && msg.command);
   }
 
-  function CreateJscinKeystrokeResponse(data) {
-    return { type: kJscinType, command: kJscinKeystrokeCommand, result: data };
+  function CreateJscinKeystrokeResponse(ctx) {
+    return { type: kJscinType, command: kJscinKeystrokeCommand, context: ctx };
   }
 
   function ProcessJscinMessage(msg) {
