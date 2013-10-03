@@ -6,7 +6,7 @@
   "description": "Chewing module for JSCIN.",
   "background": { "page": "background.html" },
   "web_accessible_resources": [
-     "tables/*"
+     "jscin/*"
   ],
   "permissions": []
 }

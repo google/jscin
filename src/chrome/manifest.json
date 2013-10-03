@@ -41,6 +41,7 @@
     "matches": ["http://*/*", "https://*/*"]
   } ],
   "web_accessible_resources": [
+     "jscin/ime.json",
      "jquery/*",
      "input_api/*"
   ],

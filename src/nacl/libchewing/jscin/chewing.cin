@@ -2,9 +2,6 @@
 %cname  新酷音
 %EXTENSION_ID  dahmmcmnhjgjdappbbmaiempnpmfbdbm
 %LOWERCASE
-%ABSORB_KEYS begin
-lcch        Enter,Backspace,Left,Right,Up,Down
-%ABSORB_KEYS end
 %selkey  1234567890
 %endkey  3467
 %keyname  begin
