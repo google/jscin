@@ -73,8 +73,8 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   ime_api.onImplCommitText.addListener(function (contextID, text) {
     ipc.send("ImplCommitText", contextID, text);
   });
-  ime_api.onImplExpectedKeys.addListener(function (keys) {
-    ipc.send("ImplExpectedKeys", keys);
+  ime_api.onImplAcceptedKeys.addListener(function (keys) {
+    ipc.send("ImplAcceptedKeys", keys);
   });
 
   ipc.listen({
@@ -156,7 +156,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     var ev2 = ImeEvent.ImeKeyEvent(ev);
     var node = ev.target;
     self.debug("impl.KeyDownEventHandler", ev, ev2);
-    if (self.im_keys) {
+    if (self.im_accepted_keys) {
       // Serialize ev2.key
       var k = jscin.get_key_val(ev2.code);
       if (ev2.shiftKey)
@@ -166,7 +166,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       if (ev2.ctrlKey)
         k = 'Ctrl ' + k;
 
-      if (self.im_keys.indexOf(k) >= 0) {
+      if (self.im_accepted_keys.indexOf(k) >= 0) {
         ev.preventDefault();
         ev.stopPropagation();
         SendMessage('KeyEvent', self.engineID, ev2);
@@ -256,8 +256,8 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         ImplCommitText(self.node, text);
       },
 
-      ImplExpectedKeys: function (keys) {
-        self.im_keys = keys;
+      ImplAcceptedKeys: function (keys) {
+        self.im_accepted_keys = keys;
       },
 
       Focus: function (context, guid) {

@@ -29,7 +29,7 @@ function simulate(inst, inpinfo, input, result, expects) {
 
     var keyinfo = {type: 'keydown', key: input[i], code: code};
     // print(dump_object(keyinfo));
-    var ret = inst.onKeystroke(inpinfo, keyinfo);
+    var ret = inst.keystroke(inpinfo, keyinfo);
     print('ret=', ret, ", inpinfo: ", dump_inpinfo(inpinfo));
 
     var expect;
@@ -46,7 +46,8 @@ function simulate(inst, inpinfo, input, result, expects) {
     to_check.forEach(function (name) {
       if (expect[name] != undefined) {
         if (inpinfo[name] != expect[name]) {
-          print('test failed: ', name, '=', inpinfo[name], ', expected: ', expect[name]);
+          print('test failed: ', name, '=', inpinfo[name], ', expected: ',
+                expect[name]);
           ok = false;
         }
       }

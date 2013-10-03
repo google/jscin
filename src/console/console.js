@@ -44,7 +44,7 @@ function ActivateInputMethod(name) {
 function Simulate(ev) {
   // TODO replace me with stub for function we're going to test.
   print("  > Simulate: " + ev);
-  var ret = im.onKeystroke(imctx, ev);
+  var ret = im.keystroke(imctx, ev);
   switch (ret) {
     case jscin.IMKEY_COMMIT:
       print("Simulate result: IMKEY_COMMIT", imctx.cch);

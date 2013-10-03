@@ -131,22 +131,24 @@ croscin.IME = function() {
       return false;
     }
 
-    var ret = self.im.onKeystroke(self.imctx, keyData);
+    var ret = self.im.keystroke(self.imctx, keyData);
 
     switch (ret) {
       case jscin.IMKEY_COMMIT:
-        self.log("im.onKeystroke: return IMKEY_COMMIT");
+        self.log("im.keystroke: return IMKEY_COMMIT");
         self.UpdateUI();
         self.Commit(self.imctx.cch);
+        self.imctx.cch_publish = self.imctx.cch;
+        self.imctx.cch = '';
         return true;
 
       case jscin.IMKEY_ABSORB:
-        self.log("im.onKeystroke: return IMKEY_ABSORB");
+        self.log("im.keystroke: return IMKEY_ABSORB");
         self.UpdateUI();
         return true;
 
       case jscin.IMKEY_IGNORE:
-        self.log("im.onKeystroke: return IMKEY_IGNORE");
+        self.log("im.keystroke: return IMKEY_IGNORE");
         self.UpdateUI();
         return false;
 
@@ -286,16 +288,16 @@ croscin.IME = function() {
     has_composition = self.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
     has_candidates = self.UpdateCandidates(mcch, selkey);
-    //  - (TODO) cch_publish
+    // show_keystroke(cch_publish) can be displayed in auxiliary text.
 
     self.SetCandidatesWindowProperty({
       auxiliaryText: self.im_label,
       auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
 
     // Hint for IME to get key expections.
-    if (ime_api.onImplExpectedKeys) {
-      ime_api.dispatchEvent("ImplExpectedKeys",
-          self.im.getExpectedKeys(self.imctx));
+    if (ime_api.onImplAcceptedKeys) {
+      ime_api.dispatchEvent("ImplAcceptedKeys",
+          self.im.get_accepted_keys(self.imctx));
     }
   }
 
@@ -315,6 +317,7 @@ croscin.IME = function() {
         self.UpdateUI();
         if (self.imctx.cch) {
           self.Commit(self.imctx.cch);
+          self.imctx.cch_publish = self.imctx.cch;
           self.imctx.cch = '';
         }
       });
