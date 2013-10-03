@@ -58,7 +58,7 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
 
     // TODO prevent race condition.
     self.ctx = ctx;
-    return jscin.IMKEY_ABSORB;
+    return jscin.IMKEY_DELAY;
   },
 
   get_accepted_keys: function (ctx)
