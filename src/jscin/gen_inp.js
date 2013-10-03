@@ -5,7 +5,7 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-// init for IME, ex. Zhuyin, Array
+// General Input Module for table-based IMs, ex. Zhuyin, Array
 jscin.register_module('GenInp', jscin.extend_input_method({
 
   constructor: function (name, conf)
@@ -83,24 +83,10 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       this.conf.mode.INP_MODE_ENDKEY = true;
     }
 
-    this.instance = {};
-    var ime = this;
-    var self = this.instance;
-    self.ime = ime;
-    self.conf = ime.conf;
-    // gen_inp_iccf_t iccf
-    self.keystroke = '';
-    self.display_keystroke = [];
-    self.mode = {};
-    self.mcch_list = [];
-    self.mkey_list = [];
-    self.mcch_hidx = 0;
-    self.mcch_eidx = 0;
-
-    ime.MCCH_ONEPG = 0;
-    ime.MCCH_BEGIN = 1;
-    ime.MCCH_MIDDLE = 2;
-    ime.MCCH_END = 3;
+    this.MCCH_ONEPG = 0;
+    this.MCCH_BEGIN = 1;
+    this.MCCH_MIDDLE = 2;
+    this.MCCH_END = 3;
   },
 
   reset_context: function (inpinfo)
@@ -118,10 +104,23 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     inpinfo.cch_publish = '';
   },
 
-  keystroke: function (inpinfo, keyinfo, k)
+  init: function (inpinfo)
   {
-    var self = this.instance;
+    this.super.init.call(this, inpinfo);
+
     var ime = this;
+    var self = {};
+    self.ime = ime;
+    self.conf = ime.conf;
+    // gen_inp_iccf_t iccf
+    self.keystroke = '';
+    self.display_keystroke = [];
+    self.mode = {};
+    self.mcch_list = [];
+    self.mkey_list = [];
+    self.mcch_hidx = 0;
+    self.mcch_eidx = 0;
+
     // ------------------------------------------
     // member functions
     function return_wrong() {
@@ -442,170 +441,178 @@ jscin.register_module('GenInp', jscin.extend_input_method({
 
       return true;
     }
+
     // ------------------------------------------
     // main entry
-    var conf = self.conf;
+    this.process_keystroke = function (inpinfo, keyinfo, k) {
+      var conf = self.conf;
 
-    var len = self.keystroke.length;
-    var max_len = ime.header.max_keystroke;
+      var len = self.keystroke.length;
+      var max_len = ime.header.max_keystroke;
 
-    trace('keyinfo: ' + JSON.stringify(keyinfo));
-    if (self.mode.INPINFO_MODE_SPACE) {
-      var sp_ignore = true;
-      self.mode.INPINFO_MODE_SPACE = false;
-    }
-    if (self.mode.INPINFO_MODE_WRONG) {
-      var inp_wrong = true;
-      self.mode.INPINFO_MODE_WRONG = false;
-    }
-
-    if ((keyinfo.key == 'Backspace' || keyinfo.key == 'Delete') && len) {
-      self.keystroke = self.keystroke.substr(0, len-1);
-      self.display_keystroke = self.display_keystroke.slice(0, len-1);
-      inpinfo.keystroke = self.display_keystroke.join('');
-      inpinfo.mcch = '';
-      inpinfo.cch_publish = '';
-      inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
-      self.mode = {};
-      if (conf.mode.INP_MODE_WILDON && self.keystroke.match(/[*?]/)) {
-        self.mode.INPINFO_MODE_INWILD = true;
+      trace('keyinfo: ' + JSON.stringify(keyinfo));
+      if (self.mode.INPINFO_MODE_SPACE) {
+        var sp_ignore = true;
+        self.mode.INPINFO_MODE_SPACE = false;
       }
-      if (len > 1 && conf.mode.INP_MODE_AUTOCOMPOSE) {
-        match_keystroke(inpinfo);
-      }
-      return jscin.IMKEY_ABSORB;
-    } else if (keyinfo.key == 'Esc' && len) {
-      reset_keystroke(inpinfo);
-      inpinfo.cch_publish = '';
-      inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
-      return jscin.IMKEY_ABSORB;
-    } else if (keyinfo.key == ' ') {
-      inpinfo.cch_publish = '';
-      if (conf.mode.INP_MODE_SPACEAUTOUP &&
-          (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
-          (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != ime.MCCH_ONEPG))
-      {
-        trace('');
-        if (mcch_choosech(inpinfo, -1)) {
-          return jscin.IMKEY_COMMIT;
-        } else {
-          if (conf.mode.INP_MODE_AUTORESET) {
-            reset_keystroke(inpinfo);
-          } else {
-            self.mode.INPINFO_MODE_WRONG = false;
-          }
-          return return_wrong();
-        }
-      } else if (self.mode.INPINFO_MODE_MCCH) {
-        trace('');
-        // TODO INP_MODE_TABNEXTPAGE ?
-        return mcch_nextpage(inpinfo, ' ');
-      } else if (conf.mode.INP_MODE_SPACERESET && inp_wrong) {
-        trace('');
-        reset_keystroke(inpinfo);
-        return jscin.IMKEY_ABSORB;
-      } else if (sp_ignore) {
-        trace('');
-        return jscin.IMKEY_ABSORB;
-      } else if (self.keystroke) {
-        trace('');
-        return commit_keystroke(inpinfo);
-      }
-    } else if (keyinfo.key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
-      trace('');
-      // ...
-      trace('NotImplemented');
-    } else if (0 /* keypad */) {
-      trace('');
-      return jscin.IMKEY_IGNORE;
-    } else if (keyinfo.key.length == 1) {
-      trace('');
-      var ret = jscin.IMKEY_ABSORB;
-      var endkey_pressed = false;
-
-      inpinfo.cch_publish = '';
-      var wch = ime.header.keyname[keyinfo.key.toUpperCase()];
-      var selkey_idx = ime.header.selkey.indexOf(keyinfo.key.toUpperCase());
-      if (ime.header.endkey.indexOf(
-          self.keystroke[self.keystroke.length-1]) >=0 ) {
-        endkey_pressed = true;
+      if (self.mode.INPINFO_MODE_WRONG) {
+        var inp_wrong = true;
+        self.mode.INPINFO_MODE_WRONG = false;
       }
 
-      if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
-        if (len == 1 && conf.disable_sel_list &&
-            conf.disable_sel_list.indexOf(
-                self.keystroke[self.keystroke.length-1]) >= 0) {
-          wch = keyinfo.key.toUpperCase();
-        } else {
-          return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
-                                                       return_wrong());
-        }
-      } else if (keyinfo.key.match(/[<>]/) &&
-                 1 /* GUIMOD_SELKEYSPOT ? */) {
-        return mcch_nextpage(inpinfo, keyinfo.key);
-      } else if (self.mode.INPINFO_MODE_MCCH) {
-        if (selkey_idx != -1) {
-          return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
-                                                       return_wrong());
-        } else if (conf.mode.INP_MODE_AUTOUPCHAR) {
-          if (!mcch_choosech(inpinfo, -1))
-            return return_wrong();
-          ret |= jscin.IMKEY_COMMIT;
-        } else {
-          return return_wrong();
-        }
-      }
-      trace('wch = ' + wch);
-
-      len = self.keystroke.length;
-
-      if (keyinfo.ctrlKey) {
-        return jscin.IMKEY_IGNORE;  // don't support qphrase
-      } else if (keyinfo.shiftKey) {
-        if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {
+      if ((keyinfo.key == 'Backspace' || keyinfo.key == 'Delete') && len) {
+        self.keystroke = self.keystroke.substr(0, len-1);
+        self.display_keystroke = self.display_keystroke.slice(0, len-1);
+        inpinfo.keystroke = self.display_keystroke.join('');
+        inpinfo.mcch = '';
+        inpinfo.cch_publish = '';
+        inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
+        self.mode = {};
+        if (conf.mode.INP_MODE_WILDON && self.keystroke.match(/[*?]/)) {
           self.mode.INPINFO_MODE_INWILD = true;
-        } else {
-          return jscin.IMKEY_IGNORE;  // don't support qphrase
         }
-      } else if (keyinfo.altKey) {
-        return jscin.IMKEY_IGNORE;  // don't support qphrase
-      } else if (!wch) {
-        return ret | jscin.IMKEY_IGNORE;
-      } else if (reorder_key_by_keygroups(inpinfo, keyinfo)) {
-        // Note, INP_MODE_AUTOFULLUP is not respected if KEYGROUPS is enabled.
-        if (conf.mode.INP_MODE_AUTOCOMPOSE) {
+        if (len > 1 && conf.mode.INP_MODE_AUTOCOMPOSE) {
+          match_keystroke(inpinfo);
+        }
+        return jscin.IMKEY_ABSORB;
+      } else if (keyinfo.key == 'Esc' && len) {
+        reset_keystroke(inpinfo);
+        inpinfo.cch_publish = '';
+        inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
+        return jscin.IMKEY_ABSORB;
+      } else if (keyinfo.key == ' ') {
+        inpinfo.cch_publish = '';
+        if (conf.mode.INP_MODE_SPACEAUTOUP &&
+            (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
+            (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != ime.MCCH_ONEPG))
+        {
+          trace('');
+          if (mcch_choosech(inpinfo, -1)) {
+            return jscin.IMKEY_COMMIT;
+          } else {
+            if (conf.mode.INP_MODE_AUTORESET) {
+              reset_keystroke(inpinfo);
+            } else {
+              self.mode.INPINFO_MODE_WRONG = false;
+            }
+            return return_wrong();
+          }
+        } else if (self.mode.INPINFO_MODE_MCCH) {
+          trace('');
+          // TODO INP_MODE_TABNEXTPAGE ?
+          return mcch_nextpage(inpinfo, ' ');
+        } else if (conf.mode.INP_MODE_SPACERESET && inp_wrong) {
+          trace('');
+          reset_keystroke(inpinfo);
+          return jscin.IMKEY_ABSORB;
+        } else if (sp_ignore) {
+          trace('');
+          return jscin.IMKEY_ABSORB;
+        } else if (self.keystroke) {
+          trace('');
+          return commit_keystroke(inpinfo);
+        }
+      } else if (keyinfo.key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
+        trace('');
+        // ...
+        trace('NotImplemented');
+      } else if (0 /* keypad */) {
+        trace('');
+        return jscin.IMKEY_IGNORE;
+      } else if (keyinfo.key.length == 1) {
+        trace('');
+        var ret = jscin.IMKEY_ABSORB;
+        var endkey_pressed = false;
+
+        inpinfo.cch_publish = '';
+        var wch = ime.header.keyname[keyinfo.key.toUpperCase()];
+        var selkey_idx = ime.header.selkey.indexOf(keyinfo.key.toUpperCase());
+        if (ime.header.endkey.indexOf(
+            self.keystroke[self.keystroke.length-1]) >=0 ) {
+          endkey_pressed = true;
+        }
+
+        if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
+          if (len == 1 && conf.disable_sel_list &&
+              conf.disable_sel_list.indexOf(
+                  self.keystroke[self.keystroke.length-1]) >= 0) {
+            wch = keyinfo.key.toUpperCase();
+          } else {
+            return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
+                                                         return_wrong());
+          }
+        } else if (keyinfo.key.match(/[<>]/) &&
+                   1 /* GUIMOD_SELKEYSPOT ? */) {
+          return mcch_nextpage(inpinfo, keyinfo.key);
+        } else if (self.mode.INPINFO_MODE_MCCH) {
+          if (selkey_idx != -1) {
+            return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
+                                                         return_wrong());
+          } else if (conf.mode.INP_MODE_AUTOUPCHAR) {
+            if (!mcch_choosech(inpinfo, -1))
+              return return_wrong();
+            ret |= jscin.IMKEY_COMMIT;
+          } else {
+            return return_wrong();
+          }
+        }
+        trace('wch = ' + wch);
+
+        len = self.keystroke.length;
+
+        if (keyinfo.ctrlKey) {
+          return jscin.IMKEY_IGNORE;  // don't support qphrase
+        } else if (keyinfo.shiftKey) {
+          if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {
+            self.mode.INPINFO_MODE_INWILD = true;
+          } else {
+            return jscin.IMKEY_IGNORE;  // don't support qphrase
+          }
+        } else if (keyinfo.altKey) {
+          return jscin.IMKEY_IGNORE;  // don't support qphrase
+        } else if (!wch) {
+          return ret | jscin.IMKEY_IGNORE;
+        } else if (reorder_key_by_keygroups(inpinfo, keyinfo)) {
+          // Note, INP_MODE_AUTOFULLUP is not respected if KEYGROUPS is enabled.
+          if (conf.mode.INP_MODE_AUTOCOMPOSE) {
+            match_keystroke(inpinfo);
+          }
+          return ret;
+        } else if (len >= max_len) {
+          return return_wrong();
+        }
+
+        self.keystroke += keyinfo.key.toUpperCase();
+
+        if (keyinfo.key.match(/^[*?]$/)) {
+          self.display_keystroke.push(keyinfo.key);
+        } else {
+          self.display_keystroke.push(wch);
+        }
+        inpinfo.keystroke = self.display_keystroke.join('');
+        len++;
+        trace('');
+
+        if (conf.mode.INP_MODE_SPACEIGNOR && len == max_len) {
+          self.mode.INPINFO_MODE_SPACE = false;
+        }
+        if (conf.mode.INP_MODE_ENDKEY && len>1 &&
+            ime.header.endkey.indexOf(keyinfo.key.toUpperCase()) >= 0) {
+          return commit_keystroke(inpinfo);
+        } else if (conf.mode.INP_MODE_AUTOFULLUP && len == max_len) {
+          return commit_keystroke(inpinfo);
+        } else if (conf.mode.INP_MODE_AUTOCOMPOSE) {
           match_keystroke(inpinfo);
         }
         return ret;
-      } else if (len >= max_len) {
-        return return_wrong();
       }
 
-      self.keystroke += keyinfo.key.toUpperCase();
+      return jscin.IMKEY_IGNORE;
+    };
+  },
 
-      if (keyinfo.key.match(/^[*?]$/)) {
-        self.display_keystroke.push(keyinfo.key);
-      } else {
-        self.display_keystroke.push(wch);
-      }
-      inpinfo.keystroke = self.display_keystroke.join('');
-      len++;
-      trace('');
-
-      if (conf.mode.INP_MODE_SPACEIGNOR && len == max_len) {
-        self.mode.INPINFO_MODE_SPACE = false;
-      }
-      if (conf.mode.INP_MODE_ENDKEY && len>1 &&
-          ime.header.endkey.indexOf(keyinfo.key.toUpperCase()) >= 0) {
-        return commit_keystroke(inpinfo);
-      } else if (conf.mode.INP_MODE_AUTOFULLUP && len == max_len) {
-        return commit_keystroke(inpinfo);
-      } else if (conf.mode.INP_MODE_AUTOCOMPOSE) {
-        match_keystroke(inpinfo);
-      }
-      return ret;
-    }
-
-    return jscin.IMKEY_IGNORE;
+  keystroke: function (inpinfo, keyinfo, k)
+  {
+    return this.process_keystroke(inpinfo, keyinfo, k);
   }
 }));

@@ -120,9 +120,6 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     }
   },
 
-  // 'this (self)' should be read-only after constructor.
-  // 'ctx' (context) should store latest session data (dynamic data).
-
   reset_context: function (ctx)
   {
     var self = this;
@@ -139,10 +136,10 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
         self.opts.OPT_AUTO_COMPOSE || self.override_autocompose) ? true : false;
   },
 
-  keystroke: function (ctx, ev, keyCode) {
+  init: function (ctx)
+  {
+    this.super.init.call(this, ctx);
     var self = this;
-
-    // TODO(hungte) Will these inside definitions make it slow?
 
     function ResultError(ctx) {
       NotifyError(ctx);
@@ -578,21 +575,23 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
       }
     }
 
-    // keystroke entry.
+    this.ProcessKeystroke = function(ctx, ev, k) {
+      trace(ev);
+      if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
+        return ResultIgnored(ctx);
 
-    trace(ev);
-    if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
+      switch (ctx.state) {
+        case this.STATE_COMPOSITION:
+          return ProcessCompositionStateKey(ctx, ev, k, ev.key);
+        case this.STATE_CANDIDATES:
+          return ProcessCandidatesStateKey(ctx, ev, k, ev.key);
+      }
       return ResultIgnored(ctx);
+    };
+  },
 
-    var keyChar = ev.key;
-
-    switch (ctx.state) {
-      case self.STATE_COMPOSITION:
-        return ProcessCompositionStateKey(ctx, ev, keyCode, keyChar);
-      case self.STATE_CANDIDATES:
-        return ProcessCandidatesStateKey(ctx, ev, keyCode, keyChar);
-    }
-    return ResultIgnored(ctx);
+  keystroke: function (ctx, ev, keyCode) {
+    return this.ProcessKeystroke(ctx, ev, keyCode);
   },
 
   get_accepted_keys: function (ctx)

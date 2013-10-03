@@ -5,6 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+// To store data in IM module:
+// 'this (self)' should be read-only after constructor / init.
+// 'ctx' (context) should store latest session data (dynamic data).
+
 jscin.base_input_method = function(name, conf) {
   jscin.log('Creating IM', name, conf);
   this.name = name;
@@ -18,6 +22,8 @@ jscin.base_input_method = function(name, conf) {
 }
 
 // Called when the IM is first initialized.
+// If you need to use closure (for unnamed / private function), override and
+// define init, then expose entry point to "this".
 jscin.base_input_method.prototype.init = function (ctx) {
   this.reset_context(ctx);
   ctx.cch_publish = '';
