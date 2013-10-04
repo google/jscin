@@ -113,6 +113,15 @@ class ChewingInstance: public pp::Instance {
         detail.empty() ? ", " : "") + detail));
   }
 
+  virtual void AppendChewingBuffer(Json::Value &array, int from, int to) {
+    char *text = (char*)calloc(to - from + 1, MAX_UTF8_SIZE);
+    for (int i = from; i < to; i++) {
+      strcat(text, (char *)ctx->output->chiSymbolBuf[i].s);
+    }
+    array.append(Json::Value(text));
+    free(text);
+  }
+
   virtual void ReturnContext() {
     char *s;
     Json::FastWriter writer;
@@ -148,25 +157,27 @@ class ChewingInstance: public pp::Instance {
       Json::Value intervals = Json::Value(Json::arrayValue);
       Json::Value lcch = Json::Value(Json::arrayValue);
       chewing_interval_Enumerate(ctx);
+      int start = 0, end = chewing_buffer_Len(ctx);
+      // TODO(hungte) It is possible to have groups without buffer.
+      // i.e., lcch>0, intervals=0
       while (chewing_interval_hasNext(ctx)) {
         chewing_interval_Get(ctx, &it);
         Json::Value itv = Json::Value(Json::objectValue);
         itv["from"] = Json::Value(it.from);
         itv["to"] = Json::Value(it.to);
-        char *text = (char*)calloc(it.to - it.from + 1, MAX_UTF8_SIZE);
-        text[0] = 0;
-        for (int i = it.from; i < it.to; i++) {
-          strcat(text, (char *)ctx->output->chiSymbolBuf[i].s);
-        }
-        itv["text"] = Json::Value(text);
-        lcch.append(Json::Value(text));
-        free(text);
         intervals.append(itv);
+
+        if (start != it.from)
+          AppendChewingBuffer(lcch, start, it.from);
+        AppendChewingBuffer(lcch, it.from, it.to);
+        start = it.to;
       }
-      if (intervals.size() > 0) {
+      if (start < end)
+        AppendChewingBuffer(lcch, start, end);
+      if (intervals.size() > 0)
         value["interval"] = intervals;
+      if (lcch.size() > 0)
         value["lcch"] = lcch;
-      }
     }
 
     if (chewing_bopomofo_Check(ctx)) {
