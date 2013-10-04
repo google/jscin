@@ -22,7 +22,36 @@ jscin.base_input_method = function(name, conf) {
   this.selkey2 = (conf.selkey2 || '').toLowerCase();
   this.endkey = (conf.endkey || '').toLowerCase();
 
-  this.accepted_keys = conf.ACCEPTED_KEYS || {};
+  // Standard rules.
+  var setArrow = ['Up', 'Down', 'Left', 'Right'],
+      setPage = ['PageUp', 'PageDown'],
+      setLineEdit = ['Enter', 'Home', 'End'],
+      setEdit = ['Backspace'],
+      setConvert = [' ', 'Esc'];
+
+  var accepted_keys = {
+    '*': Object.keys(this.keyname).concat(this.endkey.split('')),
+    'keystroke': setConvert.concat(setEdit),
+    'lcch': setConvert.concat(setEdit).concat(setArrow).concat(setLineEdit),
+    'mcch': setConvert.concat(setPage).concat(setArrow).
+            concat(this.selkey.split('')).concat(this.selkey2.split(''))
+  };
+
+  var keys = conf.ACCEPTED_KEYS || {};
+  Object.keys(keys).forEach(function (k) {
+    // syntax: key or 'key,'
+    var val = keys[k];
+    if (k.indexOf(',') > 0) {
+      val = val.split(',');
+      k = k.replace(',', '');
+    } else {
+      val = val.split('');
+    }
+    if (k in accepted_keys)
+      val = accepted_keys[k].concat(val);
+    accepted_keys[k] = val;
+  });
+  this.accepted_keys = accepted_keys;
 }
 
 // Called when the IM is first initialized.
@@ -61,42 +90,18 @@ jscin.base_input_method.prototype.show_keystroke = function (ctx, text) {
 // Called when system wants to get a list of allowed key strokes.
 // Note each value must follow jscin.get_key_description.
 jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
-  var keys = Object.keys(this.keyname || {}).concat(
-      (this.endkey || '').split(''));
   var has_keystroke = (ctx.keystroke || '').length;
   var has_lcch = (ctx.lcch || []).length;
   var has_mcch = (ctx.mcch || []).length;
 
-  // Standard rules.
-  if (has_keystroke || has_lcch || has_mcch)
-    keys = keys.concat([' ', 'Esc']);
-  if (has_keystroke || has_lcch)
-    keys = keys.concat(['Backspace']);
+  var keys = this.accepted_keys['*'];
+  if (has_keystroke)
+    keys = keys.concat(this.accepted_keys['keystroke']);
   if (has_lcch)
-    keys = keys.concat(['Enter', 'Home', 'End']);
+    keys = keys.concat(this.accepted_keys['lcch']);
   if (has_mcch)
-    keys = keys.concat((this.selkey || '').split('')).
-           concat(['PageUp', 'PageDown']);
-  if (has_lcch || has_mcch)
-    keys = keys.concat(['Up', 'Down', 'Left', 'Right']);
+    keys = keys.concat(this.accepted_keys['mcch']);
 
-  function AddOnCondition(cond, db, pattern, keys) {
-    if (!cond)
-      return keys;
-    if (db[pattern])
-      keys = keys.concat(db[pattern].split(''));
-    pattern += ',';
-    if (db[pattern])
-      keys = keys.concat(db[pattern].split(','));
-    return keys;
-  }
-
-  // TODO(hungte) Figure out a better way to allow specifying special keys.
-  var ext = this.accepted_keys;
-  keys = AddOnCondition(true, ext, '*', keys);
-  keys = AddOnCondition(has_keystroke, ext, 'keystroke', keys);
-  keys = AddOnCondition(has_mcch, ext, 'mcch', keys);
-  keys = AddOnCondition(has_lcch, ext, 'lcch', keys);
   jscin.log("get_accepted_keys", has_keystroke, has_lcch, has_mcch, keys);
   return keys;
 }
