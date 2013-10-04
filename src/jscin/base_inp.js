@@ -73,7 +73,8 @@ jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
   if (has_lcch)
     keys = keys.concat(['Enter', 'Home', 'End']);
   if (has_mcch)
-    keys = keys.concat((this.selkey || '').split(''));
+    keys = keys.concat((this.selkey || '').split('')).
+           concat(['PageUp', 'PageDown']);
   if (has_lcch || has_mcch)
     keys = keys.concat(['Up', 'Down', 'Left', 'Right']);
 

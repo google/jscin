@@ -356,6 +356,8 @@ jscin.register_module('GenInp', jscin.extend_input_method({
               break;
             case '<':
             case '>':
+            case 'PageDown':
+            case 'PageUp':
               ret = return_correct();
               break;
             default:
@@ -368,10 +370,12 @@ jscin.register_module('GenInp', jscin.extend_input_method({
           switch (key) {
             case ' ':
             case '>':
+            case 'PageDown':
               ret = fillpage(inpinfo, 0) ?
                   jscin.IMKEY_ABSORB : return_wrong();
               break;
             case '<':
+            case 'PageUp':
               ret = fillpage(inpinfo, -1) ?
                   jscin.IMKEY_ABSORB : return_wrong();
               break;
@@ -384,11 +388,13 @@ jscin.register_module('GenInp', jscin.extend_input_method({
         case ime.MCCH_BEGIN:
           switch (key) {
             case ' ':
+            case 'PageDown':
             case '>':
               ret = fillpage(inpinfo, 1) ?
                   jscin.IMKEY_ABSORB : return_wrong();
               break;
             case '<':
+            case 'PageUp':
               ret = return_correct();
               break;
             default:

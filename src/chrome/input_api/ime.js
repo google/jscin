@@ -78,7 +78,7 @@ $(function() {
         var val = arg[key];
         return (typeof(arg[key]) == typeof(undefined)) ? def : val;
       }
-      console.log("arg", arg);
+      debug("arg", arg);
       var text = get('text', '');
       var selectionStart = get('selectionStart', 0);
       var selectionEnd = get('selectionEnd', text.length);

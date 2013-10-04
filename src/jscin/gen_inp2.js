@@ -578,10 +578,8 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
   get_accepted_keys: function (ctx)
   {
     var keys = this.super.get_accepted_keys.call(this, ctx);
-    keys = keys.concat(this.GLOB_KEYS.split(''));
-    if (ctx.candidates.length) {
-      keys = keys.concat(['PageUp', 'PageDown']);
-    }
+    if (ctx.state == this.STATE_COMPOSITION)
+      keys = keys.concat(this.GLOB_KEYS.split(''));
     return keys;
   }
 }));
