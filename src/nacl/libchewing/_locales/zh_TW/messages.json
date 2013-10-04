@@ -1,0 +1,9 @@
+{
+  "manifestName": { "message":
+    "JsCIN 新酷音中文輸入法模組 (需安裝 JsCIN)" },
+  "manifestDesc": { "message":
+    "給 JsCIN 使用的新酷音中文輸入法模組" },
+
+
+  "dummy": {"message": "" }
+}

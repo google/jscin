@@ -1,9 +1,10 @@
 {
   "manifest_version": 2,
-  "name": "libChewing for JSCIN",
-  "version": "0.0.4",
+  "name": "__MSG_manifestName__",
+  "version": "0.0.5",
 
-  "description": "Chewing module for JSCIN.",
+  "default_locale": "en",
+  "description": "__MSG_manifestDesc__",
   "background": { "page": "background.html" },
   "web_accessible_resources": [
      "jscin/*"
