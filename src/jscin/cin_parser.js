@@ -15,7 +15,8 @@ function parseCin(cin_input) {
   var table_command = {keyname: 1, chardef: 1,
                        quick: 1, quickkey: 1,
                        sel1st: 1, // re-order mappings, deprecated.
-                       KEYSTROKE_REMAP: 1, KEYGROUPS: 1 };
+                       KEYSTROKE_REMAP: 1, KEYGROUPS: 1,
+                       ACCEPTED_KEYS: 1};
 
   // TODO for very old XCIN table (1.x~2.1b), there's no %chardef -- anything
   // not inside commands are chardefs.

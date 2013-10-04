@@ -1,6 +1,9 @@
 %ename  Chewing
 %cname  新酷音
 %EXTENSION_ID  dahmmcmnhjgjdappbbmaiempnpmfbdbm
+%ACCEPTED_KEYS begin
+* `~<>?:"{}|!@$^&*()_+%#
+%ACCEPTED_KEYS end
 %keep_key_case
 %selkey  1234567890
 %endkey  3467

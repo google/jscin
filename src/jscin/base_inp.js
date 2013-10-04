@@ -21,6 +21,8 @@ jscin.base_input_method = function(name, conf) {
   this.selkey = (conf.selkey || '').toLowerCase();
   this.selkey2 = (conf.selkey2 || '').toLowerCase();
   this.endkey = (conf.endkey || '').toLowerCase();
+
+  this.accepted_keys = conf.ACCEPTED_KEYS || {};
 }
 
 // Called when the IM is first initialized.
@@ -77,6 +79,17 @@ jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
            concat(['PageUp', 'PageDown']);
   if (has_lcch || has_mcch)
     keys = keys.concat(['Up', 'Down', 'Left', 'Right']);
+
+  // TODO(hungte) Figure out a better way to allow specifying special keys.
+  var ext = this.accepted_keys;
+  if (ext['*'])
+    keys = keys.concat(ext['*'].split(''));
+  if (has_keystroke && ext['keystroke'])
+    keys = keys.concat(ext['keystroke'].split(''));
+  if (has_lcch && ext['lcch'])
+    keys = keys.concat(ext['lcch'].split(''));
+  if (has_mcch && ext['mcch'])
+    keys = keys.concat(ext['mcch'].split(''));
 
   return keys;
 }

@@ -68,11 +68,5 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
     // TODO prevent race condition.
     self.ctx = ctx;
     return jscin.IMKEY_DELAY;
-  },
-
-  get_accepted_keys: function (ctx)
-  {
-    // TODO(hungte) Add more?
-    return this.super.get_accepted_keys.apply(this, arguments);
   }
 }));
