@@ -142,8 +142,26 @@ var jscin = {
     }
   },
 
+  // Gets the value from a chrome.inpue.ime.KeyboardEvent.code.
+  // Very similiar to KeyboardEvent.key, without case /shift.
   get_key_val: function (ime_api_key_code) {
     return jscin.kImeKeyCodeTable[ime_api_key_code] || ime_api_key_code;
+  },
+
+  // Gets the combination of keys in one chrome.input.ime.KeyboardEvent.
+  // This is the format that IM.get_accepted_keys should follow.
+  // In general it's list of lower-case keys, or [Ctrl ][Alt ]<key>.
+  // Space is written in ' '. Single Ctrl/Alt will be in <key> field, like
+  // 'Ctrl Alt' (when 2nd key is Alt) or 'Alt Ctrl' (when 2nd key is Ctrl).
+  // Note Shift is not handled here, because we can't determine if the
+  // keyboard mapping is same as we expected, for [0-9] and symbols.
+  get_key_description: function (ev) {
+    var k = ev.key;
+    if (ev.altKey && k != 'Alt')
+      k = 'Alt ' + k;
+    if (ev.ctrlKey && k != 'Ctrl')
+      k = 'Ctrl ' + k;
+    return k;
   },
 
   // Module registration

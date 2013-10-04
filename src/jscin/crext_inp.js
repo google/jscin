@@ -38,8 +38,8 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
             jscin.log("unsupported command from extension", request.command);
             return;
           }
+          jscin.log("crext_inp received new response", request);
           var ctx = request.context;
-          jscin.log("crext_inp received new context", ctx);
           self.ctx.keystroke = ctx.keystroke || '';
           self.ctx.mcch = ctx.mcch || '';
           self.ctx.cch = ctx.cch || '';
@@ -47,6 +47,14 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
           self.ctx.edit_pos = ctx.edit_pos;
           self.notify();
         });
+  },
+
+  init: function (ctx)
+  {
+    var ret = this.super.init.apply(this, arguments);
+    // Enforce checking all accepted keys.
+    ctx.check_accepted_keys = true;
+    return ret;
   },
 
   keystroke: function (ctx, ev)
@@ -65,6 +73,6 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
   get_accepted_keys: function (ctx)
   {
     // TODO(hungte) Add more?
-    return this.super.get_accepted_keys.call(this, ctx);
+    return this.super.get_accepted_keys.apply(this, arguments);
   }
 }));

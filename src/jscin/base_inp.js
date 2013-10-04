@@ -56,6 +56,7 @@ jscin.base_input_method.prototype.show_keystroke = function (ctx, text) {
 }
 
 // Called when system wants to get a list of allowed key strokes.
+// Note each value must follow jscin.get_key_description.
 jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
   var keys = Object.keys(this.keyname || {}).concat(
       (this.endkey || '').split(''));

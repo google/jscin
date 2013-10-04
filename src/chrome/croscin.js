@@ -131,6 +131,14 @@ croscin.IME = function() {
       return false;
     }
 
+    if (self.imctx.check_accepted_keys &&
+        !self.ime_api.onImplAcceptedKeys &&
+        self.im.get_accepted_keys(self.imctx).indexOf(
+            jscin.get_key_description(keyData)) < 0) {
+      self.log("Key not accepted", keyData);
+      return false;
+    }
+
     var ret = self.im.keystroke(self.imctx, keyData);
 
     switch (ret) {
@@ -300,8 +308,9 @@ croscin.IME = function() {
       auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
 
     // Hint for IME to get key expections.
-    if (ime_api.onImplAcceptedKeys) {
-      ime_api.dispatchEvent("ImplAcceptedKeys",
+    if (self.ime_api.onImplAcceptedKeys) {
+      jscin.log("update accepted keys");
+      self.ime_api.dispatchEvent("ImplAcceptedKeys",
           self.im.get_accepted_keys(self.imctx));
     }
   }

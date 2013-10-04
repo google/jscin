@@ -158,15 +158,9 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.debug("impl.KeyDownEventHandler", ev, ev2);
 
     if (self.im_accepted_keys) {
-      // Note Shift is not handled here, because we can't determine if the
-      // keyboard mapping is same as we expected, for [0-9] and symbols.
-      var k = ev2.key;
-      if (ev2.altKey)
-        k = 'Alt ' + k;
-      if (ev2.ctrlKey)
-        k = 'Ctrl ' + k;
+      var desc = jscin.get_key_description(ev2);
 
-      if (self.im_accepted_keys.indexOf(k) >= 0) {
+      if (self.im_accepted_keys.indexOf(desc) >= 0) {
         ev.preventDefault();
         ev.stopPropagation();
         SendMessage('KeyEvent', self.engineID, ev2);

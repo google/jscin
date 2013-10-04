@@ -76,6 +76,7 @@ document.addEventListener( 'readystatechange', function() {
     // keystroke: context, ev
     // TODO(hungte) How to decide using .key or .code?
     var k = msg.args[1].key;
+    debug("JSCIN Message:", kJscinKeystrokeCommand, k);
     nacl.postMessage(PackNaclKeyCommand(k));
   }
 
