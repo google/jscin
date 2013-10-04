@@ -225,6 +225,7 @@ var ChromeInputIME = function () {
   self.onImplCommitText = CreateEventHandler("ImplCommitText");
   self.onImplCommit = CreateEventHandler("ImplCommit");
   self.onImplFocus = CreateEventHandler("ImplFocus");
+  self.onImplBlur = CreateEventHandler("ImplBlur");
   self.onImplUpdateUI = CreateEventHandler("ImplUpdateUI");
   self.onImplAcceptedKeys = CreateEventHandler("ImplAcceptedKeys");
 
@@ -234,6 +235,15 @@ var ChromeInputIME = function () {
     self.context_list = {};
     self.onImplFocus.addListener(function (token) {
       return self.dispatchEvent("Focus", EnterContext(), token);
+    });
+    self.onImplBlur.addListener(function (contextID) {
+      var context = GetContext(contextID);
+      if (!context)
+        return;
+      // TODO(hungte) Chain these commands so they are executed in order.
+      self.dispatchEvent("Reset", contextID);
+      self.dispatchEvent("Blur", contextID);
+      LeaveContext(contextID);
     });
   }
 

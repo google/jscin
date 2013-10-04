@@ -38,6 +38,12 @@ jscin.base_input_addon.prototype.get_accepted_keys = function (ctx) {
   return this.im.get_accepted_keys.apply(this.im, arguments);
 }
 
+// Called when terminates ongoing text input session without sending focus/blur
+// events, ex creating new tab / instance.
+jscin.base_input_addon.prototype.reset = function(ctx) {
+  return this.im.reset.apply(this.im, arguments);
+}
+
 // Provides a notifier for IM to invoke when context has been modified.
 jscin.base_input_addon.prototype.set_notifier = function (f) {
   return this.im.set_notifier.apply(this.im, arguments);

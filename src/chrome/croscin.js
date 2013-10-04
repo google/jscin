@@ -724,15 +724,23 @@ croscin.IME.prototype.registerEventHandlers = function() {
                self.context.contextID, contextID);
       return;
     }
-    // TODO(hungte) Uncomment this if we don't want context to be carried when
-    // input focus changes.
-    // self.SimulateKeyDown('Esc');
+
+    // Note anything left in composition will be automatically commited by
+    // chrome.input.ime. We tried to prevent this in onReset but in vain.
+    // To synchronize behavior on ChromeOS / Chrome, the best solution is to
+    // let emulated chrome.input.ime do commit from composition.
     self.context = null;
   });
 
   ime_api.onKeyEvent.addListener(function(engine, keyData) {
     self.log("croscin.onKeyEvent", engine, keyData);
     return self.ProcessKeyEvent(keyData);
+  });
+
+  ime_api.onReset.addListener(function (engineID) {
+    self.log("croscin.onReset", engineID);
+    if (self.im)
+      self.im.reset(self.imctx);
   });
 
   ime_api.onInputContextUpdate.addListener(function(context) {

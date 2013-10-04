@@ -79,6 +79,23 @@ jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
   return keys;
 }
 
+// Called when terminates ongoing text input session without sending focus/blur
+// events, ex creating new tab / instance.
+jscin.base_input_method.prototype.reset = function(ctx) {
+  var has_keystroke = (ctx.keystroke || '').length;
+  var has_lcch = (ctx.lcch || []).length;
+  var has_mcch = (ctx.mcch || []).length;
+  if (has_lcch) {
+    // TODO(hungte) Directly commit lcch in future. A problem here is:
+    //  - If we send Enter, Chrome will lose lcch.
+    //  - If we don't send Enter, ChromeOS will send and keep lcch.
+    // this.keystroke(ctx, { type: 'keydown', key: 'Enter', code: 'Enter' });
+  } else if (has_keystroke || has_mcch) {
+    this.keystroke(ctx, { type: 'keydown', key: 'Esc', code: 'Esc',
+                          altKey: false, ctrlKey: false, shiftKey: false});
+  }
+}
+
 // Provides a notifier for IM to invoke when context has been modified.
 jscin.base_input_method.prototype.set_notifier = function (f) {
   this.notifier = f;

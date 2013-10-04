@@ -4,6 +4,7 @@
  * @fileoverview Implementation bindings for attaching to Chrome Extension.
  * @author hungte@google.com (Hung-Te Lin)
  */
+// TODO(hungte) Change iframe IME UI to page popup.
 
 var ChromeInputImeImplChromeExtension = function (type) {
   var self = this;
@@ -69,6 +70,9 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
     ShowPageAction();
     // Notify content.js new context results.
     ipc.send("Focus", context, guid);
+  });
+  ime_api.onBlur.addListener(function (contextID) {
+    ipc.send("Blur", contextID);
   });
   ime_api.onImplCommitText.addListener(function (contextID, text) {
     ipc.send("ImplCommitText", contextID, text);
@@ -193,15 +197,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   }
 
   function BlurHandler(ev) {
-    if (self.contextID) {
-      self.debug("on blur", self.contextID);
-      if (self.enabled) {
-        self.debug("BlurHandler: hideFrame");
-        self.hideFrame();
-      }
-      SendMessage("Blur", self.contextID);
-      self.contextID = undefined;
-    }
+    // Note you can't send TextEvent now because it will also set focus to
+    // target node.
+    if (self.contextID)
+      SendMessage("ImplBlur", self.contextID);
   }
 
   function FindElementByFrame(frame) {
@@ -264,6 +263,17 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         if (self.enabled) {
           self.debug("Focus: showFrame");
           self.showFrame(true);
+        }
+      },
+
+      Blur: function (contextID) {
+        if (self.contextID) {
+          self.debug("content on blur", self.contextID, contextID);
+          if (self.enabled) {
+            self.hideFrame();
+            self.debug("hide frame");
+          }
+          self.contextID = undefined;
         }
       },
 
