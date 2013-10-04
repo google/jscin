@@ -105,7 +105,6 @@ function parseCin(cin_input) {
     },
     data: data,
   };
-  console.log('parse file:', data.ename, parsed_data);
 
   return [true, parsed_data];
 }
