@@ -43,11 +43,13 @@ body {
   background: #fff;
   padding: 2px;
   margin: 5px;
-  white-space: nowrap;
+  /*  white-space: nowrap; */
 }
 
 #candidates span {
-  white-space: nowrap;
+  /* Some IMEs like Chewing will try to display lots of candidates, so let's
+     allow wrapping. */
+  /* white-space: nowrap; */
 }
 
 #composition {

@@ -80,17 +80,24 @@ jscin.base_input_method.prototype.get_accepted_keys = function (ctx) {
   if (has_lcch || has_mcch)
     keys = keys.concat(['Up', 'Down', 'Left', 'Right']);
 
+  function AddOnCondition(cond, db, pattern, keys) {
+    if (!cond)
+      return keys;
+    if (db[pattern])
+      keys = keys.concat(db[pattern].split(''));
+    pattern += ',';
+    if (db[pattern])
+      keys = keys.concat(db[pattern].split(','));
+    return keys;
+  }
+
   // TODO(hungte) Figure out a better way to allow specifying special keys.
   var ext = this.accepted_keys;
-  if (ext['*'])
-    keys = keys.concat(ext['*'].split(''));
-  if (has_keystroke && ext['keystroke'])
-    keys = keys.concat(ext['keystroke'].split(''));
-  if (has_lcch && ext['lcch'])
-    keys = keys.concat(ext['lcch'].split(''));
-  if (has_mcch && ext['mcch'])
-    keys = keys.concat(ext['mcch'].split(''));
-
+  keys = AddOnCondition(true, ext, '*', keys);
+  keys = AddOnCondition(has_keystroke, ext, 'keystroke', keys);
+  keys = AddOnCondition(has_mcch, ext, 'mcch', keys);
+  keys = AddOnCondition(has_lcch, ext, 'lcch', keys);
+  jscin.log("get_accepted_keys", has_keystroke, has_lcch, has_mcch, keys);
   return keys;
 }
 
