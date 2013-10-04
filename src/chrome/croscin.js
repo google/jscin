@@ -330,6 +330,10 @@ croscin.IME = function() {
       self.im = jscin.create_input_method(name, self.imctx);
       // For delayed response (ex, external IM modules, see IMKEY_DELAY).
       self.im.set_notifier(function () {
+        if (!self.context) {
+          self.log("IM notified after context destroyed.");
+          return;
+        }
         self.UpdateUI();
         if (self.imctx.cch) {
           self.Commit(self.imctx.cch);

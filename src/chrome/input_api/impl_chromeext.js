@@ -190,7 +190,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
 
   function FocusHandler(ev) {
     var node = ev.target;
-    self.debug("on focus", node);
+    self.debug("FocusHandler", ev.target, document.activeElement);
     self.node = node;
     self.guid = jscin.guid();
     SendMessage("ImplFocus", self.guid);
@@ -199,6 +199,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   function BlurHandler(ev) {
     // Note you can't send TextEvent now because it will also set focus to
     // target node.
+    self.debug("BlurHandler", ev.target, document.activeElement);
     if (self.contextID)
       SendMessage("ImplBlur", self.contextID);
   }

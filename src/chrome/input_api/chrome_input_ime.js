@@ -243,6 +243,7 @@ var ChromeInputIME = function () {
       // TODO(hungte) Chain these commands so they are executed in order.
       self.dispatchEvent("Reset", contextID);
       self.dispatchEvent("Blur", contextID);
+      self.debug("chrome.input.ime: LeaveContext.", contextID);
       LeaveContext(contextID);
     });
   }
