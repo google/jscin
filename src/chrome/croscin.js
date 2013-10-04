@@ -309,6 +309,7 @@ croscin.IME = function() {
       auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
 
     // Hint for IME to get key expections.
+    // TODO(hungte) Change this from function to context.
     if (self.ime_api.onImplAcceptedKeys) {
       jscin.log("update accepted keys");
       self.ime_api.dispatchEvent("ImplAcceptedKeys",
@@ -745,11 +746,12 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onInputContextUpdate.addListener(function(context) {
+    self.log("croscin.onInputContextUpdate", context);
   });
 
   ime_api.onCandidateClicked.addListener(
       function(engineID, candidateID, button) {
-        self.log("onCandidateClicked: ", candidateID,  button);
+        self.log("onCandidateClicked", candidateID,  button);
         if (button == "left") {
           self.SimulateKeyDown(self.imctx.selkey.charAt(candidateID));
         }

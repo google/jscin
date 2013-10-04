@@ -125,6 +125,7 @@ $(function() {
       ui.append(node);
     },
 
+    // TODO(hungte) Fire CandidateClicked event.
     UiCandidates: function (context) {
       var ui = $('#imePanel #candidates');
       ui.empty().append(nbsp);
