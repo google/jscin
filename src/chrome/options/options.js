@@ -200,6 +200,8 @@ function init() {
   module_form.empty();
   var im_modules = instance.getAvailableModules();
   im_modules.forEach(function (name) {
+    if (name.indexOf("Gen") != 0)
+      return;
     module_form.append(
         $('<input type=radio class=radio name=moduleRadio/>').attr("id", name).
         click(function () {
