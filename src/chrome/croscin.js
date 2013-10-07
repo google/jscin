@@ -341,6 +341,10 @@ croscin.IME = function() {
           self.imctx.cch = '';
         }
       });
+      // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
+      if (!self.ime_api.isEmulation) {
+        self.imctx.commit_on_blur = true;
+      }
       self.im_name = name;
       self.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.

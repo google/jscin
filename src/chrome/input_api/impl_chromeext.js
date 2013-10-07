@@ -185,6 +185,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
   }
 
   function ImplCommitText(node, text) {
+    // TODO(hungte) Rewrite with window.getSelection
     var ev = document.createEvent("TextEvent");
     ev.initTextEvent("textInput", true, true, window, text);
     node.dispatchEvent(ev);

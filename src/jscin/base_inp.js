@@ -112,14 +112,23 @@ jscin.base_input_method.prototype.reset = function(ctx) {
   var has_keystroke = (ctx.keystroke || '').length;
   var has_lcch = (ctx.lcch || []).length;
   var has_mcch = (ctx.mcch || []).length;
+  function GenKeyEvent(key, code) {
+    return { type: 'keydown',
+             key: key,
+             code: code,
+             shiftKey: false,
+             altKey: false,
+             ctrlKey: false };
+  }
   if (has_lcch) {
     // TODO(hungte) Directly commit lcch in future. A problem here is:
     //  - If we send Enter, Chrome will lose lcch.
     //  - If we don't send Enter, ChromeOS will send and keep lcch.
-    // this.keystroke(ctx, { type: 'keydown', key: 'Enter', code: 'Enter' });
+    //  As a workaround, temporary allow behavior difference.
+    if (ctx.commit_on_blur)
+      this.keystroke(ctx, GenKeyEvent('Enter', 'Enter'));
   } else if (has_keystroke || has_mcch) {
-    this.keystroke(ctx, { type: 'keydown', key: 'Esc', code: 'Esc',
-                          altKey: false, ctrlKey: false, shiftKey: false});
+    this.keystroke(ctx, GenKeyEvent('Esc', 'Esc'));
   }
 }
 
