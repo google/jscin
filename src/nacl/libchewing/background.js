@@ -7,7 +7,7 @@
 
 // TODO(hungte) Detect JSCIN host and register automatically.
 
-var _debug = true;
+var _debug = false;
 
 document.addEventListener( 'readystatechange', function() {
   if (document.readyState !== 'complete')
@@ -17,13 +17,6 @@ document.addEventListener( 'readystatechange', function() {
   var kNaclKeyPrefix = "key:";
   var kNaclDebugPrefix = "debug:";
   var kNaclContextPrefix = "context:";
-
-  // Jscin IM protocol v1: (jscin/crext_inip.js)
-  //  jscin->im: {type: 'jscin_im_v1', command: <command>, args: <args>}
-  //  im->jscin: {type: 'jscin_im_v1, command: <command>,
-  //              result: <result>, context: <context> }
-  var kJscinType = 'jscin_im_v1';
-  var kJscinKeystrokeCommand = "keystroke";
 
   var nacl = document.getElementById('nacl');
   var self = {};
@@ -42,7 +35,7 @@ document.addEventListener( 'readystatechange', function() {
     return kNaclKeyPrefix + key;
   }
 
-  function HandleNaclResponse(resp, remote_id) {
+  function HandleNaclResponse(resp) {
     if (resp.indexOf(kNaclDebugPrefix) == 0) {
       debug(resp.substr(kNaclDebugPrefix.length));
       return;
@@ -50,53 +43,24 @@ document.addEventListener( 'readystatechange', function() {
     if (resp.indexOf(kNaclContextPrefix) == 0) {
       var ctx = JSON.parse(resp.substr(kNaclContextPrefix.length));
       debug("send Jscin IM response for", ctx);
-      chrome.runtime.sendMessage(remote_id, CreateJscinKeystrokeResponse(ctx));
+      jscin.external.send_keystroke_response(true, ctx);
       return;
     }
     debug("unknown response from Nacl:", resp);
   }
 
-  function IsJscinMessage(msg) {
-    return (msg && msg.type == kJscinType && msg.command);
-  }
-
-  function CreateJscinKeystrokeResponse(ctx) {
-    return { type: kJscinType, command: kJscinKeystrokeCommand, context: ctx };
-  }
-
-  function ProcessJscinMessage(msg) {
-    if (!IsJscinMessage(msg)) {
-      debug("Not JSCIN message", msg);
-      return;
-    }
-    if (msg.command != kJscinKeystrokeCommand) {
-      debug("Unsupported command", msg.command);
-      return;
-    }
-    // keystroke: context, ev
-    // TODO(hungte) How to decide using .key or .code?
-    var k = msg.args[1].key;
-    debug("JSCIN Message:", kJscinKeystrokeCommand, k);
-    nacl.postMessage(PackNaclKeyCommand(k));
-  }
-
   // TODO(hungte) We should also send id as part of the message.
-
-  chrome.runtime.onMessageExternal.addListener(
-      function (request, sender, sendResponse) {
-        if (!IsJscinMessage(request))
-          return;
-        debug("registered to extension", sender.id);
-        self.id = sender.id;
-        ProcessJscinMessage(request);
-      });
+  jscin.external.init_im(jscin.external.id_any, {
+    keystroke: function (context, ev) {
+      // TODO(hungte) How to decide using .key or .code?
+      var k = ev.key;
+      debug("received jscin/keystroke:", k);
+      nacl.postMessage(PackNaclKeyCommand(k));
+    }
+  });
 
   nacl.addEventListener('message', function (ev) {
-    if (!self.id) {
-      debug("Nacl message while no registered extension...");
-      return;
-    }
     debug("Handle Nacl response...", ev.data);
-    HandleNaclResponse(ev.data, self.id);
+    HandleNaclResponse(ev.data);
   }, false);
 });

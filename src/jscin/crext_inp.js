@@ -20,33 +20,16 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
       self.opts.OPT_KEEP_KEY_CASE = true;
     }
 
-    // TODO(hungte) Move the IM protocol to standalone JS.
-
-    // Jscin IM protocol v1: (jscin/crext_inip.js)
-    //  jscin->im: {type: 'jscin_im_v1', command: <command>, args: <args>}
-    //  im->jscin: {type: 'jscin_im_v1, command: <command>, result: <result>,
-    //              context: <context> }
-    self.kJscinType = 'jscin_im_v1';
-
-    chrome.runtime.onMessageExternal.addListener(
-        function (request, sender, senderResponse) {
-          if (sender.id != self.extension_id)
-            return;
-          if (request.type != self.kJscinType)
-              return;
-          if (request.command != 'keystroke') {
-            jscin.log("unsupported command from extension", request.command);
-            return;
-          }
-          jscin.log("crext_inp received new response", request);
-          var ctx = request.context;
-          self.ctx.keystroke = ctx.keystroke || '';
-          self.ctx.mcch = ctx.mcch || '';
-          self.ctx.cch = ctx.cch || '';
-          self.ctx.lcch = ctx.lcch || [];
-          self.ctx.edit_pos = ctx.edit_pos;
-          self.notify();
-        });
+    jscin.external.init_ime(self.extension_id, {
+      keystroke: function (result, ctx) {
+        jscin.log("crext_inp received new response", result, ctx);
+        self.ctx.keystroke = ctx.keystroke || '';
+        self.ctx.mcch = ctx.mcch || '';
+        self.ctx.cch = ctx.cch || '';
+        self.ctx.lcch = ctx.lcch || [];
+        self.ctx.edit_pos = ctx.edit_pos;
+        self.notify();
+      }});
   },
 
   init: function (ctx)
@@ -60,11 +43,8 @@ jscin.register_module('CrExtInp', jscin.extend_input_method({
   keystroke: function (ctx, ev)
   {
     var self = this;
-    chrome.runtime.sendMessage(self.extension_id, {
-      type: self.kJscinType,
-      command: 'keystroke',
-      args: [ctx, ev]});
-
+    jscin.log("crext_inp: keystroke", ctx, ev);
+    jscin.external.send_keystroke_command(ctx, ev, self.extension_id);
     // TODO prevent race condition.
     self.ctx = ctx;
     return jscin.IMKEY_DELAY;
