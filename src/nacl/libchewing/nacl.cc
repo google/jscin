@@ -180,11 +180,21 @@ class ChewingInstance: public pp::Instance {
         value["lcch"] = lcch;
     }
 
+    // TODO(hungte) Remove the "#if 0" after v0.3.6 is released.
+#if 0
     if (chewing_bopomofo_Check(ctx)) {
       s = chewing_bopomofo_String(ctx);
       value["bopomofo"] = Json::Value(s);
       chewing_free(s);
     }
+#else
+    if (!chewing_zuin_Check(ctx)) {
+      s = chewing_zuin_String(ctx, NULL);
+      value["bopomofo"] = Json::Value(s);
+      chewing_free(s);
+    }
+#endif
+
     if (chewing_aux_Check(ctx)) {
       s = chewing_aux_String(ctx);
       value["aux"] = Json::Value(s);
