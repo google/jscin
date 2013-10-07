@@ -17,8 +17,8 @@ function CreateImeFrame () {
   frame.style.zIndex = 999999;
   frame.style.border = 0;
   frame.style.padding = 0;
-  frame.style.width = "30em";
-  frame.style.height = "10em";
+  frame.style.width = "32em";
+  frame.style.height = "11em";
   frame.style.position = "absolute";
   frame.style.backgroundColor = "transparent";
   frame.style.display = "none";
