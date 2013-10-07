@@ -35,9 +35,11 @@ function init () {
   if (window.navigator.userAgent.indexOf(' CrOS ') >= 0)
     return;
 
-  // TODO(hungte) Find way to get croscin.instance.prefGetSupportNonChromeOS().
   var impl = new ChromeInputImeImplChromeExtension('content');
   impl.debug("Extension IME installed.");
+  // TODO(hungte) impl must be always initialized, since it has to get "enabled"
+  // state from background page. However we may be able to delay creating IME
+  // frame.
   impl.init();
   if (window.self === window.top)
     impl.setFrame($(CreateImeFrame()));

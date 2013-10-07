@@ -85,6 +85,7 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
     IpcGetSystemStatus: function () {
       self.debug("IpcGetSystemStatus");
       return {
+        enabled: croscin.instance.prefGetSupportNonChromeOS(),
         default_enabled: croscin.instance.prefGetDefaultEnabled(),
         debug: croscin.instance.debug }; }
   }, function () {
@@ -238,7 +239,31 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.ipc = ipc;
     ipc.attach();
 
-    ipc.listen({
+    SendMessage('IpcGetSystemStatus', function (result) {
+      self.debug("IpcGetSystemStatus received:", result, window.self.location);
+      self._debug = result.debug;
+      if (!result.enabled) {
+        self.debug("IpcGetSystemStatus: disable.\n");
+        return;
+      }
+
+      SetEnabled(result.default_enabled);
+      ListenEvents();
+    });
+
+  }
+
+  function IsEditableNode(node) {
+    return node && (node.nodeName == 'INPUT' || node.nodeName == 'TEXTAREA' ||
+                    node.getAttribute('contenteditable'));
+  }
+
+  function IsAttached(node) {
+    return self.attached.indexOf(node) >= 0;
+  }
+
+  function ListenEvents() {
+    self.ipc.listen({
       IpcUiReady: function () {
         self.debug("UIReady");
         SendMessage("Activate", self.engineID); // Update menu & pageAction.
@@ -303,24 +328,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       }
     });
 
-    SendMessage('IpcGetSystemStatus', function (result) {
-      self.debug("IpcGetSystemStatus received:", result, window.self.location);
-      self._debug = result.debug;
-      SetEnabled(result.default_enabled);
-      ListenEvents();
-    });
-  }
-
-  function IsEditableNode(node) {
-    return node && (node.nodeName == 'INPUT' || node.nodeName == 'TEXTAREA' ||
-                    node.getAttribute('contenteditable'));
-  }
-
-  function IsAttached(node) {
-    return self.attached.indexOf(node) >= 0;
-  }
-
-  function ListenEvents() {
     document.addEventListener("keydown", function (ev) {
       if (ev.target != self.node)
         return;

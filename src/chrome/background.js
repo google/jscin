@@ -10,8 +10,7 @@ document.addEventListener( 'readystatechange', function() {
     croscin.instance = new croscin.IME;
 
     // TODO Sync with content.js behavior.
-    if (chrome.input.ime.isEmulation &&
-        croscin.instance.prefGetSupportNonChromeOS()) {
+    if (croscin.instance.ime_api.isEmulation) {
       var impl = new ChromeInputImeImplChromeExtension('background');
       impl.init();
     }
