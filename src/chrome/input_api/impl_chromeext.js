@@ -94,7 +94,7 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   });
 };
 
-ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
+ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
   var self = this;
 
   // Variables.
@@ -105,6 +105,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
   self.toggleHotKey = 16;  // Shift.
   self.waitForHotkey = false;
   self.attached = [];
+  self.frame_factory = f;
 
   function IsChildFrame() {
     return window.self !== window.top;
@@ -214,6 +215,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     return undefined;
   }
 
+  function SetFrame (frame) {
+    self.frame = frame;
+  }
+
   function SendFrameMessage(view, command, arg) {
     view.postMessage({ ime: 'frame', command: command, arg: arg}, '*');
   }
@@ -234,7 +239,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     return offset;
   }
 
-  function InitContent() {
+  function Initialize() {
     var ipc = new ImeEvent.ImeExtensionIPC('content');
     self.ipc = ipc;
     ipc.attach();
@@ -246,11 +251,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
         self.debug("IpcGetSystemStatus: disable.\n");
         return;
       }
-
+      SetFrame($(self.frame_factory()));
       SetEnabled(result.default_enabled);
       ListenEvents();
     });
-
   }
 
   function IsEditableNode(node) {
@@ -362,10 +366,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
       FocusHandler({target: node});
   };
 
-  self.setFrame = function (frame) {
-    self.frame = frame;
-  }
-
   self.showFrame = function (long_animation) {
     if (IsChildFrame())
       return SendFrameMessage(window.top, "show");
@@ -432,5 +432,5 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function () {
     self.init_node = node;
   }
 
-  InitContent();
+  Initialize();
 };

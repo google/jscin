@@ -37,12 +37,7 @@ function init () {
 
   var impl = new ChromeInputImeImplChromeExtension('content');
   impl.debug("Extension IME installed.");
-  // TODO(hungte) impl must be always initialized, since it has to get "enabled"
-  // state from background page. However we may be able to delay creating IME
-  // frame.
-  impl.init();
-  if (window.self === window.top)
-    impl.setFrame($(CreateImeFrame()));
+  impl.init(CreateImeFrame);
 }
 
 // For content.js we can't wait for readystatechange - that is controlled by
