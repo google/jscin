@@ -17,6 +17,7 @@ document.addEventListener( 'readystatechange', function() {
   var kNaclKeyPrefix = "key:";
   var kNaclDebugPrefix = "debug:";
   var kNaclContextPrefix = "context:";
+  var kMetadataURL = "jscin/im.json";
 
   var nacl = document.getElementById('nacl');
   var self = {};
@@ -49,8 +50,12 @@ document.addEventListener( 'readystatechange', function() {
     debug("unknown response from Nacl:", resp);
   }
 
+  // Register my metadata.
+  var ime_id = jscin.external.register(chrome.extension.getURL(kMetadataURL));
+
   // TODO(hungte) We should also send id as part of the message.
-  jscin.external.init_im(jscin.external.id_any, {
+  // TODO(hungte) Check if ime_id is invalid (no IME host found).
+  jscin.external.init_im(ime_id, {
     keystroke: function (context, ev) {
       // TODO(hungte) How to decide using .key or .code?
       var k = ev.key;
@@ -60,7 +65,7 @@ document.addEventListener( 'readystatechange', function() {
   });
 
   nacl.addEventListener('message', function (ev) {
-    debug("Handle Nacl response...", ev.data);
+    debug("Handle Nacl response", ev.data);
     HandleNaclResponse(ev.data);
   }, false);
 });
