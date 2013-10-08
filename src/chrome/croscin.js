@@ -363,11 +363,7 @@ croscin.IME = function() {
     var menu_items = [];
 
     self.pref.im_enabled_list.forEach(function (name) {
-      var label = jscin.get_input_method_label(name);
-      if (label)
-        label = label + " (" + name + ")";
-      else
-        label = name;
+      var label = jscin.get_input_method_label(name) || name;
       menu_items.push({
         "id": "ime:" + name,
         "label": label,

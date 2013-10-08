@@ -365,7 +365,7 @@ function addTable(content, url) {
     // We must reload metadata, since it may be modified in
     // jscin.install_input_method.
     var metadata = jscin.getTableMetadatas()[name];
-    addCinTableToList(metadata, '#enabled_im_list', true);
+    addCinTableToList(name, metadata, '#enabled_im_list', true);
     setAddTableStatus("Table added successfully", false);
     instance.prefInsertEnabledInputMethod(name);
     notifyConfigChanged();
@@ -415,13 +415,13 @@ function getSettingOption(data) {
   return setting;
 }
 
-function addCinTableToList(metadata, list_id, do_insert) {
+function addCinTableToList(name, metadata, list_id, do_insert) {
   var ename = metadata.ename;
   var cname = metadata.cname;
   var url = metadata.url || '';
   var builtin = metadata.builtin && (metadata.ename in BuiltinIMs)
   var setting = metadata.setting;
-  var id = 'ime_' + ename;
+  var id = 'ime_' + name;
   var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
 
   var display_name = cname + ' (' + ename + ')';
@@ -444,13 +444,13 @@ function addCinTableToList(metadata, list_id, do_insert) {
         $('.optionTableDetailName').text(display_name);
         $('.optionTableDetailSource').text(builtin ? _("optionBuiltin") : url);
         $('.optionTableDetailType').text(setting_display_name);
-        $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == ename);
+        $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
         var buttons = [ { text: ' OK ',
           click: function () {
             if($('#query_keystrokes').is(':checked')) {
-              jscin.setCrossQuery(ename);
+              jscin.setCrossQuery(name);
             } else {
-              if(jscin.getCrossQuery() == ename) {
+              if(jscin.getCrossQuery() == name) {
                 jscin.setCrossQuery('');
               }
             }
@@ -462,7 +462,7 @@ function addCinTableToList(metadata, list_id, do_insert) {
           buttons.push( { text: _('optionRemove'),
             click: function () {
               if (confirm(_("optionAreYouSure"))) {
-                removeCinTable(ename);
+                removeCinTable(name);
                 $('#' + id).remove();
                 notifyConfigChanged();
               }
@@ -480,6 +480,7 @@ function addCinTableToList(metadata, list_id, do_insert) {
 
             } });
 
+          // TODO(hungte) should this be ename or name?
           var raw_content = jscin.readLocalStorage(
               jscin.kRawDataKeyPrefix + metadata.ename, null);
           if (raw_content) {
@@ -505,11 +506,11 @@ function loadCinTables() {
   var metadatas = jscin.getTableMetadatas();
   var tables = getEnabledList();
   tables.forEach(function (name) {
-    addCinTableToList(metadatas[name], '#enabled_im_list');
+    addCinTableToList(name, metadatas[name], '#enabled_im_list');
   });
   for (var name in metadatas) {
     if (tables.indexOf(name) < 0) {
-      addCinTableToList(metadatas[name], '#available_im_list');
+      addCinTableToList(name, metadatas[name], '#available_im_list');
     }
   }
 }
