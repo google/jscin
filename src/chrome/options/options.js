@@ -342,29 +342,38 @@ function addTableDrive(docs) {
 
 function addTable(content, url) {
   // Parse the entry
-  var parsed_result = parseCin(content);
-  if (parsed_result[0]) {
-    var parsed_data = parsed_result[1];
-    writeSettingToData(getSettingOption(parsed_data), parsed_data);
-    if (typeof url !== undefined) {
-      parsed_data.metadata.url = url;
-    }
-    if (installCinTable(parsed_data, content)) {
-      // Update the UI
-      var name = parsed_data.metadata.ename;
-      addCinTableToList(parsed_data.metadata, '#enabled_im_list', true);
-      setAddTableStatus("Table added successfully", false);
-      instance.prefInsertEnabledInputMethod(name);
-      notifyConfigChanged();
-      if ($('#save_to_drive').is(':checked')) {
-        SaveToDrive(name, content);
+  var result = parseCin(content);
+  var name;
+  if (result[0]) {
+    var data = result[1];
+    name = data.metadata.ename;
+    var metadata = jscin.getTableMetadatas()[name];
+    if (metadata) {
+      if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
+        setAddTableStatus("Table not added", true);
+        return;
+      } else {
+        $('#ime_' + name).remove();
       }
-    } else {
-      setAddTableStatus("Table not added", true);
+    }
+    // install_input_method will parse raw content again...
+    result = jscin.install_input_method(name, content,
+        { setting: getSettingOption(data), url: url });
+  }
+  // Update the UI
+  if (result[0]) {
+    // We must reload metadata, since it may be modified in
+    // jscin.install_input_method.
+    var metadata = jscin.getTableMetadatas()[name];
+    addCinTableToList(metadata, '#enabled_im_list', true);
+    setAddTableStatus("Table added successfully", false);
+    instance.prefInsertEnabledInputMethod(name);
+    notifyConfigChanged();
+    if ($('#save_to_drive').is(':checked')) {
+      SaveToDrive(name, content);
     }
   } else {
-    var msg = parsed_result[1];
-    // Update the UI
+    var msg = result[1];
     setAddTableStatus("Could not parse cin file. " + msg, true);
   }
 }
@@ -376,13 +385,6 @@ function setAddTableStatus(status, error) {
     status_field.className = "status_error";
   } else {
     status_field.className = "status_ok";
-  }
-}
-
-function writeSettingToData(setting, parsed_data) {
-  parsed_data.metadata.setting = setting;
-  for (var option in setting.options) {
-    parsed_data.data[option] = setting.options[option];
   }
 }
 
@@ -411,19 +413,6 @@ function getSettingOption(data) {
     return matched || from_table || setting;
   }
   return setting;
-}
-
-function installCinTable(data, raw_content) {
-  var metadata = jscin.getTableMetadatas()[data.metadata.ename];
-  if (metadata) {
-    if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
-      return false;
-    } else {
-      $('#ime_' + data.metadata.ename).remove();
-    }
-  }
-  jscin.addTable(data.metadata.ename, data.metadata, data.data, raw_content);
-  return true;
 }
 
 function addCinTableToList(metadata, list_id, do_insert) {

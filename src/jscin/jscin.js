@@ -226,6 +226,28 @@ var jscin = {
     return instance;
   },
 
+  install_input_method: function (name, table_source, metadata) {
+    // TODO(hungte) Move parseCin to jscin namespace.
+    var result = parseCin(table_source);
+    if (!result[0]) {
+      jscin.log("install_input_method: invalid table", result[1]);
+      return result;
+    }
+    var data = result[1];
+    name = name || data.metadata.ename;
+    for (var key in metadata) {
+      data.metadata[key] = metadata[key];
+    }
+    if (metadata.setting && metadata.setting.options) {
+      for (var option in metadata.setting.options) {
+        data.data[option] = metadata.setting.options[option];
+      }
+    }
+    jscin.log("install_input_method:", name, data.metadata);
+    jscin.addTable(name, data.metadata, data.data, table_source);
+    return result;
+  },
+
   get_input_method_label: function (name) {
     var self = jscin;
     if (!(name in self.input_methods)) {
@@ -311,7 +333,7 @@ var jscin = {
     table_metadata[name] = metadata;
     jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
     jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + name, data);
-    if (raw_data)
+    if (raw_data && !metadata.builtin)
       jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + name, raw_data);
   },
 
@@ -353,18 +375,10 @@ var jscin = {
         continue;
 
       var content = jscin.readLocalStorage(jscin.kRawDataKeyPrefix + name, "");
-      var parsed_result = parseCin(content);
-      if (parsed_result[0]) {
-        var parsed_data = parsed_result[1];
-        parsed_data.metadata.setting = table.setting;
-        for (var option in table.setting.options) {
-          parsed_data.data[option] = table.setting.options[option];
-        }
-        if (typeof table.url !== undefined) {
-          parsed_data.metadata.url = table.url;
-        }
-        jscin.addTable(name, parsed_data.metadata, parsed_data.data);
-        jscin.log("jscin: Reload table: ", name);
+      var result = jscin.install_input_method(name, content, {
+        url: table.url, setting: table.setting });
+      if (result[0]) {
+        jscin.log("jscin: reloaded table: ", name);
       } else {
         jscin.error("jscin: Parse error when reloading table: ", name);
         return false;

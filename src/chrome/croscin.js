@@ -439,18 +439,9 @@ croscin.IME = function() {
         self.log("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
       }
-      var results = parseCin(content);
-      if (!results[0]) {
-        self.log("croscin.LoadBuiltinTables: Incorrect table:", table_name);
-        continue;
-      }
-      var table_content = results[1].data;
-      var metadata = results[1].metadata;
-      self.log("croscin.LoadBuiltinTables: Load table:", table_name);
-      var ename = metadata['ename'];
-      metadata['builtin'] = true;
-      jscin.addTable(ename, metadata, table_content);
+      jscin.install_input_method(null, content, {builtin: true});
     }
+
     // Load phrases
     var phrases = jscin.readLocalStorage(self.kPhrasesDatabase, undefined);
     if (reload || !phrases) {
