@@ -10,13 +10,13 @@
         "3": "89kilop-,;/.0"
       }
     },
-    "detect": { "A": "ㄇ" }
+    "detect": { "a": "ㄇ" }
   },
   {
     "ename": "ChangJei",
     "cname": "倉頡",
     "options": {},
-    "detect": { "WIRM": "國" }
+    "detect": { "wirm": "國" }
   },
   {
     "ename": "SimpleX",
@@ -25,7 +25,7 @@
       "max_keystroke": 2,
       "AUTO_FULLUP": true
     },
-    "detect": { "AB": "晴" }
+    "detect": { "ab": "晴" }
   },
   {
     "ename": "Boshiamy",
@@ -35,7 +35,7 @@
       "SPACE_AUTOUP": true,
       "SPACE_RESET": true
     },
-    "detect": { "A": "對" }
+    "detect": { "a": "對" }
   },
   {
     "ename": "Dayi",
@@ -43,7 +43,7 @@
     "options": {
       "SELKEY_SHIFT": true
     },
-    "detect": { "A": "人" }
+    "detect": { "a": "人" }
   },
   {
     "ename": "Array30",
@@ -55,7 +55,7 @@
       }
     },
     "detect_comment": "AR 40 has / as 貝 instead , AR 26 does not have",
-    "detect": { "A": "一", "/": "虫" }
+    "detect": { "a": "一", "/": "虫" }
   },
   {
     "ename": "From Table",
