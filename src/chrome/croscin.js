@@ -65,7 +65,8 @@ croscin.IME = function() {
 
   self.log = function() {
     if (self.debug)
-      console.log.apply(console, arguments);
+      console.log.apply(console, ["[croscin]"].concat(
+          Array.prototype.slice.apply(arguments)));
   }
 
   // Core functions

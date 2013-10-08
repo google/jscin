@@ -17,7 +17,8 @@ var ChromeInputIME = function () {
   // Internal Functions
 
   self.log = function() {
-    console.log.apply(console, arguments);
+    console.log.apply(console, ["[chrome.input.ime]"].concat(
+        Array.prototype.slice.apply(arguments)));
   }
 
   self.debug = function() {

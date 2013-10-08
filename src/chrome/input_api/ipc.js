@@ -13,7 +13,8 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
   self._debug = false;
   self.debug = function() {
     if (self._debug)
-      console.log.apply(console, arguments);
+      console.log.apply(console, ["[ipc]"].concat(
+          Array.prototype.slice.apply(arguments)));
   }
 
   function CreateMessage(data) {

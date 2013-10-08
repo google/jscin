@@ -13,12 +13,13 @@ var ChromeInputImeImplChromeExtension = function (type) {
 
   self._debug = false;
   self.log = function () {
-    console.log.apply(console, arguments);
+    console.log.apply(console, ["[impl_chromext]"].concat(
+        Array.prototype.slice.apply(arguments)));
   }
   self.debug = function () {
     if (!self._debug)
       return;
-    self.log.apply(null, arguments);
+    self.log.apply(self, arguments);
   }
 
   switch (type) {
@@ -90,7 +91,7 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
         debug: croscin.instance.debug }; }
   }, function () {
     self.debug("Ipc Uncaught event:", arguments);
-    return ime_api.dispatchEvent.apply(null, arguments);
+    return ime_api.dispatchEvent.apply(ime_api, arguments);
   });
 };
 
@@ -112,7 +113,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
   }
 
   function SendMessage() {
-    self.ipc.send.apply(null, arguments);
+    self.ipc.send.apply(self.ipc, arguments);
   }
 
   function SetEnabled(enabled) {
