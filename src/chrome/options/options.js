@@ -422,10 +422,7 @@ function installCinTable(data, raw_content) {
       $('#ime_' + data.metadata.ename).remove();
     }
   }
-  jscin.addTable(data.metadata.ename, data.metadata, data.data);
-  // TODO(hungte) Move this to jscin.addTable.
-  jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + data.metadata.ename,
-                          raw_content);
+  jscin.addTable(data.metadata.ename, data.metadata, data.data, raw_content);
   return true;
 }
 
@@ -535,7 +532,6 @@ function removeCinTable(name) {
   }
   instance.prefRemoveEnabledInputMethod(name);
   jscin.deleteTable(name);
-  jscin.deleteLocalStorage(jscin.kRawDataKeyPrefix + name);
 }
 
 function notifyConfigChanged() {

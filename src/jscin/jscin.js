@@ -305,12 +305,14 @@ var jscin = {
     return jscin.writeLocalStorage(jscin.kVersionKey, version);
   },
 
-  addTable: function (name, metadata, data) {
+  addTable: function (name, metadata, data, raw_data) {
     var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
-    metadata.ename = name;
+    metadata.ename = metadata.ename || name;
     table_metadata[name] = metadata;
     jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
     jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + name, data);
+    if (raw_data)
+      jscin.writeLocalStorage(jscin.kRawDataKeyPrefix + name, raw_data);
   },
 
   getTableMetadatas: function () {
@@ -339,6 +341,7 @@ var jscin = {
     var table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
     delete table_metadata[name];
     jscin.deleteLocalStorage(jscin.kTableDataKeyPrefix + name);
+    jscin.deleteLocalStorage(jscin.kRawDataKeyPrefix + name);
     jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
   },
 
@@ -360,7 +363,7 @@ var jscin = {
         if (typeof table.url !== undefined) {
           parsed_data.metadata.url = table.url;
         }
-        jscin.addTable(parsed_data.metadata.ename, parsed_data.metadata, parsed_data.data);
+        jscin.addTable(name, parsed_data.metadata, parsed_data.data);
         jscin.log("jscin: Reload table: ", name);
       } else {
         jscin.error("jscin: Parse error when reloading table: ", name);
