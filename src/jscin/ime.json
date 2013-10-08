@@ -1,5 +1,5 @@
 {
-  name: 'jscin',
-  version: '0.0.1',
-  external: 'external.js',
+  "name": 'jscin',
+  "version": '0.0.1',
+  "external": 'external.js',
 }
