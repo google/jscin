@@ -1,8 +1,8 @@
-[{ "name": "jscin",
+[{
+  "name": "jscin",
   "version": "0.0.1",
   "external": "external.js",
   "accepted_ids": {
-      "dahmmcmnhjgjdappbbmaiempnpmfbdbm": "Chewing/JSCIN",
-      "jacneejnjcbkfbajeodiagdbohimachn": "Chewing/JSCIN (debug)"
+      "dahmmcmnhjgjdappbbmaiempnpmfbdbm": "Chewing/JSCIN"
   }
 }]

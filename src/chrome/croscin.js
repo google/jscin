@@ -614,13 +614,18 @@ croscin.IME = function() {
   function RegisterExternalInputMethod(remote_id, meta_url) {
     var kImeMetaUrl = "jscin.ext/ime.json";
     var ime_meta = JSON.parse(self.LoadExtensionResource(kImeMetaUrl))[0];
+    var myid = chrome.i18n.getMessage("@@extension_id");
     var metas = JSON.parse(self.LoadExtensionResource(meta_url));
     if (!(remote_id in ime_meta.accepted_ids)) {
       // TODO(hungte) An option to allow / disable registration of unknown id.
-      self.log("warning: registration from unauthorized source", remote_id);
+      if (myid == jscin.external.id_ime) {
+        self.log("ERROR: registration from unauthorized source", remote_id);
+        return;
+      }
+      self.log("Warning: unauthorized source registered.", remote_id);
     }
     if (!metas || !metas.length) {
-      self.log("failed to register from", remote_id, meta_url);
+      self.log("Failed to register from", remote_id, meta_url);
       return;
     }
     metas.forEach(function (im) {
