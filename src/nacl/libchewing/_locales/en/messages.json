@@ -1,8 +1,8 @@
 {
   "manifestName": { "message":
-    "JsCIN/Chewing: Chewing Chinese Input Method for JsCIN" },
+    "JsCIN Addon: Chewing Chinese Input Method" },
   "manifestDesc": { "message":
-    "Chewing module for JsCIN" },
+    "Chewing module for JsCIN (You have to install JsCIN first)." },
 
   "dummy": {"message": "" }
 }
