@@ -43,6 +43,8 @@
     "Cancel" },
   "optionBuiltin": {"message":
     "Built-in" },
+  "optionTypeAuto": {"message":
+    "(auto detected)" },
   "optionTableDetail": {"message":
     "Input Method Details" },
   "optionRemove": {"message":

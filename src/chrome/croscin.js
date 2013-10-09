@@ -639,10 +639,11 @@ croscin.IME = function() {
         self.log("failed to load im data", im_id, im.url)
       }
       self.log("external: register", im_id);
+      // TODO(hunge) If the im was not installed before, make it the new default
+      // one?
       jscin.install_input_method(im_id, data, {
         url: im_url,
-        EXTENSION_ID: remote_id,
-        setting: { ename: "Extension",
+        setting: { ename: remote_id,
                    cname: "Extension",
                    options: {EXTENSION_ID: remote_id} }
       }

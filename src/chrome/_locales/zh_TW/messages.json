@@ -43,6 +43,8 @@
     "取消" },
   "optionBuiltin": {"message":
     "內建" },
+  "optionTypeAuto": {"message":
+    "(自動偵測)" },
   "optionTableDetail": {"message":
     "輸入法詳細內容" },
   "optionRemove": {"message":

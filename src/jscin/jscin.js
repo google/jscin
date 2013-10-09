@@ -257,6 +257,14 @@ var jscin = {
     return jscin.input_methods[name].label;
   },
 
+  has_input_method_rawdata: function (name) {
+    return jscin.isInLocalStorage(jscin.kRawDataKeyPrefix + name);
+  },
+
+  get_input_method_rawdata: function (name) {
+    return jscin.readLocalStorage(jscin.kRawDataKeyPrefix + name);
+  },
+
   // Extends base input module (class inheritance).
   extend_input_method: function (overrides, base) {
     if (!base) {
@@ -295,7 +303,11 @@ var jscin = {
     var def_module = self.getDefaultModuleName();
     for (var name in metadatas) {
       var module = metadatas[name].module;
-      module = (module in self.modules) ? module : def_module;
+      if (!(module in self.modules)) {
+        if (module)
+          jscin.log("reload_configuration: unknown module", module, name);
+        module = def_module;
+      }
       self.register_input_method(name, module, metadatas[name].cname);
       if (!any_im)
         any_im = name;
@@ -304,10 +316,10 @@ var jscin = {
 
     if (count_ims < 1) {
       self.debug = true;
-      self.log("jscin.reload_configuration: No input methods available.");
+      self.log("reload_configuration: No input methods available.");
     }
     if (localStorage)
-      self.log("jscin.localStorage:", Object.keys(localStorage));
+      self.log("localStorage:", Object.keys(localStorage));
   },
 
   // Table and local storage management
@@ -419,6 +431,13 @@ var jscin = {
     if (val.length > 100 && jscin.hasLzString())
       val = '!' + LZString.compress(val);
     localStorage[key] = val;
+  },
+
+  isInLocalStorage: function (key) {
+    if (typeof(localStorage) == typeof(undefined)) {
+      localStorage = {};
+    }
+    return (key in localStorage);
   },
 
   deleteLocalStorage: function (key) {

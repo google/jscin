@@ -93,16 +93,11 @@ function parseCin(cin_input) {
                     ' missing');
   }
 
-  // TODO(hungte) Add more module parsers.
-  var module = undefined;
-  if (data.EXTENSION_ID)
-    module = 'CrExtInp';
-
   var parsed_data = {
     metadata: {
       ename: data.ename,
       cname: data.cname,
-      module: module,
+      module: data.MODULE
     },
     data: data,
   };

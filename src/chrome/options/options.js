@@ -370,7 +370,7 @@ function addTable(content, url) {
     instance.prefInsertEnabledInputMethod(name);
     notifyConfigChanged();
     if ($('#save_to_drive').is(':checked')) {
-      SaveToDrive(name, content);
+      SaveToDrive(metadata.ename, content);
     }
   } else {
     var msg = result[1];
@@ -410,7 +410,10 @@ function getSettingOption(data) {
       console.log("matched:", opt);
       matched = opt;
     });
-    return matched || from_table || setting;
+    var result = matched || from_table || setting;
+    // Make a record so we can re-parse its setting next time.
+    result.by_auto_detect = true;
+    return result;
   }
   return setting;
 }
@@ -418,11 +421,16 @@ function getSettingOption(data) {
 function addCinTableToList(name, metadata, list_id, do_insert) {
   var ename = metadata.ename;
   var cname = metadata.cname;
+  var module = metadata.module;
   var url = metadata.url || '';
+  // TODO(hungte) ename or name?
   var builtin = metadata.builtin && (metadata.ename in BuiltinIMs)
   var setting = metadata.setting;
+  // TODO(hungte) encodeURIComponent()?
   var id = 'ime_' + name;
   var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
+  var kExternalModule = 'CrExtInp';
+  var isRemote = (kExternalModule == module);
 
   var display_name = cname + ' (' + ename + ')';
   var builtin_desc = builtin ? ' [' + _("optionBuiltin") + ']' : "";
@@ -435,7 +443,8 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
     $(list_id).append(item);
 
   var setting_display_name = (
-      setting ? (setting.cname || "") + " (" + (setting.ename || "") + ")" :
+      setting ? (setting.cname || "") + " (" + (setting.ename || "") + ")" +
+                (setting.by_auto_detect ? " " + _("optionTypeAuto") : ""):
       _("optionBuiltin"));
 
   // TODO(hungte) Show details and dialog to edit this table.
@@ -445,7 +454,10 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
         $('.optionTableDetailSource').text(builtin ? _("optionBuiltin") : url);
         $('.optionTableDetailType').text(setting_display_name);
         $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
-        var buttons = [ { text: ' OK ',
+        $('#query_keystrokes').prop('disabled', isRemote);
+
+        var buttons = [{
+          text: ' OK ',
           click: function () {
             if($('#query_keystrokes').is(':checked')) {
               jscin.setCrossQuery(name);
@@ -455,7 +467,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
               }
             }
             $(this).dialog("close");
-          } } ];
+          } }];
 
         if (!builtin) {
           // TODO(hungte) We should not allow removing active IME.
@@ -469,21 +481,24 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
               $(this).dialog("close");
 
             } });
-          if (url) buttons.push({ text: _('optionReload'),
-            click: function() {
-              console.log(metadata);
-              if (confirm(_("optionAreYouSure"))) {
-                addTableUrl(url, metadata.setting);
-                notifyConfigChanged();
-              }
-              $(this).dialog("close");
+        }
 
-            } });
+        if (!builtin && !isRemote) {
+          if (url) {
+            buttons.push({
+              text: _('optionReload'),
+              click: function() {
+                console.log(metadata);
+                if (confirm(_("optionAreYouSure"))) {
+                  addTableUrl(url, metadata.setting);
+                  notifyConfigChanged();
+                }
+                $(this).dialog("close");
+              }});
+          }
 
-          // TODO(hungte) should this be ename or name?
-          var raw_content = jscin.readLocalStorage(
-              jscin.kRawDataKeyPrefix + metadata.ename, null);
-          if (raw_content) {
+          if (jscin.has_input_method_rawdata(name)) {
+            var raw_content = jscin.get_input_method_rawdata(name);
             buttons.push( { text: _('optionBackupToDrive'),
             click: function () {
               if (confirm(_("optionAreYouSure"))) {

@@ -139,7 +139,7 @@ jscin.external = {
   // Standard procedure to register an external IM into host IME.
   register: function (metadata_url, host_id) {
     host_id = host_id || this.id_ime;
-    this.debug("regiester to ", host_id);
+    this.debug("register to ", host_id);
     this.send_message(host_id,
         this.create_message_args(this.cmd_register, metadata_url));
     // TODO(hungte) Return null when host_id can't be found.
