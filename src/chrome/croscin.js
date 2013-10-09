@@ -383,10 +383,11 @@ croscin.IME = function() {
   }
 
   self.LoadExtensionResource = function(url) {
-    var rsrc = chrome.extension.getURL(url);
     var xhr = new XMLHttpRequest();
+    if (url.indexOf('://') < 0)
+      url = chrome.extension.getURL(url);
     self.log("croscin.LoadExtensionResource:", url);
-    xhr.open("GET", rsrc, false);
+    xhr.open("GET", url, false);
     xhr.send();
     if (xhr.readyState != 4 || xhr.status != 200) {
       self.log("croscin.LoadExtensionResource: failed to fetch:", url);
@@ -610,6 +611,39 @@ croscin.IME = function() {
     self.InitializeUI();
   }
 
+  function RegisterExternalInputMethod(remote_id, meta_url) {
+    var kImeMetaUrl = "jscin.ext/ime.json";
+    var ime_meta = JSON.parse(self.LoadExtensionResource(kImeMetaUrl))[0];
+    var metas = JSON.parse(self.LoadExtensionResource(meta_url));
+    if (!(remote_id in ime_meta.accepted_ids)) {
+      // TODO(hungte) An option to allow / disable registration of unknown id.
+      self.log("warning: registration from unauthorized source", remote_id);
+    }
+    if (!metas || !metas.length) {
+      self.log("failed to register from", remote_id, meta_url);
+      return;
+    }
+    metas.forEach(function (im) {
+      // im: {name, url, version}
+      // TODO(hungte) check if version matches the version in our stored
+      // metadata.
+      var im_id = remote_id + '_' + im.name;
+      var im_url = meta_url.replace(/[^\/]*$/, im.url);
+      var data = self.LoadExtensionResource(im_url);
+      if (!data) {
+        self.log("failed to load im data", im_id, im.url)
+      }
+      self.log("external: register", im_id);
+      jscin.install_input_method(im_id, data, {
+        url: im_url,
+        EXTENSION_ID: remote_id,
+        setting: { ename: "Extension",
+                   cname: "Extension",
+                   options: {EXTENSION_ID: remote_id} }
+      });
+    });
+  }
+
   function Initialize() {
     // Initialization.
     var version = chrome.runtime.getManifest().version;
@@ -619,6 +653,9 @@ croscin.IME = function() {
       jscin.reloadNonBuiltinTables();
       jscin.setLocalStorageVersion(version);
     }
+    jscin.external.init_ime(
+        jscin.external.id_any,
+        {register: RegisterExternalInputMethod});
     jscin.reload_configuration();
     self.detect_ime_api();
     self.registerEventHandlers();
