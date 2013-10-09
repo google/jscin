@@ -645,8 +645,10 @@ croscin.IME = function() {
         setting: { ename: "Extension",
                    cname: "Extension",
                    options: {EXTENSION_ID: remote_id} }
-      });
+      }
+      );
     });
+    self.notifyConfigChanged();
   }
 
   function Initialize() {

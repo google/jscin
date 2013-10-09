@@ -526,6 +526,7 @@ function removeCinTable(name) {
 
 function notifyConfigChanged() {
   instance.notifyConfigChanged();
+  instance.ActivateInputMethod(instance.pref.im_default);
 }
 
 function getEnabledList() {
