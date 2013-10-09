@@ -7,7 +7,7 @@
   "description": "__MSG_manifestDesc__",
   "background": { "page": "background.html" },
   "web_accessible_resources": [
-     "jscin/*"
+     "jscin.ext/*"
   ],
   "permissions": ["unlimitedStorage"]
 }

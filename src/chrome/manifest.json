@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_manifestName__",
-  "version": "0.0.21",
+  "version": "0.0.22",
 
   "default_locale": "en",
   "description": "__MSG_manifestDesc__",
@@ -41,7 +41,7 @@
     "matches": ["http://*/*", "https://*/*"]
   } ],
   "web_accessible_resources": [
-     "jscin/ime.json",
+     "jscin.ext/*",
      "jquery/*",
      "input_api/*"
   ],

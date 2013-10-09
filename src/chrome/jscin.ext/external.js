@@ -14,8 +14,8 @@ jscin.external = {
   cmd_keystroke: 'keystroke',
 
   id_any: '*',
-  id_ime: 'cdkhibgadomdghgnknpmgegpjjmfecfk',
-  // id_ime: 'adepkfapdlfphlicfcmpbnnkdngcildi',
+  id_ime: localStorage['jscin.external.id_ime'] ||
+          'cdkhibgadomdghgnknpmgegpjjmfecfk',
 
   _debug: false,
   debug: function () {
@@ -106,7 +106,7 @@ jscin.external = {
         });
   },
 
-  // JSCIN Host extension
+  // JSCIN Host
   init_ime: function (accept_id, dispatch) {
     var ext = jscin.external;
     chrome.runtime.onMessageExternal.addListener(
@@ -122,9 +122,14 @@ jscin.external = {
           // TODO(hungte) Process register command.
           var cmd = ext.get_message_command(request);
           if (cmd in dispatch) {
-            ext.debug("dispatch command:", cmd);
-            dispatch[cmd].call(null, ext.get_message_result(request),
-                               ext.get_message_context(request));
+            ext.debug("dispatch command:", cmd, request);
+            if (cmd == ext.cmd_register) {
+              dispatch[cmd].apply(
+                  null, [sender.id].concat(ext.get_message_args(request)));
+            } else {
+              dispatch[cmd].call(null, ext.get_message_result(request),
+                                 ext.get_message_context(request));
+            }
           } else {
             ext.debug("ignore: no dispatcher defined for command", cmd);
           }

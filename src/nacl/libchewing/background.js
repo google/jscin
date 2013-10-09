@@ -17,7 +17,7 @@ document.addEventListener( 'readystatechange', function() {
   var kNaclKeyPrefix = "key:";
   var kNaclDebugPrefix = "debug:";
   var kNaclContextPrefix = "context:";
-  var kMetadataURL = "jscin/im.json";
+  var kMetadataURL = "jscin.ext/im.json";
 
   var nacl = document.getElementById('nacl');
   var self = {};
