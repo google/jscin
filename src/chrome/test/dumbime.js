@@ -75,6 +75,7 @@ DumbIME = function() {
     onBlur: create_listener('onBlur'),
     onKeyEvent: create_listener('onKeyEvent'),
     onInputContextUpdate: create_listener('onInputContextUpdate'),
+    onReset: create_listener('onReset'),
     onCandidateClicked: create_listener('onCandidateClicked'),
     onMenuItemActivated: create_listener('onMenuItemActivated')
   };
