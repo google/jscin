@@ -27,8 +27,10 @@ fi
 make CONFIG=Release
 ln -s newlib/Release "$NACL"
 rm -f $OUTPUT
-SRCS=$(echo background.{html,js} libchewing/data/*.{dat,tab} jscin.ext/* \
-       _locales/*/* manifest.json $NACL/chewing.nmf $NACL/chewing_[ax]*.nexe)
+SRCS=$(echo background.{html,js} options.{html,js} jscin.ext/* \
+       jquery/*.js jquery/css/*.css \
+       manifest.json _locales/*/*.json \
+       libchewing/data/*.{dat,tab} $NACL/chewing.nmf $NACL/chewing_[ax]*.nexe)
 for file in $SRCS; do
   [ -f "$file" ] || die "Failed to find $file".
 done

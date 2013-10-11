@@ -70,7 +70,6 @@ class ChewingInstance: public pp::Instance {
  protected:
   const string kMsgDebugPrefix;
   const string kMsgContextPrefix;
-  const string kMsgResultPrefix;
   const string kMsgKeyPrefix;
   const string kMsgLayoutPrefix;
 
@@ -79,7 +78,6 @@ class ChewingInstance: public pp::Instance {
 
   explicit ChewingInstance(PP_Instance instance): pp::Instance(instance),
       kMsgDebugPrefix("debug:"), kMsgContextPrefix("context:"),
-      kMsgResultPrefix("result:"),
       kMsgKeyPrefix("key:"), kMsgLayoutPrefix("layout:"), ctx(NULL) {
 
     const char *data_dir = "/data", *user_data_dir = "/user_data";
@@ -224,9 +222,9 @@ class ChewingInstance: public pp::Instance {
     PostMessage(pp::Var(kMsgContextPrefix + writer.write(value)));
   }
 
-  virtual void ReturnResult(Json::Value value) {
+  virtual void ReturnLayout(Json::Value value) {
     Json::FastWriter writer;
-    PostMessage(pp::Var(kMsgResultPrefix + writer.write(value)));
+    PostMessage(pp::Var(kMsgLayoutPrefix + writer.write(value)));
   }
 
   virtual void ProcessKeyMessage(const string &key) {
@@ -251,7 +249,7 @@ class ChewingInstance: public pp::Instance {
     // const char *.
     chewing_set_KBType(ctx, chewing_KBStr2Num((char*)layout.c_str()));
     Json::Value v(chewing_get_KBString(ctx));
-    ReturnResult(v);
+    ReturnLayout(v);
   }
 
   virtual void HandleMessage(const pp::Var &var_message) {

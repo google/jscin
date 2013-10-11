@@ -6,6 +6,7 @@
   "default_locale": "en",
   "description": "__MSG_manifestDesc__",
   "background": { "page": "background.html" },
+  "options_page": "options.html",
   "web_accessible_resources": [
      "jscin.ext/*"
   ],

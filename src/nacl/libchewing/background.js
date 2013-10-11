@@ -5,21 +5,33 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) Detect JSCIN host and register automatically.
-
 var _debug = false;
+var nodeNacl = null;
+
+// Keys to communicate with Nacl (nacl.cc)
+var kNaclKeyPrefix = "key:";
+var kNaclLayoutPrefix = "layout:";
+var kNaclDebugPrefix = "debug:";
+var kNaclContextPrefix = "context:";
+var kMetadataURL = "jscin.ext/im.json";
+var kPrefKeyboardLayout = "chewingKeyboardLayout";
+
+var currentLayout = localStorage[kPrefKeyboardLayout] || "KB_DEFAULT";
+
+function SetKeyboardLayout(layout) {
+  nodeNacl.postMessage(kNaclLayoutPrefix + layout);
+  localStorage[kPrefKeyboardLayout] = layout;
+}
+
+function GetKeyboardLayout() {
+  return currentLayout;
+}
 
 document.addEventListener( 'readystatechange', function() {
   if (document.readyState !== 'complete')
     return;
 
-  // Keys to communicate with Nacl (nacl.cc)
-  var kNaclKeyPrefix = "key:";
-  var kNaclDebugPrefix = "debug:";
-  var kNaclContextPrefix = "context:";
-  var kMetadataURL = "jscin.ext/im.json";
-
-  var nacl = document.getElementById('nacl');
+  nodeNacl = document.getElementById('nacl');
   var self = {};
 
   function warn() {
@@ -41,6 +53,12 @@ document.addEventListener( 'readystatechange', function() {
       debug(resp.substr(kNaclDebugPrefix.length));
       return;
     }
+    if (resp.indexOf(kNaclLayoutPrefix) == 0) {
+      var layout = JSON.parse(resp.substr(kNaclLayoutPrefix.length));
+      debug("keyboard layout", layout);
+      currentLayout = layout;
+      return;
+    }
     if (resp.indexOf(kNaclContextPrefix) == 0) {
       var ctx = JSON.parse(resp.substr(kNaclContextPrefix.length));
       debug("send Jscin IM response for", ctx);
@@ -49,6 +67,8 @@ document.addEventListener( 'readystatechange', function() {
     }
     debug("unknown response from Nacl:", resp);
   }
+
+  SetKeyboardLayout(currentLayout);
 
   // Register my metadata.
   var ime_id = jscin.external.register(chrome.extension.getURL(kMetadataURL));
@@ -60,11 +80,11 @@ document.addEventListener( 'readystatechange', function() {
       // TODO(hungte) How to decide using .key or .code?
       var k = ev.key;
       debug("received jscin/keystroke:", k);
-      nacl.postMessage(PackNaclKeyCommand(k));
+      nodeNacl.postMessage(PackNaclKeyCommand(k));
     }
   });
 
-  nacl.addEventListener('message', function (ev) {
+  nodeNacl.addEventListener('message', function (ev) {
     debug("Handle Nacl response", ev.data);
     HandleNaclResponse(ev.data);
   }, false);
