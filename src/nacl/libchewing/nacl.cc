@@ -70,14 +70,17 @@ class ChewingInstance: public pp::Instance {
  protected:
   const string kMsgDebugPrefix;
   const string kMsgContextPrefix;
+  const string kMsgResultPrefix;
   const string kMsgKeyPrefix;
+  const string kMsgLayoutPrefix;
 
  public:
   ChewingContext *ctx;
 
   explicit ChewingInstance(PP_Instance instance): pp::Instance(instance),
       kMsgDebugPrefix("debug:"), kMsgContextPrefix("context:"),
-      kMsgKeyPrefix("key:"), ctx(NULL) {
+      kMsgResultPrefix("result:"),
+      kMsgKeyPrefix("key:"), kMsgLayoutPrefix("layout:"), ctx(NULL) {
 
     const char *data_dir = "/data", *user_data_dir = "/user_data";
     nacl_io_init_ppapi(instance, pp::Module::Get()->get_browser_interface());
@@ -221,6 +224,36 @@ class ChewingInstance: public pp::Instance {
     PostMessage(pp::Var(kMsgContextPrefix + writer.write(value)));
   }
 
+  virtual void ReturnResult(Json::Value value) {
+    Json::FastWriter writer;
+    PostMessage(pp::Var(kMsgResultPrefix + writer.write(value)));
+  }
+
+  virtual void ProcessKeyMessage(const string &key) {
+    bool handled = false;
+    for (int i = 0; i < ARRAYSIZE(special_key_mappings); i++) {
+      ChewingKeyMapping *map = &special_key_mappings[i];
+      if (key == map->keyname) {
+        map->handler(ctx);
+        handled = true;
+        break;
+      }
+    }
+    // Some special keys, like Ctrl, should not be mis-handled.
+    if (!handled && key.size() == 1) {
+        chewing_handle_Default(ctx, key[0]);
+    }
+    ReturnContext();
+  }
+
+  virtual void ProcessLayoutMessage(const string &layout) {
+    // TODO(hungte) Remove the (char*) when chewing_KBStr2Num has changed to
+    // const char *.
+    chewing_set_KBType(ctx, chewing_KBStr2Num((char*)layout.c_str()));
+    Json::Value v(chewing_get_KBString(ctx));
+    ReturnResult(v);
+  }
+
   virtual void HandleMessage(const pp::Var &var_message) {
     // Due to current PPAPI limitation, we need to serialize anything to simple
     // string before sending to native client.
@@ -229,24 +262,18 @@ class ChewingInstance: public pp::Instance {
 
     // Check message type.
     string msg(var_message.AsString());
-    if (msg.find_first_of(kMsgKeyPrefix) != 0)
-      return;
-    msg = msg.substr(kMsgKeyPrefix.size());
 
-    bool handled = false;
-    for (int i = 0; i < ARRAYSIZE(special_key_mappings); i++) {
-      ChewingKeyMapping *map = &special_key_mappings[i];
-      if (msg == map->keyname) {
-        map->handler(ctx);
-        handled = true;
-        break;
-      }
+    if (msg.find_first_of(kMsgKeyPrefix) == 0) {
+      msg = msg.substr(kMsgKeyPrefix.size());
+      ProcessKeyMessage(msg);
+      return;
     }
-    // Some special keys, like Ctrl, should not be mis-handled.
-    if (!handled && msg.size() == 1) {
-        chewing_handle_Default(ctx, msg[0]);
+    if (msg.find_first_of(kMsgLayoutPrefix) == 0) {
+      msg = msg.substr(kMsgLayoutPrefix.size());
+      ProcessLayoutMessage(msg);
+      return;
     }
-    ReturnContext();
+    Debug("Unknown command", msg);
   }
 };
 
@@ -257,9 +284,6 @@ void *chewing_init_context(void *arg) {
   /* chewing_new will do fopen/fread so we must call it inside a dedicated
    * thread. */
   ChewingContext *ctx = chewing_new();
-
-  // Set keyboard type
-  chewing_set_KBType(ctx, chewing_KBStr2Num((char*)"KB_DEFAULT"));
 
   chewing_set_maxChiSymbolLen(ctx, 16);
   chewing_set_addPhraseDirection(ctx, 1);
