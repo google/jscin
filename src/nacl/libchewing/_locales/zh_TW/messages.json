@@ -4,6 +4,30 @@
   "manifestDesc": { "message":
     "給 JsCIN 使用的新酷音中文輸入法模組" },
 
+  "KB_DEFAULT": { "message":
+    "預設(大千)鍵盤" },
+  "KB_HSU": { "message":
+    "許式鍵盤" },
+  "KB_IBM": { "message":
+    "IBM鍵盤" },
+  "KB_GIN_YIEH": { "message":
+    "精業鍵盤" },
+  "KB_ET": { "message":
+    "倚天41鍵" },
+  "KB_ET26": { "message":
+    "倚天26鍵" },
+  "KB_DVORAK": { "message":
+    "DVORAK 排列預設(大千)鍵盤" },
+  "KB_DVORAK_HSU": { "message":
+    "DVORAK 排列許式注音" },
+  "KB_DACHEN_CP26": { "message":
+    "大千26鍵" },
+  "KB_HANYU_PINYIN": { "message":
+    "漢語拼音" },
+  "KB_THL_PINYIN": { "message":
+    "台灣華語羅馬拼音" },
+  "KB_MPS2_PINYIN": { "message":
+    "注音二式" },
 
   "dummy": {"message": "" }
 }
