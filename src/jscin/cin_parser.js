@@ -93,6 +93,10 @@ function parseCin(cin_input) {
                     ' missing');
   }
 
+  // Detect modules (for backward compatibility).
+  if (!data.MODULE && data.EXTENSION_ID)
+    data.MODULE = 'CrExtInp';
+
   var parsed_data = {
     metadata: {
       ename: data.ename,
