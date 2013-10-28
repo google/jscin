@@ -737,7 +737,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   ime_api = self.ime_api;
 
   ime_api.onActivate.addListener(function(engineID) {
-    self.log('onActivate: croscin started.');
+    self.log('onActivate: croscin started.', engineID);
     self.engineID = engineID;
     self.InitializeUI();
     // We should activate IME here, but in order to speed up we did
@@ -746,6 +746,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
   });
 
   ime_api.onDeactivated.addListener(function(engineID) {
+    self.log('onDeactivated: croscin stopped.');
     self.context = null;
   });
 
