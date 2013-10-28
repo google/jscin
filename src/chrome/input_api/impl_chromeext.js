@@ -179,9 +179,12 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
     var offset = { left: 0, 'top': 0};
     while (node) {
       offset.left += node.offsetLeft;
-      offset['top'] += node.offsetTop;
+      offset.top += node.offsetTop;
       node = node.offsetParent;
     }
+    var doc = document.documentElement;
+    var scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+    offset.top -= scroll;
     return offset;
   }
 
