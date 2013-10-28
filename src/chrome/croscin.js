@@ -783,8 +783,10 @@ croscin.IME.prototype.registerEventHandlers = function() {
 
   ime_api.onReset.addListener(function (engineID) {
     self.log("croscin.onReset", engineID);
-    if (self.im)
+    if (self.im) {
       self.im.reset(self.imctx);
+      self.UpdateUI();
+    }
   });
 
   ime_api.onInputContextUpdate.addListener(function(context) {
