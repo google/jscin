@@ -559,8 +559,12 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
 
     this.ProcessKeystroke = function(ctx, ev) {
       trace(ev);
-      if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey)
+      if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey) {
         return ResultIgnored(ctx);
+      } else if (ev.key == 'Ctrl' || ev.key == 'Alt') {
+        // when ctrl/alt is pressed, the ctrlKey / altKey are not true yet.
+        return ResultIgnored(ctx);
+      }
 
       switch (ctx.state) {
         case this.STATE_COMPOSITION:
