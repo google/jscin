@@ -23,6 +23,7 @@
     "cname": "簡易倉頡",
     "options": {
       "max_keystroke": 2,
+      "AUTO_COMPOSE": false,
       "AUTO_FULLUP": true
     },
     "detect": { "ab": "晴" }

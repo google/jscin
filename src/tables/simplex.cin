@@ -3,6 +3,8 @@
 %cname 簡易倉頡
 %selkey 123456789
 %space_style 2
+%AUTO_COMPOSE false
+%max_keystroke 2
 %keyname begin
 a 日
 b 月

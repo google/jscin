@@ -49,6 +49,7 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
     var opts_remap = {
       SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
+      AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
       AUTO_FULLUP: 'OPT_COMMIT_ON_FULL'
     };
 
