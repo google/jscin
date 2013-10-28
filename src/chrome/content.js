@@ -38,8 +38,9 @@ function init () {
   var impl = new ChromeInputImeImplChromeExtension('content');
   impl.debug("Extension IME installed.");
   impl.init(CreateImeFrame);
+  return impl;
 }
 
 // For content.js we can't wait for readystatechange - that is controlled by
 // manifest:run_at.
-init();
+var impl = init();
