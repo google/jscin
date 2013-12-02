@@ -196,8 +196,9 @@ jscin.register_module('GenInp2', jscin.extend_input_method({
 
     function UpdateCandidates(ctx) {
       // Compatible with gen_inp.
-      ctx.mcch = ctx.candidates.substr(
-          ctx.candidates_start_index, self.selkey.length);
+      ctx.mcch = ctx.candidates.slice(
+          ctx.candidates_start_index,
+          ctx.candidates_start_index + self.selkey.length);
     }
 
     function UpdateComposition(ctx) {

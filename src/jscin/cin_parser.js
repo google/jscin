@@ -68,9 +68,16 @@ function parseCin(cin_input) {
         var key = m[1];
         // TODO(hungte) Don't convert if %keep_key_case is found.
         key = key.toLowerCase();
-        if (data[cmd][key] == undefined)
-          data[cmd][key] = '';
-        data[cmd][key] += m[2];
+        if (data['PHRASE_CHARDEF']) {
+          if (data[cmd][key] == undefined)
+            data[cmd][key] = [];
+          data[cmd][key].push(m[2]);
+        } else {
+          // Truncate all.
+          if (data[cmd][key] == undefined)
+            data[cmd][key] = '';
+          data[cmd][key] += m[2];
+        }
       } else {
         // bad line, just ignore
       }
