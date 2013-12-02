@@ -8,7 +8,6 @@
 
 var ChromeInputImeImplChromeExtension = function (type) {
   var self = this;
-  self.ime_api = chrome.input.ime;
   self.engineID = "chrome_input_ime#impl#chromeext";
 
   self._debug = false;
@@ -40,6 +39,7 @@ var ChromeInputImeImplChromeExtension = function (type) {
 ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
   var self = this;
   self.attach = function () { };
+  self.ime_api = chrome.input.ime;
 
   var ime_api = self.ime_api;
   var ipc = new ImeEvent.ImeExtensionIPC('background');
