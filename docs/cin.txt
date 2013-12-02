@@ -1,0 +1,106 @@
+CIN 檔案格式說明
+
+JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入了不少與 GCIN 相容
+的指令。指令一律以 % 開頭。註解以 # 開頭。XCIN/GCIN 的命令全為小寫。JsCIN 自創
+的命令(部份來自於 XCIN2.5 的使用者設定檔) 一律為大寫，如 %AUTO_COMPOSE。
+
+另外還有表格形式的命令較特殊，語法是:
+%command begin
+... (內容)
+%command end
+
+-----------------------------------------------------------------------------
+必要的指令
+
+%ename
+  輸入法的英文名字，同時會用於內部名稱。
+
+%cname
+  輸入法的中文名字，用於顯示。
+
+%selkey
+  可用來選字的按鍵。
+
+%keyname begin
+<KEY> <VALUE>
+%keyname end
+  按鍵在組字前顯示的內容。KEY 是實際的按鍵，VALUE 是顯示的字串。
+
+%chardef begin
+<KEYS> <VALUE>
+%chardef end
+  組字規則。KEYS 是實際的按鍵，而 VALUE 是轉換後的輸出字串。
+  同樣的 KEYS 可以出現多次，其對應的每個 VALUE 都會進入候選字列表。
+  注意若 VALUE 有多個字，預設情形下會被拆開視為多個候選字。
+  若想要建立有詞類的輸入法表，則要在 %chardef 之前加入 %PHRASE_CHARDEF 命令。
+
+-----------------------------------------------------------------------------
+次要的指令
+
+%gen_inp
+  指定使用傳統 "General Input" 輸入法模組。由於 XCIN 與 GCIN 幾乎沒有其它標準
+  模組，此指令常被省略；在 JsCIN 中有其它模組但用來指定的命令為 %MODULE。
+  另外，JsCIN 目前有兩組 gen_inp 的實作，gen_inp 與 gen_inp2，可在選項中調整。
+
+%endkey
+  同時是選字又同時是組字的鍵，常見於大千(標準)排列的注音輸入法的聲調鍵。
+
+%quick begin
+<KEY> <VALUE>
+%quick end
+  自行指定預列候選字的列表。主要用於行列30的一級與二級簡碼。
+  JsCIN 同時支援 XCIN2.3 的指令名「quickkey」。
+
+-----------------------------------------------------------------------------
+來自 GCIN 的指令
+
+%space_style
+  指定空白鍵的行為模式。相關說明請見 GCIN 文件。
+
+-----------------------------------------------------------------------------
+來自 XCIN 2.5 選項 (xcinrc) 的指令
+
+%AUTO_COMPOSE
+  在組字完成前就自動列出符合的候選字。
+
+%AUTO_FULLUP
+  輸入最大鍵數時自動上字。
+
+%SPACE_AUTOUP
+  空白鍵自動上字。
+
+%SPACE_RESET
+  空白鍵自動清除錯誤輸入 (GenInp2 目前不支援)。
+
+%SELKEY_SHIFT
+  第一個候選字用空白選（用於嘸蝦米與大易）
+
+%DISABLE_SEL_LIST
+  XCIN2.5 對行列30的 Dirty workaround。
+
+%KEYSTROKE_REMAP
+  XCIN2.5 對行列30的 Dirty workaround。
+
+-----------------------------------------------------------------------------
+JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
+
+%MODULE
+  指定輸入法模組 (非 gen_inp)。目前唯一支援的是 Crome Extension "CrExtInp"。
+
+%KEYGROUPS begin
+<ORDER> <KEYS>
+%KEYGROUPS end
+  分類按鍵成幾個群組。主要應用是注音的聲母、韻母等，讓按鍵在不按順序輸入時
+  能依分類自動重新組合。
+
+%ACCEPTED_KEYS begin
+<CONDITION> <KEYS>
+%ACCEPTED_KEYS end
+  用來指定輸入法是否會處理各按鍵 (不處理的會丟回上層系統)。
+  CONDITION 可指定 * (全部), lcch, mcch, keystroke。
+  KEYS 指定在該 CONDITION 時此輸入法會處理哪些按鍵。
+  若要指定特別按鍵如 "Tab" 則 CONDITION 後要加逗號且每個 KEYS 要同樣用逗號隔開，
+  如 lcch, Tab,Esc,a,b
+
+%PHRASE_CHARDEF
+  改變 %chardef 的預設行為，允許詞類輸入。
