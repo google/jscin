@@ -12,13 +12,13 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 -----------------------------------------------------------------------------
 必要的指令
 
-%ename
+%ename <NAME>
   輸入法的英文名字，同時會用於內部名稱。
 
-%cname
+%cname <NAME>
   輸入法的中文名字，用於顯示。
 
-%selkey
+%selkey <KEYS>
   可用來選字的按鍵。
 
 %keyname begin
@@ -42,8 +42,9 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   模組，此指令常被省略；在 JsCIN 中有其它模組但用來指定的命令為 %MODULE。
   另外，JsCIN 目前有兩組 gen_inp 的實作，gen_inp 與 gen_inp2，可在選項中調整。
 
-%endkey
-  同時是選字又同時是組字的鍵，常見於大千(標準)排列的注音輸入法的聲調鍵。
+%endkey <KEYS>
+  立刻開始組字的鍵（相當於加入該鍵後立刻按空白）。
+  常見於大千(標準)排列的注音輸入法的聲調鍵。
 
 %quick begin
 <KEY> <VALUE>
@@ -54,7 +55,7 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 -----------------------------------------------------------------------------
 來自 GCIN 的指令
 
-%space_style
+%space_style <STYLE>
   指定空白鍵的行為模式。相關說明請見 GCIN 文件。
 
 -----------------------------------------------------------------------------
@@ -75,17 +76,19 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 %SELKEY_SHIFT
   第一個候選字用空白選（用於嘸蝦米與大易）
 
-%DISABLE_SEL_LIST
-  XCIN2.5 對行列30的 Dirty workaround。
+%DISABLE_SEL_LIST <KEYS>
+  XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround。
 
-%KEYSTROKE_REMAP
-  XCIN2.5 對行列30的 Dirty workaround。
+%KEYSTROKE_REMAP begin
+<KEY> <VALUE>
+%KEYSTROKE_REMAP end
+  XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround。
+
+%MODULE <NAME>
+  指定輸入法模組。目前 JsCIN 唯一支援的是 Crome Extension "CrExtInp"。
 
 -----------------------------------------------------------------------------
 JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
-
-%MODULE
-  指定輸入法模組 (非 gen_inp)。目前唯一支援的是 Crome Extension "CrExtInp"。
 
 %KEYGROUPS begin
 <ORDER> <KEYS>
