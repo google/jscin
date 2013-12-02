@@ -178,6 +178,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
   function GetAbsoluteOffset(node) {
     var offset = { left: 0, 'top': 0};
     while (node) {
+      // TODO(hungte) Handle if the node is inside a scrolled element.
       offset.left += node.offsetLeft;
       offset.top += node.offsetTop;
       node = node.offsetParent;
@@ -383,8 +384,10 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
   }
 
   self.attachFrame = function (node) {
-    var offset = GetAbsoluteOffset(node);
-    // TODO(hungte) Remove jquery -- although height() is hard to replace.
+    // TODO(hungte) Make a better GetAbsoluteOffset that can deal with scroll
+    // inside elements, and a better height() so we can get rid of jQuery...
+    // Remember to try "reply in gmail long thread".
+    var offset = $(node).offset(); // GetAbsoluteOffset(node);
     var node_height = $(node).height();
     offset.node_height = node_height;
     self.moveFrame(offset);
@@ -410,6 +413,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
     if (IsChildFrame()) {
       var doc = document.documentElement;
       var scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+      self.debug("moveFrame - internal - ", offset, " scroll: ", scroll);
       offset.top -= scroll;
       return SendFrameMessage(window.parent, 'move', offset);
     }
@@ -428,7 +432,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
       offset.left = getPageWidth() - min_width;
     else
       offset.left += 5;
-    self.debug("moveFrame, page wXH:", getPageWidth(), getPageHeight(),
+    self.debug("moveFrame, page WxH:", getPageWidth(), getPageHeight(),
                ", final:", offset);
 
     self.frame.css(offset);
