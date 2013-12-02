@@ -182,9 +182,6 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
       offset.top += node.offsetTop;
       node = node.offsetParent;
     }
-    var doc = document.documentElement;
-    var scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
-    offset.top -= scroll;
     return offset;
   }
 
@@ -410,8 +407,12 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
   }
 
   self.moveFrame = function (offset) {
-    if (IsChildFrame())
+    if (IsChildFrame()) {
+      var doc = document.documentElement;
+      var scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+      offset.top -= scroll;
       return SendFrameMessage(window.parent, 'move', offset);
+    }
 
     self.debug("moveFrame, orig:", offset);
 
