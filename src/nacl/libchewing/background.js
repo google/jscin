@@ -16,6 +16,8 @@ var kNaclContextPrefix = "context:";
 var kMetadataURL = "jscin.ext/im.json";
 var kPrefKeyboardLayout = "chewingKeyboardLayout";
 
+var kReleaseExtensionId = 'dahmmcmnhjgjdappbbmaiempnpmfbdbm';
+
 var currentLayout = localStorage[kPrefKeyboardLayout] || "KB_DEFAULT";
 
 function SetKeyboardLayout(layout) {
@@ -72,6 +74,11 @@ document.addEventListener( 'readystatechange', function() {
 
   // Register my metadata.
   var ime_id = jscin.external.register(chrome.extension.getURL(kMetadataURL));
+
+  if (chrome.runtime.id != kReleaseExtensionId) {
+    warn('Running a debug build? You can override JsCIN host by ' +
+         'localStorage["jscin.external.id_ime"] = "XXX" .....');
+  }
 
   // TODO(hungte) We should also send id as part of the message.
   // TODO(hungte) Check if ime_id is invalid (no IME host found).
