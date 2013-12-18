@@ -3,9 +3,13 @@ A sample NaCl based input module for jscin - using libchewing.
 To build this:
 
   1. Create a "libchewing" subfolder and fetch libchewing source code in it.
+     Currently verified version: 4afc90b05df6b3cfb0db3db287a81cff978d334c
   2. Enter libchewing, ./configure && make
   3. Get your Native Client SDK ready, and set NACL_SDK_ROOT properly.
-  4. make
+     Currently verified SDK version is pepper_31.
+  4. (optional) Install Nacl Ports https://code.google.com/p/naclports/
+     and run "./make_all.sh sqlite" inside Nacl Ports folder.
+  5. make
 
 To test:
   1. $NACL_SDK_ROOT/tools/httpd.py --no_dir_check &

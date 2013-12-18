@@ -15,9 +15,12 @@
 #include <string.h>
 #include <math.h>
 
-#include <pthread.h>  // for nacl_io
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
+#include <sys/mount.h>
+
+#include <pthread.h>  // for nacl_io
 
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
@@ -32,8 +35,10 @@ using std::string;
 
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 
-extern "C" size_t getpagesize() {
-  return sysconf(_SC_PAGESIZE);
+// Simple a stub until lichewing has fixed this function.
+CHEWING_API const char *chewing_aux_String_static( ChewingContext *ctx )
+{
+  return ctx->data->showMsg;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -66,6 +71,9 @@ ChewingKeyMapping special_key_mappings[] = {
 
 void *chewing_init_context(void *arg);
 
+#define USER_DATA_DIR "/home"
+#define DATA_DIR      "/data"
+
 class ChewingInstance: public pp::Instance {
  protected:
   const string kMsgDebugPrefix;
@@ -80,25 +88,32 @@ class ChewingInstance: public pp::Instance {
       kMsgDebugPrefix("debug:"), kMsgContextPrefix("context:"),
       kMsgKeyPrefix("key:"), kMsgLayoutPrefix("layout:"), ctx(NULL) {
 
-    const char *data_dir = "/data", *user_data_dir = "/user_data";
     nacl_io_init_ppapi(instance, pp::Module::Get()->get_browser_interface());
-    if (mount("libchewing/data", data_dir, "httpfs", 0, "") != 0) {
+
+    if (mount("libchewing/data", DATA_DIR, "httpfs", 0, "") != 0) {
       PostMessage(pp::Var("can't mount data"));
       return;
     }
-    // TODO(hungte) change memfs to html5fs.
-    if (mount("", user_data_dir, "html5fs", 0,
+
+    // TODO(hungte) Change memfs to html5fs once we've figured out why it does
+    // not work.
+    if (mount("", USER_DATA_DIR, "memfs", 0,
               "type=PERSISTENT,expected_size=1048576") != 0) {
       PostMessage(pp::Var("can't mount user data"));
       return;
     }
+
     // Note chewing library does not really take path on its Init...
     // So we always need to do putenv.
-    char chewing_path[] = "CHEWING_PATH=/data";
-    char chewing_user_path[] = "CHEWING_USER_PATH=/user_data";
-    putenv(chewing_path);
-    putenv(chewing_user_path);
-    chewing_Init(data_dir, ".");
+    setenv("CHEWING_PATH", DATA_DIR, 1);
+    setenv("CHEWING_USER_PATH", USER_DATA_DIR, 1);
+
+    // Blank out USER, LOGNAME and set HOME so sqlite won't go crazy.
+    setenv("HOME", USER_DATA_DIR, 1);
+    setenv("USER", "", 1);
+    setenv("LOGNAME", "", 1);
+    chewing_Init(DATA_DIR, USER_DATA_DIR);
+
     pthread_t main_thread;
     pthread_create(&main_thread, NULL, chewing_init_context, (void*)this);
   }
@@ -115,21 +130,22 @@ class ChewingInstance: public pp::Instance {
   }
 
   virtual void AppendChewingBuffer(Json::Value &array, int from, int to) {
+    /* TODO(hungte) Use chewing_buffer_String_static(ctx) in future.
+     * Currently that does not allow us fetching particular characters inside
+     * buffer.
+     */
     char *text = (char*)calloc(to - from + 1, MAX_UTF8_SIZE);
     for (int i = from; i < to; i++) {
-      strcat(text, (char *)ctx->output->chiSymbolBuf[i].s);
+      strcat(text, (char *)ctx->data->preeditBuf[i].char_);
     }
     array.append(Json::Value(text));
     free(text);
   }
 
   virtual void ReturnContext() {
-    char *s;
+    const char *s;
     Json::FastWriter writer;
     Json::Value value(Json::objectValue);
-
-    // TODO(hungte) Probably just access context internal buffer so we don't
-    // need to waste time doing calloc/free... reading ChewingOutput directly.
 
     // chewing_cand_CheckDone does not do what we expect...
     if (chewing_cand_TotalChoice(ctx) > 0) {
@@ -137,9 +153,8 @@ class ChewingInstance: public pp::Instance {
       Json::Value cand = Json::Value(Json::arrayValue);
       int i, len = chewing_cand_ChoicePerPage(ctx);
       for (i = 0; i < len && chewing_cand_hasNext(ctx); i++) {
-        s = chewing_cand_String(ctx);
+        s = chewing_cand_String_static(ctx);
         cand.append(Json::Value(s));
-        chewing_free(s);
       }
       value["cand"] = cand;
       value["cand_ChoicePerPage"] = Json::Value(len);
@@ -148,9 +163,7 @@ class ChewingInstance: public pp::Instance {
     }
 
     if (chewing_buffer_Check(ctx)) {
-      s = chewing_buffer_String(ctx);
-      value["buffer"] = Json::Value(s);
-      chewing_free(s);
+      value["buffer"] = Json::Value(chewing_buffer_String_static(ctx));
     }
 
     {
@@ -159,7 +172,7 @@ class ChewingInstance: public pp::Instance {
       Json::Value lcch = Json::Value(Json::arrayValue);
       chewing_interval_Enumerate(ctx);
       int start = 0, end = chewing_buffer_Len(ctx);
-      // TODO(hungte) It is possible to have groups without buffer.
+      // Note It is possible to have groups without buffer.
       // i.e., lcch>0, intervals=0
       while (chewing_interval_hasNext(ctx)) {
         chewing_interval_Get(ctx, &it);
@@ -181,30 +194,15 @@ class ChewingInstance: public pp::Instance {
         value["lcch"] = lcch;
     }
 
-    // TODO(hungte) Remove the "#if 0" after v0.3.6 is released.
-#if 0
     if (chewing_bopomofo_Check(ctx)) {
-      s = chewing_bopomofo_String(ctx);
-      value["bopomofo"] = Json::Value(s);
-      chewing_free(s);
+      value["bopomofo"] = Json::Value(chewing_bopomofo_String_static(ctx));
     }
-#else
-    if (!chewing_zuin_Check(ctx)) {
-      s = chewing_zuin_String(ctx, NULL);
-      value["bopomofo"] = Json::Value(s);
-      chewing_free(s);
-    }
-#endif
 
     if (chewing_aux_Check(ctx)) {
-      s = chewing_aux_String(ctx);
-      value["aux"] = Json::Value(s);
-      chewing_free(s);
+      value["aux"] = Json::Value(chewing_aux_String_static(ctx));
     }
     if (chewing_commit_Check(ctx)) {
-      s = chewing_commit_String(ctx);
-      value["commit"] = Json::Value(s);
-      chewing_free(s);
+      value["commit"] = Json::Value(chewing_commit_String_static(ctx));
     }
     value["cursor"] = Json::Value(chewing_cursor_Current(ctx));
     if (chewing_keystroke_CheckIgnore(ctx))
@@ -281,19 +279,64 @@ class ChewingInstance: public pp::Instance {
   }
 };
 
-void *chewing_init_context(void *arg) {
-  int selkeys[MAX_SELKEY] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
+#ifdef DEBUG
 
+#define CHEWING_LOG_PREFIX  "[chewing] "
+extern "C" void chewingLogger(void *data, int level, const char *fmt, ... ) {
+  static char buf[256] = CHEWING_LOG_PREFIX;
+  va_list ap;
+  ChewingInstance *instance = (ChewingInstance *)data;
+
+  va_start(ap, fmt);
+  vsnprintf(buf + sizeof(CHEWING_LOG_PREFIX) - 1,
+            sizeof(buf) - sizeof(CHEWING_LOG_PREFIX), fmt, ap);
+  va_end(ap);
+  instance->Debug(buf);
+}
+
+static void testUserDir(ChewingInstance *instance) {
+  int fd = open(USER_DATA_DIR "/test.b", O_CREAT | O_WRONLY, 0777);
+  if (fd < 0) {
+    instance->Debug("Failed to create file inside USER_DATA_DIR");
+  }
+  else if (write(fd, "test", 4) != 4) {
+    instance->Debug("Failed to write content into test.b");
+  }
+  else if (close(fd) != 0) {
+    instance->Debug("Failed to close test.b");
+  }
+  if (mkdir(USER_DATA_DIR "/blah.db", 0777) != 0) {
+    instance->Debug("Failed to create USER_DATA_DIR/blah.db");
+  }
+}
+#endif
+
+void *chewing_init_context(void *arg) {
+  // TODO(hungte) Rewrite by PPAPI_SIMPLE_REGISTER_MAIN.
   ChewingInstance *instance = (ChewingInstance*)arg;
+
+#ifdef DEBUG
+  testUserDir(instance);
+#endif
+
   /* chewing_new will do fopen/fread so we must call it inside a dedicated
    * thread. */
   ChewingContext *ctx = chewing_new();
+  if (!ctx) {
+    instance->Debug("ERROR: Failed to create chewing context.\n");
+    return NULL;
+  }
 
-  chewing_set_maxChiSymbolLen(ctx, 16);
+#ifdef DEBUG
+  chewing_set_logger(ctx, chewingLogger, instance);
+#endif
+
+  chewing_set_maxChiSymbolLen(ctx, 32);
   chewing_set_addPhraseDirection(ctx, 1);
   chewing_set_spaceAsSelection(ctx, 1);
   // chewing_set_selKey does not really take the len arg and takes a hard-coded
   // value for memcpy size. How amazing!
+  int selkeys[MAX_SELKEY] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
   int nSelKeys = ARRAYSIZE(selkeys);
   assert(nSelKeys >= MAX_SELKEY);
   chewing_set_selKey(ctx, selkeys, nSelKeys);

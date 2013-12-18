@@ -8,11 +8,18 @@
 VALID_TOOLCHAINS := newlib
 #glibc newlib pnacl
 
+CONFIG ?= Debug
+
 # Redefine this to your libchewing source home.
 # Also create "data" symlink folder to point into the data in libchewing.
 LIBCHEWING_HOME ?= libchewing
 LIBCHEWING_URL ?= https://github.com/chewing/libchewing.git
-LIBCHEWING_BRANCH ?= -b v0.3.5
+LIBCHEWING_BRANCH ?=
+
+# The user data (via sqlite) is currently broken due to nacl_io html5fs issue.
+# Before that is fixed, we want to fake the library.
+LIBCHEWING_USERDATA ?= 0
+LIBCHEWING_SQLITE ?= 0
 
 NACL_SDK_ROOT ?= $(abspath $(CURDIR)/../../../../nacl_sdk)
 include $(NACL_SDK_ROOT)/tools/common.mk
@@ -22,16 +29,15 @@ CFLAGS += -I$(LIBCHEWING_HOME)/include -I$(LIBCHEWING_HOME)/include/internal
 
 TARGET = chewing
 LIBS = $(DEPS) ppapi_cpp ppapi nacl_io pthread jsoncpp
+
 SOURCES = \
 	$(LIBCHEWING_HOME)/src/chewingio.c \
 	$(LIBCHEWING_HOME)/src/chewingutil.c \
 	$(LIBCHEWING_HOME)/src/choice.c \
 	$(LIBCHEWING_HOME)/src/dict.c \
-	$(LIBCHEWING_HOME)/src/hash.c \
 	$(LIBCHEWING_HOME)/src/mod_aux.c \
 	$(LIBCHEWING_HOME)/src/pinyin.c \
 	$(LIBCHEWING_HOME)/src/tree.c \
-	$(LIBCHEWING_HOME)/src/userphrase.c \
 	$(LIBCHEWING_HOME)/src/zuin.c \
 	$(LIBCHEWING_HOME)/src/common/chewing-utf8-util.c \
 	$(LIBCHEWING_HOME)/src/common/key2pho.c \
@@ -39,8 +45,28 @@ SOURCES = \
 	$(LIBCHEWING_HOME)/src/porting_layer/src/plat_path.c \
 	nacl.cc
 
-ifeq ($(LIBCHEWING_BRANCH),-b v0.3.5)
-	SOURCES += $(LIBCHEWING_HOME)/src/char.c
+ifeq ($(LIBCHEWING_USERDATA), 1)
+
+SOURCES += $(LIBCHEWING_HOME)/src/chewing-sql.c
+SOURCES += $(LIBCHEWING_HOME)/src/userphrase.c
+
+ifeq ($(LIBCHEWING_SQLITE), 1)
+SOURCES += $(LIBCHEWING_HOME)/thirdparty/sqlite-amalgamation/sqlite3.c
+CFLAGS += -I$(LIBCHEWING_HOME)/thirdparty/sqlite-amalgamation
+CFLAGS += -D_HAVE_SQLITE_CONFIG_H
+else   # LIBCHEWING_SQLITE
+LIBS += sqlite3
+endif  # LIBCHEWING_SQLITE
+
+else   # LIBCHEWING_USERDATA
+SOURCES += fake-chewing-sql.c fake-userphrase.c
+endif  # LIBCHEWING_USERDATA
+
+ifneq ($(CONFIG),Release)
+CFLAGS+=-DDEBUG
+else
+# Unfortunately chewing is not ready for -Wall.
+# CFLAGS+=-Wall
 endif
 
 $(LIBCHEWING_HOME):
