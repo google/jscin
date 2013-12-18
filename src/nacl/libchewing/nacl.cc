@@ -248,7 +248,13 @@ class ChewingInstance: public pp::Instance {
     // TODO(hungte) Remove the (char*) when chewing_KBStr2Num has changed to
     // const char *.
     chewing_set_KBType(ctx, chewing_KBStr2Num((char*)layout.c_str()));
-    Json::Value v(chewing_get_KBString(ctx));
+    /* TODO(hungte) Change this to:
+     *  (1) enumerate and cache chewing_kbtype_string_staci list
+     *  (2) lookup chewing_get_KBType
+     */
+    char *s = chewing_get_KBString(ctx);
+    Json::Value v(s);
+    chewing_free(s);
     ReturnLayout(v);
   }
 
