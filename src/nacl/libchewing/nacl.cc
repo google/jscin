@@ -35,12 +35,6 @@ using std::string;
 
 #define ARRAYSIZE(x) (sizeof(x)/sizeof(x[0]))
 
-// Simple a stub until lichewing has fixed this function.
-CHEWING_API const char *chewing_aux_String_static( ChewingContext *ctx )
-{
-  return ctx->data->showMsg;
-}
-
 ////////////////////////////////////////////////////////////////////////
 // Module Initialization.
 ////////////////////////////////////////////////////////////////////////
