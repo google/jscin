@@ -163,7 +163,6 @@ class ChewingInstance: public pp::Instance {
     {
       IntervalType it;
       Json::Value intervals = Json::Value(Json::arrayValue);
-      Json::Value lcch = Json::Value(Json::arrayValue);
       chewing_interval_Enumerate(ctx);
       int start = 0, end = chewing_buffer_Len(ctx);
       // Note It is possible to have groups without buffer.
@@ -174,18 +173,10 @@ class ChewingInstance: public pp::Instance {
         itv["from"] = Json::Value(it.from);
         itv["to"] = Json::Value(it.to);
         intervals.append(itv);
-
-        if (start != it.from)
-          AppendChewingBuffer(lcch, start, it.from);
-        AppendChewingBuffer(lcch, it.from, it.to);
         start = it.to;
       }
-      if (start < end)
-        AppendChewingBuffer(lcch, start, end);
       if (intervals.size() > 0)
         value["interval"] = intervals;
-      if (lcch.size() > 0)
-        value["lcch"] = lcch;
     }
 
     if (chewing_bopomofo_Check(ctx)) {

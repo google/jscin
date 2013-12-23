@@ -50,6 +50,27 @@ document.addEventListener( 'readystatechange', function() {
     return kNaclKeyPrefix + key;
   }
 
+  function BuildLcch(ctx) {
+    // ctx.buffer is the raw buffer, and ctx.interval[] contains information
+    // ([from, to]) for segments. Note it is possible to have groups without
+    // buffer, ex punctuations.
+    if (!ctx.buffer)
+      return ctx;
+    var start = 0, end = ctx.buffer.length;
+    var lcch = [];
+    for (var k in ctx.interval) {
+      var i = ctx.interval[k];
+      if (start != i.from)
+        lcch.push(ctx.buffer.substring (start, i.from));
+      lcch.push(ctx.buffer.substring(i.from, i.to));
+      start = i.to;
+    }
+    if (start != end)
+      lcch.push(ctx.buffer.substring(start, end));
+    ctx.lcch = lcch;
+    return ctx;
+  }
+
   function HandleNaclResponse(resp) {
     if (resp.indexOf(kNaclDebugPrefix) == 0) {
       debug(resp.substr(kNaclDebugPrefix.length));
@@ -63,6 +84,7 @@ document.addEventListener( 'readystatechange', function() {
     }
     if (resp.indexOf(kNaclContextPrefix) == 0) {
       var ctx = JSON.parse(resp.substr(kNaclContextPrefix.length));
+      ctx = BuildLcch(ctx);
       debug("send Jscin IM response for", ctx);
       jscin.external.send_keystroke_response(true, ctx);
       return;
