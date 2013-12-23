@@ -123,19 +123,6 @@ class ChewingInstance: public pp::Instance {
         detail.empty() ? ", " : "") + detail));
   }
 
-  virtual void AppendChewingBuffer(Json::Value &array, int from, int to) {
-    /* TODO(hungte) Use chewing_buffer_String_static(ctx) in future.
-     * Currently that does not allow us fetching particular characters inside
-     * buffer.
-     */
-    char *text = (char*)calloc(to - from + 1, MAX_UTF8_SIZE);
-    for (int i = from; i < to; i++) {
-      strcat(text, (char *)ctx->data->preeditBuf[i].char_);
-    }
-    array.append(Json::Value(text));
-    free(text);
-  }
-
   virtual void ReturnContext() {
     const char *s;
     Json::FastWriter writer;
@@ -158,49 +145,42 @@ class ChewingInstance: public pp::Instance {
 
     if (chewing_buffer_Check(ctx)) {
       value["buffer"] = Json::Value(chewing_buffer_String_static(ctx));
-    }
 
-    {
       IntervalType it;
       Json::Value intervals = Json::Value(Json::arrayValue);
       chewing_interval_Enumerate(ctx);
-      int start = 0, end = chewing_buffer_Len(ctx);
-      // Note It is possible to have groups without buffer.
-      // i.e., lcch>0, intervals=0
+
       while (chewing_interval_hasNext(ctx)) {
         chewing_interval_Get(ctx, &it);
         Json::Value itv = Json::Value(Json::objectValue);
         itv["from"] = Json::Value(it.from);
         itv["to"] = Json::Value(it.to);
         intervals.append(itv);
-        start = it.to;
       }
       if (intervals.size() > 0)
         value["interval"] = intervals;
     }
 
-    if (chewing_bopomofo_Check(ctx)) {
+    if (chewing_bopomofo_Check(ctx))
       value["bopomofo"] = Json::Value(chewing_bopomofo_String_static(ctx));
-    }
-
-    if (chewing_aux_Check(ctx)) {
+    if (chewing_aux_Check(ctx))
       value["aux"] = Json::Value(chewing_aux_String_static(ctx));
-    }
-    if (chewing_commit_Check(ctx)) {
+    if (chewing_commit_Check(ctx))
       value["commit"] = Json::Value(chewing_commit_String_static(ctx));
-    }
-    value["cursor"] = Json::Value(chewing_cursor_Current(ctx));
+
     if (chewing_keystroke_CheckIgnore(ctx))
       value["ignore"] = Json::Value(true);
     if (chewing_keystroke_CheckAbsorb(ctx))
       value["absorb"] = Json::Value(true);
+
+    value["cursor"] = Json::Value(chewing_cursor_Current(ctx));
 
     // XCIN compatible fields
     value["keystroke"] = value["bopomofo"];
     value["mcch"] = value["cand"];
     value["cch"] = value["commit"];
     value["edit_pos"] = value["cursor"];
-    // lcch should be already handled when building interval.
+    // lcch must be post-processed later, by buffer and interval.
 
     PostMessage(pp::Var(kMsgContextPrefix + writer.write(value)));
   }
