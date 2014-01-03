@@ -97,15 +97,13 @@ class ChewingInstance: public pp::Instance {
       return;
     }
 
-    // Note chewing library does not really take path on its Init...
-    // So we always need to do putenv.
-    setenv("CHEWING_PATH", DATA_DIR, 1);
-    setenv("CHEWING_USER_PATH", USER_DATA_DIR, 1);
-
     // Blank out USER, LOGNAME and set HOME so sqlite won't go crazy.
     setenv("HOME", USER_DATA_DIR, 1);
     setenv("USER", "", 1);
     setenv("LOGNAME", "", 1);
+
+    // Note currently chewing_Init does not do anything. DATA_DIR and
+    // USER_DATA_DIR must be specified again in chewing_new2.
     chewing_Init(DATA_DIR, USER_DATA_DIR);
 
     pthread_t main_thread;
@@ -244,8 +242,6 @@ class ChewingInstance: public pp::Instance {
   }
 };
 
-#ifdef DEBUG
-
 #define CHEWING_LOG_PREFIX  "[chewing] "
 extern "C" void chewingLogger(void *data, int level, const char *fmt, ... ) {
   static char buf[256] = CHEWING_LOG_PREFIX;
@@ -258,6 +254,12 @@ extern "C" void chewingLogger(void *data, int level, const char *fmt, ... ) {
   va_end(ap);
   instance->Debug(buf);
 }
+
+extern "C" void chewingNullLogger(void *data, int level, const char *fmt, ... )
+{
+}
+
+#ifdef DEBUG
 
 static void testUserDir(ChewingInstance *instance) {
   int fd = open(USER_DATA_DIR "/test.b", O_CREAT | O_WRONLY, 0777);
@@ -274,6 +276,7 @@ static void testUserDir(ChewingInstance *instance) {
     instance->Debug("Failed to create USER_DATA_DIR/blah.db");
   }
 }
+
 #endif
 
 void *chewing_init_context(void *arg) {
@@ -286,15 +289,17 @@ void *chewing_init_context(void *arg) {
 
   /* chewing_new will do fopen/fread so we must call it inside a dedicated
    * thread. */
-  ChewingContext *ctx = chewing_new();
+  ChewingContext *ctx = chewing_new2(DATA_DIR, USER_DATA_DIR,
+#ifdef DEBUG
+                                     chewingLogger,
+#else
+                                     chewingNullLogger,
+#endif
+                                     instance);
   if (!ctx) {
     instance->Debug("ERROR: Failed to create chewing context.\n");
     return NULL;
   }
-
-#ifdef DEBUG
-  chewing_set_logger(ctx, chewingLogger, instance);
-#endif
 
   chewing_set_maxChiSymbolLen(ctx, 32);
   chewing_set_addPhraseDirection(ctx, 1);

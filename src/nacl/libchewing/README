@@ -3,7 +3,7 @@ A sample NaCl based input module for jscin - using libchewing.
 To build this:
 
   1. Create a "libchewing" subfolder and fetch libchewing source code in it.
-     Currently verified version: cefc81433f9c308809f78a0dd8f2ce2b6efd8cde
+     Currently verified version: cbf479a01392cdc3febb53439dddbef57d1010c6
   2. Enter libchewing, ./configure && make
   3. Get your Native Client SDK ready, and set NACL_SDK_ROOT properly.
      Currently verified SDK version is pepper_31.
