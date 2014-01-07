@@ -89,18 +89,11 @@ class ChewingInstance: public pp::Instance {
       return;
     }
 
-    // TODO(hungte) Change memfs to html5fs once we've figured out why it does
-    // not work.
-    if (mount("", USER_DATA_DIR, "memfs", 0,
+    if (mount("", USER_DATA_DIR, "html5fs", 0,
               "type=PERSISTENT,expected_size=1048576") != 0) {
       PostMessage(pp::Var("can't mount user data"));
       return;
     }
-
-    // Blank out USER, LOGNAME and set HOME so sqlite won't go crazy.
-    setenv("HOME", USER_DATA_DIR, 1);
-    setenv("USER", "", 1);
-    setenv("LOGNAME", "", 1);
 
     // Note currently chewing_Init does not do anything. DATA_DIR and
     // USER_DATA_DIR must be specified again in chewing_new2.

@@ -16,11 +16,6 @@ LIBCHEWING_HOME ?= libchewing
 LIBCHEWING_URL ?= https://github.com/chewing/libchewing.git
 LIBCHEWING_BRANCH ?=
 
-# The user data (via sqlite) is currently broken due to nacl_io html5fs issue.
-# Before that is fixed, we want to fake the library.
-LIBCHEWING_USERDATA ?= 0
-LIBCHEWING_SQLITE ?= 0
-
 NACL_SDK_ROOT ?= $(abspath $(CURDIR)/../../../../nacl_sdk)
 include $(NACL_SDK_ROOT)/tools/common.mk
 CFLAGS += -DHAVE_CONFIG_H -I. -I$(LIBCHEWING_HOME)/src
@@ -45,22 +40,10 @@ SOURCES = \
 	$(LIBCHEWING_HOME)/src/porting_layer/src/plat_path.c \
 	nacl.cc
 
-ifeq ($(LIBCHEWING_USERDATA), 1)
-
-SOURCES += $(LIBCHEWING_HOME)/src/chewing-sql.c
+# User data (hash)
 SOURCES += $(LIBCHEWING_HOME)/src/userphrase.c
-
-ifeq ($(LIBCHEWING_SQLITE), 1)
-SOURCES += $(LIBCHEWING_HOME)/thirdparty/sqlite-amalgamation/sqlite3.c
-CFLAGS += -I$(LIBCHEWING_HOME)/thirdparty/sqlite-amalgamation
-CFLAGS += -D_HAVE_SQLITE_CONFIG_H
-else   # LIBCHEWING_SQLITE
-LIBS += sqlite3
-endif  # LIBCHEWING_SQLITE
-
-else   # LIBCHEWING_USERDATA
-SOURCES += fake-chewing-sql.c fake-userphrase.c
-endif  # LIBCHEWING_USERDATA
+SOURCES += $(LIBCHEWING_HOME)/src/hash.c
+SOURCES += $(LIBCHEWING_HOME)/src/userphrase-hash.c
 
 ifneq ($(CONFIG),Release)
 CFLAGS+=-DDEBUG
