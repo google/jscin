@@ -297,13 +297,11 @@ void *chewing_init_context(void *arg) {
   chewing_set_maxChiSymbolLen(ctx, 32);
   chewing_set_addPhraseDirection(ctx, 1);
   chewing_set_spaceAsSelection(ctx, 1);
-  // chewing_set_selKey does not really take the len arg and takes a hard-coded
-  // value for memcpy size. How amazing!
-  int selkeys[MAX_SELKEY] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
+  int selkeys[] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
   int nSelKeys = ARRAYSIZE(selkeys);
-  assert(nSelKeys >= MAX_SELKEY);
+  assert(nSelKeys <= MAX_SELKEY);
   chewing_set_selKey(ctx, selkeys, nSelKeys);
-  chewing_set_candPerPage(ctx, std::min(nSelKeys, MAX_SELKEY));
+  chewing_set_candPerPage(ctx, nSelKeys);
   instance->ctx = ctx;
   return NULL;
 }
