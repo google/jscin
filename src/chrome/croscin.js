@@ -218,8 +218,9 @@ croscin.IME = function() {
     var buffer_text = buffer.join('');
     var all_text = buffer_text + keystroke;
     self.log("croscin.UpdateComposition:", all_text);
-    if (typeof(cursor) == undefined)
+    if (typeof cursor === 'undefined'){
       cursor = all_text.length;
+    }
     if (all_text) {
       arg.cursor = cursor;
       // Selection to show where keystrokes are.
