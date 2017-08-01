@@ -688,9 +688,15 @@ croscin.IME.prototype.detect_ime_api = function() {
   var self = this;
   /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
   try {
-    self.set_ime_api(chrome.input.ime, "chromeos");
+    /**
+     * Modern Chrome supports partial IME API so we need to check some CrOS
+     * specific method.
+     */
+    if (chrome.input.ime.onMenuItemActivated) {
+      self.set_ime_api(chrome.input.ime, "chromeos");
+    }
   } catch (err) {
-    // Binding failure can't really be catched - it'll simply escape current
+    // Binding failure can't really be caught - it'll simply escape current
     // syntax scope.
   }
 
@@ -700,7 +706,11 @@ croscin.IME.prototype.detect_ime_api = function() {
       self.log("Switched to Javascript Emulation IME API...");
       self.set_ime_api(new ChromeInputIME, "emulation");
       self.ime_api.log = jscin.log;
-      chrome.input = { ime: self.ime_api };
+      if (chrome.input) {
+        chrome.input.ime = self.ime_api;
+      } else {
+        chrome.input = { ime: self.ime_api };
+      }
     } else {
       self.log("Switched to dummy IME API...");
       self.set_ime_api(self.create_dummy_ime_api(), "dummy");
