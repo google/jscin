@@ -252,12 +252,6 @@ croscin.IME = function() {
       }
       self.ime_api.setComposition(arg);
     } else {
-      // crbug.com/303639: if cursor was not zero, calling clearComposition
-      // would do nothing. This is found when we start implementing lcch.
-      arg.text = '';
-      arg.cursor = 0;
-      self.ime_api.setComposition(arg);
-      arg = self.GetContextArg();
       self.ime_api.clearComposition(arg);
     }
     return all_text;
