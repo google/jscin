@@ -95,5 +95,7 @@
   "crossQueryAuxText": {"message":
     "Look up: "},
 
+  "optionResetToDefault": {"message":
+    "Clear saved preference, and use default options" },
   "dummy": {"message": "" }
 }

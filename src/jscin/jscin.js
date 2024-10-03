@@ -8,9 +8,20 @@
 /**
  * The root namespace for JsCIN.
  */
+console.log("init jscin.js");
+
+const initLocalStorage = chrome.storage.local.get().then((items) => {
+    console.log("restore local storage from chrome.storage");
+    if (typeof(localStorage) == typeof(undefined)) {
+      console.log("init empty localStorage");
+      localStorage = {};
+    }
+    Object.assign(localStorage, items);
+    initJscinCompleted();
+});
+
 
 var jscin = {
-
   // -------------------------------------------------------------------
   // Constants
   IMKEY_ABSORB: 0x0,
@@ -405,9 +416,22 @@ var jscin = {
     return typeof(LZString) != typeof(undefined);
   },
 
+  onLocalStorageChanged: function () {
+    jscin.log("onLocalStorageChanged, backup to chrome.storage.local");
+    Object.keys(localStorage).forEach(k => {
+      let data = localStorage[k];
+      if (data && data[0] == '!') {
+        //save decompressed data to avoid special character corrupt
+        data = LZString.decompress(data.substr(1));
+      }
+      chrome.storage.local.set({[k]: data});
+    });
+  },
+
   readLocalStorage: function (key, default_value) {
     if (typeof(localStorage) == typeof(undefined)) {
-      localStorage = {};
+      jscin.log("localStorage not ready");
+      return;
     }
     var data = localStorage[key];
     if (!data) {
@@ -420,7 +444,13 @@ var jscin = {
       }
       data = LZString.decompress(data.substr(1));
     }
-    return JSON.parse(data);
+    var parsed = {};
+    try {
+      parsed = JSON.parse(data);
+    }
+    catch (e) {
+    }
+    return parsed;
   },
 
   writeLocalStorage: function (key, data) {
@@ -442,6 +472,12 @@ var jscin = {
 
   deleteLocalStorage: function (key) {
     delete localStorage[key];
+  },
+
+  resetLocalStorage: function() {
+    jscin.log("resetLocalStorage");
+    localStorage = {};
+    chrome.storage.local.clear();
   },
 
   guid: function () {

@@ -94,7 +94,8 @@
 
   "crossQueryAuxText": {"message":
     "反查: "},
-
+  "optionResetToDefault": {"message":
+    "清除已儲存的設定，回復預設值" },
 
   "dummy": {"message": "" }
 }

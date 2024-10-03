@@ -9,6 +9,7 @@
  * The root namespace.
  */
 
+console.log("init croscin.js");
 var croscin = {};
 
 /**
@@ -193,7 +194,11 @@ croscin.IME = function() {
       self.log('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
     }
     arg.properties = properties;
-    self.ime_api.setCandidateWindowProperties(arg);
+    self.ime_api.setCandidateWindowProperties(arg)
+      .then(() => {
+      })
+      .catch((error) => {
+      });
   }
 
   self.InitializeUI = function() {
@@ -381,18 +386,21 @@ croscin.IME = function() {
     self.ime_api.setMenuItems(arg);
   }
 
-  self.LoadExtensionResource = function(url) {
-    var xhr = new XMLHttpRequest();
+  self.LoadExtensionResource = async function(url) {
     if (url.indexOf('://') < 0)
-      url = chrome.extension.getURL(url);
+      url = chrome.runtime.getURL(url);
     self.log("croscin.LoadExtensionResource:", url);
-    xhr.open("GET", url, false);
-    xhr.send();
-    if (xhr.readyState != 4 || xhr.status != 200) {
-      self.log("croscin.LoadExtensionResource: failed to fetch:", url);
-      return null;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            self.log("croscin.LoadExtensionResource: fetch failed");
+        }
+        const json = await response.text();
+        return json;
     }
-    return xhr.responseText;
+    catch (error) {
+        self.log("catch error=", error);
+    }
   }
 
   self.BuildCharToKeyMap = function(data) {
@@ -417,8 +425,8 @@ croscin.IME = function() {
     return map;
   }
 
-  self.LoadBuiltinTables = function(reload) {
-    var list = self.LoadExtensionResource("tables/builtin.json");
+  self.LoadBuiltinTables = async function(reload) {
+    var list = await self.LoadExtensionResource("tables/builtin.json");
     if (!list) {
       self.log("croscin.LoadBuiltinTables: No built-in tables.");
       return;
@@ -430,7 +438,7 @@ croscin.IME = function() {
         self.log("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
-      var content = self.LoadExtensionResource("tables/" + list[table_name]);
+      var content = await self.LoadExtensionResource("tables/" + list[table_name]);
       if (!content) {
         self.log("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
@@ -441,7 +449,7 @@ croscin.IME = function() {
     // Load phrases
     var phrases = jscin.readLocalStorage(self.kPhrasesDatabase, undefined);
     if (reload || !phrases) {
-      phrases = JSON.parse(self.LoadExtensionResource("tables/tsi.json"));
+      phrases = JSON.parse(await self.LoadExtensionResource("tables/tsi.json"));
       jscin.writeLocalStorage(self.kPhrasesDatabase, phrases);
     }
     self.phrases = phrases;
@@ -517,6 +525,7 @@ croscin.IME = function() {
     jscin.writeLocalStorage(self.kPrefRelatedText,
                             self.pref.related_text);
     self.log("preferences saved.");
+    jscin.onLocalStorageChanged();
   }
 
   self.prefInsertEnabledInputMethod = function (name) {
@@ -603,6 +612,11 @@ croscin.IME = function() {
     self.debug = new_value;
   }
 
+  self.resetPreference = function() {
+    console.log("croscin.resetPreference");
+    jscin.resetLocalStorage();
+  }
+
   self.notifyConfigChanged = function() {
     // Some configuration is changed - we need to validate and refresh all.
     self.log("croscin.notifyConfigChanged: notified.");
@@ -610,11 +624,11 @@ croscin.IME = function() {
     self.InitializeUI();
   }
 
-  function Initialize() {
+  async function Initialize() {
     // Initialization.
     var version = chrome.runtime.getManifest().version;
     var reload = (version !== jscin.getLocalStorageVersion());
-    self.LoadBuiltinTables(reload);
+    await self.LoadBuiltinTables(reload);
     if (reload) {
       jscin.reloadNonBuiltinTables();
       jscin.setLocalStorageVersion(version);
@@ -626,6 +640,8 @@ croscin.IME = function() {
     // Start the default input method.
     self.LoadPreferences();
     self.ActivateInputMethod(self.pref.im_default);
+
+    initCroscinCompleted();
   }
 
   Initialize();
@@ -770,11 +786,11 @@ croscin.IME.prototype.registerEventHandlers = function() {
     self.log("croscin.onMenuItemActivated: name=", name);
 
     if (name == self.kMenuOptions) {
-      var options_url = chrome.extension.getURL("options/options.html");
+      var options_url = chrome.runtime.getURL("options/options.html");
       // Tabs are better, but if there are no active windows (which is common in
       // ChromeOS if you put everything behind and activate by menu) then
       // chrome.window.create must be used.
-      chrome.tabs.getSelected(null, function(tab) {
+      chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
         if (tab) {
           chrome.tabs.create({"url": options_url});
         } else {
@@ -804,5 +820,4 @@ croscin.IME.prototype.registerEventHandlers = function() {
     });
   }
 
-  window.jscin = jscin;
 };
