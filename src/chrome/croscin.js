@@ -72,7 +72,7 @@ croscin.IME = function() {
   // Core functions
   self.Commit = function(text) {
     // TODO(hungte) fixme when gen_inp has fixed this.
-    if (typeof(text) != typeof('')) {
+    if (text && typeof(text) != typeof('')) {
       text = text[0];
       self.log("croscin.Commit: WARNING: input text is not a simple string.");
     }
@@ -258,6 +258,10 @@ croscin.IME = function() {
   }
 
   self.UpdateCandidates = function(candidate_list, labels) {
+    if (candidate_list === undefined) {
+      self.log("candidate_list is undefined");
+      return;
+    }
     self.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
              ", labels = " + labels);
     if (candidate_list.length > 0) {
