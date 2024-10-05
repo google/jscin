@@ -58,7 +58,8 @@
     "storage",
     "input",
     "unlimitedStorage",
-    "tabs"
+    "tabs",
+    "offscreen"
   ],
   "action": {
     "default_icon": {

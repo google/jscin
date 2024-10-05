@@ -1,6 +1,34 @@
 var inited = false;
 console.log("ServiceWorker: enter, inited=", inited);
 
+let creating;
+async function setupOffscreenDocument(path) {
+  // Check all windows controlled by the service worker to see if one
+  // of them is the offscreen document with the given path
+  const offscreenUrl = chrome.runtime.getURL(path);
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: ['OFFSCREEN_DOCUMENT'],
+    documentUrls: [offscreenUrl]
+  });
+
+  if (existingContexts.length > 0) {
+    return;
+  }
+
+  // create offscreen document
+  if (creating) {
+    await creating;
+  } else {
+    creating = chrome.offscreen.createDocument({
+      url: path,
+      reasons: ['LOCAL_STORAGE'],
+      justification: 'reason for needing the document',
+    });
+    await creating;
+    creating = null;
+  }
+}
+
 importScripts('jscin/lz-string.js','jscin/jscin.js' ,'jscin/base_inp.js' ,'jscin/gen_inp.js' ,'jscin/gen_inp2.js' ,'jscin/cin_parser.js' ,'jscin/base_addon.js' ,'jscin/addon_related.js' ,'jscin/addon_punctuations.js' ,'input_api/ipc.js' ,'input_api/ime_event.js' ,'input_api/impl_chromeext.js' ,'input_api/chrome_input_ime.js' ,'croscin.js');
 //'oauth/chrome_ex_oauthsimple.js' ,'oauth/chrome_ex_oauth.js' ,'oauth/oauth.js');
 
