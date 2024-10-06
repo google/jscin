@@ -12,6 +12,8 @@ var bgPage = chrome.extension.getBackgroundPage();
 var jscin = bgPage.jscin;
 var instance = bgPage.croscin.instance;
 
+var enable_google_drive = false;
+
 _ = chrome.i18n.getMessage;
 
 function SetElementsText() {
@@ -37,6 +39,7 @@ function init() {
       "optionSelectDefaultInputModule", "optionSandbox",
       "optionDebug", "optionDebugMessage");
 
+  $('.optionAddDrive').toggle(enable_google_drive);
 
   $('#available_im_list').sortable({
     revert: true,
@@ -89,7 +92,8 @@ function init() {
     $("#file_div").hide();
     $("#url_div").show();
     $("#doc_div").hide();
-    $("#save_to_drive_input").show();
+    $("#save_to_drive_input").toggle(enable_google_drive);
+
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
         text: _("optionAddTable"),
@@ -113,7 +117,8 @@ function init() {
     $("#file_div").show();
     $("#url_div").hide();
     $("#doc_div").hide();
-    $("#save_to_drive_input").show();
+    $("#save_to_drive_input").toggle(enable_google_drive);
+
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
         text: _("optionAddTable"),
@@ -497,7 +502,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
               }});
           }
 
-          if (jscin.has_input_method_rawdata(name)) {
+          if (enable_google_drive && jscin.has_input_method_rawdata(name)) {
             var raw_content = jscin.get_input_method_rawdata(name);
             buttons.push( { text: _('optionBackupToDrive'),
             click: function () {
