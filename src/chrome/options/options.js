@@ -8,9 +8,89 @@
 var table_loading = {};
 
 // this is dirty hack
-var bgPage = chrome.extension.getBackgroundPage();
-var jscin = bgPage.jscin;
-var instance = bgPage.croscin.instance;
+var jscin = {};
+var instance = {};
+var pref = {};
+var metadatas = {};
+var BuiltinIMs = {};
+var setting_options = {};
+
+console.log("init options.js");
+
+function install_input_method(name, table_source, metadata) {
+    chrome.runtime.sendMessage({"action": "installInputMethod", "name": name, "table_source": table_source, "metadata": metadata}, (response) => {
+        console.log("options: get response");
+        let result = response.result;
+        // Update the UI
+        getServiceWorkerData();
+    });
+}
+
+function notifyConfigChanged() {
+  chrome.runtime.sendMessage({"action": "notifyConfigChanged"});
+}
+
+function updateEnabledList(enabled) {
+  chrome.runtime.sendMessage({"action": "setEnabledList", "data": enabled});
+}
+
+function getTableMetadatas() {
+  return metadatas;
+}
+
+function getEnabledList() {
+  return pref.im_enabled_list;
+}
+
+instance.prefGetSupportNonChromeOS = function () {
+  return pref.support_non_chromeos;
+}
+
+instance.prefGetDefaultEnabled = function() {
+  return pref.default_enabled;
+}
+
+instance.prefGetQuickPunctuations = function() {
+  return pref.quick_punctuations;
+}
+
+instance.prefGetRelatedText = function() {
+  return pref.related_text;
+}
+
+instance.getDefaultModule = function() {
+  //return jscin.getDefaultModuleName();
+  return 'GenInp2';
+}
+
+instance.getAvailableModules = function() {
+  //return jscin.get_registered_modules();
+  return ['GenInp', 'GenInp2'];
+}
+
+instance.prefSetSupportNonChromeOS = function(checked) {
+  chrome.runtime.sendMessage({"action": "prefSetSupportNonChromeOS", "checked": checked});
+}
+
+instance.prefSetDefaultEnabled = function(checked) {
+  chrome.runtime.sendMessage({"action": "prefSetDefaultEnabled", "checked": checked});
+}
+
+instance.prefSetQuickPunctuations = function(checked) {
+  chrome.runtime.sendMessage({"action": "prefSetQuickPunctuations", "checked": checked});
+}
+
+instance.prefSetRelatedText = function(checked) {
+  chrome.runtime.sendMessage({"action": "prefSetRelatedText", "checked": checked});
+}
+
+instance.setDebugMode = function(checked) {
+  chrome.runtime.sendMessage({"action": "setDebugMode", "checked": checked});
+}
+
+instance.resetPreference = function() {
+  chrome.runtime.sendMessage({"action": "resetPreference"});
+}
 
 _ = chrome.i18n.getMessage;
 
@@ -20,8 +100,76 @@ function SetElementsText() {
   }
 }
 
-var BuiltinIMs = JSON.parse(
-    LoadExtensionResource("tables/builtin.json"));
+function sendMessageAsync(message) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(message, (response) => {
+      if (chrome.runtime.lastError || response.error) {
+        // Reject the Promise if an error occurs
+        reject(chrome.runtime.lastError);
+      } else {
+        // Resolve the Promise with the response
+        resolve(response);
+      }
+    });
+  });
+}
+
+async function getServiceWorkerData() {
+  //Retry to handle issues when service worker not fully init
+  let attempts = 20;
+  let success = false;
+
+  while (!success && attempts > 0) {
+      try {
+          const response = await sendMessageAsync({ action: "getServiceWorkerData" });
+          success = true;
+
+          console.log("options: got response");
+          pref = response.pref;
+          metadatas = response.metadatas;
+
+          console.log("Preferences:", pref);
+          console.log("Metadatas:", metadatas);
+          loadCinTables();
+      } catch (error) {
+          console.error("Failed to get service worker data:", error);
+          if (attempts > 0) {
+            attempts--;
+          }
+      }
+  }
+}
+
+async function preInit() {
+    await getServiceWorkerData();
+    await initBuiltinIMs();
+    await initSettingOptions();
+    $(init);
+}
+
+async function initBuiltinIMs() {
+    BuiltinIMs = JSON.parse(await LoadExtensionResourceBlocking("tables/builtin.json"));
+}
+
+async function initSettingOptions() {
+  setting_options = JSON.parse(await LoadExtensionResourceBlocking("options/builtin_options.json"));
+  updateSettingsOptionUI();
+}
+
+function updateSettingsOptionUI() {
+  var select = $("#add_table_setting");
+  //var setting_options = JSON.parse(LoadExtensionResourceBlocking("options/builtin_options.json"));
+  select.empty();
+  for (var i in setting_options) {
+    var setting = setting_options[i];
+    var option = $("<option>", {"id": "option" + i});
+    option.text(setting.ename + ' ' + setting.cname);
+    if ("default" in setting && setting["default"]) {
+      option.attr("selected", "selected");
+    }
+    select.append(option);
+  }
+}
 
 function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
@@ -35,7 +183,7 @@ function init() {
       "optionDefaultEnabledNonCros",
       "optionRelatedText", "optionPunctuations",
       "optionSelectDefaultInputModule", "optionSandbox",
-      "optionDebug", "optionDebugMessage");
+      "optionDebug", "optionDebugMessage", "optionResetToDefault");
 
 
   $('#available_im_list').sortable({
@@ -60,11 +208,11 @@ function init() {
   }).disableSelection();
   $("#accordion").accordion({heightStyle: "content"});
 
-  loadCinTables();
 
+    /*
   // TODO(hungte) we should autodetect again after source is specified.
   var select = $("#add_table_setting");
-  var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
+  //var setting_options = JSON.parse(LoadExtensionResourceBlocking("options/builtin_options.json"));
   select.empty();
   for (var i in setting_options) {
     var setting = setting_options[i];
@@ -75,6 +223,7 @@ function init() {
     }
     select.append(option);
   }
+  */
 
   $("#add_table_dialog").attr("title", _("optionAddTable"));
 
@@ -195,6 +344,12 @@ function init() {
       click(function() {
     instance.setDebugMode($(this).prop("checked"));
   });
+
+  $(".optionResetToDefault").button().click(function(event) {
+    instance.resetPreference();
+    alert(_("optionReloadExtensionOrRestart"));
+  });
+
   var module_form = $('#formSelectModule');
   var def_module = instance.getDefaultModule();
   module_form.empty();
@@ -216,17 +371,25 @@ function init() {
   $('#start_test_area').button();
 }
 
-function LoadExtensionResource(url) {
-  var rsrc = chrome.extension.getURL(url);
-  var xhr = new XMLHttpRequest();
+async function LoadExtensionResource(url) {
+  if (url.indexOf('://') < 0)
+    url = chrome.runtime.getURL(url);
   console.log("LoadExtensionResource:", url);
-  xhr.open("GET", rsrc, false);
-  xhr.send();
-  if (xhr.readyState != 4 || xhr.status != 200) {
-    console.log("LoadExtensionResource: failed to fetch:", url);
-    return null;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+        console.log("LoadExtensionResource: fetch failed");
+    }
+    const content = await response.text();
+    return content;
   }
-  return xhr.responseText;
+  catch (error) {
+    console.log("catch error=", error);
+  }
+}
+
+async function LoadExtensionResourceBlocking(url) {
+    return await LoadExtensionResource(url);
 }
 
 function removeFileExtension(filename) {
@@ -347,7 +510,7 @@ function addTable(content, url) {
   if (result[0]) {
     var data = result[1];
     name = data.metadata.ename;
-    var metadata = jscin.getTableMetadatas()[name];
+    var metadata = getTableMetadatas()[name];
     if (metadata) {
       if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
         setAddTableStatus("Table not added", true);
@@ -357,24 +520,8 @@ function addTable(content, url) {
       }
     }
     // install_input_method will parse raw content again...
-    result = jscin.install_input_method(name, content,
+    result = install_input_method(name, content,
         { setting: getSettingOption(data), url: url });
-  }
-  // Update the UI
-  if (result[0]) {
-    // We must reload metadata, since it may be modified in
-    // jscin.install_input_method.
-    var metadata = jscin.getTableMetadatas()[name];
-    addCinTableToList(name, metadata, '#enabled_im_list', true);
-    setAddTableStatus("Table added successfully", false);
-    instance.prefInsertEnabledInputMethod(name);
-    notifyConfigChanged();
-    if ($('#save_to_drive').is(':checked')) {
-      SaveToDrive(metadata.ename, content);
-    }
-  } else {
-    var msg = result[1];
-    setAddTableStatus("Could not parse cin file. " + msg, true);
   }
 }
 
@@ -389,8 +536,6 @@ function setAddTableStatus(status, error) {
 }
 
 function getSettingOption(data) {
-  var setting_options = JSON.parse(
-      LoadExtensionResource("options/builtin_options.json"));
   var setting = setting_options[
       document.getElementById("add_table_setting").selectedIndex];
   if (setting.auto_detect) {
@@ -518,8 +663,17 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
 }
 
 function loadCinTables() {
-  var metadatas = jscin.getTableMetadatas();
+  var metadatas = getTableMetadatas();
   var tables = getEnabledList();
+  if (!tables) {
+      console.log("async read not ready");
+    return;
+  }
+
+  console.log("loadCinTables clear im list");
+  $('#enabled_im_list').empty();
+  $('#available_im_list').empty();
+
   tables.forEach(function (name) {
     addCinTableToList(name, metadatas[name], '#enabled_im_list');
   });
@@ -539,17 +693,4 @@ function removeCinTable(name) {
   jscin.deleteTable(name);
 }
 
-function notifyConfigChanged() {
-  instance.notifyConfigChanged();
-  instance.ActivateInputMethod(instance.pref.im_default);
-}
-
-function getEnabledList() {
-  return instance.pref.im_enabled_list;
-}
-
-function updateEnabledList(enabled) {
-  instance.prefSetEnabledList(enabled);
-}
-
-$(init);
+preInit();
