@@ -222,7 +222,7 @@ function init() {
 }
 
 function LoadExtensionResource(url) {
-  var rsrc = chrome.extension.getURL(url);
+  var rsrc = chrome.runtime.getURL(url);
   var xhr = new XMLHttpRequest();
   console.log("LoadExtensionResource:", url);
   xhr.open("GET", rsrc, false);

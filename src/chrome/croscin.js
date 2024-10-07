@@ -384,7 +384,7 @@ croscin.IME = function() {
   self.LoadExtensionResource = function(url) {
     var xhr = new XMLHttpRequest();
     if (url.indexOf('://') < 0)
-      url = chrome.extension.getURL(url);
+      url = chrome.runtime.getURL(url);
     self.log("croscin.LoadExtensionResource:", url);
     xhr.open("GET", url, false);
     xhr.send();
@@ -770,7 +770,7 @@ croscin.IME.prototype.registerEventHandlers = function() {
     self.log("croscin.onMenuItemActivated: name=", name);
 
     if (name == self.kMenuOptions) {
-      var options_url = chrome.extension.getURL("options/options.html");
+      var options_url = chrome.runtime.getURL("options/options.html");
       // Tabs are better, but if there are no active windows (which is common in
       // ChromeOS if you put everything behind and activate by menu) then
       // chrome.window.create must be used.

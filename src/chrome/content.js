@@ -9,7 +9,7 @@
 
 function CreateImeFrame () {
   var frame = document.createElement("iframe");
-  var frameURL = chrome.extension.getURL('input_api/ime.html');
+  var frameURL = chrome.runtime.getURL('input_api/ime.html');
   frame.setAttribute("src", frameURL);
   frame.setAttribute("scrolling", "no");
   frame.setAttribute("frameBorder", 0);

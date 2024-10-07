@@ -68,7 +68,7 @@ ChromeExOAuth.initBackgroundPage = function(oauth_config) {
   window.chromeExOAuthRedirectStarted = false;
   window.chromeExOAuthRequestingAccess = false;
 
-  var url_match = chrome.extension.getURL(window.chromeExOAuth.callback_page);
+  var url_match = chrome.runtime.getURL(window.chromeExOAuth.callback_page);
   var tabs = {};
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     if (changeInfo.url &&
@@ -100,7 +100,7 @@ ChromeExOAuth.prototype.authorize = function(callback) {
     window.chromeExOAuthOnAuthorize = function(token, secret) {
       callback(token, secret);
     };
-    chrome.tabs.create({ 'url' :chrome.extension.getURL(this.callback_page) });
+    chrome.tabs.create({ 'url' :chrome.runtime.getURL(this.callback_page) });
   }
 };
 
