@@ -7,6 +7,28 @@ load('../jscin/gen_inp2.js');
 load('../jscin/cin_parser.js');
 // jscin.debug = true;
 
+function dump_object(obj, indent) {
+  if (obj == null) return 'null';
+  if (typeof(obj) == 'string') return "'" + obj + "'";
+  if (typeof(obj) != 'object') return obj;
+  if (obj.constructor.toString().match(/array/i)) {
+    return '[' + obj + ']';
+  }
+
+  var prefix = '';
+  for (var i = 0; i < indent; i++) prefix += ' ';
+
+  var s = '';
+  for (var k in obj) {
+    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
+  }
+  return s;
+}
+
+function dump_inpinfo(inpinfo) {
+  return dump_object(inpinfo, 2);
+}
+
 function build_reverse_map(from) {
   var to = {};
   for (var k in from) {
