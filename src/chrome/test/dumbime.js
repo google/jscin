@@ -7,9 +7,9 @@
 
 var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
-log = function() { console.log.apply(console, arguments); };
+var log = function() { console.log.apply(console, arguments); };
 
-DumbIME = function() {
+var DumbIME = function() {
   var self = this;
   var dummy_function = function() {};
   var _listeners = {};

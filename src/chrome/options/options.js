@@ -14,7 +14,7 @@ var instance = bgPage.croscin.instance;
 
 var enable_google_drive = false;
 
-_ = chrome.i18n.getMessage;
+var _ = chrome.i18n.getMessage;
 
 function SetElementsText() {
   for (var i = 0; i < arguments.length; i++) {

@@ -699,7 +699,7 @@ croscin.IME.prototype.create_dummy_ime_api = function() {
  */
 croscin.IME.prototype.registerEventHandlers = function() {
   var self = this;
-  ime_api = self.ime_api;
+  var ime_api = self.ime_api;
 
   ime_api.onActivate.addListener(function(engineID) {
     self.log('onActivate: croscin started.', engineID);

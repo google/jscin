@@ -3,7 +3,7 @@
  */
 
 // Testing functions
-testContextID = '1';
+var testContextID = '1';
 
 function debug() {
   console.log.apply(console, arguments);
@@ -121,7 +121,7 @@ $(function() {
 
   if (chrome && chrome.extension) {
     var croscin = chrome.extension.getBackgroundPage().croscin.instance;
-    jscin = chrome.extension.getBackgroundPage().jscin;
+    var jscin = chrome.extension.getBackgroundPage().jscin;
 
     // Get all logs on my console.
     jscin.add_logger(console.log, console);
