@@ -4,15 +4,24 @@
     <title>Dumb IME</title>
     <script type="text/javascript" src="../input_api/ime_event.js"></script>
     <script type="text/javascript" src="dumbime.js"></script>
+    <style type='text/css'>
+    body { font-size: 100%; font-family: monospace; padding: 1em; background: white;}
+    * { font-size: 16pt; };
+    </style>
   </head>
   <body>
-    Input here <input id='input' type='text' disabled="disabled"
-                title="Please click onActivate first!"><br/>
-    Committed <input id='committed' type='text'> <br/>
-    Composition <input id='composition' type='text'> <br/>
-    Candidates <textarea id='candidates'></textarea><br/>
-
-    <input type='button' id = 'onActivate' value='onActivate'>
-    <input type='button' id = 'onFocus' value='onFocus' disabled='true'>
+   <H2>Please first click onActivate, onFocus, then type in the "Input here":</H1>
+   <table>
+    <tr><td><input type='button' id = 'onActivate' value='onActivate'>
+        <td><input type='button' id = 'onFocus' value='onFocus' disabled='true'></tr>
+    <tr><td>Input here
+        <td><input id='input' type='text' disabled="disabled" title="Please click onActivate first!"></tr>
+    <tr><td>Committed
+        <td><input id='committed' type='text'></tr>
+    <tr><td>Composition
+        <td><input id='composition' type='text'></tr>
+    <tr><td>Candidates
+        <td><textarea id='candidates' rows="3" cols="60"></textarea></tr>
+   </table>
   </body>
 </html>
