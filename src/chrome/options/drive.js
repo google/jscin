@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Google Drive for JSCIN Options
+ */
+
+import { jscin } from "../jscin/jscin.js";
+
 var DRIVE_FOLDER = 'CrosCIN';
 
 function uploadDocument(ename, content, folderId) {
@@ -47,7 +53,7 @@ function createFolderUpload(ename, content) {
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 }
 
-function SaveToDrive(ename, content) {
+export function SaveToDrive(ename, content) {
   // Get the folder if it exist
   var params = {
     'headers': {
@@ -128,7 +134,7 @@ function GoogleDoc(entry) {
   // this.contentSrc = entry.content.src;
 };
 
-function setDocStatus(status) {
+export function setDocStatus(status) {
   $('#doc_status').text(status);
 }
 
@@ -194,7 +200,7 @@ function unstringify(paramStr) {
   return params;
 };
 
-function getDocumentList(folderId, url) {
+export function getDocumentList(folderId, url) {
   var params = {
     'headers': {
       'GData-Version': '3.0'

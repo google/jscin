@@ -9,7 +9,11 @@
  * The root namespace.
  */
 
-var croscin = {};
+import { jscin } from "./jscin/all.js";
+import { ChromeInputIME } from "./input_api/chrome_input_ime.js";
+
+export { jscin };
+export var croscin = {};
 
 /**
  * Chinese IME class.

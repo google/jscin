@@ -4,7 +4,7 @@
 // For more information see LICENSE.txt or http://www.wtfpl.net/
 //
 // LZ-based compression algorithm, version 1.0.2-rc1
-var LZString = {
+export var LZString = {
 
   writeBit : function(value, data) {
     data.val = (data.val << 1) | value;

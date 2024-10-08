@@ -5,6 +5,8 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+import { jscin } from "./jscin.js";
+
 jscin.base_input_addon = function(name, im) {
   jscin.log('Creating Addon', name, im.name);
   this.im = im;

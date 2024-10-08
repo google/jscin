@@ -5,6 +5,8 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
+import {jscin, trace} from "./jscin.js";
+
 // General Input Module for table-based IMs, ex. Zhuyin, Array
 jscin.register_module('GenInp', jscin.extend_input_method({
 

@@ -10,6 +10,8 @@
 // "selection only state".
 // TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
 
+import {jscin, trace} from "./jscin.js";
+
 jscin.register_module('GenInp2', jscin.extend_input_method({
 
   constructor: function (name, conf)

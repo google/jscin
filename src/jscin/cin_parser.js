@@ -7,7 +7,7 @@
 
 // Returns an array, which is [true, parsed_data] on success, or [false, error
 // message] on failure. parsed_data is an object, containing metadata and data.
-function parseCin(cin_input) {
+export function parseCin(cin_input) {
   var lines = cin_input.split('\n');
   var data = {};
   var runningcmd = null;

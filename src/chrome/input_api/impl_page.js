@@ -5,7 +5,9 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-var ChromeInputImeImplPage = function () {
+import { ImeEvent } from "./ime_event.js";
+
+export var ChromeInputImeImplPage = function () {
   var self = this;
   var ime_api = chrome.input.ime;
   var engineID = "chrome_input_ime#impl#page";

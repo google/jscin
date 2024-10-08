@@ -5,6 +5,8 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+import { jscin } from "./jscin.js";
+
 jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
   constructor: function (name, im)
   {

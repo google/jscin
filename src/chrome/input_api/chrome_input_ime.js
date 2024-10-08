@@ -5,7 +5,7 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-var ChromeInputIME = function () {
+export var ChromeInputIME = function () {
   var self = this;
 
   // Internal variables

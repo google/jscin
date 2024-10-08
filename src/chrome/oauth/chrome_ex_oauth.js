@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import { OAuthSimple } from "./chrome_ex_oauthsimple.js";
+
 /**
  * Constructor - no need to invoke directly, call initBackgroundPage instead.
  * @constructor
@@ -16,7 +18,7 @@
  *     "callback_page" {String} If you renamed chrome_ex_oauth.html, the name
  *          this file was renamed to.
  */
-function ChromeExOAuth(url_request_token, url_auth_token, url_access_token,
+export function ChromeExOAuth(url_request_token, url_auth_token, url_access_token,
                        consumer_key, consumer_secret, oauth_scope, opt_args) {
   this.url_request_token = url_request_token;
   this.url_auth_token = url_auth_token;

@@ -2,6 +2,9 @@
  * @fileoverview Description of this file.
  */
 
+import { ChromeInputIME } from "../input_api/chrome_input_ime.js";
+import { ChromeInputImeImplPage } from "../input_api/impl_page.js";
+
 // Testing functions
 var testContextID = '1';
 

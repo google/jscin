@@ -26,7 +26,7 @@
 //   };
 // };
 
-function parseGtab(arraybuffer) {
+export function parseGtab(arraybuffer) {
 
   var MAX_GTAB_QUICK_KEYS = 46;
   var CH_SZ = 4;

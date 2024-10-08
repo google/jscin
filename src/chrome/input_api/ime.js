@@ -5,6 +5,8 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+import { ImeEvent } from "../input_api/ime_event.js";
+
 var _debug = false;
 
 function debug() {

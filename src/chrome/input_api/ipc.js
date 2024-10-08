@@ -3,7 +3,7 @@
  * http://www.sitepoint.com/chrome-extensions-bridging-the-gap-between-layers/
  */
 
-var ChromeExtensionIPC = {};
+export var ChromeExtensionIPC = {};
 
 ChromeExtensionIPC.IPC = function (instance_type, namespace) {
   var self = this;

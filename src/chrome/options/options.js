@@ -5,14 +5,18 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
+import { parseGtab } from "../jscin/gtab_parser.js";
+import { parseCin } from "../jscin/cin_parser.js";
+import * as drive from "./drive.js";
+
+
 var table_loading = {};
 
 // this is dirty hack
 var bgPage = chrome.extension.getBackgroundPage();
 var jscin = bgPage.jscin;
 var instance = bgPage.croscin.instance;
-
-var enable_google_drive = false;
+var enable_google_drive = bgPage.enable_google_drive;
 
 var _ = chrome.i18n.getMessage;
 
@@ -142,15 +146,15 @@ function init() {
     $("#url_div").hide();
     $("#file_div").hide();
     $("#doc_div").show();
-    setDocStatus("");
+    drive.setDocStatus("");
     $("#save_to_drive").prop('checked', false);
     $("#save_to_drive_input").hide();
     bgPage.oauth.authorize(function() {
       $('#doc_list').empty();
-      getDocumentList("");
+      drive.getDocumentList("");
     });
     // #add_table_dialog will be open after the docs are ready
-    // in drive.js: renderDocList()
+    // in drive.js: drive.renderDocList()
   });
 
   $('#save_to_drive').change(function() {
@@ -375,7 +379,7 @@ function addTable(content, url) {
     instance.prefInsertEnabledInputMethod(name);
     notifyConfigChanged();
     if ($('#save_to_drive').is(':checked')) {
-      SaveToDrive(metadata.ename, content);
+      drive.SaveToDrive(metadata.ename, content);
     }
   } else {
     var msg = result[1];

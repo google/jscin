@@ -5,7 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-var ImeEvent = {
+import { jscin } from "../jscin/jscin.js";
+import { ChromeExtensionIPC } from "./ipc.js";
+
+export var ImeEvent = {
   // The KeyboardEvent by browser uses "JavaScript Key Code" and is different
   // from Chrome Extension key names. Ref:
   // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes

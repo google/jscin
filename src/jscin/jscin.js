@@ -9,7 +9,10 @@
  * The root namespace for JsCIN.
  */
 
-var jscin = {
+import { parseCin } from "./cin_parser.js";
+import { LZString } from "./lz-string.js";
+
+export var jscin = {
 
   // -------------------------------------------------------------------
   // Constants
@@ -458,7 +461,7 @@ var jscin = {
 //////////////////////////////////////////////////////////////////////////////
 // Global debugging and unit tests
 
-function trace() {
+export function trace() {
   if (!jscin.debug || typeof(console) != typeof(undefined))
     return;
 

@@ -5,6 +5,8 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
+import { ImeEvent } from "../input_api/ime_event.js";
+
 var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
 var log = function() { console.log.apply(console, arguments); };
