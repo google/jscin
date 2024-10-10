@@ -29,11 +29,6 @@
   },
   "content_scripts": [ {
     "js": [
-        "jquery/jquery.js",
-        "input_api/ipc.js",
-        "input_api/ime_event.js",
-        "input_api/impl_chromeext.js",
-        "jscin/jscin.js",
         "content.js"
     ],
     "run_at": "document_idle",
@@ -42,6 +37,7 @@
   } ],
   "web_accessible_resources": [
      "jquery/*",
+     "jscin/*",
      "input_api/*"
   ],
   "permissions": [

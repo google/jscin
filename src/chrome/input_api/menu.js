@@ -3,6 +3,9 @@
  * @fileoverview Implementation of IME menu for page-action.
  * @author hungte@google.com (Hung-Te Lin)
  */
+
+import { $, jQuery } from "../jquery/jquery.js";
+
 $(function() {
   var bgpage = chrome.extension.getBackgroundPage();
   var ime_api = bgpage.croscin.instance.ime_api;

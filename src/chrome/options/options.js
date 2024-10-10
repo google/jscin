@@ -7,6 +7,8 @@
 
 import { parseGtab } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
+import { $, jQuery } from "../jquery/jquery.js";
+import "../jquery/jquery-ui.js";
 import * as drive from "./drive.js";
 
 
@@ -211,7 +213,7 @@ function init() {
     module_form.append($('<label/>').attr("for", name).text(name));
   });
   $('#' + def_module).prop("checked", true);
-  $('#formSelectModule').buttonset();
+  $('#formSelectModule').controlgroup();
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
 }

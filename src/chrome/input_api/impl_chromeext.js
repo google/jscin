@@ -7,6 +7,8 @@
 // TODO(hungte) Change iframe IME UI to page popup.
 
 import { ImeEvent } from "./ime_event.js";
+import { jscin } from "../jscin/jscin.js";
+import { $, jQuery } from "../jquery/jquery.js";
 
 export var ChromeInputImeImplChromeExtension = function (type) {
   var self = this;
