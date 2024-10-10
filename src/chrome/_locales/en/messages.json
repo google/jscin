@@ -70,8 +70,6 @@
     "General Settings" },
   "optionSupportNonChromeOS": {"message":
     "Support Non-ChromeOS environments" },
-  "optionDefaultEnabledNonCros": {"message":
-    "Default enabled on Non-ChromeOS environments" },
   "optionPunctuations": {"message":
     "Support quick Chinese punctuations (by Ctrl+.,';[]...)" },
   "optionAlertChangeSupportNonChromeOS": {"message":

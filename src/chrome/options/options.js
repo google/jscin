@@ -38,7 +38,6 @@ function init() {
       "optionSaveToDrive", "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS",
       "optionAlertChangeSupportNonChromeOS",
-      "optionDefaultEnabledNonCros",
       "optionRelatedText", "optionPunctuations",
       "optionSelectDefaultInputModule", "optionSandbox",
       "optionDebug", "optionDebugMessage");
@@ -170,8 +169,6 @@ function init() {
       "checked", instance.prefGetSupportNonChromeOS()).
       click(function() {
     instance.prefSetSupportNonChromeOS($(this).prop("checked"));
-    $('#checkDefaultEnabledNonCros').prop('disabled',
-      !$(this).prop("checked"));
     var buttons = {};
     buttons[_("optionOK")] = function () {
       $(this).dialog("close");
@@ -181,12 +178,6 @@ function init() {
       modal: true,
       buttons: buttons});
   });
-  $('#checkDefaultEnabledNonCros').prop(
-      "disabled", !instance.prefGetSupportNonChromeOS()).prop(
-      "checked", instance.prefGetDefaultEnabled()).
-      click(function() {
-        instance.prefSetDefaultEnabled($(this).prop("checked"));
-      });
   $('#checkPunctuations').prop(
       "checked", instance.prefGetQuickPunctuations()).
       click(function() {

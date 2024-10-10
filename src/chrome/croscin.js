@@ -41,7 +41,6 @@ croscin.IME = function() {
   self.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
   self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
   self.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
-  self.kPrefDefaultEnabled = 'croscinPrefDefaultEnabled';
   self.kPrefRelatedText = 'croscinPrefRelatedText';
 
   self.kPhrasesDatabase = 'croscinPhrasesDatabase';
@@ -52,7 +51,6 @@ croscin.IME = function() {
     support_non_chromeos: true,
     quick_punctuations: true,
     related_text: false,
-    default_enabled: false  // Only for non-ChromeOS.
   };
 
   self.engineID = self.kEngineId;
@@ -463,8 +461,6 @@ croscin.IME = function() {
         self.kPrefQuickPunctuations, self.pref.quick_punctuations);
     self.pref.support_non_chromeos = jscin.readLocalStorage(
         self.kPrefSupportNonChromeOS, self.pref.support_non_chromeos);
-    self.pref.default_enabled = jscin.readLocalStorage(
-        self.kPrefDefaultEnabled, self.pref.default_enabled);
     self.pref.related_text = jscin.readLocalStorage(
         self.kPrefRelatedText, self.pref.related_text);
 
@@ -516,8 +512,6 @@ croscin.IME = function() {
                             self.pref.support_non_chromeos);
     jscin.writeLocalStorage(self.kPrefQuickPunctuations,
                             self.pref.quick_punctuations);
-    jscin.writeLocalStorage(self.kPrefDefaultEnabled,
-                            self.pref.default_enabled);
     jscin.writeLocalStorage(self.kPrefRelatedText,
                             self.pref.related_text);
     self.log("preferences saved.");
@@ -574,18 +568,6 @@ croscin.IME = function() {
   self.prefSetSupportNonChromeOS = function (new_value) {
     self.pref.support_non_chromeos = new_value;
     self.SavePreferences();
-  }
-
-  self.prefGetDefaultEnabled = function () {
-    return self.pref.default_enabled;
-  }
-
-  self.prefSetDefaultEnabled = function (new_value) {
-    self.pref.default_enabled = new_value;
-    // Hack: pref.default_enabled is more frequently being modified, so let's
-    // write it directly.
-    jscin.writeLocalStorage(self.kPrefDefaultEnabled,
-                            self.pref.default_enabled);
   }
 
   self.getDefaultModule = function () {

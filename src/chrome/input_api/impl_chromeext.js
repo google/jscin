@@ -89,7 +89,6 @@ ChromeInputImeImplChromeExtension.prototype.InitBackground = function () {
       self.debug("IpcGetSystemStatus");
       return {
         enabled: croscin.instance.prefGetSupportNonChromeOS(),
-        default_enabled: croscin.instance.prefGetDefaultEnabled(),
         debug: croscin.instance.debug }; }
   }, function () {
     self.debug("Ipc Uncaught event:", arguments);
@@ -257,7 +256,7 @@ ChromeInputImeImplChromeExtension.prototype.InitContent = function (f) {
         return;
       }
       SetFrame($(self.frame_factory()));
-      SetEnabled(result.default_enabled);
+      SetEnabled(false);
       ListenEvents();
     });
   }
