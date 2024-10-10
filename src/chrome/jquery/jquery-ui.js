@@ -1,1 +1,1 @@
-../../external/jquery/jquery-ui-1.10.3.custom.min.js
+../../external/jquery-ui-1.14.0.smoothness/jquery-ui.min.js

@@ -1,1 +1,1 @@
-../../external/jquery/jquery-1.9.1.min.js
+../../external/jquery-4.0b/jquery.module.min.js
