@@ -2,9 +2,7 @@
  * @fileoverview Description of this file.
  */
 
-import { $, jQuery } from "../jquery/jquery.js";
-import "../jquery/jquery-ui.js";
-
+import { $, jQuery } from "../jquery/jquery-ui.js";
 import { ChromeInputIME } from "../input_api/chrome_input_ime.js";
 import { ChromeInputImeImplPage } from "../input_api/impl_page.js";
 

@@ -5,8 +5,7 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { $, jQuery } from "../jquery/jquery.js";
-import "../jquery/jquery-ui.js";
+import { $, jQuery } from "../jquery/jquery-ui.js";
 import { ImeEvent } from "./ime_event.js";
 
 var _debug = false;

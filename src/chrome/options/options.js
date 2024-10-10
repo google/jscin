@@ -5,10 +5,9 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
+import { $, jQuery } from "../jquery/jquery-ui.js";
 import { parseGtab } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
-import { $, jQuery } from "../jquery/jquery.js";
-import "../jquery/jquery-ui.js";
 import * as drive from "./drive.js";
 
 
