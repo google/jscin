@@ -11,7 +11,7 @@ import { $, jQuery } from "../jquery/jquery.js";
 import { ImeEvent } from "./ime_event.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
-export class ChromeInputImeExtension {
+class ChromeInputImeExtension {
 
   constructor() {
     this.engineID = "chrome_input_ime#impl#chromeext";

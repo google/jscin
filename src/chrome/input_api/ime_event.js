@@ -6,7 +6,6 @@
  */
 
 import { jscin } from "../jscin/jscin.js";
-import { ChromeExtensionIPC } from "./ipc.js";
 
 export var ImeEvent = {
   // The KeyboardEvent by browser uses "JavaScript Key Code" and is different
