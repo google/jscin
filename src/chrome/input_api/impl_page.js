@@ -7,53 +7,52 @@
 
 import { ImeEvent } from "./ime_event.js";
 
-export var ChromeInputImeImplPage = function () {
-  var self = this;
-  var ime_api = chrome.input.ime;
-  var engineID = "chrome_input_ime#impl#page";
+export class ChromeInputImeImplPage {
 
-  self.contexts = {};
+  constructor(ime_api) {
+    this.ime_api = ime_api;
+    this.engineID = "this.ime_api#impl#page";
+    this.contexts = {};
+  }
 
-  function keyEventHandler (ev) {
-    var ev2 = ImeEvent.ImeKeyEvent(ev);
-    var result = ime_api.dispatchEvent("KeyEvent", engineID, ev2);
+  keyEventHandler (ev) {
+    let ev2 = ImeEvent.ImeKeyEvent(ev);
+    let result = this.ime_api.dispatchEvent("KeyEvent", this.engineID, ev2);
     if (!result)
       ev.preventDefault();
     return result;
-  };
+  }
 
-  self.init = function() {
-    chrome.input.ime.onImplCommitText.addListener(function (contextID, text) {
-      var node = self.contexts[contextID].node;
-      var newSelect = node.selectionStart + text.length;
+  init() {
+    this.ime_api.onImplCommitText.addListener((contextID, text) => {
+      let node = this.contexts[contextID].node;
+      let newSelect = node.selectionStart + text.length;
       // Assume node is either input or text area.
       node.value = (node.value.substring(0, node.selectionStart) +
         text + node.value.substring(node.selectionEnd));
       node.selectionStart = newSelect;
       node.selectionEnd = newSelect;
     });
-    chrome.input.ime.onFocus.addListener(function (context) {
-      context.node = self.node;
-      self.contexts[context.contextID] = context;
-      self.node.setAttribute("imeContextId", context.contextID);
+    this.ime_api.onFocus.addListener((context) => {
+      context.node = this.node;
+      this.contexts[context.contextID] = context;
+      this.node.setAttribute("imeContextId", context.contextID);
     });
   }
 
-  self.attach = function (node) {
-    node.addEventListener('keydown', keyEventHandler);
-    node.addEventListener('keyup', keyEventHandler);
-    node.addEventListener('focus', function (ev) {
+  attach(node) {
+    node.addEventListener('keydown', this.keyEventHandler.bind(this));
+    node.addEventListener('keyup', this.keyEventHandler.bind(this));
+    node.addEventListener('focus', (ev) => {
       console.log("focus");
-      self.node = node;
-      return ime_api.dispatchEvent("ImplFocus");
+      this.node = node;
+      return this.ime_api.dispatchEvent("ImplFocus");
     });
-    node.addEventListener('blur', function (ev) {
+    node.addEventListener('blur', (ev) => {
       console.log("blur");
-      var contextID = ev.target.getAttribute("imeContextId");
-      delete self.contexts[contextID];
-      return ime_api.dispatchEvent('Blur', contextID);
+      let contextID = ev.target.getAttribute("imeContextId");
+      delete this.contexts[contextID];
+      return this.ime_api.dispatchEvent('Blur', contextID);
     });
   }
-
-  return self;
-};
+}

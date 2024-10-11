@@ -68,9 +68,9 @@ function test_setMenuItems(labels_array) {
 }
 
 $(function() {
-  var ime_api = new ChromeInputIME;
+  var ime_api = new ChromeInputIME();
   chrome.input = { ime: ime_api };
-  var impl = new ChromeInputImeImplPage;
+  var impl = new ChromeInputImeImplPage(ime_api);
 
   chrome.input.ime.onUiMenu.addListener(function (engine) {
     var ui = $('#imePanel #menu');
