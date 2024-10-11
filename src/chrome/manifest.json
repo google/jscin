@@ -36,6 +36,7 @@
     "matches": ["http://*/*", "https://*/*"]
   } ],
   "web_accessible_resources": [
+     "*.js",
      "jquery/*",
      "jscin/*",
      "input_api/*"
