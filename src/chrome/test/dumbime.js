@@ -7,14 +7,17 @@
 
 import { CreateImeKeyEvent } from "../input_api/ime_event.js";
 
-var croscin = chrome.extension.getBackgroundPage().croscin.instance;
-var jscin = chrome.extension.getBackgroundPage().jscin;
-var log = function(...args) { console.log(...args); };
+let page = chrome.extension.getBackgroundPage();
+var croscin = page.croscin.instance;
+var jscin = page.jscin;
 
-var DumbIME = function() {
-  var self = this;
-  var dummy_function = function() {};
-  var _listeners = {};
+function log(...args) {
+  console.log(...args);
+}
+
+function DumbIME() {
+  let dummy_function = function() {};
+  let _listeners = {};
 
   function create_listener(name) {
     _listeners[name] = [];
@@ -39,8 +42,14 @@ var DumbIME = function() {
       log('commitText', arguments);
       document.getElementById('committed').value += arg.text;
     },
-    setCandidateWindowProperties: function () {
+    setCandidateWindowProperties: function (arg) {
       log('setCandidateWindowProperties', arguments);
+      if ('visible' in arg.properties) {
+        let color = 'black';
+        if (!arg.properties.visible)
+          color = 'lightgray';
+        document.getElementById('candidates').style.color = color;
+      }
     },
     setComposition: function (arg) {
       log('setComposition', arguments);
@@ -52,9 +61,9 @@ var DumbIME = function() {
     },
     setCandidates: function (arg) {
       log('setCandidates', arguments);
-      var s = '';
-      for (var i in arg.candidates) {
-        var cand = arg.candidates[i];
+      let s = '';
+      for (let i in arg.candidates) {
+        let cand = arg.candidates[i];
         s += cand.label + ' ' + cand.candidate + ', ';
       }
       document.getElementById('candidates').value = s;
@@ -78,8 +87,8 @@ var DumbIME = function() {
 };
 
 function init() {
-  var engineID = croscin.kEngineId;
-  var dumb_ime = new DumbIME;
+  let engineID = croscin.kEngineId;
+  let dumb_ime = new DumbIME();
 
   // duplicate log to this page
   jscin.add_logger(console.log, console);
@@ -90,14 +99,14 @@ function init() {
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {
-    var e = CreateImeKeyEvent(evt);
+    let e = CreateImeKeyEvent(evt);
     log('onkeydown');
     log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
   document.getElementById('input').onkeyup = function (evt) {
-    var e = CreateImeKeyEvent(evt);
+    let e = CreateImeKeyEvent(evt);
     log('onkeyup');
     log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
@@ -112,7 +121,7 @@ function init() {
     document.getElementById('onFocus').disabled = false;
   }
   document.getElementById('onFocus').onclick = function () {
-    var context = {
+    let context = {
       'contextID': 1,
     };
     document.getElementById('input').title = 'Please start to input';

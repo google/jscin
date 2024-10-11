@@ -7,7 +7,7 @@ import { ChromeInputIME } from "../input_api/chrome_input_ime.js";
 import { ChromeInputImeImplPage } from "../input_api/impl_page.js";
 
 // Testing functions
-var testContextID = '1';
+const testContextID = '1';
 
 function debug(...args) {
   console.log("[testarea]", ...args);
@@ -37,8 +37,8 @@ function test_commitText(text) {
 }
 
 function test_setCandidates(candidate_string) {
-  var i;
-  var items = [];
+  let i;
+  let items = [];
 
   for (i in candidate_string) {
     items.push({
@@ -53,8 +53,8 @@ function test_setCandidates(candidate_string) {
 
 // jquery-based test init
 function test_setMenuItems(labels_array) {
-  var i;
-  var items = [];
+  let i;
+  let items = [];
   labels_array.forEach(function(label) {
     items.push({
       id: 'id_' + label,
@@ -68,15 +68,15 @@ function test_setMenuItems(labels_array) {
 }
 
 $(function() {
-  var ime_api = new ChromeInputIME();
+  let ime_api = new ChromeInputIME();
   chrome.input = { ime: ime_api };
-  var impl = new ChromeInputImeImplPage(ime_api);
+  let impl = new ChromeInputImeImplPage(ime_api);
 
   chrome.input.ime.onUiMenu.addListener(function (engine) {
-    var ui = $('#imePanel #menu');
+    let ui = $('#imePanel #menu');
     ui.empty();
     engine.menuitems.forEach(function (item) {
-      var label = item.label || item.id;
+      let label = item.label || item.id;
       ui.append(
           $('<li/>', {text: label}).click(function () {
             ime_api.dispatchEvent(
@@ -87,19 +87,16 @@ $(function() {
   });
 
   chrome.input.ime.onUiCandidateWindow.addListener(function (engine) {
-    var ui = $('#imePanel #candidates');
-    if (!engine.candidate_window.visible) {
-      ui.hide();
-    }
-    ui.show();
+    let ui = $('#imePanel #candidates');
+    ui.toggle(engine.candidate_window.visible);
   });
 
   chrome.input.ime.onUiCandidates.addListener(function (context) {
-    var ui = $('#imePanel #candidates');
-    var nbsp = '\xa0';
+    let ui = $('#imePanel #candidates');
+    let nbsp = '\xa0';
     ui.empty().append(nbsp);
     context.candidates.forEach(function (item) {
-      var label = item.label || item.id;
+      let label = item.label || item.id;
       ui.append(
           $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
           click(function () {
@@ -112,20 +109,20 @@ $(function() {
 
   chrome.input.ime.onUiComposition.addListener(function (context) {
     // composition area
-    var ui = $('#imePanel #composition');
+    let ui = $('#imePanel #composition');
     // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
-    var nbsp = '\xa0';
+    let nbsp = '\xa0';
     ui.text((context ? context.composition.text : "" )+ nbsp);
   });
 
-  var node = document.getElementById('input');
+  let node = document.getElementById('input');
   node.blur();
   impl.init();
   impl.attach(node);
 
   if (chrome && chrome.extension) {
-    var croscin = chrome.extension.getBackgroundPage().croscin.instance;
-    var jscin = chrome.extension.getBackgroundPage().jscin;
+    let croscin = chrome.extension.getBackgroundPage().croscin.instance;
+    let jscin = chrome.extension.getBackgroundPage().jscin;
 
     // Get all logs on my console.
     jscin.add_logger(console.log, console);
@@ -139,7 +136,7 @@ $(function() {
     $('#TestItems button').attr("onClick",
         function () { return "test_" + $(this).text(); });
     chrome.input.ime.onKeyEvent.addListener(function(engineID, ev) {
-      var val = $('#chkKeyEvent').prop('checked');
+      let val = $('#chkKeyEvent').prop('checked');
       debug("onKeyEvent(" + engineID + "): " + ev);
       return !val;
     });
