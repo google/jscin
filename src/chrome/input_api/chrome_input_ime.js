@@ -16,7 +16,6 @@ export class ChromeInputIME {
 
     this.kEventPrefix = 'chrome.input.ime#';
     this.kEarlyAbortEvents = ['KeyEvent'];  // Return true to abort.
-    console.log(this.kEarlyAbortEvents);
 
     this.onActivate = this.CreateEventHandler("Activate");
     this.onDeactivated = this.CreateEventHandler("Deactivated");
