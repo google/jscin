@@ -6,10 +6,13 @@
  */
 
 import { jscin } from "./jscin.js";
+import { BaseInputAddon } from "./base_addon.js";
 
-jscin.register_addon('AddonPunctuations', jscin.extend_input_method({
-  constructor: function (name, im)
+export class AddonPunctuations extends BaseInputAddon
+{
+  constructor(name, im)
   {
+    super(name, im);
     this.ctrl_phrase = {
       ',': '\uff0c',
       '.': '\u3002',
@@ -31,37 +34,38 @@ jscin.register_addon('AddonPunctuations', jscin.extend_input_method({
     };
 
     // build key map
-    var keys = [];
-    Object.keys(this.ctrl_phrase).forEach(function (k) {
+    let keys = [];
+    Object.keys(this.ctrl_phrase).forEach((k) => {
       keys.push('Ctrl ' + k);
     });
-    Object.keys(this.ctrl_shift_phrase).forEach(function (k) {
+    Object.keys(this.ctrl_shift_phrase).forEach((k) => {
       keys.push('Ctrl ' + k);
     });
     this.expected_keys = keys;
-  },
+  }
 
-  keystroke: function (ctx, ev)
+  keystroke(ctx, ev)
   {
     // TODO(hungte) Find better way to get allow_ctrl_phrase.
     if (!ev.ctrlKey || ev.altKey || !ctx.allow_ctrl_phrase)
       return this.im.keystroke(ctx, ev);
 
-    var table = ev.shiftKey ? this.ctrl_shift_phrase : this.ctrl_phrase;
-    var phrase = table[ev.key];
+    let table = ev.shiftKey ? this.ctrl_shift_phrase : this.ctrl_phrase;
+    let phrase = table[ev.key];
     if (phrase) {
       ctx.cch = table[ev.key];
       return jscin.IMKEY_COMMIT;
     }
     return this.im.keystroke(ctx, ev);
+  }
 
-  },
-
-  get_accepted_keys: function (ctx)
+  get_accepted_keys(ctx)
   {
-    var keys = this.im.get_accepted_keys(ctx);
+    let keys = this.im.get_accepted_keys(ctx);
     if (ctx.allow_ctrl_phrase)
       keys = keys.concat(this.expected_keys);
     return keys;
   }
-}, jscin.base_input_addon));
+}
+
+jscin.register_addon(AddonPunctuations);

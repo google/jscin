@@ -178,7 +178,7 @@ export var jscin = {
     return Object.keys(jscin.modules);
   },
 
-  register_addon: function (name, constructor) {
+  register_addon: function (constructor, name=constructor.name) {
     var self = jscin;
     self.addons.push(constructor);
     self.log("jscin: Registered addon:", name);
