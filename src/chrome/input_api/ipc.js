@@ -113,3 +113,54 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
     };
   };
 };
+
+export class ImeExtensionIPC {
+
+  constructor(type) {
+    this.kIpcDomain = 'croscin';
+    this.ipc = new ChromeExtensionIPC.IPC(type, this.kIpcDomain);
+  }
+
+  attach() {
+    return this.ipc.attach();
+  }
+
+  send() {
+    let args, callback;
+    let args_len = arguments.length;
+
+    // If the last parameter is a function, treat it as callback.
+    if (arguments.length > 0 &&
+      typeof(arguments[args_len - 1]) == 'function') {
+      args = Array.prototype.slice.call(arguments, 0, args_len - 1);
+      callback = arguments[args_len - 1];
+    } else {
+      args = Array.prototype.slice.call(arguments, 0);
+      callback = undefined;
+    }
+
+    return this.ipc.send({ime: this.kIpcDomain, args: args}, callback);
+  }
+
+  listen(map, other) {
+    this.ipc.recv((evt) => {
+      if (evt.ime != this.kIpcDomain)
+        return;
+      if (evt.args.length) {
+        let callback = map[evt.args[0]];
+        if (callback)
+          return callback(...evt.args.slice(1));
+      }
+      if (other)
+        return other(...evt.args);
+    });
+  }
+
+  recv(callback) {
+    this.ipc.recv((evt) => {
+      if (evt.ime != this.kIpcDomain)
+        return;
+      return callback(...evt.args);
+    });
+  }
+}

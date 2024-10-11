@@ -6,9 +6,10 @@
  */
 // TODO(hungte) Change iframe IME UI to page popup.
 
-import { ImeEvent } from "./ime_event.js";
 import { jscin } from "../jscin/jscin.js";
 import { $, jQuery } from "../jquery/jquery.js";
+import { ImeEvent } from "./ime_event.js";
+import { ImeExtensionIPC } from "./ipc.js";
 
 export class ChromeInputImeExtension {
 
@@ -35,7 +36,7 @@ export class ChromeInputImeExtensionBackground extends ChromeInputImeExtension {
 
     this.ime_api = ime_api;
 
-    let ipc = new ImeEvent.ImeExtensionIPC('background');
+    let ipc = new ImeExtensionIPC('background');
     this.ipc = ipc;
     ipc.attach();
 
@@ -102,7 +103,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     this.attached = [];
     this.frame_factory = f;
 
-    let ipc = new ImeEvent.ImeExtensionIPC('content');
+    let ipc = new ImeExtensionIPC('content');
     this.ipc = ipc;
     ipc.attach();
 

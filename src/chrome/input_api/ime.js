@@ -6,7 +6,7 @@
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
-import { ImeEvent } from "./ime_event.js";
+import { ImeExtensionIPC } from "./ipc.js";
 
 var _debug = false;
 
@@ -22,7 +22,7 @@ $(function() {
   // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
   var nbsp = '\xa0';
 
-  var ipc = new ImeEvent.ImeExtensionIPC('iframe');
+  var ipc = new ImeExtensionIPC('iframe');
   ipc.attach();
   ipc.listen({
     UiMenu: function (engine) {
