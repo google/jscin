@@ -8,7 +8,7 @@
 
 import { jscin } from "../jscin/jscin.js";
 import { $, jQuery } from "../jquery/jquery.js";
-import { ImeEvent } from "./ime_event.js";
+import { CreateImeKeyEvent } from "./ime_event.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
 class ChromeInputImeExtension {
@@ -172,7 +172,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     if (!this.enabled)
       return;
 
-    let ev2 = ImeEvent.ImeKeyEvent(ev);
+    let ev2 = CreateImeKeyEvent(ev);
     let node = ev.target;
     this.debug("impl.KeyDownEventHandler", ev, ev2);
 

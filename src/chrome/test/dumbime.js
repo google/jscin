@@ -5,7 +5,7 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-import { ImeEvent } from "../input_api/ime_event.js";
+import { CreateImeKeyEvent } from "../input_api/ime_event.js";
 
 var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
@@ -90,14 +90,14 @@ function init() {
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {
-    var e = ImeEvent.ImeKeyEvent(evt);
+    var e = CreateImeKeyEvent(evt);
     log('onkeydown');
     log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
     return false;
   }
   document.getElementById('input').onkeyup = function (evt) {
-    var e = ImeEvent.ImeKeyEvent(evt);
+    var e = CreateImeKeyEvent(evt);
     log('onkeyup');
     log(evt, e);
     dumb_ime.onKeyEvent.invoke(engineID, e);
