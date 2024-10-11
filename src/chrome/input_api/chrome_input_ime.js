@@ -46,15 +46,14 @@ export class ChromeInputIME {
 
   // Internal Functions
 
-  log() {
-    console.log.apply(console, ["[chrome.input.ime]"].concat(
-        Array.prototype.slice.apply(arguments)));
+  log(...args) {
+    console.log("[chrome.input.ime]", ...args);
   }
 
-  debug() {
-    if (this._debug) {
-      this.log.apply(this, arguments);
-    }
+  debug(...args) {
+    if (!this._debug)
+      return;
+    this.log(...args);
   }
 
   GetContext(contextID) {
@@ -138,7 +137,7 @@ export class ChromeInputIME {
           this.kEventPrefix + event_name,
           (ime_ev) => {
             this.debug('on', event_name, ime_ev);
-            let result = callback.apply(null, ime_ev.detail);
+            let result = callback(...ime_ev.detail);
             if (needEarlyAbort && result) {
               ime_ev.preventDefault();
             }
@@ -149,10 +148,9 @@ export class ChromeInputIME {
 
   // public functions
 
-  dispatchEvent(type) {
-    let params = Array.prototype.slice.call(arguments, 1);
+  dispatchEvent(type, ...params) {
     let imeEvent = new CustomEvent(this.kEventPrefix + type);
-    this.debug("dispatchEvent", type, arguments);
+    this.debug("dispatchEvent", type, params);
     imeEvent.initCustomEvent(imeEvent.type, false,
         (this.kEarlyAbortEvents.indexOf(type) >= 0), params);
     return document.dispatchEvent(imeEvent);

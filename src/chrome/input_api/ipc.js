@@ -11,10 +11,10 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
   self.ipcTypeName = '@chromeExtIpc@' + namespace;
   self.handlers = [];
   self._debug = false;
-  self.debug = function() {
-    if (self._debug)
-      console.log.apply(console, ["[ipc]"].concat(
-          Array.prototype.slice.apply(arguments)));
+  self.debug = function(...args) {
+    if (!self._debug)
+      return;
+    console.log("[ipc]", ...args);
   }
 
   function CreateMessage(data) {

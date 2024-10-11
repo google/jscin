@@ -86,10 +86,10 @@ export class IME {
     return {'engineID': this.kEngineId};
   }
 
-  log() {
-    if (this.debug)
-      console.log.apply(console, ["[croscin]"].concat(
-          Array.prototype.slice.apply(arguments)));
+  log(...args) {
+    if (!this.debug)
+      return;
+    console.log("[croscin]", ...args);
   }
 
   // Core functions
@@ -776,14 +776,10 @@ export class IME {
 
     // Implementation events (by emulation).
     if (ime_api.onImplUpdateUI) {
-      ime_api.onImplUpdateUI.addListener(() => {
-        this.UpdateUI.apply(this, arguments);
-      });
+      ime_api.onImplUpdateUI.addListener((...args) => { this.UpdateUI(args); });
     }
     if (ime_api.onImplCommit) {
-      ime_api.onImplCommit.addListener(() => {
-        this.Commit.apply(this, arguments);
-      });
+      ime_api.onImplCommit.addListener((...args)   => { this.Commit(args); });
     }
     /* Export again. */
     window.jscin = jscin;

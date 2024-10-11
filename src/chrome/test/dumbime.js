@@ -9,7 +9,7 @@ import { ImeEvent } from "../input_api/ime_event.js";
 
 var croscin = chrome.extension.getBackgroundPage().croscin.instance;
 var jscin = chrome.extension.getBackgroundPage().jscin;
-var log = function() { console.log.apply(console, arguments); };
+var log = function(...args) { console.log(...args); };
 
 var DumbIME = function() {
   var self = this;
@@ -21,11 +21,12 @@ var DumbIME = function() {
     return {
       addListener: function(arg) {
           _listeners[name].push(arg); },
-      invoke: function() {
-          var args = arguments;
-          _listeners[name].forEach(function (callback) {
-            callback.apply(this, args);
-          }); } };
+      invoke: function(...args) {
+        for (let callback of _listeners[name]) {
+          callback(...args);
+        }
+      },
+    };
   }
 
   return {
@@ -35,27 +36,22 @@ var DumbIME = function() {
     // chrome.input.api.*
 
     commitText: function (arg) {
-      log('commitText');
-      log(arguments);
+      log('commitText', arguments);
       document.getElementById('committed').value += arg.text;
     },
     setCandidateWindowProperties: function () {
-      log('setCandidateWindowProperties');
-      log(arguments);
+      log('setCandidateWindowProperties', arguments);
     },
     setComposition: function (arg) {
-      log('setComposition');
-      log(arguments);
+      log('setComposition', arguments);
       document.getElementById('composition').value = arg.text;
     },
     clearComposition: function () {
-      log('clearComposition');
-      log(arguments);
+      log('clearComposition', arguments);
       document.getElementById('composition').value = '';
     },
     setCandidates: function (arg) {
-      log('setCandidates');
-      log(arguments);
+      log('setCandidates', arguments);
       var s = '';
       for (var i in arg.candidates) {
         var cand = arg.candidates[i];
@@ -64,12 +60,10 @@ var DumbIME = function() {
       document.getElementById('candidates').value = s;
     },
     updateMenuItems: function () {
-      log('updateMenuItems');
-      log(arguments);
+      log('updateMenuItems', arguments);
     },
     setMenuItems: function () {
-      log('setMenuItems');
-      log(arguments);
+      log('setMenuItems', arguments);
     },
     onActivate: create_listener('onActivate'),
     onDeactivated: create_listener('onDeactivated'),

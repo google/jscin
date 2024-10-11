@@ -21,9 +21,9 @@ var enable_google_drive = bgPage.enable_google_drive;
 
 var _ = chrome.i18n.getMessage;
 
-function SetElementsText() {
-  for (var i = 0; i < arguments.length; i++) {
-    $("." + arguments[i]).text(_(arguments[i]));
+function SetElementsText(...args) {
+  for (let name of args) {
+    $("." + name).text(_(name));
   }
 }
 

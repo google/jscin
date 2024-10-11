@@ -177,10 +177,10 @@ export var ImeEvent = {
           if (evt.args.length) {
             var callback = map[evt.args[0]];
             if (callback)
-              return callback.apply(null, evt.args.slice(1));
+              return callback(...evt.args.slice(1));
           }
           if (other)
-            return other.apply(null, evt.args);
+            return other(...evt.args);
         });
       },
 
@@ -188,7 +188,7 @@ export var ImeEvent = {
         ipc.recv(function (evt) {
           if (evt.ime != kIpcDomain)
             return;
-          return callback.apply(null, evt.args);
+          return callback(...evt.args);
         });
       }
     };

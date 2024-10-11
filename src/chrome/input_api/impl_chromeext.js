@@ -17,15 +17,14 @@ export class ChromeInputImeExtension {
     this._debug = false;
   }
 
-  log() {
-    console.log.apply(console, ["[impl_chromext]"].concat(
-        Array.prototype.slice.apply(arguments)));
+  log(...args) {
+    console.log("[impl_chromext]", ...args);
   }
 
-  debug() {
+  debug(...args) {
     if (!this._debug)
       return;
-    this.log.apply(this, arguments);
+    this.log(...args);
   }
 }
 
@@ -75,22 +74,15 @@ export class ChromeInputImeExtensionBackground extends ChromeInputImeExtension {
     ime_api.onImplCommitText.addListener(
       (contextID, text) => { this.ipc.send("ImplCommitText", contextID, text); });
 
-    /*
-     * A bug in ipc.listen: for the uncaught handler (other), if we use => then
-     * the argument would be an empty object; but we must keep => for this to
-     * point at the class.  As a result, the temporary workaround is to us
-     * function() and bind this using an extra 'self'.
-     */
-    let self = this;
     this.ipc.listen({
       IpcGetSystemStatus: () => {
         this.debug("IpcGetSystemStatus");
         return {
           enabled: croscin.instance.prefGetSupportNonChromeOS(),
           debug: croscin.instance.debug }; }
-    }, function ()  {
-      self.debug("IPC uncaught event (will send to IME API):", arguments);
-      return self.ime_api.dispatchEvent.apply(self.ime_api, arguments);
+    }, (...args) => {
+      this.debug("IPC uncaught event (will send to IME API):", args);
+      return this.ime_api.dispatchEvent(...args);
     });
   }
 }
@@ -131,8 +123,8 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     return window.self !== window.top;
   }
 
-  SendMessage() {
-    this.ipc.send.apply(this.ipc, arguments);
+  SendMessage(...args) {
+    this.ipc.send(...args);
   }
 
   SetEnabled(enabled) {
@@ -398,7 +390,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
 
       MenuItemActivated:  (engineID, name) => {
         // (Legacy, when menu is included in iframe) forward to background.
-        this.ipc.send.apply(this.ipc, "MenuItemActivated", engineID, name);
+        this.ipc.send("MenuItemActivated", engineID, name);
         SnapshotIME();
       }
     });

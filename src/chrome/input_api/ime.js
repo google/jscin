@@ -13,7 +13,7 @@ var _debug = false;
 function debug() {
   if (!_debug)
     return;
-  console.log.apply(console, arguments);
+  console.log("[input_api/ime]", ...args);
 }
 
 $(function() {

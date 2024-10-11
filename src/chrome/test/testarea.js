@@ -9,8 +9,8 @@ import { ChromeInputImeImplPage } from "../input_api/impl_page.js";
 // Testing functions
 var testContextID = '1';
 
-function debug() {
-  console.log.apply(console, arguments);
+function debug(...args) {
+  console.log("[testarea]", ...args);
 }
 
 function test_setCandidateWindowProperties(flag) {

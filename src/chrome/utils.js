@@ -13,11 +13,10 @@ const is_manifest_v3 = false;
 
 export var debug = true;
 
-export function log() {
-  if (debug) {
-    console.log.apply(console, ["[utils]"].concat(
-      Array.prototype.slice.apply(arguments)));
-  }
+export function log(...args) {
+  if (!debug)
+    return;
+  console.log("[utils]", ...args);
 }
 
 /* Key names are in kCamelCase. */
