@@ -22,7 +22,7 @@ globalThis.enable_google_drive = false;
 
 document.addEventListener( 'readystatechange', function() {
   if (document.readyState === 'complete') {
-    croscin.instance = new croscin.IME;
+    croscin.instance = new croscin.IME();
 
     // TODO Sync with content.js behavior.
     if (croscin.instance.ime_api.isEmulation) {

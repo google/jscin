@@ -13,112 +13,133 @@ import { jscin } from "./jscin/all.js";
 import { ChromeInputIME } from "./input_api/chrome_input_ime.js";
 
 export { jscin };
-export var croscin = {};
 
-/**
- * Chinese IME class.
- * @constructor
- */
-croscin.IME = function() {
-  var self = this;
+/* The main class for an Input Method Environment. */
+export class IME {
 
-  // TODO(hungte) Make this a real pref.
-  self.debug = jscin.readLocalStorage('debug', false);
+  constructor() {
+    // TODO(hungte) Make this a real pref.
+    this.debug = jscin.readLocalStorage('debug', false);
 
-  // The engine ID must match input_components.id in manifest file.
-  self.kEngineId = 'cros_cin';
-  self.kMenuOptions = "options";
-  self.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
+    // The engine ID must match input_components.id in manifest file.
+    this.kEngineId = 'cros_cin';
+    this.kMenuOptions = "options";
+    this.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
 
-  self.imctx = {};
-  self.im = null;
-  self.im_name = '';
-  self.im_label = '';
+    this.imctx = {};
+    this.im = null;
+    this.im_name = '';
+    this.im_label = '';
 
-  self.cross_query = {};
+    this.ime_api = null
+    this.ime_api_type = 'Not available';
 
-  self.kPrefEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
-  self.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
-  self.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
-  self.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
-  self.kPrefRelatedText = 'croscinPrefRelatedText';
+    this.cross_query = {};
 
-  self.kPhrasesDatabase = 'croscinPhrasesDatabase';
+    this.kPrefEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
+    this.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
+    this.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
+    this.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
+    this.kPrefRelatedText = 'croscinPrefRelatedText';
 
-  self.pref = {
-    im_default: '',
-    im_enabled_list: [],
-    support_non_chromeos: true,
-    quick_punctuations: true,
-    related_text: false,
-  };
+    this.kPhrasesDatabase = 'croscinPhrasesDatabase';
 
-  self.engineID = self.kEngineId;
-  self.context = null;
+    this.pref = {
+      im_default: '',
+      im_enabled_list: [],
+      support_non_chromeos: true,
+      quick_punctuations: true,
+      related_text: false,
+    };
+
+    this.engineID = this.kEngineId;
+    this.context = null;
+
+    this.Initialize();
+  }
+
+  Initialize() {
+    // Initialization.
+    let version = chrome.runtime.getManifest().version;
+    let reload = (version !== jscin.getLocalStorageVersion());
+    this.LoadBuiltinTables(reload);
+    if (reload) {
+      jscin.reloadNonBuiltinTables();
+      jscin.setLocalStorageVersion(version);
+    }
+    jscin.reload_configuration();
+    this.detect_ime_api();
+    this.registerEventHandlers();
+
+    // Start the default input method.
+    this.LoadPreferences();
+    this.ActivateInputMethod(this.pref.im_default);
+  }
 
   // Standard utilities
-  self.GetContextArg = function() {
+
+  GetContextArg() {
     return {'contextID': this.context.contextID};
   }
 
-  self.GetEngineArg = function() {
-    return {'engineID': self.kEngineId};
+  GetEngineArg() {
+    return {'engineID': this.kEngineId};
   }
 
-  self.log = function() {
-    if (self.debug)
+  log() {
+    if (this.debug)
       console.log.apply(console, ["[croscin]"].concat(
           Array.prototype.slice.apply(arguments)));
   }
 
   // Core functions
-  self.Commit = function(text) {
+  Commit(text) {
     // TODO(hungte) fixme when gen_inp has fixed this.
     if (text && typeof(text) != typeof('')) {
       text = text[0];
-      self.log("croscin.Commit: WARNING: input text is not a simple string.");
+      this.log("croscin.Commit: WARNING: input text is not a simple string.");
     }
 
     if (text) {
-      var arg = self.GetContextArg();
+      let arg = this.GetContextArg();
       arg.text = text;
-      self.ime_api.commitText(arg);
-      self.log("croscin.Commit: value:", text);
-      self.CrossQueryKeystrokes(text);
+      this.ime_api.commitText(arg);
+      this.log("croscin.Commit: value:", text);
+      this.CrossQueryKeystrokes(text);
     } else {
-      self.log("croscin.Commit: warning: called with empty string.");
+      this.log("croscin.Commit: warning: called with empty string.");
     }
   }
 
-  self.CrossQueryKeystrokes = function(ch) {
-    var crossQuery = jscin.getCrossQuery();
+  CrossQueryKeystrokes(ch) {
+    let crossQuery = jscin.getCrossQuery();
     if (!crossQuery) {
       return;
     }
-    if (!self.cross_query[crossQuery]) {
+    if (!this.cross_query[crossQuery]) {
       // TODO(hungte) cache this in better way....
-      var metadata = jscin.getTableMetadatas();
-      self.cross_query[crossQuery] = [
+      let metadata = jscin.getTableMetadatas();
+      this.cross_query[crossQuery] = [
           (metadata && metadata[crossQuery]) ? metadata[crossQuery].cname : "",
-          self.BuildCharToKeyMap(jscin.getTableData(crossQuery))];
+          this.BuildCharToKeyMap(jscin.getTableData(crossQuery))];
     }
-    var cname = self.cross_query[crossQuery][0];
-    var char_map = self.cross_query[crossQuery][1];
-    var list = char_map ? char_map[ch] : undefined;
+    let cname = this.cross_query[crossQuery][0];
+    let char_map = this.cross_query[crossQuery][1];
+    let list = char_map ? char_map[ch] : undefined;
     if(list === undefined) {
       return;
     }
-    var arg = self.GetContextArg();
-    var candidates = [];
-    for(var i = 0; i < list.length; i++) {
+    let arg = this.GetContextArg();
+    let candidates = [];
+    for(let i = 0; i < list.length; i++) {
       candidates[i] = {
         candidate: list[i],
         id: i,
       }
     }
     arg.candidates = candidates;
-    self.ime_api.setCandidates(arg);
-    self.SetCandidatesWindowProperty({
+    this.ime_api.setCandidates(arg);
+    this.SetCandidatesWindowProperty({
       auxiliaryTextVisible: true,
       auxiliaryText: chrome.i18n.getMessage('crossQueryAuxText') + cname,
       visible: true,
@@ -126,41 +147,41 @@ croscin.IME = function() {
     });
   }
 
-  self.ProcessKeyEvent = function(keyData) {
-    self.log("ProcessKeyEvent:", keyData.key);
+  ProcessKeyEvent(keyData) {
+    this.log("ProcessKeyEvent:", keyData.key);
 
     // Currently all of the modules uses key down.
     if (keyData.type != 'keydown') {
       return false;
     }
 
-    if (self.imctx.check_accepted_keys &&
-        !self.ime_api.onImplAcceptedKeys &&
-        self.im.get_accepted_keys(self.imctx).indexOf(
+    if (this.imctx.check_accepted_keys &&
+        !this.ime_api.onImplAcceptedKeys &&
+        this.im.get_accepted_keys(this.imctx).indexOf(
             jscin.get_key_description(keyData)) < 0) {
-      self.log("Key not accepted", keyData);
+      this.log("Key not accepted", keyData);
       return false;
     }
 
-    var ret = self.im.keystroke(self.imctx, keyData);
+    let ret = this.im.keystroke(this.imctx, keyData);
 
     switch (ret) {
       case jscin.IMKEY_COMMIT:
-        self.log("im.keystroke: return IMKEY_COMMIT");
-        self.UpdateUI();
-        self.Commit(self.imctx.cch);
-        self.imctx.cch_publish = self.imctx.cch;
-        self.imctx.cch = '';
+        this.log("im.keystroke: return IMKEY_COMMIT");
+        this.UpdateUI();
+        this.Commit(this.imctx.cch);
+        this.imctx.cch_publish = this.imctx.cch;
+        this.imctx.cch = '';
         return true;
 
       case jscin.IMKEY_ABSORB:
-        self.log("im.keystroke: return IMKEY_ABSORB");
-        self.UpdateUI();
+        this.log("im.keystroke: return IMKEY_ABSORB");
+        this.UpdateUI();
         return true;
 
       case jscin.IMKEY_IGNORE:
-        self.log("im.keystroke: return IMKEY_IGNORE");
-        self.UpdateUI();
+        this.log("im.keystroke: return IMKEY_IGNORE");
+        this.UpdateUI();
         return false;
 
       case jscin.IMKEY_DELAY:
@@ -169,57 +190,57 @@ croscin.IME = function() {
     }
 
     // default: Unknown return value.
-    self.log("croscin.ProcessKeyEvent: Unknown return value:", ret);
+    this.log("croscin.ProcessKeyEvent: Unknown return value:", ret);
     return false;
   }
 
-  self.SimulateKeyDown = function(key) {
-    var keyEvent = {
+  SimulateKeyDown(key) {
+    let keyEvent = {
       'type': 'keydown',
       'key': key,
       'altKey': false,
       'ctrlKey': false,
       'shiftKey': false,
     };
-    return self.ProcessKeyEvent(keyEvent);
+    return this.ProcessKeyEvent(keyEvent);
   }
 
-  self.SetCandidatesWindowProperty = function(properties) {
-    // self.log("SetCandidatesWindowProperty: ", properties);
-    var arg = self.GetEngineArg();
+  SetCandidatesWindowProperty(properties) {
+    // this.log("SetCandidatesWindowProperty: ", properties);
+    let arg = this.GetEngineArg();
     if (arguments.length == 2) {
       // Legacy support.
-      var name = arguments[0], value = arguments[1];
+      let name = arguments[0], value = arguments[1];
       properties = {};
       properties[name] = value;
-      self.log('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
+      this.log('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
     }
     arg.properties = properties;
-    self.ime_api.setCandidateWindowProperties(arg);
+    this.ime_api.setCandidateWindowProperties(arg);
   }
 
-  self.InitializeUI = function() {
+  InitializeUI() {
     // Vertical candidates window looks better on ChromeOS.
     // CIN tables don't expect cursor in candidates window.
-    self.SetCandidatesWindowProperty({
+    this.SetCandidatesWindowProperty({
       vertical: true,
       cursorVisible: false,
       visible: false,
-      auxiliaryText: self.im_label,
+      auxiliaryText: this.im_label,
       auxiliaryTextVisible: false});
 
     // Setup menu
-    self.UpdateMenu();
+    this.UpdateMenu();
   }
 
-  self.UpdateComposition = function(keystroke, buffer, cursor) {
-    var arg = self.GetContextArg();
+  UpdateComposition(keystroke, buffer, cursor) {
+    let arg = this.GetContextArg();
     // Format: buffer...|cursor-keystroke...buffer
     keystroke = keystroke || '';
     buffer = buffer || [];
-    var buffer_text = buffer.join('');
-    var all_text = buffer_text + keystroke;
-    self.log("croscin.UpdateComposition:", all_text);
+    let buffer_text = buffer.join('');
+    let all_text = buffer_text + keystroke;
+    this.log("croscin.UpdateComposition:", all_text);
     if (typeof cursor === 'undefined'){
       cursor = all_text.length;
     }
@@ -232,9 +253,9 @@ croscin.IME = function() {
                   buffer_text.substring(cursor));
       if (buffer_text) {
         arg.segments = [];
-        for (var i = 0, len = buffer.length, total = 0; i < len; i++) {
+        for (let i = 0, len = buffer.length, total = 0; i < len; i++) {
           if (cursor >= total && cursor < total + buffer[i].length) {
-            var next = total + keystroke.length + buffer[i].length;
+            let next = total + keystroke.length + buffer[i].length;
             // cursor will split segment: [total, cursor); [cursor, next).
             if (cursor > total) {
               arg.segments.push({
@@ -252,24 +273,24 @@ croscin.IME = function() {
           }
         }
       }
-      self.ime_api.setComposition(arg);
+      this.ime_api.setComposition(arg);
     } else {
-      self.ime_api.clearComposition(arg);
+      this.ime_api.clearComposition(arg);
     }
     return all_text;
   }
 
-  self.UpdateCandidates = function(candidate_list, labels) {
+  UpdateCandidates(candidate_list, labels) {
     if (candidate_list === undefined) {
-      self.log("candidate_list is undefined");
+      this.log("candidate_list is undefined");
       return;
     }
-    self.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
+    this.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
              ", labels = " + labels);
     if (candidate_list.length > 0) {
-      var arg = self.GetContextArg();
-      var candidates = [];
-      for (var i = 0; i < candidate_list.length; i++) {
+      let arg = this.GetContextArg();
+      let candidates = [];
+      for (let i = 0; i < candidate_list.length; i++) {
         // TODO(hungte) fix label, annotation
         candidates.push({
           'candidate': candidate_list[i],
@@ -277,134 +298,134 @@ croscin.IME = function() {
           'label': labels.charAt(i),
         });
       }
-      self.log('candidates:', candidates);
+      this.log('candidates:', candidates);
       arg.candidates = candidates;
-      self.ime_api.setCandidates(arg);
-      self.SetCandidatesWindowProperty({
+      this.ime_api.setCandidates(arg);
+      this.SetCandidatesWindowProperty({
         pageSize: candidate_list.length,
         visible: true});
     } else {
-      self.SetCandidatesWindowProperty({visible: false});
+      this.SetCandidatesWindowProperty({visible: false});
     }
     return candidate_list.length > 0;
   }
 
-  self.UpdateUI = function(keystroke, mcch, selkey, lcch, cursor) {
+  UpdateUI(keystroke, mcch, selkey, lcch, cursor) {
     if (arguments.length == 0) {
-      keystroke = self.imctx.keystroke;
-      mcch = self.imctx.mcch;
-      selkey = self.imctx.selkey;
-      lcch = self.imctx.lcch;
-      cursor = self.imctx.edit_pos;
+      keystroke = this.imctx.keystroke;
+      mcch = this.imctx.mcch;
+      selkey = this.imctx.selkey;
+      lcch = this.imctx.lcch;
+      cursor = this.imctx.edit_pos;
     }
 
-    var has_composition, has_candidates;
+    let has_composition, has_candidates;
     // process:
     //  - keystroke
-    has_composition = self.UpdateComposition(keystroke, lcch, cursor);
+    has_composition = this.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
-    has_candidates = self.UpdateCandidates(mcch, selkey);
+    has_candidates = this.UpdateCandidates(mcch, selkey);
     // show_keystroke(cch_publish) can be displayed in auxiliary text.
 
-    self.SetCandidatesWindowProperty({
-      auxiliaryText: self.im_label,
+    this.SetCandidatesWindowProperty({
+      auxiliaryText: this.im_label,
       auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
 
     // Hint for IME to get key expections.
     // TODO(hungte) Change this from function to context.
-    if (self.ime_api.onImplAcceptedKeys) {
+    if (this.ime_api.onImplAcceptedKeys) {
       jscin.log("update accepted keys");
-      self.ime_api.dispatchEvent("ImplAcceptedKeys",
-          self.im.get_accepted_keys(self.imctx));
+      this.ime_api.dispatchEvent("ImplAcceptedKeys",
+          this.im.get_accepted_keys(this.imctx));
     }
   }
 
-  self.ActivateInputMethod = function(name) {
-    if (name && name == self.im_name) {
-      self.log("croscin.ActivateInputMethod: already activated:", name);
-      self.UpdateMenu();
+  ActivateInputMethod(name) {
+    if (name && name == this.im_name) {
+      this.log("croscin.ActivateInputMethod: already activated:", name);
+      this.UpdateMenu();
       return;
     }
 
     if (name in jscin.input_methods) {
-      self.log("croscin.ActivateInputMethod: Started:", name);
-      self.imctx = {};
-      self.im = jscin.create_input_method(name, self.imctx);
+      this.log("croscin.ActivateInputMethod: Started:", name);
+      this.imctx = {};
+      this.im = jscin.create_input_method(name, this.imctx);
       // For delayed response (ex, external IM modules, see IMKEY_DELAY).
-      self.im.set_notifier(function () {
-        if (!self.context) {
-          self.log("IM notified after context destroyed.");
+      this.im.set_notifier(() => {
+        if (!this.context) {
+          this.log("IM notified after context destroyed.");
           return;
         }
-        self.UpdateUI();
-        if (self.imctx.cch) {
-          self.Commit(self.imctx.cch);
-          self.imctx.cch_publish = self.imctx.cch;
-          self.imctx.cch = '';
+        this.UpdateUI();
+        if (this.imctx.cch) {
+          this.Commit(this.imctx.cch);
+          this.imctx.cch_publish = this.imctx.cch;
+          this.imctx.cch = '';
         }
       });
       // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
-      if (!self.ime_api.isEmulation) {
-        self.imctx.commit_on_blur = true;
+      if (!this.ime_api.isEmulation) {
+        this.imctx.commit_on_blur = true;
       }
-      self.im_name = name;
-      self.im_label = jscin.get_input_method_label(name);
+      this.im_name = name;
+      this.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
-      self.imctx.allow_ctrl_phrase = self.prefGetQuickPunctuations();
-      self.imctx.allow_related_text = self.prefGetRelatedText();
-      self.imctx.phrases = self.phrases;
-      self.log("croscin.im:", self.im);
-      self.InitializeUI();
+      this.imctx.allow_ctrl_phrase = this.prefGetQuickPunctuations();
+      this.imctx.allow_related_text = this.prefGetRelatedText();
+      this.imctx.phrases = this.phrases;
+      this.log("croscin.im:", this.im);
+      this.InitializeUI();
     } else {
-      self.log("croscin.ActivateInputMethod: Invalid item:", name);
+      this.log("croscin.ActivateInputMethod: Invalid item:", name);
     }
   }
 
-  self.UpdateMenu = function() {
-    var menu_items = [];
+  UpdateMenu() {
+    let menu_items = [];
 
-    self.pref.im_enabled_list.forEach(function (name) {
-      var label = jscin.get_input_method_label(name) || name;
+    this.pref.im_enabled_list.forEach((name) => {
+      let label = jscin.get_input_method_label(name) || name;
       menu_items.push({
         "id": "ime:" + name,
         "label": label,
         "style": "radio",
-        "checked": name == self.im_name,
+        "checked": name == this.im_name,
       });
     });
-    self.log("croscin.UpdateMenu: " + menu_items.length + " items.");
+    this.log("croscin.UpdateMenu: " + menu_items.length + " items.");
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
     // menu_items.push({"id": "", "style": "separator"});
-    menu_items.push({"id": self.kMenuOptions, "label": self.kMenuOptionsLabel});
+    menu_items.push({"id": this.kMenuOptions, "label": this.kMenuOptionsLabel});
 
-    var arg = self.GetEngineArg();
+    let arg = this.GetEngineArg();
     arg['items'] = menu_items;
-    self.ime_api.setMenuItems(arg);
+    this.ime_api.setMenuItems(arg);
   }
 
-  self.LoadExtensionResource = function(url) {
-    var xhr = new XMLHttpRequest();
+  LoadExtensionResource(url) {
+    let xhr = new XMLHttpRequest();
     if (url.indexOf('://') < 0)
       url = chrome.runtime.getURL(url);
-    self.log("croscin.LoadExtensionResource:", url);
+    this.log("croscin.LoadExtensionResource:", url);
     xhr.open("GET", url, false);
     xhr.send();
     if (xhr.readyState != 4 || xhr.status != 200) {
-      self.log("croscin.LoadExtensionResource: failed to fetch:", url);
+      this.log("croscin.LoadExtensionResource: failed to fetch:", url);
       return null;
     }
     return xhr.responseText;
   }
 
-  self.BuildCharToKeyMap = function(data) {
-    var map = {};
-    for(var key in data.chardef) {
-      var chs = data.chardef[key];
-      for(var i in chs) {
-        var ch = chs[i];
-        var keyname = '';
-        for(var j in key) {
+  BuildCharToKeyMap(data) {
+    let map = {};
+    for(let key in data.chardef) {
+      let chs = data.chardef[key];
+      for(let i in chs) {
+        let ch = chs[i];
+        let keyname = '';
+        for(let j in key) {
           if(key[j] in data.keyname) {
             keyname += data.keyname[key[j]];
           }
@@ -419,57 +440,57 @@ croscin.IME = function() {
     return map;
   }
 
-  self.LoadBuiltinTables = function(reload) {
-    var list = self.LoadExtensionResource("tables/builtin.json");
+  LoadBuiltinTables(reload) {
+    let list = this.LoadExtensionResource("tables/builtin.json");
     if (!list) {
-      self.log("croscin.LoadBuiltinTables: No built-in tables.");
+      this.log("croscin.LoadBuiltinTables: No built-in tables.");
       return;
     }
-    var table_metadata = jscin.getTableMetadatas();
+    let table_metadata = jscin.getTableMetadatas();
     list = JSON.parse(list);
-    for (var table_name in list) {
+    for (let table_name in list) {
       if (table_name in table_metadata && !reload) {
-        self.log("croscin.LoadBuiltinTables: skip loaded table:", table_name);
+        this.log("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
-      var content = self.LoadExtensionResource("tables/" + list[table_name]);
+      let content = this.LoadExtensionResource("tables/" + list[table_name]);
       if (!content) {
-        self.log("croscin.LoadBuiltinTables: Failed to load:", table_name);
+        this.log("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
       }
       jscin.install_input_method(null, content, {builtin: true});
     }
 
     // Load phrases
-    var phrases = jscin.readLocalStorage(self.kPhrasesDatabase, undefined);
+    let phrases = jscin.readLocalStorage(this.kPhrasesDatabase, undefined);
     if (reload || !phrases) {
-      phrases = JSON.parse(self.LoadExtensionResource("tables/tsi.json"));
-      jscin.writeLocalStorage(self.kPhrasesDatabase, phrases);
+      phrases = JSON.parse(this.LoadExtensionResource("tables/tsi.json"));
+      jscin.writeLocalStorage(this.kPhrasesDatabase, phrases);
     }
-    self.phrases = phrases;
+    this.phrases = phrases;
   }
 
-  self.LoadPreferences = function() {
-    var pref_im_default = jscin.readLocalStorage(
-        self.kPrefDefaultInputMethod, self.pref.im_default);
-    var pref_im_enabled_list = jscin.readLocalStorage(
-        self.kPrefEnabledInputMethodList, self.pref.im_enabled_list);
-    var changed = false;
+  LoadPreferences() {
+    let pref_im_default = jscin.readLocalStorage(
+        this.kPrefDefaultInputMethod, this.pref.im_default);
+    let pref_im_enabled_list = jscin.readLocalStorage(
+        this.kPrefEnabledInputMethodList, this.pref.im_enabled_list);
+    let changed = false;
 
     // Preferences that don't need to be normalized.
-    self.pref.quick_punctuations = jscin.readLocalStorage(
-        self.kPrefQuickPunctuations, self.pref.quick_punctuations);
-    self.pref.support_non_chromeos = jscin.readLocalStorage(
-        self.kPrefSupportNonChromeOS, self.pref.support_non_chromeos);
-    self.pref.related_text = jscin.readLocalStorage(
-        self.kPrefRelatedText, self.pref.related_text);
+    this.pref.quick_punctuations = jscin.readLocalStorage(
+        this.kPrefQuickPunctuations, this.pref.quick_punctuations);
+    this.pref.support_non_chromeos = jscin.readLocalStorage(
+        this.kPrefSupportNonChromeOS, this.pref.support_non_chromeos);
+    this.pref.related_text = jscin.readLocalStorage(
+        this.kPrefRelatedText, this.pref.related_text);
 
     // Normalize preferences.
-    var metadatas = jscin.getTableMetadatas();
-    var k = null;
-    var enabled_list = [];
+    let metadatas = jscin.getTableMetadatas();
+    let k = null;
+    let enabled_list = [];
 
-    pref_im_enabled_list.forEach(function (key) {
+    pref_im_enabled_list.forEach((key) => {
       if (key in metadatas && enabled_list.indexOf(key) < 0)
         enabled_list.push(key);
     });
@@ -494,301 +515,279 @@ croscin.IME = function() {
       changed = true;
     }
 
-    self.pref.im_default = pref_im_default;
-    self.pref.im_enabled_list = pref_im_enabled_list;
-    self.log("croscin.prefs", self.pref);
+    this.pref.im_default = pref_im_default;
+    this.pref.im_enabled_list = pref_im_enabled_list;
+    this.log("croscin.prefs", this.pref);
 
     if (changed) {
-      self.SavePreferences();
+      this.SavePreferences();
     }
   }
 
-  self.SavePreferences = function() {
+  SavePreferences() {
     // Preferences that don't need to be normalized.
-    jscin.writeLocalStorage(self.kPrefDefaultInputMethod, self.pref.im_default);
-    jscin.writeLocalStorage(self.kPrefEnabledInputMethodList,
-                            self.pref.im_enabled_list);
-    jscin.writeLocalStorage(self.kPrefSupportNonChromeOS,
-                            self.pref.support_non_chromeos);
-    jscin.writeLocalStorage(self.kPrefQuickPunctuations,
-                            self.pref.quick_punctuations);
-    jscin.writeLocalStorage(self.kPrefRelatedText,
-                            self.pref.related_text);
-    self.log("preferences saved.");
+    jscin.writeLocalStorage(this.kPrefDefaultInputMethod, this.pref.im_default);
+    jscin.writeLocalStorage(this.kPrefEnabledInputMethodList,
+                            this.pref.im_enabled_list);
+    jscin.writeLocalStorage(this.kPrefSupportNonChromeOS,
+                            this.pref.support_non_chromeos);
+    jscin.writeLocalStorage(this.kPrefQuickPunctuations,
+                            this.pref.quick_punctuations);
+    jscin.writeLocalStorage(this.kPrefRelatedText,
+                            this.pref.related_text);
+    this.log("preferences saved.");
   }
 
-  self.prefInsertEnabledInputMethod = function (name) {
-    if (self.pref.im_enabled_list.indexOf(name) < 0) {
-      self.pref.im_enabled_list.unshift(name);
-      self.prefSetEnabledList(self.pref.im_enabled_list);
+  prefInsertEnabledInputMethod(name) {
+    if (this.pref.im_enabled_list.indexOf(name) < 0) {
+      this.pref.im_enabled_list.unshift(name);
+      this.prefSetEnabledList(this.pref.im_enabled_list);
     }
   }
 
-  self.prefRemoveEnabledInputMethod = function (name) {
-    var index = self.pref.im_enabled_list.indexOf(name);
+  prefRemoveEnabledInputMethod(name) {
+    let index = this.pref.im_enabled_list.indexOf(name);
     if (index < 0) {
       return;
     }
-    self.pref.im_enabled_list.splice(index, 1);
-    self.prefSetEnabledList(self.pref.im_enabled_list);
+    this.pref.im_enabled_list.splice(index, 1);
+    this.prefSetEnabledList(this.pref.im_enabled_list);
   }
 
-  self.prefSetEnabledList = function (new_list) {
-    self.pref.im_enabled_list = new_list;
-    self.pref.im_default = new_list.length > 0 ? new_list[0] : '';
-    self.SavePreferences();
+  prefSetEnabledList(new_list) {
+    this.pref.im_enabled_list = new_list;
+    this.pref.im_default = new_list.length > 0 ? new_list[0] : '';
+    this.SavePreferences();
   }
 
-  self.prefGetQuickPunctuations = function () {
-    return self.pref.quick_punctuations;
+  prefGetQuickPunctuations() {
+    return this.pref.quick_punctuations;
   }
 
-  self.prefSetQuickPunctuations = function (new_value) {
-    self.pref.quick_punctuations = new_value;
+  prefSetQuickPunctuations(new_value) {
+    this.pref.quick_punctuations = new_value;
     // TODO(hungte) Change this dirty workaround to IM events.
-    self.imctx.allow_ctrl_phrase = new_value;
-    self.SavePreferences();
+    this.imctx.allow_ctrl_phrase = new_value;
+    this.SavePreferences();
   }
 
-  self.prefGetRelatedText = function () {
-    return self.pref.related_text;
+  prefGetRelatedText() {
+    return this.pref.related_text;
   }
 
-  self.prefSetRelatedText = function (new_value) {
-    self.pref.related_text = new_value;
+  prefSetRelatedText(new_value) {
+    this.pref.related_text = new_value;
     // TODO(hungte) Change this dirty workaround to IM events.
-    self.imctx.allow_related_text = new_value;
-    self.SavePreferences();
+    this.imctx.allow_related_text = new_value;
+    this.SavePreferences();
   }
 
-  self.prefGetSupportNonChromeOS = function () {
-    return self.pref.support_non_chromeos;
+  prefGetSupportNonChromeOS() {
+    return this.pref.support_non_chromeos;
   }
 
-  self.prefSetSupportNonChromeOS = function (new_value) {
-    self.pref.support_non_chromeos = new_value;
-    self.SavePreferences();
+  prefSetSupportNonChromeOS(new_value) {
+    this.pref.support_non_chromeos = new_value;
+    this.SavePreferences();
   }
 
-  self.getDefaultModule = function () {
+  getDefaultModule() {
     return jscin.getDefaultModuleName();
   }
 
-  self.setDefaultModule = function (new_value) {
+  setDefaultModule(new_value) {
     return jscin.setDefaultModuleName(new_value);
   }
 
-  self.getAvailableModules = function () {
+  getAvailableModules() {
     return jscin.get_registered_modules();
   }
 
-  self.setDebugMode = function(new_value) {
+  setDebugMode(new_value) {
     console.log("croscin.setDebugMode:", new_value);
     jscin.writeLocalStorage('debug', new_value);
     jscin.debug = new_value;
-    self.debug = new_value;
+    this.debug = new_value;
   }
 
-  self.notifyConfigChanged = function() {
+  notifyConfigChanged() {
     // Some configuration is changed - we need to validate and refresh all.
-    self.log("croscin.notifyConfigChanged: notified.");
+    this.log("croscin.notifyConfigChanged: notified.");
     jscin.reload_configuration();
-    self.InitializeUI();
+    this.InitializeUI();
   }
 
-  function Initialize() {
-    // Initialization.
-    var version = chrome.runtime.getManifest().version;
-    var reload = (version !== jscin.getLocalStorageVersion());
-    self.LoadBuiltinTables(reload);
-    if (reload) {
-      jscin.reloadNonBuiltinTables();
-      jscin.setLocalStorageVersion(version);
-    }
-    jscin.reload_configuration();
-    self.detect_ime_api();
-    self.registerEventHandlers();
+  // IME API Handler
 
-    // Start the default input method.
-    self.LoadPreferences();
-    self.ActivateInputMethod(self.pref.im_default);
+  set_ime_api(ime_api, name) {
+    this.ime_api = ime_api;
+    this.ime_api_type = name;
+    this.log("IME API set to:", name);
   }
 
-  Initialize();
-};
-
-croscin.IME.prototype.set_ime_api = function(ime_api, name) {
-  var self = this;
-  self.ime_api = ime_api;
-  self.ime_api_type = name;
-  self.log("IME API set to:", name);
-}
-
-croscin.IME.prototype.detect_ime_api = function() {
-  var self = this;
-  /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
-  try {
-    /**
-     * Modern Chrome supports partial IME API so we need to check some CrOS
-     * specific method.
-     */
-    if (chrome.input.ime.onMenuItemActivated) {
-      self.set_ime_api(chrome.input.ime, "chromeos");
-    }
-  } catch (err) {
-    // Binding failure can't really be caught - it'll simply escape current
-    // syntax scope.
-  }
-
-  if (!self.ime_api) {
-    // provided by input_api/chrome_input_ime.js
-    if (ChromeInputIME) {
-      self.log("Switched to Javascript Emulation IME API...");
-      self.set_ime_api(new ChromeInputIME, "emulation");
-      self.ime_api.log = jscin.log;
-      if (chrome.input) {
-        chrome.input.ime = self.ime_api;
-      } else {
-        chrome.input = { ime: self.ime_api };
+  detect_ime_api() {
+    /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
+    try {
+      /**
+       * Modern Chrome supports partial IME API so we need to check some CrOS
+       * specific method.
+       */
+      if (chrome.input.ime.onMenuItemActivated) {
+        this.set_ime_api(chrome.input.ime, "chromeos");
       }
-    } else {
-      self.log("Switched to dummy IME API...");
-      self.set_ime_api(self.create_dummy_ime_api(), "dummy");
-    }
-  }
-}
-
-croscin.IME.prototype.create_dummy_ime_api = function() {
-  var self = this;
-  var dummy_function = function() {};
-  var dummy_listener = { addListener: function() {} };
-  return {
-    clearComposition: dummy_function,
-    commitText: dummy_function,
-    setCandidates: dummy_function,
-    setCandidateWindowProperties: dummy_function,
-    setComposition: dummy_function,
-    setMenuItems: dummy_function,
-    onActivate: dummy_listener,
-    onDeactivated: dummy_listener,
-    onFocus: dummy_listener,
-    onBlur: dummy_listener,
-    onKeyEvent: dummy_listener,
-    onInputContextUpdate: dummy_listener,
-    onCandidateClicked: dummy_listener,
-    onMenuItemActivated: dummy_listener,
-  };
-}
-
-/**
- * Registers event handlers to the browser.
- */
-croscin.IME.prototype.registerEventHandlers = function() {
-  var self = this;
-  var ime_api = self.ime_api;
-
-  ime_api.onActivate.addListener(function(engineID) {
-    self.log('onActivate: croscin started.', engineID);
-    self.engineID = engineID;
-    self.InitializeUI();
-    // We should activate IME here, but in order to speed up we did
-    // ActivateInputMethod in Initialize, and use hard-coded engine ID before it
-    // is assigned.
-  });
-
-  ime_api.onDeactivated.addListener(function(engineID) {
-    self.log('onDeactivated: croscin stopped.');
-    self.context = null;
-  });
-
-  ime_api.onFocus.addListener(function(context) {
-    self.context = context;
-    // Calling updateUI here to forward unfinished composition (preedit) into
-    // the new input element.
-    self.UpdateUI();
-  });
-
-  ime_api.onBlur.addListener(function(contextID) {
-    self.log("croscin: onBlur", contextID);
-    if (!self.context) {
-      self.log("croscin.onBlur: WARNING: no existing context.");
-      return;
-    }
-    if (self.context.contextID != contextID) {
-      self.log("croscin.onBlur: WARNING: incompatible context.",
-               self.context.contextID, contextID);
-      return;
+    } catch (err) {
+      // Binding failure can't really be caught - it'll simply escape current
+      // syntax scope.
     }
 
-    // Note anything left in composition will be automatically commited by
-    // chrome.input.ime. We tried to prevent this in onReset but in vain.
-    // To synchronize behavior on ChromeOS / Chrome, the best solution is to
-    // let emulated chrome.input.ime do commit from composition.
-    self.context = null;
-  });
-
-  ime_api.onKeyEvent.addListener(function(engine, keyData) {
-    self.log("croscin.onKeyEvent", engine, keyData);
-    return self.ProcessKeyEvent(keyData);
-  });
-
-  ime_api.onReset.addListener(function (engineID) {
-    self.log("croscin.onReset", engineID);
-    if (self.im) {
-      self.im.reset(self.imctx);
-      self.UpdateUI();
-    }
-  });
-
-  ime_api.onInputContextUpdate.addListener(function(context) {
-    self.log("croscin.onInputContextUpdate", context);
-  });
-
-  ime_api.onCandidateClicked.addListener(
-      function(engineID, candidateID, button) {
-        self.log("onCandidateClicked", candidateID,  button);
-        if (button == "left") {
-          self.SimulateKeyDown(self.imctx.selkey.charAt(candidateID));
-        }
-  });
-
-  ime_api.onMenuItemActivated.addListener(function(engineID, name) {
-    self.log("croscin.onMenuItemActivated: name=", name);
-
-    if (name == self.kMenuOptions) {
-      var options_url = chrome.runtime.getURL("options/options.html");
-      // Tabs are better, but if there are no active windows (which is common in
-      // ChromeOS if you put everything behind and activate by menu) then
-      // chrome.window.create must be used.
-      chrome.tabs.getSelected(null, function(tab) {
-        if (tab) {
-          chrome.tabs.create({"url": options_url});
+    if (!this.ime_api) {
+      // provided by input_api/chrome_input_ime.js
+      if (ChromeInputIME) {
+        this.log("Switched to Javascript Emulation IME API...");
+        this.set_ime_api(new ChromeInputIME, "emulation");
+        this.ime_api.log = jscin.log;
+        if (chrome.input) {
+          chrome.input.ime = this.ime_api;
         } else {
-          chrome.windows.create({
-            url: options_url,
-            type: "popup",
-            width: screen.width * 0.8,
-            height: screen.height * 0.8,
-            focused: true
-          });
+          chrome.input = { ime: this.ime_api };
         }
-      });
-    } else if (name.match(/^ime:/)) {
-      self.ActivateInputMethod(name.replace(/^ime:/, ''));
+      } else {
+        this.log("Switched to dummy IME API...");
+        this.set_ime_api(this.create_dummy_ime_api(), "dummy");
+      }
     }
-  });
-
-  // Implementation events (by emulation).
-  if (ime_api.onImplUpdateUI) {
-    ime_api.onImplUpdateUI.addListener(function () {
-      self.UpdateUI.apply(self, arguments);
-    });
-  }
-  if (ime_api.onImplCommit) {
-    ime_api.onImplCommit.addListener(function () {
-      self.Commit.apply(self, arguments);
-    });
   }
 
-  window.jscin = jscin;
-};
+  create_dummy_ime_api() {
+    let dummy_function = () => {};
+    let dummy_listener = { addListener: () => {} };
+    return {
+      clearComposition: dummy_function,
+      commitText: dummy_function,
+      setCandidates: dummy_function,
+      setCandidateWindowProperties: dummy_function,
+      setComposition: dummy_function,
+      setMenuItems: dummy_function,
+      onActivate: dummy_listener,
+      onDeactivated: dummy_listener,
+      onFocus: dummy_listener,
+      onBlur: dummy_listener,
+      onKeyEvent: dummy_listener,
+      onInputContextUpdate: dummy_listener,
+      onCandidateClicked: dummy_listener,
+      onMenuItemActivated: dummy_listener,
+    };
+  }
+
+  // Registers event handlers to the browser.
+  registerEventHandlers() {
+    let ime_api = this.ime_api;
+
+    ime_api.onActivate.addListener((engineID) => {
+      this.log('onActivate: croscin started.', engineID);
+      this.engineID = engineID;
+      this.InitializeUI();
+      // We should activate IME here, but in order to speed up we did
+      // ActivateInputMethod in Initialize, and use hard-coded engine ID before it
+      // is assigned.
+    });
+
+    ime_api.onDeactivated.addListener((engineID) => {
+      this.log('onDeactivated: croscin stopped.');
+      this.context = null;
+    });
+
+    ime_api.onFocus.addListener((context) => {
+      this.context = context;
+      // Calling updateUI here to forward unfinished composition (preedit) into
+      // the new input element.
+      this.UpdateUI();
+    });
+
+    ime_api.onBlur.addListener((contextID) => {
+      this.log("croscin: onBlur", contextID);
+      if (!this.context) {
+        this.log("croscin.onBlur: WARNING: no existing context.");
+        return;
+      }
+      if (this.context.contextID != contextID) {
+        this.log("croscin.onBlur: WARNING: incompatible context.",
+                 this.context.contextID, contextID);
+        return;
+      }
+
+      // Note anything left in composition will be automatically commited by
+      // chrome.input.ime. We tried to prevent this in onReset but in vain.
+      // To synchronize behavior on ChromeOS / Chrome, the best solution is to
+      // let emulated chrome.input.ime do commit from composition.
+      this.context = null;
+    });
+
+    ime_api.onKeyEvent.addListener((engine, keyData) => {
+      this.log("croscin.onKeyEvent", engine, keyData);
+      return this.ProcessKeyEvent(keyData);
+    });
+
+    ime_api.onReset.addListener((engineID) => {
+      this.log("croscin.onReset", engineID);
+      if (this.im) {
+        this.im.reset(this.imctx);
+        this.UpdateUI();
+      }
+    });
+
+    ime_api.onInputContextUpdate.addListener((context) => {
+      this.log("croscin.onInputContextUpdate", context);
+    });
+
+    ime_api.onCandidateClicked.addListener(
+        (engineID, candidateID, button) => {
+          this.log("onCandidateClicked", candidateID,  button);
+          if (button == "left") {
+            this.SimulateKeyDown(this.imctx.selkey.charAt(candidateID));
+          }
+    });
+
+    ime_api.onMenuItemActivated.addListener((engineID, name) =>{
+      this.log("croscin.onMenuItemActivated: name=", name);
+
+      if (name == this.kMenuOptions) {
+        let options_url = chrome.runtime.getURL("options/options.html");
+        // Tabs are better, but if there are no active windows (which is common in
+        // ChromeOS if you put everything behind and activate by menu) then
+        // chrome.window.create must be used.
+        chrome.tabs.getSelected(null, (tab) => {
+          if (tab) {
+            chrome.tabs.create({"url": options_url});
+          } else {
+            chrome.windows.create({
+              url: options_url,
+              type: "popup",
+              width: screen.width * 0.8,
+              height: screen.height * 0.8,
+              focused: true
+            });
+          }
+        });
+      } else if (name.match(/^ime:/)) {
+        this.ActivateInputMethod(name.replace(/^ime:/, ''));
+      }
+    });
+
+    // Implementation events (by emulation).
+    if (ime_api.onImplUpdateUI) {
+      ime_api.onImplUpdateUI.addListener(() => {
+        this.UpdateUI.apply(this, arguments);
+      });
+    }
+    if (ime_api.onImplCommit) {
+      ime_api.onImplCommit.addListener(() => {
+        this.Commit.apply(this, arguments);
+      });
+    }
+    /* Export again. */
+    window.jscin = jscin;
+  }
+}
+
+export var croscin = {IME: IME};
