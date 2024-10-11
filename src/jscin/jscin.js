@@ -268,33 +268,6 @@ export var jscin = {
     return jscin.readLocalStorage(jscin.kRawDataKeyPrefix + name);
   },
 
-  // Extends base input module (class inheritance).
-  extend_input_method: function (overrides, base) {
-    if (!base) {
-      base = jscin.base_input_method;
-      if (!base) {
-        jscin.log("jscin: No base input method defined.");
-        return;
-      }
-    }
-    var im = function () {
-      base.apply(this, arguments);
-      if (overrides.constructor) {
-        overrides.constructor.apply(this, arguments);
-      }
-    }
-    im.prototype = Object.create(base.prototype);
-    im.prototype.constructor = im;
-    // TODO(hungte) Create a tiny object to stub all .super calls.
-    im.prototype.super = base.prototype;
-    for (var k in overrides) {
-      if (k == 'constructor')
-        continue;
-      im.prototype[k] = overrides[k];
-    }
-    return im;
-  },
-
   reload_configuration: function () {
     var self = jscin;
 
