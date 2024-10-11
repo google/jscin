@@ -3,47 +3,47 @@
  * http://www.sitepoint.com/chrome-extensions-bridging-the-gap-between-layers/
  */
 
-export var ChromeExtensionIPC = {};
+class BaseIPC {
 
-ChromeExtensionIPC.IPC = function (instance_type, namespace) {
-  var self = this;
+  constructor(namespace) {
+    this.ipcTypeName = '@chromeExtIpc@' + namespace;
+    this.handlers = [];
+    this._debug = false;
+  }
 
-  self.ipcTypeName = '@chromeExtIpc@' + namespace;
-  self.handlers = [];
-  self._debug = false;
-  self.debug = function(...args) {
-    if (!self._debug)
+  debug(...args) {
+    if (!this._debug)
       return;
     console.log("[ipc]", ...args);
   }
 
-  function CreateMessage(data) {
+  CreateMessage(data) {
     return {
-      ipc: self.ipcTypeName,
+      ipc: this.ipcTypeName,
       data: data
     };
   }
 
-  function AddHandler(handler) {
-    self.handlers.push(handler);
+  AddHandler(handler) {
+    this.handlers.push(handler);
   }
 
-  function IsMessage(message) {
+  IsMessage(message) {
     return (typeof(message) == 'object' &&
             'ipc' in message && 'data' in message &&
-            message.ipc == self.ipcTypeName);
+            message.ipc == this.ipcTypeName);
   }
 
-  function IpcHandler(message, response) {
-    if (!IsMessage(message)) {
-      self.debug("ipc> Invalid message:", message);
+  IpcHandler(message, response) {
+    if (!this.IsMessage(message)) {
+      this.debug("ipc> Invalid message:", message);
       return;
     }
-    self.debug("ipc> IpcHandler:", message.data, self.handlers);
-    self.handlers.forEach(function (handler) {
-      var result = handler(message.data);
+    this.debug("ipc> IpcHandler:", message.data, this.handlers);
+    this.handlers.forEach((handler) => {
+      let result = handler(message.data);
       if (typeof(result) != 'undefined' && response) {
-        self.debug("ipc> response is returned:", handler, result);
+        this.debug("ipc> response is returned:", handler, result);
         response(result);
         // chrome.runtime.onMessage cannot take more than one response .
         response = null;
@@ -51,92 +51,106 @@ ChromeExtensionIPC.IPC = function (instance_type, namespace) {
     });
   }
 
-  if (instance_type == 'content') {
-    return {
-      attach: function () {
-        // events from background
-        chrome.runtime.onMessage.addListener(
-            function(message, sender, response) {
-              self.debug("ipc> recv<bg-cnt>:", instance_type, message, sender);
-              IpcHandler(message, response);
-            });
-        // events from iframe
-        window.addEventListener('message', function (e) {
-          self.debug('ipc> recv<iframe-content>', instance_type, e);
-          IpcHandler(e.data);
-        });
-      },
-      send: function (message, callback) {
-              // Send to background page
-              if (callback) {
-                self.debug("send with callback");
-                chrome.runtime.sendMessage(CreateMessage(message), callback);
-              } else {
-                self.debug("send without callback");
-                chrome.runtime.sendMessage(CreateMessage(message));
-              }
-      },
-      recv: AddHandler
-    };
-  } else if (instance_type == 'iframe') {
-    return {
-      attach: function () {
-        chrome.runtime.onMessage.addListener(
-            function(message, sender, response) {
-              self.debug("ipc> recv<iframe>:", instance_type, message, sender);
-              IpcHandler(message, response);
-            });
-      },
-      send: function (message) {
-              // Send to parent (Content Side).
-              window.parent.postMessage(CreateMessage(message), '*');
-      },
-      recv: AddHandler
-    };
-  } else if (instance_type == 'background') {
-    return {
-      attach: function () {
-        chrome.runtime.onMessage.addListener(
-            function(message, sender, response) {
-              self.debug("ipc> recv<bg>:", instance_type, message, sender);
-              IpcHandler(message, response);
-            });
-      },
-      send: function (message, destination) {
-              // to iframe and content.
-              chrome.tabs.getSelected(null, function (tab) {
-                if (!tab) return;
-                chrome.tabs.sendMessage(tab.id, CreateMessage(message));
-              });
-      },
-      recv: AddHandler
-    };
-  };
-};
+  /* IPC interfaces */
+
+  attach() {
+    console.log("IPC:attach placeholder.");
+  }
+
+  send(message) {
+    console.log("IPC:send placeholder.");
+  }
+
+  recv(handler) {
+    return this.AddHandler(handler);
+  }
+
+}
+
+class ContentIPC extends BaseIPC {
+  attach() {
+    // events from background
+    chrome.runtime.onMessage.addListener(
+      (message, sender, response) => {
+        this.debug("ipc> recv<bg-cnt>:", "content", message, sender);
+        this.IpcHandler(message, response);
+      });
+    // events from iframe
+    window.addEventListener('message', (e) => {
+      this.debug('ipc> recv<iframe-content>', "content", e);
+      this.IpcHandler(e.data);
+    });
+  }
+  send(message, callback) {
+    // console.log(this);
+    // Send to background page
+    if (callback) {
+      this.debug("send with callback");
+      chrome.runtime.sendMessage(this.CreateMessage(message), callback);
+    } else {
+      this.debug("send without callback");
+      chrome.runtime.sendMessage(this.CreateMessage(message));
+    }
+  }
+}
+
+class BackgroundIPC extends BaseIPC {
+  attach() {
+    chrome.runtime.onMessage.addListener(
+      (message, sender, response) => {
+        this.debug("ipc> recv<bg>:", 'background', message, sender);
+        this.IpcHandler(message, response);
+      });
+  }
+  send(message, destination) {
+    // to iframe and content.
+    chrome.tabs.getSelected(null, (tab) => {
+      if (!tab) return;
+      chrome.tabs.sendMessage(tab.id, this.CreateMessage(message));
+    });
+  }
+}
+
+class IFrameIPC extends BaseIPC {
+  attach() {
+    chrome.runtime.onMessage.addListener(
+      (message, sender, response) => {
+        this.debug("ipc> recv<iframe>:", 'iframe', message, sender);
+        this.IpcHandler(message, response);
+      });
+  }
+  send(message) {
+    // Send to parent (Content Side).
+    window.parent.postMessage(this.CreateMessage(message), '*');
+  }
+}
+
+function CreateIPC(type, domain) {
+  if (type == 'iframe')
+    return new IFrameIPC(domain);
+  if (type == 'background')
+    return new BackgroundIPC(domain);
+  if (type == 'content')
+    return new ContentIPC(domain);
+  console.log("Invalid type:", type);
+}
 
 export class ImeExtensionIPC {
 
   constructor(type) {
     this.kIpcDomain = 'croscin';
-    this.ipc = new ChromeExtensionIPC.IPC(type, this.kIpcDomain);
+    this.ipc = CreateIPC(type, this.kIpcDomain);
   }
 
   attach() {
     return this.ipc.attach();
   }
 
-  send() {
-    let args, callback;
-    let args_len = arguments.length;
-
-    // If the last parameter is a function, treat it as callback.
-    if (arguments.length > 0 &&
-      typeof(arguments[args_len - 1]) == 'function') {
-      args = Array.prototype.slice.call(arguments, 0, args_len - 1);
-      callback = arguments[args_len - 1];
-    } else {
-      args = Array.prototype.slice.call(arguments, 0);
-      callback = undefined;
+  send(...args) {
+    let callback = undefined;
+    if (args.length > 0 && typeof(args.at(-1)) === 'function') {
+      callback = args.at(-1);
+      args = args.slice(0, args.length - 1);
     }
 
     return this.ipc.send({ime: this.kIpcDomain, args: args}, callback);
