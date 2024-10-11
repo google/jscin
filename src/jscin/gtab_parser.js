@@ -28,8 +28,8 @@
 
 export function parseGtab(arraybuffer) {
 
-  var MAX_GTAB_QUICK_KEYS = 46;
-  var CH_SZ = 4;
+  let MAX_GTAB_QUICK_KEYS = 46;
+  let CH_SZ = 4;
 
   function decode_utf8(s) {
     return decodeURIComponent(escape(s));
@@ -56,21 +56,21 @@ export function parseGtab(arraybuffer) {
   };
 
   MyView.prototype.getUint32 = function() {
-    var n = this.view.getUint32(this.offset, this.littleEndian);
+    let n = this.view.getUint32(this.offset, this.littleEndian);
     this.offset += 4;
     return n;
   }
 
   MyView.prototype.getUint64 = function() {
-    var n = this.view.getUint64(this.offset, this.littleEndian);
+    let n = this.view.getUint64(this.offset, this.littleEndian);
     this.offset += 8;
     return n;
   }
 
   MyView.prototype.getString = function(len) {
-    var ret = '';
-    for(var j = 0; j < len; j++) {
-      var c = this.view.getUint8(this.offset + j);
+    let ret = '';
+    for(let j = 0; j < len; j++) {
+      let c = this.view.getUint8(this.offset + j);
       if(c == 0) {
         break;
       }
@@ -81,7 +81,7 @@ export function parseGtab(arraybuffer) {
   }
 
   MyView.prototype.detectEndian = function() {
-    var KeyS_first_byte = this.view.getUint8(56);
+    let KeyS_first_byte = this.view.getUint8(56);
     // key size should not be more than 255
     if(KeyS_first_byte) {
       this.littleEndian = true;
@@ -90,9 +90,9 @@ export function parseGtab(arraybuffer) {
     }
   }
 
-  var cin = '';
-  var myView = new MyView(new DataView(arraybuffer));
-  var th = {};
+  let cin = '';
+  let myView = new MyView(new DataView(arraybuffer));
+  let th = {};
 
   myView.detectEndian();
 
@@ -112,18 +112,18 @@ export function parseGtab(arraybuffer) {
 
   th.qkeys = {};
   th.qkeys.quick1 = [];
-  for(var j = 0; j < MAX_GTAB_QUICK_KEYS; j++) {
+  for(let j = 0; j < MAX_GTAB_QUICK_KEYS; j++) {
     th.qkeys.quick1[j] = [];
-    for(var k = 0; k < 10; k++) {
+    for(let k = 0; k < 10; k++) {
       th.qkeys.quick1[j][k] = myView.getString(CH_SZ);
     }
   }
   th.qkeys.quick2 = [];
-  for(var j = 0; j < MAX_GTAB_QUICK_KEYS; j++) {
+  for(let j = 0; j < MAX_GTAB_QUICK_KEYS; j++) {
     th.qkeys.quick2[j] = [];
-    for(var k = 0; k < MAX_GTAB_QUICK_KEYS; k++) {
+    for(let k = 0; k < MAX_GTAB_QUICK_KEYS; k++) {
       th.qkeys.quick2[j][k] = [];
-      for(var l = 0; l < 10; l++) {
+      for(let l = 0; l < 10; l++) {
         th.qkeys.quick2[j][k][l] = myView.getString(CH_SZ);
       }
     }
@@ -134,22 +134,22 @@ export function parseGtab(arraybuffer) {
   th.keybits = myView.getUint8();
   if(th.keybits < 6 || th.keybits > 7) // keybits is always 6 or 7
     th.keybits = 6;
-  var key64 = (th.MaxPress*th.keybits > 32);
+  let key64 = (th.MaxPress*th.keybits > 32);
 
   th.selkey += myView.getString(12);
   cin += ('%selkey ' + th.selkey + '\n');
 
   myView.offset += 16; // th.dummy
 
-  var keymap = myView.getString(th.KeyS);
+  let keymap = myView.getString(th.KeyS);
 
-  var kname = [];
-  for(var j = 0; j < th.KeyS; j++) {
+  let kname = [];
+  for(let j = 0; j < th.KeyS; j++) {
     kname[j] = myView.getString(CH_SZ);
   }
 
   cin += '%keyname begin\n';
-  for(var j = 1; j < th.KeyS; j++) {
+  for(let j = 1; j < th.KeyS; j++) {
     cin += checkAndConcat(keymap[j], kname[j]);
   }
   cin += '%keyname end\n';
@@ -157,27 +157,27 @@ export function parseGtab(arraybuffer) {
   myView.offset += 4 * (th.KeyS + 1); // skip parsing idx since it's unused
 
   cin += '%chardef begin\n';
-  var LAST_K_bitN = (Math.floor((key64 ? 64:32) / th.keybits) - 1) * th.keybits;
-  var itout = [];
-  for(var j = 0; j < th.DefC; j++) {
-    var keyUint;
+  let LAST_K_bitN = (Math.floor((key64 ? 64:32) / th.keybits) - 1) * th.keybits;
+  let itout = [];
+  for(let j = 0; j < th.DefC; j++) {
+    let keyUint;
     if(key64) {
       keyUint = myView.getUint64();
     } else {
       keyUint = myView.getUint32();
     }
 
-    var mask = (1 << th.keybits) - 1;
-    var keyString = '';
-    for(var k = 0; k < th.MaxPress; k++) {
-      var c = (keyUint >> (LAST_K_bitN - k * th.keybits)) & mask;
+    let mask = (1 << th.keybits) - 1;
+    let keyString = '';
+    for(let k = 0; k < th.MaxPress; k++) {
+      let c = (keyUint >> (LAST_K_bitN - k * th.keybits)) & mask;
       if(c == 0) {
         break;
       }
       keyString += keymap[c];
     }
 
-    var ch = myView.getString(CH_SZ);
+    let ch = myView.getString(CH_SZ);
     cin += checkAndConcat(keyString, ch);
   }
   cin += '%chardef end\n';

@@ -20,7 +20,7 @@ export var LZString = {
   writeBits : function(numBits, value, data) {
     if (typeof(value)=="string")
       value = value.charCodeAt(0);
-    for (var i=0 ; i<numBits ; i++) {
+    for (let i=0 ; i<numBits ; i++) {
       this.writeBit(value&1, data);
       value = value >> 1;
     }
@@ -52,7 +52,7 @@ export var LZString = {
   },
 
   compress: function (uncompressed) {
-    var context = {
+    let context = {
       dictionary: {},
       dictionaryToCreate: {},
       c:"",
@@ -97,7 +97,7 @@ export var LZString = {
   },
 
   readBit : function(data) {
-    var res = data.val & data.position;
+    let res = data.val & data.position;
     data.position >>= 1;
     if (data.position == 0) {
       data.position = 32768;
@@ -108,9 +108,9 @@ export var LZString = {
   },
 
   readBits : function(numBits, data) {
-    var res = 0;
-    var maxpower = Math.pow(2,numBits);
-    var power=1;
+    let res = 0;
+    let maxpower = Math.pow(2,numBits);
+    let power=1;
     while (power!=maxpower) {
       res |= this.readBit(data) * power;
       power <<= 1;
@@ -119,7 +119,7 @@ export var LZString = {
   },
 
   decompress: function (compressed) {
-    var dictionary = {},
+    let dictionary = {},
         next,
         enlargeIn = 4,
         dictSize = 4,

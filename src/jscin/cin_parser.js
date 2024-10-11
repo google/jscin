@@ -8,11 +8,11 @@
 // Returns an array, which is [true, parsed_data] on success, or [false, error
 // message] on failure. parsed_data is an object, containing metadata and data.
 export function parseCin(cin_input) {
-  var lines = cin_input.split('\n');
-  var data = {};
-  var runningcmd = null;
-  var cmd;
-  var table_command = {keyname: 1, chardef: 1,
+  let lines = cin_input.split('\n');
+  let data = {};
+  let runningcmd = null;
+  let cmd;
+  let table_command = {keyname: 1, chardef: 1,
                        quick: 1, quickkey: 1,
                        sel1st: 1, // re-order mappings, deprecated.
                        KEYSTROKE_REMAP: 1, KEYGROUPS: 1,
@@ -21,12 +21,12 @@ export function parseCin(cin_input) {
   // TODO for very old XCIN table (1.x~2.1b), there's no %chardef -- anything
   // not inside commands are chardefs.
 
-  var failed = function(lineno, msg) {
+  function failed(lineno, msg) {
     return [false, 'line ' + (lineno+1) + ': ' + msg];
   }
 
-  for (var lineno in lines) {
-    var line = lines[lineno];
+  for (let lineno in lines) {
+    let line = lines[lineno];
 
     // Comment line start with '#'
     if (line.match(/^#/)) {
@@ -34,10 +34,10 @@ export function parseCin(cin_input) {
     }
 
     // Command line
-    var m = line.match(/^%(\w+)(?:\s+(\S+))?/);
+    let m = line.match(/^%(\w+)(?:\s+(\S+))?/);
     if (m) {
       cmd = m[1];
-      var arg = m[2];
+      let arg = m[2];
       if (table_command[cmd]) {
         if (arg == 'begin') {
           runningcmd = cmd;
@@ -65,7 +65,7 @@ export function parseCin(cin_input) {
       if (!cmd) continue;
       m = line.match(/^\s*(\S+)\s+(\S+)/);
       if (m) {
-        var key = m[1];
+        let key = m[1];
         // TODO(hungte) Don't convert if %keep_key_case is found.
         key = key.toLowerCase();
         if (cmd == 'chardef' && data['PHRASE_CHARDEF']) {
@@ -91,10 +91,10 @@ export function parseCin(cin_input) {
   if (data['prompt']) {  // gcin format
     data['cname'] = data['prompt'];
   }
-  var mandatory_command = [
+  let mandatory_command = [
       'ename', 'cname', 'selkey', 'keyname', 'chardef'
       ];
-  for (var i in mandatory_command) {
+  for (let i in mandatory_command) {
     if (data[mandatory_command[i]] == undefined)
       return failed(-1, 'mandatory section %' + mandatory_command[i] +
                     ' missing');
@@ -104,7 +104,7 @@ export function parseCin(cin_input) {
   if (!data.MODULE && data.EXTENSION_ID)
     data.MODULE = 'CrExtInp';
 
-  var parsed_data = {
+  let parsed_data = {
     metadata: {
       ename: data.ename,
       cname: data.cname,
