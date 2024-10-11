@@ -6,13 +6,16 @@
  */
 
 import {jscin, trace} from "./jscin.js";
+import {BaseInputMethod} from "./base_inp.js";
 
 // General Input Module for table-based IMs, ex. Zhuyin, Array
-jscin.register_module('GenInp', jscin.extend_input_method({
-
-  constructor: function (name, conf)
+export class GenInp extends BaseInputMethod
+{
+  constructor(name, conf)
   {
-    var default_conf = {
+    super(name, conf);
+
+    let default_conf = {
       AUTO_COMPOSE: true,
       AUTO_UPCHAR: true,
       AUTO_FULLUP: false,
@@ -30,7 +33,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       BEEP_DUPCHAR: true,
     };
 
-    var conf_mapping = {
+    let conf_mapping = {
       AUTO_COMPOSE: 'INP_MODE_AUTOCOMPOSE',
       AUTO_UPCHAR: 'INP_MODE_AUTOUPCHAR',
       SPACE_AUTOUP: 'INP_MODE_SPACEAUTOUP',
@@ -45,7 +48,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       END_KEY: 'INP_MODE_ENDKEY',
     };
     this.conf = { mode: {} };
-    for (var k in conf_mapping) {
+    for (let k in conf_mapping) {
       if (!(k in conf)) {
         this.conf.mode[conf_mapping[k]] = default_conf[k];
       } else {
@@ -89,12 +92,13 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     this.MCCH_BEGIN = 1;
     this.MCCH_MIDDLE = 2;
     this.MCCH_END = 3;
-  },
+  }
 
-  reset_context: function (inpinfo)
+  reset_context(inpinfo)
   {
-    this.super.reset_context.call(this, inpinfo);
-    var ime = this;
+    super.reset_context(inpinfo);
+
+    let ime = this;
     if (!this.conf.mode.INP_MODE_SELKEYSHIFT) {
       inpinfo.selkey = ime.header.selkey;
     } else {
@@ -104,14 +108,19 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     inpinfo.suggest_skeystroke = '';
     inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
     inpinfo.cch_publish = '';
-  },
+  }
 
-  init: function (inpinfo)
+  keystroke(inpinfo, keyinfo)
   {
-    this.super.init.call(this, inpinfo);
+    return this.process_keystroke(inpinfo, keyinfo);
+  }
 
-    var ime = this;
-    var self = {};
+  init(inpinfo)
+  {
+    super.init(inpinfo);
+
+    let ime = this;
+    let self = {};
     self.ime = ime;
     self.conf = ime.conf;
     // gen_inp_iccf_t iccf
@@ -146,12 +155,12 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       return s.replace('.', '\\.').replace('?', '.').replace('*', '.*');
     }
     function pick_cch_wild(head, dir, keystroke, mcch_size) {
-      var mcch = [];
-      var more = false;
+      let mcch = [];
+      let more = false;
 
       // Object.keys() is in standard since ECMAScript 5 and is only
       // implemented in new browsers.
-      var keys = ime.table.keys();
+      let keys = ime.table.keys();
       if (dir == 1) {
         for (i=0, idx=head; idx<keys.length && i<=mcch_size; idx++) {
           if (keys[i].match(pattern)) {
@@ -175,11 +184,11 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       return match_keystroke_normal(inpinfo);
 
       // TODO optimize
-      var idx = 0;
-      var pattern = wildcard2re(self.keystroke);
+      let idx = 0;
+      let pattern = wildcard2re(self.keystroke);
       trace('pattern = ' + pattern);
 
-      for (var k in ime.table) {
+      for (let k in ime.table) {
         if (k.match(pattern)) {
           break;
         }
@@ -187,7 +196,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       }
       self.mcch_hidx = idx;
 
-      var result = pick_cch_wild(idx, 1, self.keystroke, inpinfo.selkey.length);
+      let result = pick_cch_wild(idx, 1, self.keystroke, inpinfo.selkey.length);
       if (!result.more) {
         inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
       } else {
@@ -201,13 +210,13 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     function match_keystroke_normal(inpinfo) {
       trace('');
       // TODO
-      var result = ime.table[self.keystroke];
+      let result = ime.table[self.keystroke];
       if (!result) {
         return 0;
       }
 
-      var mcch = [];
-      for (var i = 0; i < result.length; i++) {
+      let mcch = [];
+      for (let i = 0; i < result.length; i++) {
         mcch.push(result[i]);
       }
       inpinfo.mcch = mcch.slice(0, inpinfo.selkey.length);
@@ -223,7 +232,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     }
     function match_keystroke(inpinfo) {
       inpinfo.mcch = [];
-      var ret;
+      let ret;
       if (!self.mode.INPINFO_MODE_INWILD)
         ret = match_keystroke_normal(inpinfo);
       else
@@ -304,7 +313,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     }
 
     function fillpage(inpinfo, dir) {
-      var n_pg = inpinfo.selkey.length;
+      let n_pg = inpinfo.selkey.length;
 
       if (!self.mode.INPINFO_MODE_INWILD) {
         switch (dir) {
@@ -345,7 +354,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
     }
     function mcch_nextpage(inpinfo, key) {
       trace('');
-      var ret = 0;
+      let ret = 0;
       switch (inpinfo.mcch_pgstate) {
         case ime.MCCH_ONEPG:
           switch (key) {
@@ -415,7 +424,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
       }
 
       function determine_group(key) {
-        for (var g in self.conf.keygroups) {
+        for (let g in self.conf.keygroups) {
           if (self.conf.keygroups[g].indexOf(key) >= 0) {
             return g;
           }
@@ -423,25 +432,25 @@ jscin.register_module('GenInp', jscin.extend_input_method({
         return undefined;
       }
 
-      var key_by_group = {};
-      for (var i in self.keystroke) {
-        var g = determine_group(self.keystroke[i]);
+      let key_by_group = {};
+      for (let i in self.keystroke) {
+        let g = determine_group(self.keystroke[i]);
         if (!g) return false;  // only reorder if all keys are in known group
         key_by_group[g] = self.keystroke[i];
       }
 
-      var g = determine_group(keyinfo.key);
+      let g = determine_group(keyinfo.key);
       if (!g)
         return false;
 
       key_by_group[g] = keyinfo.key;
 
       // reconstruct keystroke sequence
-      var groups_in_order = Object.keys(key_by_group).sort();
+      let groups_in_order = Object.keys(key_by_group).sort();
       self.keystroke = '';
       self.display_keystroke = [];
-      for (var i in groups_in_order) {
-        var ch = key_by_group[groups_in_order[i]];
+      for (let i in groups_in_order) {
+        let ch = key_by_group[groups_in_order[i]];
         self.keystroke += ch;
         self.display_keystroke.push(self.ime.header.keyname[ch]);
       }
@@ -452,19 +461,22 @@ jscin.register_module('GenInp', jscin.extend_input_method({
 
     // ------------------------------------------
     // main entry
-    this.process_keystroke = function (inpinfo, keyinfo) {
-      var conf = self.conf;
+    this.process_keystroke = (inpinfo, keyinfo) => {
+      let conf = self.conf;
 
-      var len = self.keystroke.length;
-      var max_len = ime.header.max_keystroke;
+      let sp_ignore = false;
+      let inp_wrong = false;
+
+      let len = self.keystroke.length;
+      let max_len = ime.header.max_keystroke;
 
       trace('keyinfo: ' + JSON.stringify(keyinfo));
       if (self.mode.INPINFO_MODE_SPACE) {
-        var sp_ignore = true;
+        sp_ignore = true;
         self.mode.INPINFO_MODE_SPACE = false;
       }
       if (self.mode.INPINFO_MODE_WRONG) {
-        var inp_wrong = true;
+        inp_wrong = true;
         self.mode.INPINFO_MODE_WRONG = false;
       }
 
@@ -529,12 +541,12 @@ jscin.register_module('GenInp', jscin.extend_input_method({
         return jscin.IMKEY_IGNORE;
       } else if (keyinfo.key.length == 1) {
         trace('');
-        var ret = jscin.IMKEY_ABSORB;
-        var endkey_pressed = false;
+        let ret = jscin.IMKEY_ABSORB;
+        let endkey_pressed = false;
 
         inpinfo.cch_publish = '';
-        var wch = ime.header.keyname[keyinfo.key];
-        var selkey_idx = ime.header.selkey.indexOf(keyinfo.key);
+        let wch = ime.header.keyname[keyinfo.key];
+        let selkey_idx = ime.header.selkey.indexOf(keyinfo.key);
         if (ime.header.endkey.indexOf(
             self.keystroke[self.keystroke.length-1]) >=0 ) {
           endkey_pressed = true;
@@ -617,10 +629,7 @@ jscin.register_module('GenInp', jscin.extend_input_method({
 
       return jscin.IMKEY_IGNORE;
     };
-  },
-
-  keystroke: function (inpinfo, keyinfo)
-  {
-    return this.process_keystroke(inpinfo, keyinfo);
   }
-}));
+}
+
+jscin.register_module(GenInp);
