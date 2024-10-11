@@ -5,41 +5,71 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-export var ChromeInputIME = function () {
-  var self = this;
+export class ChromeInputIME {
 
-  // Internal variables
-  self._debug = false;
-  self.contextIndex = 0;
-  self.kDefaultEngineId = 'Emulation';
-  self.isEmulation = true;
+  constructor() {
+    // Internal variables
+    this._debug = false;
+    this.contextIndex = 0;
+    this.kDefaultEngineId = 'Emulation';
+    this.isEmulation = true;
+
+    this.kEventPrefix = 'chrome.input.ime#';
+    this.kEarlyAbortEvents = ['KeyEvent'];  // Return true to abort.
+    console.log(this.kEarlyAbortEvents);
+
+    this.onActivate = this.CreateEventHandler("Activate");
+    this.onDeactivated = this.CreateEventHandler("Deactivated");
+    this.onBlur = this.CreateEventHandler("Blur");
+    this.onFocus = this.CreateEventHandler("Focus");
+    this.onInputContextUpdate = this.CreateEventHandler("InputContextUpdate");
+    this.onKeyEvent = this.CreateEventHandler("KeyEvent");
+    this.onCandidateClicked = this.CreateEventHandler("CandidateClicked");
+    this.onMenuItemActivated = this.CreateEventHandler("MenuItemActivated");
+    this.onSurroundingTextChanged = this.CreateEventHandler("SurroundingTextChanged");
+    this.onReset = this.CreateEventHandler("Reset");
+
+    // Implementation events.
+    this.onUiMenu = this.CreateEventHandler("UiMenu");
+    this.onUiCandidates = this.CreateEventHandler("UiCandidates");
+    this.onUiCandidateWindow = this.CreateEventHandler("UiCandidateWindow");
+    this.onUiComposition = this.CreateEventHandler("UiComposition");
+    this.onImplCommitText = this.CreateEventHandler("ImplCommitText");
+    this.onImplCommit = this.CreateEventHandler("ImplCommit");
+    this.onImplFocus = this.CreateEventHandler("ImplFocus");
+    this.onImplBlur = this.CreateEventHandler("ImplBlur");
+    this.onImplUpdateUI = this.CreateEventHandler("ImplUpdateUI");
+    this.onImplAcceptedKeys = this.CreateEventHandler("ImplAcceptedKeys");
+
+    this.Initialize();
+  }
 
   // Internal Functions
 
-  self.log = function() {
+  log() {
     console.log.apply(console, ["[chrome.input.ime]"].concat(
         Array.prototype.slice.apply(arguments)));
   }
 
-  self.debug = function() {
-    if (self._debug) {
-      self.log.apply(self, arguments);
+  debug() {
+    if (this._debug) {
+      this.log.apply(this, arguments);
     }
   }
 
-  function GetContext(contextID) {
-    return self.context_list[contextID];
+  GetContext(contextID) {
+    return this.context_list[contextID];
   }
 
-  function DeleteContext(contextID) {
-    delete self.context_list[contextID];
+  DeleteContext(contextID) {
+    delete this.context_list[contextID];
   }
 
-  function GetEngineContext() {
-    return self.engineContext;
+  GetEngineContext() {
+    return this.engineContext;
   }
 
-  function CreateEngineContext(engineID) {
+  CreateEngineContext(engineID) {
     return {
       engineID: engineID,
       menuitems: [],
@@ -55,11 +85,11 @@ export var ChromeInputIME = function () {
     };
   }
 
-  function CreateContext() {
-    self.contextIndex += 1;
+  CreateContext() {
+    this.contextIndex += 1;
     return {
       // InputContext
-      contextID: self.contextIndex,
+      contextID: this.contextIndex,
       type: 'text',
 
       candidates: [],
@@ -73,45 +103,42 @@ export var ChromeInputIME = function () {
     };
   }
 
-  function CreateUIEvent(type, context, engine) {
+  CreateUIEvent(type, context, engine) {
     return { type: type,
              context: context,
              engine: engine };
   }
 
-  function EnterContext() {
-    self.debug("EnterContext");
-    var context = CreateContext();
-    self.context_list[context.contextID] = context;
-    self.debug(context);
+  EnterContext() {
+    this.debug("EnterContext");
+    let context = this.CreateContext();
+    this.context_list[context.contextID] = context;
+    this.debug(context);
     return { contextID: context.contextID, type: context.type };
   }
 
-  function LeaveContext(contextID) {
-    self.debug("LeaveContext()");
-    DeleteContext(contextID);
+  LeaveContext(contextID) {
+    this.debug("LeaveContext()");
+    this.DeleteContext(contextID);
   }
 
-  function SetDefinedParams(dest, src) {
-    var i;
+  SetDefinedParams(dest, src) {
+    let i;
     for (i = 2; i < arguments.length; i++) {
-      var param_name = arguments[i];
+      let param_name = arguments[i];
       if (param_name in src)
         dest[param_name] = src[param_name];
     }
   };
 
-  var kEventPrefix = 'chrome.input.ime#';
-  var kEarlyAbortEvents = ['KeyEvent'];  // Return true to abort.
-
-  function CreateEventHandler(event_name) {
-    var needEarlyAbort = (kEarlyAbortEvents.indexOf(event_name) >= 0);
-    return { addListener: function (callback) {
+  CreateEventHandler(event_name) {
+    let needEarlyAbort = (this.kEarlyAbortEvents.indexOf(event_name) >= 0);
+    return { addListener: (callback) => {
       document.addEventListener(
-          kEventPrefix + event_name,
-          function (ime_ev) {
-            self.debug('on', event_name, ime_ev);
-            var result = callback.apply(null, ime_ev.detail);
+          this.kEventPrefix + event_name,
+          (ime_ev) => {
+            this.debug('on', event_name, ime_ev);
+            let result = callback.apply(null, ime_ev.detail);
             if (needEarlyAbort && result) {
               ime_ev.preventDefault();
             }
@@ -122,34 +149,34 @@ export var ChromeInputIME = function () {
 
   // public functions
 
-  self.dispatchEvent = function (type) {
-    var params = Array.prototype.slice.call(arguments, 1);
-    var imeEvent = new CustomEvent(kEventPrefix + type);
-    self.debug("dispatchEvent", type, arguments);
+  dispatchEvent(type) {
+    let params = Array.prototype.slice.call(arguments, 1);
+    let imeEvent = new CustomEvent(this.kEventPrefix + type);
+    this.debug("dispatchEvent", type, arguments);
     imeEvent.initCustomEvent(imeEvent.type, false,
-        (kEarlyAbortEvents.indexOf(type) >= 0), params);
+        (this.kEarlyAbortEvents.indexOf(type) >= 0), params);
     return document.dispatchEvent(imeEvent);
   };
 
   // chrome.input.ime API
 
-  self.setComposition = function (parameters, callback) {
-    self.debug('setComposition');
-    var context = GetContext(parameters.contextID);
+  setComposition(parameters, callback) {
+    this.debug('setComposition');
+    let context = this.GetContext(parameters.contextID);
     if (!context) {
-      self.debug("Invalid context ID:", parameters.contextID);
+      this.debug("Invalid context ID:", parameters.contextID);
       return;
     }
-    SetDefinedParams(context.composition, parameters,
+    this.SetDefinedParams(context.composition, parameters,
         'text', 'selectionStart', 'selectionEnd', 'cursor', 'segments');
-    self.dispatchEvent("UiComposition", context);
+    this.dispatchEvent("UiComposition", context);
   };
 
-  self.clearComposition = function (parameters, callback) {
-    self.debug('clearComposition');
-    var context = GetContext(parameters.contextID);
+  clearComposition(parameters, callback) {
+    this.debug('clearComposition');
+    let context = this.GetContext(parameters.contextID);
     if (!context) {
-      self.debug("Invalid context ID:", parameters.contextID);
+      this.debug("Invalid context ID:", parameters.contextID);
       return;
     }
     context.composition.text = '';
@@ -157,97 +184,74 @@ export var ChromeInputIME = function () {
     context.composition.selectionEnd = 0;
     context.composition.cursor = 0;
     context.composition.segments = [];
-    self.dispatchEvent("UiComposition", context);
+    this.dispatchEvent("UiComposition", context);
   };
 
-  self.commitText = function (parameters, callback) {
-    self.debug('commitText', parameters);
-    self.dispatchEvent("ImplCommitText", parameters.contextID, parameters.text);
+  commitText(parameters, callback) {
+    this.debug('commitText', parameters);
+    this.dispatchEvent("ImplCommitText", parameters.contextID, parameters.text);
   };
 
-  self.setCandidateWindowProperties = function (parameters, callback) {
-    var engine = GetEngineContext(parameters.engineID);
-    self.debug('setCandidateWindowProperties', parameters);
-    SetDefinedParams(engine.candidate_window, parameters.properties,
+  setCandidateWindowProperties(parameters, callback) {
+    let engine = this.GetEngineContext(parameters.engineID);
+    this.debug('setCandidateWindowProperties', parameters);
+    this.SetDefinedParams(engine.candidate_window, parameters.properties,
         'visible', 'cursorVisible', 'vertical', 'pageSize', 'auxiliaryText',
         'auxiliaryTextVisible', 'windowPosition');
-    self.dispatchEvent("UiCandidateWindow", engine);
+    this.dispatchEvent("UiCandidateWindow", engine);
   };
 
-  self.setCandidates = function (parameters, callback) {
-    self.debug('setCandidates');
-    var context = GetContext(parameters.contextID);
+  setCandidates(parameters, callback) {
+    this.debug('setCandidates');
+    let context = this.GetContext(parameters.contextID);
     if (!context) {
-      self.debug("Invalid context ID:", parameters.contextID);
+      this.debug("Invalid context ID:", parameters.contextID);
       return;
     }
     context.candidates = parameters.candidates;
-    self.dispatchEvent("UiCandidates", context);
+    this.dispatchEvent("UiCandidates", context);
   };
 
-  self.setCursorPosition = function (parameters, callback) {
+  setCursorPosition(parameters, callback) {
     throw "not implemented, sorry";
   };
 
-  self.setMenuItems = function (parameters, callback) {
-    self.debug('setMenuItems');
-    var engine = GetEngineContext(parameters.engineID);
+  setMenuItems(parameters, callback) {
+    this.debug('setMenuItems');
+    let engine = this.GetEngineContext(parameters.engineID);
     engine.menuitems = parameters.items;
-    self.dispatchEvent("UiMenu", engine);
+    this.dispatchEvent("UiMenu", engine);
   };
 
-  // Currently Chrome implements updateMenuItems in same way as setMenuItems.
-  self.updateMenuItems = self.setMenuItems;
+  updateMenuItems(parameters, callback) {
+    // Currently Chrome implements updateMenuItems in same way as setMenuItems.
+    return this.setMenuItems(parameters, callback);
+  }
 
-  self.deleteSurroundingText = function (parameters, callback) {
+  deleteSurroundingText(parameters, callback) {
     throw "not implemented, sorry";
   };
 
-  self.keyEventHandled = function (parameters, callback) {
+  keyEventHandled(parameters, callback) {
     throw "not implemented, sorry";
   };
-
-  self.onActivate = CreateEventHandler("Activate");
-  self.onDeactivated = CreateEventHandler("Deactivated");
-  self.onBlur = CreateEventHandler("Blur");
-  self.onFocus = CreateEventHandler("Focus");
-  self.onInputContextUpdate = CreateEventHandler("InputContextUpdate");
-  self.onKeyEvent = CreateEventHandler("KeyEvent");
-  self.onCandidateClicked = CreateEventHandler("CandidateClicked");
-  self.onMenuItemActivated = CreateEventHandler("MenuItemActivated");
-  self.onSurroundingTextChanged = CreateEventHandler("SurroundingTextChanged");
-  self.onReset = CreateEventHandler("Reset");
-
-  // Implementation events.
-  self.onUiMenu = CreateEventHandler("UiMenu");
-  self.onUiCandidates = CreateEventHandler("UiCandidates");
-  self.onUiCandidateWindow = CreateEventHandler("UiCandidateWindow");
-  self.onUiComposition = CreateEventHandler("UiComposition");
-  self.onImplCommitText = CreateEventHandler("ImplCommitText");
-  self.onImplCommit = CreateEventHandler("ImplCommit");
-  self.onImplFocus = CreateEventHandler("ImplFocus");
-  self.onImplBlur = CreateEventHandler("ImplBlur");
-  self.onImplUpdateUI = CreateEventHandler("ImplUpdateUI");
-  self.onImplAcceptedKeys = CreateEventHandler("ImplAcceptedKeys");
 
   // Initialization
-  function Initialize () {
-    self.engineContext = CreateEngineContext(self.kDefaultEngineId);
-    self.context_list = {};
-    self.onImplFocus.addListener(function (token) {
-      return self.dispatchEvent("Focus", EnterContext(), token);
+  Initialize () {
+    this.engineContext = this.CreateEngineContext(this.kDefaultEngineId);
+    this.context_list = {};
+    this.onImplFocus.addListener((token) => {
+      return this.dispatchEvent("Focus", this.EnterContext(), token);
     });
-    self.onImplBlur.addListener(function (contextID) {
-      var context = GetContext(contextID);
+    this.onImplBlur.addListener((contextID) => {
+      let context = this.GetContext(contextID);
       if (!context)
         return;
       // TODO(hungte) Chain these commands so they are executed in order.
-      self.dispatchEvent("Reset", contextID);
-      self.dispatchEvent("Blur", contextID);
-      self.debug("chrome.input.ime: LeaveContext.", contextID);
-      LeaveContext(contextID);
+      this.dispatchEvent("Reset", contextID);
+      this.dispatchEvent("Blur", contextID);
+      this.debug("chrome.input.ime: LeaveContext.", contextID);
+      this.LeaveContext(contextID);
     });
   }
-
-  Initialize();
 }
