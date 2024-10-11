@@ -45,8 +45,8 @@ jscin.register_addon('AddonRelatedText', jscin.extend_input_method({
       return true;
     }
 
-    jscin.log("relatedText, key = ", ev.code);
-    if (!ctx.allow_related_text || ev.ctrlKey || ev.altKey || k == 'Shift')
+    jscin.log("relatedText, check key code = ", ev.code);
+    if (!ctx.allow_related_text || ev.ctrlKey || ev.altKey || ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
 
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
