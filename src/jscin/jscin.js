@@ -168,7 +168,7 @@ export var jscin = {
   },
 
   // Module registration
-  register_module: function (name, constructor) {
+  register_module: function (constructor, name=constructor.name) {
     var self = jscin;
     self.modules[name] = constructor;
     self.log("jscin: Registered module:", name);
