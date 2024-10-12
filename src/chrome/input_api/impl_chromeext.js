@@ -205,10 +205,18 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
   }
 
   ImplCommitText(node, text) {
-    // TODO(hungte) Rewrite with window.getSelection
-    let ev = document.createEvent("TextEvent");
-    ev.initTextEvent("textInput", true, true, window, text);
-    node.dispatchEvent(ev);
+    /*
+     * The browsers no longer support changing input contents using TextEvent,
+     * so we have to manually set the value and then fire the IntputEvent.
+     */
+    const newpos = node.selectionStart + text.length;
+    const value = node.value;
+    node.value = value.slice(0, node.selectionStart) + text + value.slice(node.selectionEnd);
+    node.selectionStart = node.selectionEnd = newpos;
+    if (InputEvent) {
+      let ev = new InputEvent("input", {data: text, inputType: "insertText"});
+      node.dispatchEvent(ev);
+    }
   }
 
   FocusHandler(ev) {
