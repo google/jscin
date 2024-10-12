@@ -98,8 +98,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     this.contextID = undefined;
     this.ipc = undefined;
     this.enabled = undefined;
-    this.toggleHotKey = 16;  // Shift.
-    this.waitForHotkey = false;
+    this.waitForHotkeyUp = false;
     this.attached = [];
     this.frame_factory = f;
 
@@ -146,26 +145,36 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     }
   }
 
+  IsHotKey(ev) {
+    // Currently we want to use Shift (single click) as the hot key, so it
+    // is either ev.code as ['ShiftLeft', 'ShiftRight'] or ev.key as 'Shift'.
+    // https://www.w3.org/TR/uievents-key/, https://www.w3.org/TR/uievents-code/
+    // Note 'in' does not work for arrays, only property keys so we have to use
+    // 'array.includes' if we want to look at ev.code.
+    // Also, we can't check ev.shiftKey because that will be false when the key
+    // is released (KeyUp).
+    return ev.key == 'Shift' && !ev.ctrlKey && !ev.altKey;
+  }
+
   KeyUpEventHandler(ev) {
     // Assume our IME won't do anything on key up, let's only check hotkeys.
-    if (!this.waitForHotkey)
+    if (!this.waitForHotkeyUp)
       return;
 
-    if (ev.keyCode == this.toggleHotKey) {
-      this.debug("Got toggle hot key!", this.enabled);
+    if (this.IsHotKey(ev)) {
+      this.debug("Got toggle hot key:", ev.code, ev.key, this.enabled);
       this.SetEnabled(!this.enabled);
     }
-    this.waitForHotkey = false;
+    this.waitForHotkeyUp = false;
   }
 
   KeyDownEventHandler(ev) {
-    if (this.waitForHotkey)
-      this.waitForHotkey = false;
-
-    if (ev.keyCode == this.toggleHotKey && !ev.ctrlKey && !ev.altKey) {
+    if (this.waitForHotkeyUp)
+      this.waitForHotkeyUp = false;
+    else if (this.IsHotKey(ev)) {
       this.debug("Wait to check toggle hotkey!");
-      this.waitForHotkey = true;
-      // Assume our IME don't need to handle single shift key.
+      this.waitForHotkeyUp = true;
+      // Assume our IME doesn't need to handle single shift key.
       return;
     }
 
