@@ -87,8 +87,12 @@ $(function() {
   });
 
   chrome.input.ime.onUiCandidateWindow.addListener(function (engine) {
-    let ui = $('#imePanel #candidates');
-    ui.toggle(engine.candidate_window.visible);
+    console.log(engine.candidate_window);
+    let cui = $('#imePanel #candidates');
+    cui.toggle(engine.candidate_window.visible);
+    let aui = $('#imePanel #auxiliary');
+    aui.empty().append(engine.candidate_window.auxiliaryText);
+    aui.toggle(engine.candidate_window.auxiliaryTextVisible);
   });
 
   chrome.input.ime.onUiCandidates.addListener(function (context) {
