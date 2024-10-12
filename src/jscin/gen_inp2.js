@@ -42,7 +42,7 @@ export class GenInp2 extends BaseInputMethod
 
     for (let i = 0, len = this.selkey.length; i < len; i++) {
       let k = this.selkey[i];
-      if (k in this.keyname || this.endkey.indexOf(k) >= 0)
+      if (k in this.keyname || this.endkey.includes(k))
         this.opts.OPT_AUTO_COMPOSE = false;
     }
 
@@ -185,13 +185,12 @@ export class GenInp2 extends BaseInputMethod
   }
 
   IsGlobInPattern(pattern) {
-    return (pattern.indexOf('?') >= 0 ||
-      pattern.indexOf('*') >= 0);
+    return (pattern.includes('?') || pattern.includes('*'));
   }
 
   IsGlobKey(key) {
     // TODO(hungte) Add an option to turn on/off.
-    return this.GLOB_KEYS.indexOf(key) >= 0;
+    return this.GLOB_KEYS.includes(key);
   }
 
   GlobFromArray(pattern, array, callback) {
@@ -357,7 +356,7 @@ export class GenInp2 extends BaseInputMethod
     if (!this.keygroups)
       return undefined;
     for (let g in this.keygroups) {
-      if (this.keygroups[g].indexOf(key) >= 0)
+      if (this.keygroups[g].includes(key))
         return g;
     }
     return undefined;
@@ -425,13 +424,12 @@ export class GenInp2 extends BaseInputMethod
   }
 
   IsSelectionKey(ctx, key) {
-    return this.selkey.indexOf(key) >= 0 ||
-      this.selkey2.indexOf(key) >= 0;
+    return this.selkey.includes(key) || this.selkey2.includes(key);
   }
 
   IsEndKey(ctx, key) {
     trace(key);
-    return this.endkey && this.endkey.indexOf(key) >= 0;
+    return this.endkey && this.endkey.includes(key);
   }
 
   SelectCommit(ctx, key) {

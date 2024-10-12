@@ -130,7 +130,7 @@ export class ChromeInputIME {
   };
 
   CreateEventHandler(event_name) {
-    let needEarlyAbort = (this.kEarlyAbortEvents.indexOf(event_name) >= 0);
+    let needEarlyAbort = this.kEarlyAbortEvents.includes(event_name);
     return { addListener: (callback) => {
       document.addEventListener(
           this.kEventPrefix + event_name,
@@ -151,7 +151,7 @@ export class ChromeInputIME {
     let imeEvent = new CustomEvent(this.kEventPrefix + type);
     this.debug("dispatchEvent", type, params);
     imeEvent.initCustomEvent(imeEvent.type, false,
-        (this.kEarlyAbortEvents.indexOf(type) >= 0), params);
+        this.kEarlyAbortEvents.includes(type), params);
     return document.dispatchEvent(imeEvent);
   };
 

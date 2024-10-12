@@ -388,7 +388,7 @@ ChromeExOAuth.fromRfc3986 = function(val){
  *     appended, prefixing them with "&" or "?" as needed.
  */
 ChromeExOAuth.addURLParam = function(url, key, value) {
-  var sep = (url.indexOf('?') >= 0) ? "&" : "?";
+  var sep = url.includes('?') ? "&" : "?";
   return url + sep +
          ChromeExOAuth.toRfc3986(key) + "=" + ChromeExOAuth.toRfc3986(value);
 };

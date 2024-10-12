@@ -27,7 +27,7 @@ export const kEmulation = "emulation";
 /* Advanced functions and CamelCased. */
 
 export async function LoadResource(url) {
-  if (url.indexOf('://') < 0)
+  if (!url.includes('://'))
     url = chrome.runtime.getURL(url);
   log("LoadResource:", url);
 

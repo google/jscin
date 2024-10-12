@@ -157,8 +157,8 @@ export class IME {
 
     if (this.imctx.check_accepted_keys &&
         !this.ime_api.onImplAcceptedKeys &&
-        this.im.get_accepted_keys(this.imctx).indexOf(
-            jscin.get_key_description(keyData)) < 0) {
+        !this.im.get_accepted_keys(this.imctx).includes(
+            jscin.get_key_description(keyData))) {
       this.log("Key not accepted", keyData);
       return false;
     }

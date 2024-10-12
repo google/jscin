@@ -201,7 +201,7 @@ function init() {
   module_form.empty();
   var im_modules = instance.getAvailableModules();
   im_modules.forEach(function (name) {
-    if (name.indexOf("Gen") != 0)
+    if (!name.startsWith("Gen"))
       return;
     module_form.append(
         $('<input type=radio class=radio name=moduleRadio/>').attr("id", name).
@@ -405,7 +405,7 @@ function getSettingOption(data) {
 
       for (var key in opt.detect) {
         if (!data.data.chardef[key] ||
-            data.data.chardef[key].indexOf(opt.detect[key]) < 0)
+            !data.data.chardef[key].includes(opt.detect[key]))
           return;
       }
       console.log("matched:", opt);
@@ -525,7 +525,7 @@ function loadCinTables() {
     addCinTableToList(name, metadatas[name], '#enabled_im_list');
   });
   for (var name in metadatas) {
-    if (tables.indexOf(name) < 0) {
+    if (!tables.includes(name)) {
       addCinTableToList(name, metadatas[name], '#available_im_list');
     }
   }

@@ -269,11 +269,11 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
   }
 
   IsAttached(node) {
-    return this.attached.indexOf(node) >= 0;
+    return this.attached.includes(node);
   }
 
   attach(node, fire) {
-    if (this.attached.indexOf(node) < 0) {
+    if (!this.attached.includes(node)) {
       this.debug("impl.attach:", node, fire);
       this.attached.push(node);
       node.addEventListener("focus", this.FocusHandler.bind(this));

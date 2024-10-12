@@ -40,7 +40,7 @@ export class AddonRelatedText extends BaseInputAddon
   }
 
   InSelectionKey(ctx, key) {
-    return ctx.selkey.indexOf(key) >= 0;
+    return ctx.selkey.includes(key);
   }
 
   IsEmptyContext(ctx) {

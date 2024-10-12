@@ -425,7 +425,7 @@ export class GenInp extends BaseInputMethod
 
       function determine_group(key) {
         for (let g in self.conf.keygroups) {
-          if (self.conf.keygroups[g].indexOf(key) >= 0) {
+          if (self.conf.keygroups[g].includes(key)) {
             return g;
           }
         }
@@ -547,15 +547,15 @@ export class GenInp extends BaseInputMethod
         inpinfo.cch_publish = '';
         let wch = ime.header.keyname[keyinfo.key];
         let selkey_idx = ime.header.selkey.indexOf(keyinfo.key);
-        if (ime.header.endkey.indexOf(
-            self.keystroke[self.keystroke.length-1]) >=0 ) {
+        if (ime.header.endkey.includes(
+            self.keystroke[self.keystroke.length-1])) {
           endkey_pressed = true;
         }
 
         if (len && selkey_idx != -1 && (endkey_pressed || !wch)) {
           if (len == 1 && conf.disable_sel_list &&
-              conf.disable_sel_list.indexOf(
-                  self.keystroke[self.keystroke.length-1]) >= 0) {
+              conf.disable_sel_list.includes(
+                  self.keystroke[self.keystroke.length-1])) {
             wch = keyinfo.key;
           } else {
             return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
@@ -617,7 +617,7 @@ export class GenInp extends BaseInputMethod
           self.mode.INPINFO_MODE_SPACE = false;
         }
         if (conf.mode.INP_MODE_ENDKEY && len>1 &&
-            ime.header.endkey.indexOf(keyinfo.key) >= 0) {
+            ime.header.endkey.includes(keyinfo.key)) {
           return commit_keystroke(inpinfo);
         } else if (conf.mode.INP_MODE_AUTOFULLUP && len == max_len) {
           return commit_keystroke(inpinfo);

@@ -30,7 +30,7 @@ async function init () {
   // chrome.input.ime binding but that would spew error message in console for
   // every page; so let's check userAgent instead because for right now only
   // ChromeOS supports that.
-  if (window.navigator.userAgent.indexOf(' CrOS ') >= 0)
+  if (window.navigator.userAgent.includes(' CrOS '))
     return;
 
   const src = chrome.runtime.getURL("input_api/impl_chromeext.js");
