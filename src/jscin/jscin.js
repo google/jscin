@@ -52,6 +52,8 @@ export class JavaScriptInputMethod
       "ControlRight": "Control",
       "AltLeft": "Alt",
       "AltRight": "Alt",
+      "MetaLeft": "Meta",
+      "MetaRight": "Meta",
       "Space": " ",
       "ArrowLeft": "Left",
       "ArrowUp": "Up",
@@ -164,11 +166,18 @@ export class JavaScriptInputMethod
   // keyboard mapping is same as we expected, for [0-9] and symbols.
   get_key_description(ev) {
     let k = ev.key;
-    if (ev.altKey && k != 'Alt')
-      k = 'Alt ' + k;
     if (ev.ctrlKey && k != 'Ctrl')
       k = 'Ctrl ' + k;
+    if (ev.altKey && k != 'Alt')
+      k = 'Alt ' + k;
+    if (ev.metaKey && k != 'Meta')
+      k = 'Meta ' + k;
     return k;
+  }
+
+  // A short cut to check Ctrl/Alt/Meta modifiers (no Shift).
+  has_ctrl_alt_meta(ev) {
+    return ev.ctrlKey || ev.altKey || ev.metaKey;
   }
 
   // Module registration

@@ -580,16 +580,14 @@ export class GenInp extends BaseInputMethod
 
         len = self.keystroke.length;
 
-        if (keyinfo.ctrlKey) {
-          return jscin.IMKEY_IGNORE;  // don't support qphrase
+        if (jscin.has_ctrl_alt_meta(keyinfo)) { // don't support qphrase
+          return jscin.IMKEY_IGNORE;
         } else if (keyinfo.shiftKey) {
           if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {
             self.mode.INPINFO_MODE_INWILD = true;
           } else {
             return jscin.IMKEY_IGNORE;  // don't support qphrase
           }
-        } else if (keyinfo.altKey) {
-          return jscin.IMKEY_IGNORE;  // don't support qphrase
         } else if (!wch) {
           return ret | jscin.IMKEY_IGNORE;
         } else if (reorder_key_by_keygroups(inpinfo, keyinfo)) {

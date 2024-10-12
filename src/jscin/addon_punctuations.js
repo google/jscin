@@ -47,7 +47,7 @@ export class AddonPunctuations extends BaseInputAddon
   keystroke(ctx, ev)
   {
     // TODO(hungte) Find better way to get allow_ctrl_phrase.
-    if (!ev.ctrlKey || ev.altKey || !ctx.allow_ctrl_phrase)
+    if (!ctx.allow_ctrl_phrase || !ev.ctrlKey || ev.altKey || ev.metaKey)
       return this.im.keystroke(ctx, ev);
 
     let table = ev.shiftKey ? this.ctrl_shift_phrase : this.ctrl_phrase;

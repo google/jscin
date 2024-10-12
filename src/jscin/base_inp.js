@@ -117,14 +117,15 @@ export class BaseInputMethod
   }
 
   // Utility function to generate a key event.
-  GenKeyEvent(key, code) {
+  GenKeyDownEvent(key, code) {
     return {
       type: 'keydown',
       key: key,
       code: code,
+      ctrlKey: false,
       shiftKey: false,
       altKey: false,
-      ctrlKey: false
+      metaKey: false
     };
   }
 
@@ -142,9 +143,9 @@ export class BaseInputMethod
       //  - If we don't send Enter, ChromeOS will send and keep lcch.
       //  As a workaround, temporary allow behavior difference.
       if (ctx.commit_on_blur)
-        this.keystroke(ctx, this.GenKeyEvent('Enter', 'Enter'));
+        this.keystroke(ctx, this.GenKeyDownEvent('Enter', 'Enter'));
     } else if (has_keystroke || has_mcch) {
-      this.keystroke(ctx, this.GenKeyEvent('Esc', 'Esc'));
+      this.keystroke(ctx, this.GenKeyDownEvent('Esc', 'Esc'));
     }
   }
 

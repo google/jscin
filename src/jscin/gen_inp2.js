@@ -569,13 +569,9 @@ export class GenInp2 extends BaseInputMethod
         break;
     }
   }
-
   ProcessKeystroke(ctx, ev) {
     trace(ev);
-    if (ev.type != 'keydown' || ev.ctrlKey || ev.altKey) {
-      return this.ResultIgnored(ctx);
-    } else if (ev.key == 'Ctrl' || ev.key == 'Alt') {
-      // when ctrl/alt is pressed, the ctrlKey / altKey are not true yet.
+    if (ev.type != 'keydown' || jscin.has_ctrl_alt_meta(ev)) {
       return this.ResultIgnored(ctx);
     }
 

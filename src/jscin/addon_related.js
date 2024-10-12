@@ -19,7 +19,8 @@ export class AddonRelatedText extends BaseInputAddon
   keystroke(ctx, ev)
   {
     jscin.log("relatedText, check key code = ", ev.code);
-    if (!ctx.allow_related_text || ev.ctrlKey || ev.altKey || ev.key == 'Shift')
+    if (!ctx.allow_related_text || jscin.has_ctrl_alt_meta(ev)||
+        ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
 
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {

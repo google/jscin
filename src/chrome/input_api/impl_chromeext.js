@@ -152,7 +152,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     // 'array.includes' if we want to look at ev.code.
     // Also, we can't check ev.shiftKey because that will be false when the key
     // is released (KeyUp).
-    return ev.key == 'Shift' && !ev.ctrlKey && !ev.altKey;
+    return ev.key == 'Shift' && !jscin.has_ctrl_alt_meta(ev);
   }
 
   KeyUpEventHandler(ev) {

@@ -196,11 +196,12 @@ export class IME {
 
   SimulateKeyDown(key) {
     let keyEvent = {
-      'type': 'keydown',
-      'key': key,
-      'altKey': false,
-      'ctrlKey': false,
-      'shiftKey': false,
+      type: 'keydown',
+      key: key,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
     };
     return this.ProcessKeyEvent(keyEvent);
   }
