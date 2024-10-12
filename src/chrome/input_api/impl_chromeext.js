@@ -8,7 +8,6 @@
 
 import { jscin } from "../jscin/jscin.js";
 import { $, jQuery } from "../jquery/jquery.js";
-import { CreateImeKeyEvent } from "./ime_event.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
 class ChromeInputImeExtension {
@@ -181,18 +180,16 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     if (!this.enabled)
       return;
 
-    let ev2 = CreateImeKeyEvent(ev);
+    this.debug("KeyDownEventHandler", ev);
     let node = ev.target;
-    this.debug("impl.KeyDownEventHandler", ev, ev2);
+    if (!this.im_accepted_keys)
+      return;
 
-    if (this.im_accepted_keys) {
-      let desc = jscin.get_key_description(ev2);
-
-      if (this.im_accepted_keys.indexOf(desc) >= 0) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.SendMessage('KeyEvent', this.engineID, ev2);
-      }
+    let desc = jscin.get_key_description(ev);
+    if (this.im_accepted_keys.includes(desc)) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.SendMessage('KeyEvent', this.engineID, ev);
     }
   }
 

@@ -51,6 +51,53 @@ class BaseIPC {
     });
   }
 
+  /*
+   * DOM KeyboardEvent can't be passed via IPC so we have to marshalize
+   * it to a simple object, and let's call it IpcKeyEvent.
+   */
+  CreateIpcKeyEvent(ev) {
+    let ev2 = {};
+    // https://www.w3.org/TR/uievents/#idl-keyboardevent
+    const known_props = [
+      "type",
+
+      "key",
+      "code",
+      "location",
+
+      "ctrlKey",
+      "shiftKey",
+      "altKey",
+      "metaKey",
+
+      "repeat",
+      "isComposing",
+
+      // deprecated fields.
+      "charCode",
+      "keyCode",
+      "which",
+    ];
+
+    // Only copy  known properties because Object.assign will fail on readonly
+    // properties like isTrusted.
+    for (let k of known_props) {
+      ev2[k] = ev[k];
+    }
+    this.debug("CreateIpcKeyEvent", ev, ev2);
+    return ev2;
+  }
+
+  /* Create real KeyboardEvent from an IpcKeyEvent. */
+  CreateKeyboardEvent(ev)
+  {
+    if (KeyboardEvent)
+      return new KeyboardEvent(ev.type, ev);
+
+    this.debug("Missing KeyboardEvent, keep using ImeKeyEvent", ev);
+    return ev;
+  }
+
   /* IPC interfaces */
 
   attach() {
@@ -82,8 +129,10 @@ class ContentIPC extends BaseIPC {
     });
   }
   send(message, callback) {
-    // console.log(this);
     // Send to background page
+    if (message.args && message.args[0] == 'KeyEvent') {
+      message.args[2] = this.CreateIpcKeyEvent(message.args[2]);
+    }
     if (callback) {
       this.debug("send with callback");
       chrome.runtime.sendMessage(this.CreateMessage(message), callback);

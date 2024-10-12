@@ -5,8 +5,6 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { CreateImeKeyEvent } from "./ime_event.js";
-
 export class ChromeInputImeImplPage {
 
   constructor(ime_api) {
@@ -16,8 +14,7 @@ export class ChromeInputImeImplPage {
   }
 
   keyEventHandler (ev) {
-    let ev2 = CreateImeKeyEvent(ev);
-    let result = this.ime_api.dispatchEvent("KeyEvent", this.engineID, ev2);
+    let result = this.ime_api.dispatchEvent("KeyEvent", this.engineID, ev);
     if (!result)
       ev.preventDefault();
     return result;
