@@ -155,6 +155,10 @@ export class IME {
       return false;
     }
 
+    /* Currently no one sets the imctx.check_accepted_keys
+     * so this is only for debugging (for local to test
+     * IPC behavior).
+     */
     if (this.imctx.check_accepted_keys &&
         !this.ime_api.onImplAcceptedKeys &&
         !this.im.get_accepted_keys(this.imctx).includes(

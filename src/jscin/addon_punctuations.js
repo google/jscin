@@ -36,10 +36,10 @@ export class AddonPunctuations extends BaseInputAddon
     // build key map
     let keys = [];
     Object.keys(this.ctrl_phrase).forEach((k) => {
-      keys.push('Ctrl ' + k);
+      keys.push('Ctrl-' + k);
     });
     Object.keys(this.ctrl_shift_phrase).forEach((k) => {
-      keys.push('Ctrl ' + k);
+      keys.push('Ctrl-' + k);
     });
     this.expected_keys = keys;
   }

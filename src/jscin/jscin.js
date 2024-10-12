@@ -159,19 +159,22 @@ export class JavaScriptInputMethod
 
   // Gets the combination of keys in one chrome.input.ime.KeyboardEvent.
   // This is the format that IM.get_accepted_keys should follow.
-  // In general it's list of lower-case keys, or [Ctrl ][Alt ]<key>.
-  // Space is written in ' '. Single Ctrl/Alt will be in <key> field, like
-  // 'Ctrl Alt' (when 2nd key is Alt) or 'Alt Ctrl' (when 2nd key is Ctrl).
+  // In general it's list of lower-case keys, or [Ctrl-][Alt-][Meta-]<key>.
+  // Space is written as ' '.
   // Note Shift is not handled here, because we can't determine if the
   // keyboard mapping is same as we expected, for [0-9] and symbols.
+  // One solution is to add two mappings - with and without shift.
+  // See addon_punctuations as one example. However this will also break
+  // IMs or addons expect shift to work differently, for example addon_related
+  // + phone.
   get_key_description(ev) {
     let k = ev.key;
-    if (ev.ctrlKey && k != 'Ctrl')
-      k = 'Ctrl ' + k;
-    if (ev.altKey && k != 'Alt')
-      k = 'Alt ' + k;
     if (ev.metaKey && k != 'Meta')
-      k = 'Meta ' + k;
+      k = 'Meta-' + k;
+    if (ev.altKey && k != 'Alt')
+      k = 'Alt-' + k;
+    if (ev.ctrlKey && k != 'Ctrl')
+      k = 'Ctrl-' + k;
     return k;
   }
 
