@@ -105,11 +105,7 @@ export class JavaScriptInputMethod
   }
 
   error(...args) {
-    if (typeof(console) == typeof(undefined)) {
-      print(...args);
-    } else {
-      console.log('[jscin]', ...args);
-    }
+    console.log('[jscin]', ...args);
   }
 
   add_logger(logger, context) {
@@ -417,17 +413,13 @@ export class JavaScriptInputMethod
 
 export var jscin = new JavaScriptInputMethod();
 export function trace(...args) {
-  if (!jscin.debug || typeof(console) != typeof(undefined))
+  if (!jscin.debug)
     return;
 
   let e = new Error();
   let m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
   let prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
 
-  if (typeof(console) == typeof(undefined)) {
-    print(prefix, ...args);
-  } else {
-    jscin.log(prefix, ...args);
-  }
+  jscin.log(prefix, ...args);
 }
 
