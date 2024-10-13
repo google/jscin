@@ -18,7 +18,6 @@ export class AddonRelatedText extends BaseInputAddon
     // never defined then we won't even notice it in the first execution.
     this.last_selkey = '';
     this.expected_keys = []; // decide later when ctx.selkey is available.
-    this.unshift_map = {};
   }
 
   /*
@@ -47,13 +46,9 @@ export class AddonRelatedText extends BaseInputAddon
       let v = String.fromCharCode(i);
       shift_map[v] = v.toUpperCase();
     }
-    let filtered_keys = keys.split('').filter(v => v in shift_map);
-
-    this.expected_keys = filtered_keys.map(v => shift_map[v]);
-    this.unshift_map = Object.fromEntries(filtered_keys.map(
-      v => [shift_map[v], v]));
-    jscin.log("RefreshShiftMap: expected_keys, unshift_map:",
-              this.expected_keys, this.unshift_map);
+    this.expected_keys = keys.split('').filter(
+        v => v in shift_map).map(v => shift_map[v]);
+    jscin.log("relatedText, RefreshShiftMap", this.expected_keys);
   }
 
   keystroke(ctx, ev)
@@ -66,7 +61,7 @@ export class AddonRelatedText extends BaseInputAddon
     this.RefreshShiftMap(ctx);
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
       ctx.mcch = '';
-      let k = this.unshift_map[ev.key] || ev.key;
+      let k = jscin.get_unshifted_key(ev);
       jscin.log("relatedText, unshifted:", k);
       if ((ev.shiftKey || ctx.auto_compose) &&
           this.InSelectionKey(ctx, k) &&

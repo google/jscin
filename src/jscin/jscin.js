@@ -41,24 +41,9 @@ export class JavaScriptInputMethod
     this.input_methods = {};
     this.debug = false;
 
-    // Converts a chrome.input.ime KeyboardEvent.code to jscin standard key names.
-    // Note this is almost identical to KeyboardEvent.key except shift states.
-    // Note: key codes not listed here should be passed as-is, ex: Esc, Tab.
-    // See input_api/ime_event.js for a complete list.
-    this.kImeKeyCodeTable = {
-      "ShiftLeft": "Shift",
-      "ShiftRight": "Shift",
-      "ControlLeft": "Control",
-      "ControlRight": "Control",
-      "AltLeft": "Alt",
-      "AltRight": "Alt",
-      "MetaLeft": "Meta",
-      "MetaRight": "Meta",
-      "Space": " ",
-      "ArrowLeft": "Left",
-      "ArrowUp": "Up",
-      "ArrowRight": "Right",
-      "ArrowDown": "Down",
+    // Converts KeyboardEvent.code to KeyboardEvent.key, regardless of shift modifier.
+    // This only includes en-US layout common keys that we'd usually use in CJK IMs.
+    this.kUnshiftMap = {
       "Digit0": "0",
       "Digit1": "1",
       "Digit2": "2",
@@ -69,47 +54,32 @@ export class JavaScriptInputMethod
       "Digit7": "7",
       "Digit8": "8",
       "Digit9": "9",
-      "KeyA": "A",
-      "KeyB": "B",
-      "KeyC": "C",
-      "KeyD": "D",
-      "KeyE": "E",
-      "KeyF": "F",
-      "KeyG": "G",
-      "KeyH": "H",
-      "KeyI": "I",
-      "KeyJ": "J",
-      "KeyK": "K",
-      "KeyL": "L",
-      "KeyM": "M",
-      "KeyN": "N",
-      "KeyO": "O",
-      "KeyP": "P",
-      "KeyQ": "Q",
-      "KeyR": "R",
-      "KeyS": "S",
-      "KeyT": "T",
-      "KeyU": "U",
-      "KeyV": "V",
-      "KeyW": "W",
-      "KeyX": "X",
-      "KeyY": "Y",
-      "KeyZ": "Z",
-      "Numpad0": "0",
-      "Numpad1": "1",
-      "Numpad2": "2",
-      "Numpad3": "3",
-      "Numpad4": "4",
-      "Numpad5": "5",
-      "Numpad6": "6",
-      "Numpad7": "7",
-      "Numpad8": "8",
-      "Numpad9": "9",
-      "NumpadMultiply": "*",
-      "NumpadAdd": "+",
-      "NumpadSubtract": "-",
-      "NumpadDecimal": ".",
-      "NumpadDivide": "/",
+      "KeyA": "a",
+      "KeyB": "b",
+      "KeyC": "c",
+      "KeyD": "d",
+      "KeyE": "e",
+      "KeyF": "f",
+      "KeyG": "g",
+      "KeyH": "h",
+      "KeyI": "i",
+      "KeyJ": "j",
+      "KeyK": "k",
+      "KeyL": "l",
+      "KeyM": "m",
+      "KeyN": "n",
+      "KeyO": "o",
+      "KeyP": "p",
+      "KeyQ": "q",
+      "KeyR": "r",
+      "KeyS": "s",
+      "KeyT": "t",
+      "KeyU": "u",
+      "KeyV": "v",
+      "KeyW": "w",
+      "KeyX": "x",
+      "KeyY": "y",
+      "KeyZ": "z",
       "Semicolon": ";",
       "Equal": "=",
       "Comma": ",",
@@ -151,16 +121,17 @@ export class JavaScriptInputMethod
     }
   }
 
-  // Gets the combination of keys in one chrome.input.ime.KeyboardEvent.
+  // -------------------------------------------------------------------
+  // KeyboardEvent utilities
+
+  // Gets the combination of keys in one KeyboardEvent.
   // This is the format that IM.get_accepted_keys should follow.
-  // In general it's list of lower-case keys, or [Ctrl-][Alt-][Meta-]<key>.
-  // Space is written as ' '.
-  // Note Shift is not handled here, because we can't determine if the
-  // keyboard mapping is same as we expected, for [0-9] and symbols.
-  // One solution is to add two mappings - with and without shift.
-  // See addon_punctuations as one example. However this will also break
-  // IMs or addons expect shift to work differently, for example addon_related
-  // + phone.
+  // In general it is list of lower-case keys, or [Ctrl-][Alt-][Meta-]<key>.
+  //
+  // Note Shift state already changed the 'key' value, so for addons and IMs
+  // that expect to behave differently, they have to either list using the
+  // shifted key values (e.g., addon_punctuations), or use the
+  // get_unshifted_key() below to find the original key input (addon_related).
   get_key_description(ev) {
     let k = ev.key;
     if (ev.metaKey && k != 'Meta')
@@ -172,12 +143,19 @@ export class JavaScriptInputMethod
     return k;
   }
 
+  // Returns the KeyboardEvent.key regardless of ev.shiftKey state.
+  get_unshifted_key(ev) {
+    return this.kUnshiftMap[ev.code] || ev.key;
+  }
+
   // A short cut to check Ctrl/Alt/Meta modifiers (no Shift).
   has_ctrl_alt_meta(ev) {
     return ev.ctrlKey || ev.altKey || ev.metaKey;
   }
 
-  // Module registration
+  // -------------------------------------------------------------------
+  // Modules, input methods and addons
+
   register_module(constructor, name=constructor.name) {
     this.modules[name] = constructor;
     this.log("Registered module:", name);
@@ -192,7 +170,6 @@ export class JavaScriptInputMethod
     this.log("Registered addon:", name);
   }
 
-  // Input method registration
   register_input_method(name, module_name, cname) {
     if (!(module_name in this.modules)) {
       this.log("Unknown module:", module_name);
@@ -204,7 +181,6 @@ export class JavaScriptInputMethod
     this.log("Registered input method: ", name);
   }
 
-  // Un-register an input method
   unregister_input_method(name) {
     if (!(name in this.input_methods)) {
       this.log("Unknown input method: " + name);
@@ -271,6 +247,9 @@ export class JavaScriptInputMethod
     return this.readLocalStorage(this.kRawDataKeyPrefix + name);
   }
 
+  // -------------------------------------------------------------------
+  // Configurations
+
   reload_configuration() {
     // Reset input methods
     this.input_methods = {};
@@ -299,7 +278,9 @@ export class JavaScriptInputMethod
       this.log("localStorage:", Object.keys(localStorage));
   }
 
-  // Table and local storage management
+  // -------------------------------------------------------------------
+  // Tables and local storage management
+
   getCrossQuery() {
     return this.readLocalStorage(this.kCrossQueryKey);
   }

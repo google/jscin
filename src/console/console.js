@@ -71,6 +71,7 @@ function build_reverse_map(from) {
 function create_key_event(ch, keyname) {
   // http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent
   var ev = { 'type': 'keydown' };
+  // FIX(hungte) jscin.kImeKeyCodeTable is removed.
   var c2code = build_reverse_map(jscin.kImeKeyCodeTable);
 
   if (keyname != null)

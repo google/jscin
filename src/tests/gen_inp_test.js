@@ -41,6 +41,7 @@ function build_reverse_map(from) {
 
 function simulate(inst, inpinfo, input, result, expects) {
   var committed = '';
+  // FIX(hungte) jscin.kImeKeyCodeTable is removed.
   var c2code = build_reverse_map(jscin.kImeKeyCodeTable);
   for (var i in input) {
     var code = c2code[input[i].toUpperCase()] || '';
