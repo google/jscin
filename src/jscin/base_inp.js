@@ -25,7 +25,6 @@ export class BaseInputMethod
     // Only table-commands (keyname, chardef) will be lowercased.
     // Any one line params must be normalized to lower case.
     this.selkey = (conf.selkey || '').toLowerCase();
-    this.selkey2 = (conf.selkey2 || '').toLowerCase();
     this.endkey = (conf.endkey || '').toLowerCase();
 
     // Standard rules.
@@ -39,8 +38,7 @@ export class BaseInputMethod
       '*': Object.keys(this.keyname).concat(this.endkey.split('')),
       'keystroke': setConvert.concat(setEdit),
       'lcch': setConvert.concat(setEdit).concat(setArrow).concat(setLineEdit),
-      'mcch': setConvert.concat(setPage).concat(setArrow).
-      concat(this.selkey.split('')).concat(this.selkey2.split(''))
+      'mcch': setConvert.concat(setPage).concat(setArrow).concat(this.selkey.split(''))
     };
 
     let keys = conf.ACCEPTED_KEYS || {};

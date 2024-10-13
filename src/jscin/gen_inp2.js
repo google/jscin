@@ -424,7 +424,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   IsSelectionKey(ctx, key) {
-    return this.selkey.includes(key) || this.selkey2.includes(key);
+    return this.selkey.includes(key);
   }
 
   IsEndKey(ctx, key) {
@@ -434,10 +434,7 @@ export class GenInp2 extends BaseInputMethod
 
   SelectCommit(ctx, key) {
     trace(ctx.candidates, ctx.candidates_start_index, key);
-    let key_idx = this.selkey.indexOf(key);
-    if (key_idx < 0)
-      key_idx = this.selkey2.indexOf(key);
-    let index = (ctx.candidates_start_index + key_idx);
+    let index = ctx.candidates_start_index + this.selkey.indexOf(key);
     return this.CommitText(ctx, index);
   }
 
