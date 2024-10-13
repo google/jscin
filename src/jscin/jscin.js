@@ -151,12 +151,6 @@ export class JavaScriptInputMethod
     }
   }
 
-  // Gets the value from a chrome.inpue.ime.KeyboardEvent.code.
-  // Very similiar to KeyboardEvent.key, without case /shift.
-  get_key_val(ime_api_key_code) {
-    return this.kImeKeyCodeTable[ime_api_key_code] || ime_api_key_code;
-  }
-
   // Gets the combination of keys in one chrome.input.ime.KeyboardEvent.
   // This is the format that IM.get_accepted_keys should follow.
   // In general it's list of lower-case keys, or [Ctrl-][Alt-][Meta-]<key>.

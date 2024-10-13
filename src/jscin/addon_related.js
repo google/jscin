@@ -14,6 +14,46 @@ export class AddonRelatedText extends BaseInputAddon
   {
     super(name, im);
     this.last_mcch = undefined;
+    // last_selkey should not be undefined/null otherwise if ctx.selkey was
+    // never defined then we won't even notice it in the first execution.
+    this.last_selkey = '';
+    this.expected_keys = []; // decide later when ctx.selkey is available.
+    this.unshift_map = {};
+  }
+
+  /*
+   * Maintains the mapping between keys and shifted keys.
+   * Does not include keys that remain the same in shift mode.
+   */
+  RefreshShiftMap(ctx) {
+    if (ctx.selkey == this.last_selkey)
+      return;
+
+    let keys = ctx.selkey;
+    this.last_selkey = keys;
+
+    /* This mapping is based on en-us layout, but we don't have a better way to
+     * support the shift map.
+     */
+    const input =  "`1234567890-=[];',./\\";
+    const output = '~!@#$%^&*()_+{}:"<>?|';
+    let shift_map = {};
+
+    for (let i in input) {
+      shift_map[input[i]] = output[i];
+      shift_map[input[i]] = output[i];
+    }
+    for (let i='a'.charCodeAt(0); i <= 'z'.charCodeAt(0); i++) {
+      let v = String.fromCharCode(i);
+      shift_map[v] = v.toUpperCase();
+    }
+    let filtered_keys = keys.split('').filter(v => v in shift_map);
+
+    this.expected_keys = filtered_keys.map(v => shift_map[v]);
+    this.unshift_map = Object.fromEntries(filtered_keys.map(
+      v => [shift_map[v], v]));
+    jscin.log("RefreshShiftMap: expected_keys, unshift_map:",
+              this.expected_keys, this.unshift_map);
   }
 
   keystroke(ctx, ev)
@@ -23,21 +63,35 @@ export class AddonRelatedText extends BaseInputAddon
         ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
 
+    this.RefreshShiftMap(ctx);
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
       ctx.mcch = '';
-      let k = jscin.get_key_val(ev.code);
+      let k = this.unshift_map[ev.key] || ev.key;
+      jscin.log("relatedText, unshifted:", k);
       if ((ev.shiftKey || ctx.auto_compose) &&
           this.InSelectionKey(ctx, k) &&
           this.CommitCandidate(ctx, k)) {
+        jscin.log("relatedText, commited.");
         this.FindRelatedText(ctx);
         return jscin.IMKEY_COMMIT;
       }
     }
+
     let result = this.im.keystroke(ctx, ev);
     if (result != jscin.IMKEY_COMMIT || !this.IsEmptyContext(ctx))
       return result;
     this.FindRelatedText(ctx);
     return result;
+  }
+
+  get_accepted_keys(ctx)
+  {
+    let keys = this.im.get_accepted_keys(ctx);
+    if (!ctx.allow_related_text)
+      return keys;
+
+    this.RefreshShiftMap(ctx);
+    return keys.concat(this.expected_keys);
   }
 
   InSelectionKey(ctx, key) {
