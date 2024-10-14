@@ -95,7 +95,7 @@ function create_key_event(ch, keyname) {
 
 function console_main(argv) {
   // You must execute this program with SpiderMonkey jsshell or V8 "d8".
-  print("JSCIN Eumlator\n");
+  print("JSCIN Emulator\n");
 
   var im_url = "";
   if (argv.length > 0) {

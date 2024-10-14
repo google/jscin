@@ -152,26 +152,26 @@ export class JavaScriptInputMethod
     this.input_methods[name] = {
       'label': cname,
       'module': this.modules[module_name] };
-    debug("Registered input method: ", name);
+    debug("Registered input method:", name);
   }
 
   unregister_input_method(name) {
     if (!(name in this.input_methods)) {
-      debug("Unknown input method: " + name);
+      debug("Unknown input method:", name);
       return false;
     }
     delete this.input_methods[name]
-    debug("Un-registered input method: ", name);
+    debug("Un-registered input method:", name);
     // TODO(hungte) Remove active instances?
   }
 
   // Create input method instance
   create_input_method(name, context, data) {
     if (!(name in this.input_methods)) {
-      debug("Unknown input method: ", name);
+      debug("Unknown input method:", name);
       return false;
     }
-    debug("Created input method instance: ", name);
+    debug("Created input method instance:", name);
     let module = this.input_methods[name]["module"];
     if (!data)
       data = this.getTableData(name);
@@ -207,7 +207,7 @@ export class JavaScriptInputMethod
 
   get_input_method_label(name) {
     if (!(name in this.input_methods)) {
-      debug("Unknown input method: ", name);
+      debug("Unknown input method:", name);
       return null;
     }
     return this.input_methods[name].label;
@@ -321,9 +321,9 @@ export class JavaScriptInputMethod
       let result = this.install_input_method(name, content, {
         url: table.url, setting: table.setting });
       if (result[0]) {
-        debug("reloaded table: ", name);
+        debug("reloaded table:", name);
       } else {
-        error("Parse error when reloading table: ", name);
+        error("Parse error when reloading table:", name);
         return false;
       }
     }

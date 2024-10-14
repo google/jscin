@@ -142,7 +142,7 @@ export class IME {
   }
 
   ProcessKeyEvent(keyData) {
-    debug("ProcessKeyEvent:", keyData.key);
+    debug("ProcessKeyEvent:", keyData.key, keyData);
 
     // Currently all of the modules uses key down.
     if (keyData.type != 'keydown') {
@@ -212,7 +212,7 @@ export class IME {
       let name = arguments[0], value = arguments[1];
       properties = {};
       properties[name] = value;
-      debug('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
+      debug('SetCandidatesWindowProperty:', name, '=', value);
     }
     arg.properties = properties;
     this.ime_api.setCandidateWindowProperties(arg);
@@ -284,8 +284,8 @@ export class IME {
       debug("candidate_list is undefined");
       return;
     }
-    debug("croscin.UpdateCandidates: elements = " + candidate_list.length +
-             ", labels = " + labels);
+    debug("croscin.UpdateCandidates: candidate_list:", candidate_list,
+          "labels:", labels);
     if (candidate_list.length > 0) {
       let arg = this.GetContextArg();
       let candidates = [];
@@ -392,7 +392,7 @@ export class IME {
         "checked": name == this.im_name,
       });
     });
-    debug("croscin.UpdateMenu: " + menu_items.length + " items.");
+    debug("croscin.UpdateMenu:", menu_items);
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
     // menu_items.push({"id": "", "style": "separator"});
@@ -784,7 +784,7 @@ export class IME {
 }
 
 export var croscin = {IME: IME, logger: logger};
-console.log("ChromeOS Extension for JavaScript Chinese Input Method.\n\n" +
-            "To turn on/off debug messages of each component, " +
+console.log("ChromeOS Extension for JavaScript Chinese Input Method.\n\n",
+            "To turn on/off debug messages of each component,",
             "change the `verbose` property via: ", logger.getAllLoggers());
 console.log("To turn on ALL messags, do: ` croscin.logger.enableAllLoggers(); `");

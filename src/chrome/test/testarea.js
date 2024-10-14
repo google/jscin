@@ -143,18 +143,18 @@ $(function() {
         function () { return "test_" + $(this).text(); });
     chrome.input.ime.onKeyEvent.addListener(function(engineID, ev) {
       let val = $('#chkKeyEvent').prop('checked');
-      debug("onKeyEvent(" + engineID + "): " + ev);
+      debug("onKeyEvent:", ev, engineID);
       return !val;
     });
     chrome.input.ime.onBlur.addListener(function(contextID) {
-      debug("onBlur(" + contextID + ")");
+      debug("onBlur:", contextID);
     });
     chrome.input.ime.onFocus.addListener(function(context) {
       debug(context);
-      debug("onFocus({" + context.contextID + ", " + context.type + "})");
+      debug("onFocus:", context.contextID, context.type);
     });
     chrome.input.ime.onMenuItemActivated.addListener(function(engineID, menu_id) {
-      debug("menu item activated: id=" + menu_id);
+      debug("menu item activated: id=", menu_id);
     });
   }
 

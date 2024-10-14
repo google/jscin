@@ -144,7 +144,7 @@ export class GenInp extends BaseInputMethod
       return jscin.IMKEY_ABSORB;
     }
     function reset_keystroke(inpinfo) {
-      trace('');
+      debug("reset_keystroke", inpinfo);
       self.keystroke = '';
       self.display_keystroke = [];
       inpinfo.keystroke = '';
@@ -177,19 +177,19 @@ export class GenInp extends BaseInputMethod
           }
         }
       } else {
-        trace('NotImplemented');
+        warn('pick_cch_wild: NotImplemented');
       }
 
       return {'more': more, 'mcch': mcch, 'end': idx };
     }
     function match_keystroke_wild(inpinfo) {
-      trace('');
+      debug("match_keystroke_wild", inpinfo);
       return match_keystroke_normal(inpinfo);
 
       // TODO optimize
       let idx = 0;
       let pattern = wildcard2re(self.keystroke);
-      trace('pattern = ' + pattern);
+      debug('wildcard2re, pattern = ', pattern);
 
       for (let k in ime.table) {
         if (k.match(pattern)) {
@@ -211,8 +211,7 @@ export class GenInp extends BaseInputMethod
       return !!inpinfo.mcch.length;
     }
     function match_keystroke_normal(inpinfo) {
-      trace('');
-      // TODO
+      debug('match_keystroke_normal', inpinfo);
       let result = ime.table[self.keystroke];
       if (!result) {
         return 0;
@@ -245,13 +244,13 @@ export class GenInp extends BaseInputMethod
       return ret;
     }
     function commit_char(inpinfo, cch) {
-      trace('cch = ' + cch);
+      debug('commit_char, cch = ', cch, inpinfo);
       // TODO
       inpinfo.cch = cch;
       if (!self.keystroke.match(/[*?]/)) {
         inpinfo.suggest_skeystroke = inpinfo.keystroke;
       } else {
-        trace('NotImplemented');
+        warn('commit_char, NotImplemented');
         // ...
       }
       self.keystroke = '';
@@ -265,7 +264,7 @@ export class GenInp extends BaseInputMethod
       self.mode.INPINFO_MODE_INWILD = false;
     }
     function commit_keystroke(inpinfo) {
-      trace('');
+      debug("commit_keystroke", inpinfo);
       if (self.conf.kremap) {
         if (self.conf.kremap[self.keystroke]) {
           commit_char(inpinfo, self.conf.kremap[self.keystroke]);
@@ -274,7 +273,6 @@ export class GenInp extends BaseInputMethod
       }
 
       if (match_keystroke(inpinfo)) {
-        trace('');
         // not undetstand yet
         if (inpinfo.mcch.length == 1) {
           commit_char(inpinfo, inpinfo.mcch[0]);
@@ -293,7 +291,7 @@ export class GenInp extends BaseInputMethod
     }
 
     function mcch_choosech(inpinfo, idx) {
-      trace('');
+      debug("mcch_choosech", inpinfo, idx);
       if (!inpinfo.mcch && !match_keystroke(inpinfo)) {
         return 0;
       }
@@ -339,24 +337,21 @@ export class GenInp extends BaseInputMethod
         inpinfo.mcch = self.mcch_list.slice(self.mcch_hidx, self.mcch_hidx+n_pg);
 
         if (self.mcch_hidx == 0) {
-          trace('');
           inpinfo.mcch_pgstate = self.mcch_hidx + n_pg < self.mcch_list.length ?
               ime.MCCH_BEGIN : ime.MCCH_ONEPG;
         } else if (self.mcch_hidx + n_pg < self.mcch_list.length) {
-          trace('');
           inpinfo.mcch_pgstate = ime.MCCH_MIDDLE;
         } else {
-          trace('');
           inpinfo.mcch_pgstate = ime.MCCH_END;
         }
       } else {
         // wild mode
-        trace('NotImplemented');
+        warn('NotImplemented');
       }
       return 1;
     }
     function mcch_nextpage(inpinfo, key) {
-      trace('');
+      debug("mcch_nextpage", inpinfo, key);
       let ret = 0;
       switch (inpinfo.mcch_pgstate) {
         case ime.MCCH_ONEPG:
@@ -473,7 +468,7 @@ export class GenInp extends BaseInputMethod
       let len = self.keystroke.length;
       let max_len = ime.header.max_keystroke;
 
-      trace('keyinfo: ' + JSON.stringify(keyinfo));
+      debug('process.keyinfo, keyinfo:', keyinfo, inpinfo);
       if (self.mode.INPINFO_MODE_SPACE) {
         sp_ignore = true;
         self.mode.INPINFO_MODE_SPACE = false;
@@ -509,7 +504,6 @@ export class GenInp extends BaseInputMethod
             (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
             (inpinfo.mcch.length > 1 || inpinfo.mcch_pgstate != ime.MCCH_ONEPG))
         {
-          trace('');
           if (mcch_choosech(inpinfo, -1)) {
             return jscin.IMKEY_COMMIT;
           } else {
@@ -521,29 +515,22 @@ export class GenInp extends BaseInputMethod
             return return_wrong();
           }
         } else if (self.mode.INPINFO_MODE_MCCH) {
-          trace('');
           // TODO INP_MODE_TABNEXTPAGE ?
           return mcch_nextpage(inpinfo, ' ');
         } else if (conf.mode.INP_MODE_SPACERESET && inp_wrong) {
-          trace('');
           reset_keystroke(inpinfo);
           return jscin.IMKEY_ABSORB;
         } else if (sp_ignore) {
-          trace('');
           return jscin.IMKEY_ABSORB;
         } else if (self.keystroke) {
-          trace('');
           return commit_keystroke(inpinfo);
         }
       } else if (keyinfo.key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
-        trace('');
         // ...
         trace('NotImplemented');
       } else if (0 /* keypad */) {
-        trace('');
         return jscin.IMKEY_IGNORE;
       } else if (keyinfo.key.length == 1) {
-        trace('');
         let ret = jscin.IMKEY_ABSORB;
         let endkey_pressed = false;
 
@@ -579,7 +566,6 @@ export class GenInp extends BaseInputMethod
             return return_wrong();
           }
         }
-        trace('wch = ' + wch);
 
         len = self.keystroke.length;
 
@@ -612,7 +598,6 @@ export class GenInp extends BaseInputMethod
         }
         inpinfo.keystroke = self.display_keystroke.join('');
         len++;
-        trace('');
 
         if (conf.mode.INP_MODE_SPACEIGNOR && len == max_len) {
           self.mode.INPINFO_MODE_SPACE = false;

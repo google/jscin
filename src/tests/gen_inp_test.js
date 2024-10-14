@@ -96,7 +96,7 @@ function loadTableFromFile(filename) {
   var content = read(filename);
   var results = parseCin(content);
   if (!results[0]) {
-    jscin.log('failed to load ' + filename + ', msg:' + results[1]);
+    jscin.log('failed to load:', filename, 'msg:', results[1]);
     return;
   }
   var table_metadata = results[1].metadata;

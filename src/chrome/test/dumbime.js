@@ -99,16 +99,13 @@ function init() {
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {
-    log('onkeydown');
-    log(evt);
+    log('onkeydown', evt);
     dumb_ime.onKeyEvent.invoke(engineID, evt);
     return false;
   }
   document.getElementById('input').onkeyup = function (evt) {
-    let e = CreateImeKeyEvent(evt);
-    log('onkeyup');
-    log(evt, e);
-    dumb_ime.onKeyEvent.invoke(engineID, e);
+    log('onkeyup', evt);
+    dumb_ime.onKeyEvent.invoke(engineID, evt);
     return false;
   }
 

@@ -41,12 +41,12 @@ export class ChromeInputImeImplPage {
     node.addEventListener('keydown', this.keyEventHandler.bind(this));
     node.addEventListener('keyup', this.keyEventHandler.bind(this));
     node.addEventListener('focus', (ev) => {
-      console.log("focus");
+      console.debug("[impl_page] focus", ev);
       this.node = node;
       return this.ime_api.dispatchEvent("ImplFocus");
     });
     node.addEventListener('blur', (ev) => {
-      console.log("blur");
+      console.debug("[impl_page] blur", ev);
       let contextID = ev.target.getAttribute("imeContextId");
       delete this.contexts[contextID];
       return this.ime_api.dispatchEvent('Blur', contextID);

@@ -159,7 +159,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   NotifyError(ctx) {
-    trace('BEEP');
+    error('BEEP');
     // beep.
   }
 
@@ -223,7 +223,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   UpdateComposition(ctx) {
-    trace(ctx.composition);
+    debug("UpdateCandidates", ctx.composition);
     ctx.display_composition = '';
     for (let i = 0; i < ctx.composition.length; i++) {
       let c = ctx.composition[i];
@@ -236,7 +236,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ShiftState(ctx) {
-    trace(ctx.state);
+    debug("ShiftState", ctx.state);
     switch (ctx.state) {
       case this.STATE_COMPOSITION:
         ctx.state = this.STATE_CANDIDATES;
@@ -258,7 +258,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CycleCandidates(ctx, direction) {
-    trace(ctx.candidates, ctx.candidates_start_index, direction);
+    debug("CycleCandidates", ctx.candidates, ctx.candidates_start_index, direction);
     if (!this.CanCycleCandidates(ctx))
       return false;
     direction = direction || 1;
@@ -270,8 +270,8 @@ export class GenInp2 extends BaseInputMethod
     } else if (new_index < 0) {
       new_index = max - (max % cycle_size);
     }
-    trace('old index: ' + ctx.candidates_start_index +
-      ", new index: " + new_index);
+    debug("CycleCandidates", 'old index:', ctx.candidates_start_index,
+      "new index:", new_index);
     ctx.candidates_start_index = new_index;
     this.UpdateCandidates(ctx);
     return true;
@@ -295,7 +295,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   PrepareCandidates(ctx, is_autocompose) {
-    trace(ctx.composition);
+    debug("PrepareCandidates", ctx.composition);
     let table = this.table;
     let key = ctx.composition;
 
@@ -366,7 +366,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CreateCompositionByGroups(ctx, newgroup, key) {
-    trace("new_grouop", newgroup);
+    debug("CreateCompositionByGroups: new_grouop", newgroup);
     // modify composition to fit key groups.
     let key_by_group = {};
     for (let i = 0; i < ctx.composition.length; i++) {
@@ -377,9 +377,8 @@ export class GenInp2 extends BaseInputMethod
         return false;
       key_by_group[cg] = c;
     }
-    trace("key_by_group", key_by_group);
+    debug("CreateCompositionByGroups key_by_group", key_by_group, newgroup, key);
     key_by_group[newgroup] = key;
-    trace("key_by_group, key updated", key_by_group);
     ctx.composition = '';
     Object.keys(key_by_group).sort().forEach((g) => {
       ctx.composition += key_by_group[g];
@@ -390,7 +389,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   AddComposition(ctx, key) {
-    trace(ctx.composition, key);
+    debug("AddComposition", ctx.composition, key);
     if (this.IsFullComposition(ctx))
       return false;
 
@@ -403,7 +402,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   DelComposition(ctx) {
-    trace(ctx.composition);
+    debug("DelComposition", ctx.composition);
     if (!ctx.composition.length)
       return false;
     ctx.composition = ctx.composition.replace(/.$/, '');
@@ -412,7 +411,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CommitText(ctx, candidate_index) {
-    trace(ctx.candidates, candidate_index);
+    debug("CommitText", ctx.candidates, candidate_index);
     candidate_index = candidate_index || 0;
     if (ctx.candidates.length < candidate_index)
       return false;
@@ -420,7 +419,7 @@ export class GenInp2 extends BaseInputMethod
     let text = ctx.candidates[candidate_index];
     this.ResetContext(ctx);
     ctx.commit = text;
-    trace('COMMIT=', ctx.commit);
+    debug('CommitText, COMMIT=', ctx.commit);
     // Compatible with gen_inp.
     ctx.cch = text;
     return true;
@@ -431,12 +430,12 @@ export class GenInp2 extends BaseInputMethod
   }
 
   IsEndKey(ctx, key) {
-    trace(key);
+    debug("IsEndKey", key);
     return this.endkey && this.endkey.includes(key);
   }
 
   SelectCommit(ctx, key) {
-    trace(ctx.candidates, ctx.candidates_start_index, key);
+    debug("SelectionKey", ctx.candidates, ctx.candidates_start_index, key);
     let index = ctx.candidates_start_index + this.selkey.indexOf(key);
     return this.CommitText(ctx, index);
   }
@@ -570,7 +569,7 @@ export class GenInp2 extends BaseInputMethod
     }
   }
   ProcessKeystroke(ctx, ev) {
-    trace(ev);
+    debug("ProcessKeystroke", ev);
     if (ev.type != 'keydown' || jscin.has_ctrl_alt_meta(ev)) {
       return this.ResultIgnored(ctx);
     }
