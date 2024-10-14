@@ -5,11 +5,13 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+import { AddLogger } from "../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("chrome_input_ime");
+
 export class ChromeInputIME {
 
   constructor() {
     // Internal variables
-    this._debug = false;
     this.contextIndex = 0;
     this.kDefaultEngineId = 'Emulation';
     this.isEmulation = true;
@@ -44,16 +46,6 @@ export class ChromeInputIME {
   }
 
   // Internal Functions
-
-  log(...args) {
-    console.log("[chrome.input.ime]", ...args);
-  }
-
-  debug(...args) {
-    if (!this._debug)
-      return;
-    this.log(...args);
-  }
 
   GetContext(contextID) {
     return this.context_list[contextID];
@@ -108,15 +100,15 @@ export class ChromeInputIME {
   }
 
   EnterContext() {
-    this.debug("EnterContext");
+    debug("EnterContext");
     let context = this.CreateContext();
     this.context_list[context.contextID] = context;
-    this.debug(context);
+    debug(context);
     return { contextID: context.contextID, type: context.type };
   }
 
   LeaveContext(contextID) {
-    this.debug("LeaveContext()");
+    debug("LeaveContext()");
     this.DeleteContext(contextID);
   }
 
@@ -135,7 +127,7 @@ export class ChromeInputIME {
       document.addEventListener(
           this.kEventPrefix + event_name,
           (ime_ev) => {
-            this.debug('on', event_name, ime_ev);
+            debug('on', event_name, ime_ev);
             let result = callback(...ime_ev.detail);
             if (needEarlyAbort && result) {
               ime_ev.preventDefault();
@@ -149,7 +141,7 @@ export class ChromeInputIME {
 
   dispatchEvent(type, ...params) {
     let imeEvent = new CustomEvent(this.kEventPrefix + type);
-    this.debug("dispatchEvent", type, params);
+    debug("dispatchEvent", type, params);
     imeEvent.initCustomEvent(imeEvent.type, false,
         this.kEarlyAbortEvents.includes(type), params);
     return document.dispatchEvent(imeEvent);
@@ -158,10 +150,10 @@ export class ChromeInputIME {
   // chrome.input.ime API
 
   setComposition(parameters, callback) {
-    this.debug('setComposition');
+    debug('setComposition');
     let context = this.GetContext(parameters.contextID);
     if (!context) {
-      this.debug("Invalid context ID:", parameters.contextID);
+      debug("Invalid context ID:", parameters.contextID);
       return;
     }
     this.SetDefinedParams(context.composition, parameters,
@@ -170,10 +162,10 @@ export class ChromeInputIME {
   };
 
   clearComposition(parameters, callback) {
-    this.debug('clearComposition');
+    debug('clearComposition');
     let context = this.GetContext(parameters.contextID);
     if (!context) {
-      this.debug("Invalid context ID:", parameters.contextID);
+      debug("Invalid context ID:", parameters.contextID);
       return;
     }
     context.composition.text = '';
@@ -185,13 +177,13 @@ export class ChromeInputIME {
   };
 
   commitText(parameters, callback) {
-    this.debug('commitText', parameters);
+    debug('commitText', parameters);
     this.dispatchEvent("ImplCommitText", parameters.contextID, parameters.text);
   };
 
   setCandidateWindowProperties(parameters, callback) {
     let engine = this.GetEngineContext(parameters.engineID);
-    this.debug('setCandidateWindowProperties', parameters);
+    debug('setCandidateWindowProperties', parameters);
     this.SetDefinedParams(engine.candidate_window, parameters.properties,
         'visible', 'cursorVisible', 'vertical', 'pageSize', 'auxiliaryText',
         'auxiliaryTextVisible', 'windowPosition');
@@ -199,10 +191,10 @@ export class ChromeInputIME {
   };
 
   setCandidates(parameters, callback) {
-    this.debug('setCandidates');
+    debug('setCandidates');
     let context = this.GetContext(parameters.contextID);
     if (!context) {
-      this.debug("Invalid context ID:", parameters.contextID);
+      debug("Invalid context ID:", parameters.contextID);
       return;
     }
     context.candidates = parameters.candidates;
@@ -214,7 +206,7 @@ export class ChromeInputIME {
   };
 
   setMenuItems(parameters, callback) {
-    this.debug('setMenuItems');
+    debug('setMenuItems');
     let engine = this.GetEngineContext(parameters.engineID);
     engine.menuitems = parameters.items;
     this.dispatchEvent("UiMenu", engine);
@@ -247,7 +239,7 @@ export class ChromeInputIME {
       // TODO(hungte) Chain these commands so they are executed in order.
       this.dispatchEvent("Reset", contextID);
       this.dispatchEvent("Blur", contextID);
-      this.debug("chrome.input.ime: LeaveContext.", contextID);
+      debug("chrome.input.ime: LeaveContext.", contextID);
       this.LeaveContext(contextID);
     });
   }

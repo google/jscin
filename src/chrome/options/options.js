@@ -17,6 +17,7 @@ var table_loading = {};
 var bgPage = chrome.extension.getBackgroundPage();
 var jscin = bgPage.jscin;
 var instance = bgPage.croscin.instance;
+var logger = bgPage.croscin.logger;
 var enable_google_drive = bgPage.enable_google_drive;
 
 var _ = chrome.i18n.getMessage;
@@ -192,7 +193,7 @@ function init() {
 
 
   // To set default check state of checkboxes, do call button("refresh").
-  $('#checkDebugMessage').prop("checked", instance.debug).
+  $('#checkDebugMessage').prop("checked", logger.getEnabled()).
       click(function() {
     instance.setDebugMode($(this).prop("checked"));
   });

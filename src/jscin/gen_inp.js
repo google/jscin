@@ -5,8 +5,11 @@
  * @author kcwu@google.com (Kuang-che Wu)
  */
 
-import {jscin, trace} from "./jscin.js";
+import {jscin} from "./jscin.js";
 import {BaseInputMethod} from "./base_inp.js";
+
+import { AddLogger } from "./logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp");
 
 // General Input Module for table-based IMs, ex. Zhuyin, Array
 export class GenInp extends BaseInputMethod

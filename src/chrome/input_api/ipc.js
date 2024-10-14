@@ -3,18 +3,14 @@
  * http://www.sitepoint.com/chrome-extensions-bridging-the-gap-between-layers/
  */
 
+import { AddLogger } from "../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("ipc");
+
 class BaseIPC {
 
   constructor(namespace) {
     this.ipcTypeName = '@chromeExtIpc@' + namespace;
     this.handlers = [];
-    this._debug = false;
-  }
-
-  debug(...args) {
-    if (!this._debug)
-      return;
-    console.log("[ipc]", ...args);
   }
 
   CreateMessage(data) {
@@ -36,14 +32,14 @@ class BaseIPC {
 
   IpcHandler(message, response) {
     if (!this.IsMessage(message)) {
-      this.debug("ipc> Invalid message:", message);
+      debug("ipc> Invalid message:", message);
       return;
     }
-    this.debug("ipc> IpcHandler:", message.data, this.handlers);
+    debug("ipc> IpcHandler:", message.data, this.handlers);
     this.handlers.forEach((handler) => {
       let result = handler(message.data);
       if (typeof(result) != 'undefined' && response) {
-        this.debug("ipc> response is returned:", handler, result);
+        debug("ipc> response is returned:", handler, result);
         response(result);
         // chrome.runtime.onMessage cannot take more than one response .
         response = null;
@@ -84,7 +80,7 @@ class BaseIPC {
     for (let k of known_props) {
       ev2[k] = ev[k];
     }
-    this.debug("CreateIpcKeyEvent", ev, ev2);
+    debug("CreateIpcKeyEvent", ev, ev2);
     return ev2;
   }
 
@@ -94,24 +90,23 @@ class BaseIPC {
     if (KeyboardEvent)
       return new KeyboardEvent(ev.type, ev);
 
-    this.debug("Missing KeyboardEvent, keep using ImeKeyEvent", ev);
+    debug("Missing KeyboardEvent, keep using ImeKeyEvent", ev);
     return ev;
   }
 
   /* IPC interfaces */
 
   attach() {
-    console.log("IPC:attach placeholder.");
+    assert(false, "NOT_IMPL: IPC:attach placeholder.");
   }
 
   send(message) {
-    console.log("IPC:send placeholder.");
+    assert(false, "NOT_IMPL: IPC:send placeholder.");
   }
 
   recv(handler) {
     return this.AddHandler(handler);
   }
-
 }
 
 class ContentIPC extends BaseIPC {
@@ -119,12 +114,12 @@ class ContentIPC extends BaseIPC {
     // events from background
     chrome.runtime.onMessage.addListener(
       (message, sender, response) => {
-        this.debug("ipc> recv<bg-cnt>:", "content", message, sender);
+        debug("ipc> recv<bg-cnt>:", "content", message, sender);
         this.IpcHandler(message, response);
       });
     // events from iframe
     window.addEventListener('message', (e) => {
-      this.debug('ipc> recv<iframe-content>', "content", e);
+      debug('ipc> recv<iframe-content>', "content", e);
       this.IpcHandler(e.data);
     });
   }
@@ -134,10 +129,10 @@ class ContentIPC extends BaseIPC {
       message.args[2] = this.CreateIpcKeyEvent(message.args[2]);
     }
     if (callback) {
-      this.debug("send with callback");
+      debug("send with callback");
       chrome.runtime.sendMessage(this.CreateMessage(message), callback);
     } else {
-      this.debug("send without callback");
+      debug("send without callback");
       chrome.runtime.sendMessage(this.CreateMessage(message));
     }
   }
@@ -147,7 +142,7 @@ class BackgroundIPC extends BaseIPC {
   attach() {
     chrome.runtime.onMessage.addListener(
       (message, sender, response) => {
-        this.debug("ipc> recv<bg>:", 'background', message, sender);
+        debug("ipc> recv<bg>:", 'background', message, sender);
         this.IpcHandler(message, response);
       });
   }
@@ -164,7 +159,7 @@ class IFrameIPC extends BaseIPC {
   attach() {
     chrome.runtime.onMessage.addListener(
       (message, sender, response) => {
-        this.debug("ipc> recv<iframe>:", 'iframe', message, sender);
+        debug("ipc> recv<iframe>:", 'iframe', message, sender);
         this.IpcHandler(message, response);
       });
   }
@@ -181,7 +176,7 @@ function CreateIPC(type, domain) {
     return new BackgroundIPC(domain);
   if (type == 'content')
     return new ContentIPC(domain);
-  console.log("Invalid type:", type);
+  error("Invalid type:", type);
 }
 
 export class ImeExtensionIPC {

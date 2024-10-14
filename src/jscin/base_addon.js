@@ -5,15 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { jscin } from "./jscin.js";
-
 export class BaseInputAddon {
   constructor(name, im) {
     this.im = im;
     this.name = name;
-  }
-  log(...args) {
-    console.log(`[Addon: ${this.name}]`, ...args);
   }
   // Called when the IM is first initialized.
   init(ctx) {

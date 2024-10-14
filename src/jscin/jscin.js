@@ -12,6 +12,8 @@
 import { parseCin } from "./cin_parser.js";
 import { LZString } from "./lz-string.js";
 
+import { AddLogger } from "./logger.js";
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin");
 
 export class JavaScriptInputMethod
 {
@@ -39,7 +41,6 @@ export class JavaScriptInputMethod
     this.modules = {};
     this.addons = [];
     this.input_methods = {};
-    this.debug = false;
 
     // Converts KeyboardEvent.code to KeyboardEvent.key, regardless of shift modifier.
     // This only includes en-US layout common keys that we'd usually use in CJK IMs.
@@ -95,29 +96,6 @@ export class JavaScriptInputMethod
   }
 
   // -------------------------------------------------------------------
-  // Utilities
-
-  // Logging / tracing utility.
-  log(...args) {
-    if (!jscin.debug)
-      return;
-    jscin.error(...args);
-  }
-
-  error(...args) {
-    console.log('[jscin]', ...args);
-  }
-
-  add_logger(logger, context) {
-    let old_logger = this.log;
-    this.log = (...args) => {
-      // TODO(hungte) apply context for logger?
-      logger(...args);
-      old_logger(...args);
-    }
-  }
-
-  // -------------------------------------------------------------------
   // KeyboardEvent utilities
 
   // Gets the combination of keys in one KeyboardEvent.
@@ -154,7 +132,7 @@ export class JavaScriptInputMethod
 
   register_module(constructor, name=constructor.name) {
     this.modules[name] = constructor;
-    this.log("Registered module:", name);
+    debug("Registered module:", name);
   }
 
   get_registered_modules() {
@@ -163,37 +141,37 @@ export class JavaScriptInputMethod
 
   register_addon(constructor, name=constructor.name) {
     this.addons.push(constructor);
-    this.log("Registered addon:", name);
+    debug("Registered addon:", name);
   }
 
   register_input_method(name, module_name, cname) {
     if (!(module_name in this.modules)) {
-      this.log("Unknown module:", module_name);
+      debug("Unknown module:", module_name);
       return false;
     }
     this.input_methods[name] = {
       'label': cname,
       'module': this.modules[module_name] };
-    this.log("Registered input method: ", name);
+    debug("Registered input method: ", name);
   }
 
   unregister_input_method(name) {
     if (!(name in this.input_methods)) {
-      this.log("Unknown input method: " + name);
+      debug("Unknown input method: " + name);
       return false;
     }
     delete this.input_methods[name]
-    this.log("Un-registered input method: ", name);
+    debug("Un-registered input method: ", name);
     // TODO(hungte) Remove active instances?
   }
 
   // Create input method instance
   create_input_method(name, context, data) {
     if (!(name in this.input_methods)) {
-      this.log("Unknown input method: ", name);
+      debug("Unknown input method: ", name);
       return false;
     }
-    this.log("Created input method instance: ", name);
+    debug("Created input method instance: ", name);
     let module = this.input_methods[name]["module"];
     if (!data)
       data = this.getTableData(name);
@@ -209,7 +187,7 @@ export class JavaScriptInputMethod
     // TODO(hungte) Move parseCin to jscin namespace.
     let result = parseCin(table_source);
     if (!result[0]) {
-      this.log("install_input_method: invalid table", result[1]);
+      debug("install_input_method: invalid table", result[1]);
       return result;
     }
     let data = result[1];
@@ -222,14 +200,14 @@ export class JavaScriptInputMethod
         data.data[option] = metadata.setting.options[option];
       }
     }
-    this.log("install_input_method:", name, data.metadata);
+    debug("install_input_method:", name, data.metadata);
     this.addTable(name, data.metadata, data.data, table_source);
     return result;
   }
 
   get_input_method_label(name) {
     if (!(name in this.input_methods)) {
-      this.log("Unknown input method: ", name);
+      debug("Unknown input method: ", name);
       return null;
     }
     return this.input_methods[name].label;
@@ -257,7 +235,7 @@ export class JavaScriptInputMethod
       let module = metadatas[name].module;
       if (!(module in this.modules)) {
         if (module)
-          this.log("reload_configuration: unknown module", module, name);
+          debug("reload_configuration: unknown module", module, name);
         module = def_module;
       }
       this.register_input_method(name, module, metadatas[name].cname);
@@ -267,11 +245,10 @@ export class JavaScriptInputMethod
     }
 
     if (count_ims < 1) {
-      this.debug = true;
-      this.log("reload_configuration: No input methods available.");
+      error("reload_configuration: No input methods available.");
     }
     if (localStorage)
-      this.log("localStorage:", Object.keys(localStorage));
+      debug("localStorage:", Object.keys(localStorage));
   }
 
   // -------------------------------------------------------------------
@@ -344,9 +321,9 @@ export class JavaScriptInputMethod
       let result = this.install_input_method(name, content, {
         url: table.url, setting: table.setting });
       if (result[0]) {
-        this.log("reloaded table: ", name);
+        debug("reloaded table: ", name);
       } else {
-        this.error("Parse error when reloading table: ", name);
+        error("Parse error when reloading table: ", name);
         return false;
       }
     }
@@ -369,7 +346,7 @@ export class JavaScriptInputMethod
     }
     if (data[0] == '!') {
       if (!this.hasLzString()) {
-        this.error("LZ-String not available. Dropping storage key:", key);
+        error("LZ-String not available. Dropping storage key:", key);
         return default_value;
       }
       data = LZString.decompress(data.substr(1));
@@ -412,14 +389,7 @@ export class JavaScriptInputMethod
 // Global debugging and unit tests
 
 export var jscin = new JavaScriptInputMethod();
-export function trace(...args) {
-  if (!jscin.debug)
-    return;
 
-  let e = new Error();
-  let m = e.stack.toString().match(/^.*\n.*\n.*at (.+) \((.*):(\d+):\d+\)/);
-  let prefix = m[2] + ':' + m[3] + ' [' + m[1] + ']: ';
-
-  jscin.log(prefix, ...args);
-}
+// In JavaScript debug console, type "jscin.loggers" to change loggers' states.
+jscin.loggers = logger.getAllLoggers();
 

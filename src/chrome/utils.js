@@ -34,12 +34,12 @@ export async function LoadResource(url) {
   try {
     const response = await fetch(url);
     if (!response.ok)
-      self.log("LoadResource: response is NOT ok.");
+      log("LoadResource: response is NOT ok.");
 
     const json = await response.text();
     return json;
   } catch (error) {
-    self.log("LoadResource: caught error:", error);
+    log("LoadResource: caught error:", error);
   }
   return undefined;
 }

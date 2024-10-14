@@ -87,7 +87,6 @@ $(function() {
   });
 
   chrome.input.ime.onUiCandidateWindow.addListener(function (engine) {
-    console.log(engine.candidate_window);
     let cui = $('#imePanel #candidates');
     cui.toggle(engine.candidate_window.visible);
     let aui = $('#imePanel #auxiliary');
@@ -129,7 +128,10 @@ $(function() {
     let jscin = chrome.extension.getBackgroundPage().jscin;
 
     // Get all logs on my console.
-    jscin.add_logger(console.log, console);
+    for (let l in jscin.loggers) {
+      jscin.loggers[l].enable(true).addConsole(console);
+    }
+
     croscin.set_ime_api(chrome.input.ime, 'emulation');
     croscin.registerEventHandlers();
     // croscin has already started, so we need to activate again.

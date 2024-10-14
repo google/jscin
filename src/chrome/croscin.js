@@ -5,12 +5,11 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-/**
- * The root namespace.
- */
-
 import { jscin } from "./jscin/all.js";
 import { ChromeInputIME } from "./input_api/chrome_input_ime.js";
+
+import { AddLogger } from "./jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
 
 export { jscin };
 
@@ -19,7 +18,8 @@ export class IME {
 
   constructor() {
     // TODO(hungte) Make this a real pref.
-    this.debug = jscin.readLocalStorage('debug', false);
+    if (jscin.readLocalStorage('debug', false))
+      logger.enableAllLoggers(true);
 
     // The engine ID must match input_components.id in manifest file.
     this.kEngineId = 'cros_cin';
@@ -86,28 +86,22 @@ export class IME {
     return {'engineID': this.kEngineId};
   }
 
-  log(...args) {
-    if (!this.debug)
-      return;
-    console.log("[croscin]", ...args);
-  }
-
   // Core functions
   Commit(text) {
     // TODO(hungte) fixme when gen_inp has fixed this.
     if (text && typeof(text) != typeof('')) {
       text = text[0];
-      this.log("croscin.Commit: WARNING: input text is not a simple string.");
+      debug("croscin.Commit: WARNING: input text is not a simple string.");
     }
 
     if (text) {
       let arg = this.GetContextArg();
       arg.text = text;
       this.ime_api.commitText(arg);
-      this.log("croscin.Commit: value:", text);
+      debug("croscin.Commit: value:", text);
       this.CrossQueryKeystrokes(text);
     } else {
-      this.log("croscin.Commit: warning: called with empty string.");
+      debug("croscin.Commit: warning: called with empty string.");
     }
   }
 
@@ -148,7 +142,7 @@ export class IME {
   }
 
   ProcessKeyEvent(keyData) {
-    this.log("ProcessKeyEvent:", keyData.key);
+    debug("ProcessKeyEvent:", keyData.key);
 
     // Currently all of the modules uses key down.
     if (keyData.type != 'keydown') {
@@ -163,7 +157,7 @@ export class IME {
         !this.ime_api.onImplAcceptedKeys &&
         !this.im.get_accepted_keys(this.imctx).includes(
             jscin.get_key_description(keyData))) {
-      this.log("Key not accepted", keyData);
+      debug("Key not accepted", keyData);
       return false;
     }
 
@@ -171,7 +165,7 @@ export class IME {
 
     switch (ret) {
       case jscin.IMKEY_COMMIT:
-        this.log("im.keystroke: return IMKEY_COMMIT");
+        debug("im.keystroke: return IMKEY_COMMIT");
         this.UpdateUI();
         this.Commit(this.imctx.cch);
         this.imctx.cch_publish = this.imctx.cch;
@@ -179,12 +173,12 @@ export class IME {
         return true;
 
       case jscin.IMKEY_ABSORB:
-        this.log("im.keystroke: return IMKEY_ABSORB");
+        debug("im.keystroke: return IMKEY_ABSORB");
         this.UpdateUI();
         return true;
 
       case jscin.IMKEY_IGNORE:
-        this.log("im.keystroke: return IMKEY_IGNORE");
+        debug("im.keystroke: return IMKEY_IGNORE");
         this.UpdateUI();
         return false;
 
@@ -194,7 +188,7 @@ export class IME {
     }
 
     // default: Unknown return value.
-    this.log("croscin.ProcessKeyEvent: Unknown return value:", ret);
+    debug("croscin.ProcessKeyEvent: Unknown return value:", ret);
     return false;
   }
 
@@ -211,14 +205,14 @@ export class IME {
   }
 
   SetCandidatesWindowProperty(properties) {
-    // this.log("SetCandidatesWindowProperty: ", properties);
+    // debug("SetCandidatesWindowProperty: ", properties);
     let arg = this.GetEngineArg();
     if (arguments.length == 2) {
       // Legacy support.
       let name = arguments[0], value = arguments[1];
       properties = {};
       properties[name] = value;
-      this.log('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
+      debug('SetCandidatesWindowProperty(' + name + ', ' + value + ')');
     }
     arg.properties = properties;
     this.ime_api.setCandidateWindowProperties(arg);
@@ -245,7 +239,7 @@ export class IME {
     buffer = buffer || [];
     let buffer_text = buffer.join('');
     let all_text = buffer_text + keystroke;
-    this.log("croscin.UpdateComposition:", all_text);
+    debug("croscin.UpdateComposition:", all_text);
     if (typeof cursor === 'undefined'){
       cursor = all_text.length;
     }
@@ -287,10 +281,10 @@ export class IME {
 
   UpdateCandidates(candidate_list, labels) {
     if (candidate_list === undefined) {
-      this.log("candidate_list is undefined");
+      debug("candidate_list is undefined");
       return;
     }
-    this.log("croscin.UpdateCandidates: elements = " + candidate_list.length +
+    debug("croscin.UpdateCandidates: elements = " + candidate_list.length +
              ", labels = " + labels);
     if (candidate_list.length > 0) {
       let arg = this.GetContextArg();
@@ -303,7 +297,7 @@ export class IME {
           'label': labels.charAt(i),
         });
       }
-      this.log('candidates:', candidates);
+      debug('candidates:', candidates);
       arg.candidates = candidates;
       this.ime_api.setCandidates(arg);
       this.SetCandidatesWindowProperty({
@@ -339,7 +333,7 @@ export class IME {
     // Hint for IME to get key expections.
     // TODO(hungte) Change this from function to context.
     if (this.ime_api.onImplAcceptedKeys) {
-      jscin.log("update accepted keys");
+      debug("update accepted keys");
       this.ime_api.dispatchEvent("ImplAcceptedKeys",
           this.im.get_accepted_keys(this.imctx));
     }
@@ -347,19 +341,19 @@ export class IME {
 
   ActivateInputMethod(name) {
     if (name && name == this.im_name) {
-      this.log("croscin.ActivateInputMethod: already activated:", name);
+      debug("croscin.ActivateInputMethod: already activated:", name);
       this.UpdateMenu();
       return;
     }
 
     if (name in jscin.input_methods) {
-      this.log("croscin.ActivateInputMethod: Started:", name);
+      debug("croscin.ActivateInputMethod: Started:", name);
       this.imctx = {};
       this.im = jscin.create_input_method(name, this.imctx);
       // For delayed response (ex, external IM modules, see IMKEY_DELAY).
       this.im.set_notifier(() => {
         if (!this.context) {
-          this.log("IM notified after context destroyed.");
+          debug("IM notified after context destroyed.");
           return;
         }
         this.UpdateUI();
@@ -379,10 +373,10 @@ export class IME {
       this.imctx.allow_ctrl_phrase = this.prefGetQuickPunctuations();
       this.imctx.allow_related_text = this.prefGetRelatedText();
       this.imctx.phrases = this.phrases;
-      this.log("croscin.im:", this.im);
+      debug("croscin.im:", this.im);
       this.InitializeUI();
     } else {
-      this.log("croscin.ActivateInputMethod: Invalid item:", name);
+      debug("croscin.ActivateInputMethod: Invalid item:", name);
     }
   }
 
@@ -398,7 +392,7 @@ export class IME {
         "checked": name == this.im_name,
       });
     });
-    this.log("croscin.UpdateMenu: " + menu_items.length + " items.");
+    debug("croscin.UpdateMenu: " + menu_items.length + " items.");
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
     // menu_items.push({"id": "", "style": "separator"});
@@ -413,11 +407,11 @@ export class IME {
     let xhr = new XMLHttpRequest();
     if (url.indexOf('://') < 0)
       url = chrome.runtime.getURL(url);
-    this.log("croscin.LoadExtensionResource:", url);
+    debug("croscin.LoadExtensionResource:", url);
     xhr.open("GET", url, false);
     xhr.send();
     if (xhr.readyState != 4 || xhr.status != 200) {
-      this.log("croscin.LoadExtensionResource: failed to fetch:", url);
+      debug("croscin.LoadExtensionResource: failed to fetch:", url);
       return null;
     }
     return xhr.responseText;
@@ -448,19 +442,19 @@ export class IME {
   LoadBuiltinTables(reload) {
     let list = this.LoadExtensionResource("tables/builtin.json");
     if (!list) {
-      this.log("croscin.LoadBuiltinTables: No built-in tables.");
+      debug("croscin.LoadBuiltinTables: No built-in tables.");
       return;
     }
     let table_metadata = jscin.getTableMetadatas();
     list = JSON.parse(list);
     for (let table_name in list) {
       if (table_name in table_metadata && !reload) {
-        this.log("croscin.LoadBuiltinTables: skip loaded table:", table_name);
+        debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
       let content = this.LoadExtensionResource("tables/" + list[table_name]);
       if (!content) {
-        this.log("croscin.LoadBuiltinTables: Failed to load:", table_name);
+        debug("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
       }
       jscin.install_input_method(null, content, {builtin: true});
@@ -522,7 +516,7 @@ export class IME {
 
     this.pref.im_default = pref_im_default;
     this.pref.im_enabled_list = pref_im_enabled_list;
-    this.log("croscin.prefs", this.pref);
+    debug("croscin.prefs", this.pref);
 
     if (changed) {
       this.SavePreferences();
@@ -540,7 +534,7 @@ export class IME {
                             this.pref.quick_punctuations);
     jscin.writeLocalStorage(this.kPrefRelatedText,
                             this.pref.related_text);
-    this.log("preferences saved.");
+    debug("preferences saved.");
   }
 
   prefInsertEnabledInputMethod(name) {
@@ -609,15 +603,14 @@ export class IME {
   }
 
   setDebugMode(new_value) {
-    console.log("croscin.setDebugMode:", new_value);
+    warn("croscin.setDebugMode:", new_value);
     jscin.writeLocalStorage('debug', new_value);
-    jscin.debug = new_value;
-    this.debug = new_value;
+    logger.enableAllLoggers(new_value);
   }
 
   notifyConfigChanged() {
     // Some configuration is changed - we need to validate and refresh all.
-    this.log("croscin.notifyConfigChanged: notified.");
+    debug("croscin.notifyConfigChanged: notified.");
     jscin.reload_configuration();
     this.InitializeUI();
   }
@@ -627,7 +620,7 @@ export class IME {
   set_ime_api(ime_api, name) {
     this.ime_api = ime_api;
     this.ime_api_type = name;
-    this.log("IME API set to:", name);
+    debug("IME API set to:", name);
   }
 
   detect_ime_api() {
@@ -648,16 +641,15 @@ export class IME {
     if (!this.ime_api) {
       // provided by input_api/chrome_input_ime.js
       if (ChromeInputIME) {
-        this.log("Switched to Javascript Emulation IME API...");
+        debug("Switched to Javascript Emulation IME API...");
         this.set_ime_api(new ChromeInputIME, "emulation");
-        this.ime_api.log = jscin.log;
         if (chrome.input) {
           chrome.input.ime = this.ime_api;
         } else {
           chrome.input = { ime: this.ime_api };
         }
       } else {
-        this.log("Switched to dummy IME API...");
+        debug("Switched to dummy IME API...");
         this.set_ime_api(this.create_dummy_ime_api(), "dummy");
       }
     }
@@ -689,7 +681,7 @@ export class IME {
     let ime_api = this.ime_api;
 
     ime_api.onActivate.addListener((engineID) => {
-      this.log('onActivate: croscin started.', engineID);
+      debug('onActivate: croscin started.', engineID);
       this.engineID = engineID;
       this.InitializeUI();
       // We should activate IME here, but in order to speed up we did
@@ -698,7 +690,7 @@ export class IME {
     });
 
     ime_api.onDeactivated.addListener((engineID) => {
-      this.log('onDeactivated: croscin stopped.');
+      debug('onDeactivated: croscin stopped.');
       this.context = null;
     });
 
@@ -710,13 +702,13 @@ export class IME {
     });
 
     ime_api.onBlur.addListener((contextID) => {
-      this.log("croscin: onBlur", contextID);
+      debug("croscin: onBlur", contextID);
       if (!this.context) {
-        this.log("croscin.onBlur: WARNING: no existing context.");
+        debug("croscin.onBlur: WARNING: no existing context.");
         return;
       }
       if (this.context.contextID != contextID) {
-        this.log("croscin.onBlur: WARNING: incompatible context.",
+        debug("croscin.onBlur: WARNING: incompatible context.",
                  this.context.contextID, contextID);
         return;
       }
@@ -729,12 +721,12 @@ export class IME {
     });
 
     ime_api.onKeyEvent.addListener((engine, keyData) => {
-      this.log("croscin.onKeyEvent", engine, keyData);
+      debug("croscin.onKeyEvent", engine, keyData);
       return this.ProcessKeyEvent(keyData);
     });
 
     ime_api.onReset.addListener((engineID) => {
-      this.log("croscin.onReset", engineID);
+      debug("croscin.onReset", engineID);
       if (this.im) {
         this.im.reset(this.imctx);
         this.UpdateUI();
@@ -742,19 +734,19 @@ export class IME {
     });
 
     ime_api.onInputContextUpdate.addListener((context) => {
-      this.log("croscin.onInputContextUpdate", context);
+      debug("croscin.onInputContextUpdate", context);
     });
 
     ime_api.onCandidateClicked.addListener(
         (engineID, candidateID, button) => {
-          this.log("onCandidateClicked", candidateID,  button);
+          debug("onCandidateClicked", candidateID,  button);
           if (button == "left") {
             this.SimulateKeyDown(this.imctx.selkey.charAt(candidateID));
           }
     });
 
     ime_api.onMenuItemActivated.addListener((engineID, name) =>{
-      this.log("croscin.onMenuItemActivated: name=", name);
+      debug("croscin.onMenuItemActivated: name=", name);
 
       if (name == this.kMenuOptions) {
         let options_url = chrome.runtime.getURL("options/options.html");
@@ -791,4 +783,8 @@ export class IME {
   }
 }
 
-export var croscin = {IME: IME};
+export var croscin = {IME: IME, logger: logger};
+console.log("ChromeOS Extension for JavaScript Chinese Input Method.\n\n" +
+            "To turn on/off debug messages of each component, " +
+            "change the `verbose` property via: ", logger.getAllLoggers());
+console.log("To turn on ALL messags, do: ` croscin.logger.enableAllLoggers(); `");

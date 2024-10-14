@@ -8,13 +8,8 @@
 import { $, jQuery } from "../jquery/jquery-ui.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
-var _debug = false;
-
-function debug() {
-  if (!_debug)
-    return;
-  console.log("[input_api/ime]", ...args);
-}
+import { AddLogger } from "../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("input_api/ime");
 
 $(function() {
   debug("ime.js started:", window.location.href);

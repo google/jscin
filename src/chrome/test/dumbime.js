@@ -88,8 +88,10 @@ function init() {
   let engineID = croscin.kEngineId;
   let dumb_ime = new DumbIME();
 
-  // duplicate log to this page
-  jscin.add_logger(console.log, console);
+  // Get all logs on my console.
+  for (let l in jscin.loggers) {
+    jscin.loggers[l].enable(true).addConsole(console);
+  }
 
   // Hook IME API.
   croscin.set_ime_api(dumb_ime, 'dumb');

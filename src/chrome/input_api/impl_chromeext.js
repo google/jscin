@@ -10,21 +10,13 @@ import { jscin } from "../jscin/jscin.js";
 import { $, jQuery } from "../jquery/jquery.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
+import { AddLogger } from "../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("impl_chromeext");
+
 class ChromeInputImeExtension {
 
   constructor() {
     this.engineID = "chrome_input_ime#impl#chromeext";
-    this._debug = false;
-  }
-
-  log(...args) {
-    console.log("[impl_chromext]", ...args);
-  }
-
-  debug(...args) {
-    if (!this._debug)
-      return;
-    this.log(...args);
   }
 }
 
@@ -43,7 +35,7 @@ export class ChromeInputImeExtensionBackground extends ChromeInputImeExtension {
   }
 
   attach() {
-    this.debug("Nothing to attach in background.");
+    debug("Nothing to attach in background.");
   }
 
   ShowPageAction() {
@@ -76,12 +68,12 @@ export class ChromeInputImeExtensionBackground extends ChromeInputImeExtension {
 
     this.ipc.listen({
       IpcGetSystemStatus: () => {
-        this.debug("IpcGetSystemStatus");
+        debug("IpcGetSystemStatus");
         return {
           enabled: croscin.instance.prefGetSupportNonChromeOS(),
           debug: croscin.instance.debug }; }
     }, (...args) => {
-      this.debug("IPC uncaught event (will send to IME API):", args);
+      debug("IPC uncaught event (will send to IME API):", args);
       return this.ime_api.dispatchEvent(...args);
     });
   }
@@ -106,10 +98,11 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     ipc.attach();
 
     this.SendMessage('IpcGetSystemStatus', (result) => {
-      this.debug("IpcGetSystemStatus received:", result, window.self.location);
-      this._debug = result.debug;
+      debug("IpcGetSystemStatus received:", result, window.self.location);
+      logger.enableAllLoggers(result.debug);
+      debug("Chrome Extension Input Emulation", logger.getAllLoggers());
       if (!result.enabled) {
-        this.debug("IpcGetSystemStatus: disable.\n");
+        debug("IpcGetSystemStatus: disable.\n");
         return;
       }
       this.SetFrame($(this.frame_factory()));
@@ -127,7 +120,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
   }
 
   SetEnabled(enabled) {
-    this.debug("SetEnabled", enabled);
+    debug("SetEnabled", enabled);
     if (typeof(this.enabled) == 'undefined') {
       // First time setting enabled.
       this.enabled = enabled;
@@ -135,10 +128,10 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
       // Apparently user is already doing something.
       this.enabled = enabled;
       if (enabled) {
-        this.debug("setEnabled: showFrame");
+        debug("setEnabled: showFrame");
         this.showFrame();
       } else {
-        this.debug("setEnabled: hideFrame");
+        debug("setEnabled: hideFrame");
         this.hideFrame();
       }
     }
@@ -161,7 +154,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
       return;
 
     if (this.IsHotKey(ev)) {
-      this.debug("Got toggle hot key:", ev.code, ev.key, this.enabled);
+      debug("Got toggle hot key:", ev.code, ev.key, this.enabled);
       this.SetEnabled(!this.enabled);
     }
     this.waitForHotkeyUp = false;
@@ -171,7 +164,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     if (this.waitForHotkeyUp)
       this.waitForHotkeyUp = false;
     else if (this.IsHotKey(ev)) {
-      this.debug("Wait to check toggle hotkey!");
+      debug("Wait to check toggle hotkey!");
       this.waitForHotkeyUp = true;
       // Assume our IME doesn't need to handle single shift key.
       return;
@@ -180,7 +173,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     if (!this.enabled)
       return;
 
-    this.debug("KeyDownEventHandler", ev);
+    debug("KeyDownEventHandler", ev);
     let node = ev.target;
     if (!this.im_accepted_keys)
       return;
@@ -221,7 +214,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
 
   FocusHandler(ev) {
     let node = ev.target;
-    this.debug("FocusHandler", ev.target, document.activeElement);
+    debug("FocusHandler", ev.target, document.activeElement);
     this.node = node;
     this.guid = jscin.guid();
     this.SendMessage("ImplFocus", this.guid);
@@ -230,7 +223,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
   BlurHandler(ev) {
     // Note you can't send TextEvent now because it will also set focus to
     // target node.
-    this.debug("BlurHandler", ev.target, document.activeElement);
+    debug("BlurHandler", ev.target, document.activeElement);
     if (this.contextID)
       this.SendMessage("ImplBlur", this.contextID);
   }
@@ -279,7 +272,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
 
   attach(node, fire) {
     if (!this.attached.includes(node)) {
-      this.debug("impl.attach:", node, fire);
+      debug("impl.attach:", node, fire);
       this.attached.push(node);
       node.addEventListener("focus", this.FocusHandler.bind(this));
       node.addEventListener("blur", this.BlurHandler.bind(this));
@@ -332,12 +325,12 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
     if (this.IsChildFrame()) {
       let doc = document.documentElement;
       let scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
-      this.debug("moveFrame - internal - ", offset, " scroll: ", scroll);
+      debug("moveFrame - internal - ", offset, " scroll: ", scroll);
       offset.top -= scroll;
       return this.SendFrameMessage(window.parent, 'move', offset);
     }
 
-    this.debug("moveFrame, orig:", offset);
+    debug("moveFrame, orig:", offset);
 
     // Recalculate where is the best place to show IME frame, to prevent moving
     // that outside top level DOM (ex, chat windows).
@@ -351,7 +344,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
       offset.left = this.getPageWidth() - min_width;
     else
       offset.left += 5;
-    this.debug("moveFrame, page WxH:", this.getPageWidth(), this.getPageHeight(),
+    debug("moveFrame, page WxH:", this.getPageWidth(), this.getPageHeight(),
                ", final:", offset);
 
     this.frame.css(offset);
@@ -365,7 +358,7 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
 
     this.ipc.listen({
       IpcUiReady: () => {
-        this.debug("UIReady, engineID=", this.engineID);
+        debug("UIReady, engineID=", this.engineID);
         this.SendMessage("Activate", this.engineID); // Update menu & pageAction.
       },
 
@@ -387,17 +380,17 @@ export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
 
         this.attachFrame(node);
         if (this.enabled) {
-          this.debug("Focus: showFrame");
+          debug("Focus: showFrame");
           this.showFrame(true);
         }
       },
 
       Blur: (contextID) => {
         if (this.contextID) {
-          this.debug("content on blur", this.contextID, contextID);
+          debug("content on blur", this.contextID, contextID);
           if (this.enabled) {
             this.hideFrame();
-            this.debug("hide frame");
+            debug("hide frame");
           }
           this.contextID = undefined;
         }

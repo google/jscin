@@ -10,8 +10,11 @@
 // "selection only state".
 // TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
 
-import {jscin, trace} from "./jscin.js";
+import {jscin} from "./jscin.js";
 import {BaseInputMethod} from "./base_inp.js";
+
+import { AddLogger } from "./logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp2");
 
 export class GenInp2 extends BaseInputMethod
 {

@@ -8,6 +8,9 @@
 import { jscin } from "./jscin.js";
 import { BaseInputAddon } from "./base_addon.js";
 
+import { AddLogger } from "./logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("addon.RelatedText");
+
 export class AddonRelatedText extends BaseInputAddon
 {
   constructor(name, im)
@@ -48,12 +51,12 @@ export class AddonRelatedText extends BaseInputAddon
     }
     this.expected_keys = keys.split('').filter(
         v => v in shift_map).map(v => shift_map[v]);
-    jscin.log("relatedText, RefreshShiftMap", this.expected_keys);
+    debug("RefreshShiftMap", this.expected_keys);
   }
 
   keystroke(ctx, ev)
   {
-    jscin.log("relatedText, check key code = ", ev.code);
+    debug("Check key code = ", ev.code);
     if (!ctx.allow_related_text || jscin.has_ctrl_alt_meta(ev)||
         ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
@@ -62,11 +65,11 @@ export class AddonRelatedText extends BaseInputAddon
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
       ctx.mcch = '';
       let k = jscin.get_unshifted_key(ev);
-      jscin.log("relatedText, unshifted:", k);
+      debug("Unshifted:", k);
       if ((ev.shiftKey || ctx.auto_compose) &&
           this.InSelectionKey(ctx, k) &&
           this.CommitCandidate(ctx, k)) {
-        jscin.log("relatedText, commited.");
+        debug("Commited.");
         this.FindRelatedText(ctx);
         return jscin.IMKEY_COMMIT;
       }

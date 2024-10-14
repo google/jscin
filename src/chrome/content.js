@@ -35,9 +35,7 @@ async function init () {
 
   const src = chrome.runtime.getURL("input_api/impl_chromeext.js");
   const mod = await import(src);
-  var impl = new mod.ChromeInputImeExtensionContent(CreateImeFrame);
-  impl.debug("Extension IME installed.");
-  return impl;
+  return new mod.ChromeInputImeExtensionContent(CreateImeFrame);
 }
 
 var impl = init();

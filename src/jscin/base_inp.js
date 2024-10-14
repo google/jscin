@@ -5,7 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { jscin, trace } from "./jscin.js";
+import { jscin } from "./jscin.js";
+
+import { AddLogger } from "./logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("base_inp");
 
 // To store data in IM module:
 // 'this (self)' should be read-only after constructor / init.
@@ -110,7 +113,7 @@ export class BaseInputMethod
     if (has_mcch)
       keys = keys.concat(this.accepted_keys['mcch']);
 
-    jscin.log("get_accepted_keys", has_keystroke, has_lcch, has_mcch, keys);
+    debug("get_accepted_keys", has_keystroke, has_lcch, has_mcch, keys);
     return keys;
   }
 
