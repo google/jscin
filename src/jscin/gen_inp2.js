@@ -464,7 +464,7 @@ export class GenInp2 extends BaseInputMethod
           return this.ResultIgnored(ctx);
         return this.ResultProcessed(ctx);
 
-      case 'Esc':
+      case 'Escape':
         if (this.IsEmptyComposition(ctx))
           return this.ResultIgnored(ctx);
         this.ResetContext(ctx);
@@ -527,7 +527,7 @@ export class GenInp2 extends BaseInputMethod
     let key = ev.key;
 
     switch (key) {
-      case 'Esc':
+      case 'Escape':
         this.ResetContext(ctx);
         return this.ResultProcessed(ctx);
 
@@ -536,15 +536,15 @@ export class GenInp2 extends BaseInputMethod
         this.DelComposition(ctx);
         return this.ResultProcessed(ctx);
 
-      case 'Left':
+      case 'ArrowLeft':
       case 'PageUp':
-      case 'Up':
+      case 'ArrowUp':
         this.CycleCandidates(ctx, -1);
         return this.ResultProcessed(ctx);
 
-      case 'Right':
+      case 'ArrowRight':
       case 'PageDown':
-      case 'Down':
+      case 'ArrowDown':
         this.CycleCandidates(ctx);
         return this.ResultProcessed(ctx);
 

@@ -498,7 +498,7 @@ export class GenInp extends BaseInputMethod
           match_keystroke(inpinfo);
         }
         return jscin.IMKEY_ABSORB;
-      } else if (keyinfo.key == 'Esc' && len) {
+      } else if (keyinfo.key == 'Escape' && len) {
         reset_keystroke(inpinfo);
         inpinfo.cch_publish = '';
         inpinfo.mcch_pgstate = ime.MCCH_ONEPG;

@@ -31,11 +31,11 @@ export class BaseInputMethod
     this.endkey = (conf.endkey || '').toLowerCase();
 
     // Standard rules.
-    let setArrow = ['Up', 'Down', 'Left', 'Right'],
+    let setArrow = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
       setPage = ['PageUp', 'PageDown'],
       setLineEdit = ['Enter', 'Home', 'End'],
       setEdit = ['Backspace'],
-      setConvert = [' ', 'Esc'];
+      setConvert = [' ', 'Escape'];
 
     let accepted_keys = {
       '*': Object.keys(this.keyname).concat(this.endkey.split('')),
@@ -146,7 +146,7 @@ export class BaseInputMethod
       if (ctx.commit_on_blur)
         this.keystroke(ctx, this.GenKeyDownEvent('Enter', 'Enter'));
     } else if (has_keystroke || has_mcch) {
-      this.keystroke(ctx, this.GenKeyDownEvent('Esc', 'Esc'));
+      this.keystroke(ctx, this.GenKeyDownEvent('Escape', 'Escape'));
     }
   }
 

@@ -77,7 +77,7 @@ function create_key_event(ch, keyname) {
   if (keyname != null)
     ev.code = keyname;
   else if (ch == '\u001B')
-    ch = ev.code = 'Esc';
+    ch = ev.code = 'Escape';
   else if (ch == '\u0009')
     ch = ev.code = 'Tab';
   else if (ch == '\u007F')
