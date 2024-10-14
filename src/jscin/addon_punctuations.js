@@ -20,17 +20,26 @@ export class AddonPunctuations extends BaseInputAddon
       ';': '\uff1b',
       '/': '\uff1f',  // Unfortunately this don't work well on ChromeOS.
       '[': '\u300c',
-      ']': '\u300d'
+      ']': '\u300d',
+      '1': '\uff01',
+      '9': '\uff08',
+      '0': '\uff09',
     };
 
+    /* When combined with Ctrl-Shift, the KeyboardEvent.key may or may not
+     * change.  For example, [] will become {}, but ,./;' remains the same - at
+     * least one some platforms.
+     *
+     * As a result, we want to hard-code a duplicated mapping here.
+     */
     this.ctrl_shift_phrase = {
+      '{': '\u300e',
+      '}': '\u300f',
+      '[': '\u300e',
+      ']': '\u300f',
+
+      ';': '\uff1a',
       ':': '\uff1a',
-      '?': '\uff1f',  // Unfortunately this don't work well on ChromeOS.
-      '{': '\uff5b',
-      '}': '\uff5d',
-      '!': '\uff01',
-      '(': '\uff08',
-      ')': '\uff09',
     };
 
     // build key map
