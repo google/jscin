@@ -338,7 +338,7 @@ export class JavaScriptInputMethod
 
   readLocalStorage(key, default_value) {
     if (typeof(localStorage) == typeof(undefined)) {
-      localStorage = {};
+      globalThis.localStorage = {};
     }
     let data = localStorage[key];
     if (!data) {

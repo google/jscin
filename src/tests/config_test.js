@@ -2,6 +2,8 @@
 // @author hungte@gmail.com (Hung-Te Lin)
 
 import { Config } from "../chrome/config.js";
+import { AddLogger } from "../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("module");
 
 ////// Tests and emulation
 
@@ -55,3 +57,5 @@ async function test() {
 
   log("Test function completed");
 }
+
+test();

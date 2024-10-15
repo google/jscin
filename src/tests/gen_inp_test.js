@@ -1,11 +1,16 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 // Author: kcwu@google.com (Kuang-che Wu)
 
-load('../jscin/jscin.js');
-load('../jscin/base_inp.js');
-load('../jscin/gen_inp2.js');
-load('../jscin/cin_parser.js');
-// jscin.debug = true;
+import {parseCin} from '../jscin/cin_parser.js';
+import {jscin} from '../jscin/jscin.js';
+
+import '../jscin/base_inp.js';
+import '../jscin/gen_inp2.js';
+
+import fs from 'node:fs';
+
+let print = console.log
+jscin.debug = true;
 
 function dump_object(obj, indent) {
   if (obj == null) return 'null';
@@ -93,7 +98,7 @@ function simulate(inst, inpinfo, input, result, expects) {
 }
 
 function loadTableFromFile(filename) {
-  var content = read(filename);
+  const content = fs.readFileSync(filename, 'utf8');
   var results = parseCin(content);
   if (!results[0]) {
     jscin.log('failed to load:', filename, 'msg:', results[1]);
