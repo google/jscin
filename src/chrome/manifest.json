@@ -25,7 +25,7 @@
         "19": "icons/page_icon19.png"
     },
     "default_title": "__MSG_manifestName__",
-    "default_popup": "input_api/menu.html"
+    "default_popup": "emulation/menu.html"
   },
   "content_scripts": [ {
     "js": [
@@ -39,7 +39,7 @@
      "*.js",
      "jquery/*",
      "jscin/*",
-     "input_api/*"
+     "emulation/*"
   ],
   "permissions": [
     "http://*/", "https://*/",

@@ -7,7 +7,7 @@
 
 
 import { croscin, jscin } from "./croscin.js";
-import { ChromeInputImeExtensionBackground } from "./input_api/impl_chromeext.js";
+import { ChromeInputImeExtensionBackground } from "./emulation/impl_chromeext.js";
 
 /* OAuth (for Google Drive) must be routed from background page. */
 import { oauth } from "./oauth/oauth.js";

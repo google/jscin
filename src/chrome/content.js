@@ -7,7 +7,7 @@
 
 function CreateImeFrame () {
   var frame = document.createElement("iframe");
-  var frameURL = chrome.runtime.getURL('input_api/ime.html');
+  var frameURL = chrome.runtime.getURL('emulation/ui.html');
   frame.setAttribute("src", frameURL);
   frame.setAttribute("scrolling", "no");
   frame.setAttribute("frameBorder", 0);
@@ -33,7 +33,7 @@ async function init () {
   if (window.navigator.userAgent.includes(' CrOS '))
     return;
 
-  const src = chrome.runtime.getURL("input_api/impl_chromeext.js");
+  const src = chrome.runtime.getURL("emulation/impl_chromeext.js");
   const mod = await import(src);
   return new mod.ChromeInputImeExtensionContent(CreateImeFrame);
 }

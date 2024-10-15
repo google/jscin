@@ -3,8 +3,8 @@
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
-import { ChromeInputIME } from "../input_api/chrome_input_ime.js";
-import { ChromeInputImeImplPage } from "../input_api/impl_page.js";
+import { ChromeInputIME } from "../emulation/chrome_input_ime.js";
+import { ChromeInputImeImplPage } from "../emulation/impl_page.js";
 
 // Testing functions
 const testContextID = '1';

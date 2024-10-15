@@ -6,7 +6,7 @@
  */
 
 import { jscin } from "./jscin/all.js";
-import { ChromeInputIME } from "./input_api/chrome_input_ime.js";
+import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
 
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
@@ -639,7 +639,7 @@ export class IME {
     }
 
     if (!this.ime_api) {
-      // provided by input_api/chrome_input_ime.js
+      // provided by emulation/chrome_input_ime.js
       if (ChromeInputIME) {
         debug("Switched to Javascript Emulation IME API...");
         this.set_ime_api(new ChromeInputIME, "emulation");

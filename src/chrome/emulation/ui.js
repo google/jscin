@@ -9,10 +9,10 @@ import { $, jQuery } from "../jquery/jquery-ui.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
 import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("input_api/ime");
+const {log, debug, info, warn, error, assert, trace} = AddLogger("emulation/ui");
 
 $(function() {
-  debug("ime.js started:", window.location.href);
+  debug("ui.js started:", window.location.href);
 
   // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
   var nbsp = '\xa0';
