@@ -9,26 +9,6 @@
  * - Minimize the usage on execution time and memory.
  */
 
-function CreateImeFrame () {
-  var frame = document.createElement("iframe");
-  var frameURL = chrome.runtime.getURL('emulation/ui.html');
-  frame.setAttribute("src", frameURL);
-  frame.setAttribute("scrolling", "no");
-  frame.setAttribute("frameBorder", 0);
-  frame.setAttribute("allowTransparency", true);
-  frame.style.zIndex = 999999;
-  frame.style.border = 0;
-  frame.style.padding = 0;
-  frame.style.width = "32em";
-  frame.style.height = "11em";
-  frame.style.position = "absolute";
-  frame.style.backgroundColor = "transparent";
-  frame.style.display = "none";
-  var ref = document.getElementsByTagName('body')[0] || document.children[0];
-  ref.appendChild(frame);
-  return frame;
-}
-
 const kEmulation = "Emulation";
 
 async function LoadModule(url) {
@@ -43,9 +23,9 @@ async function LoadDefaultConfig() {
 }
 
 async function StartEmulation() {
-  const src = chrome.runtime.getURL("emulation/impl_chromeext.js");
+  const src = chrome.runtime.getURL("emulation/ipc_content.js");
   const mod = await import(src);
-  return new mod.ChromeInputImeExtensionContent(CreateImeFrame);
+  return new mod.ContentIPCHost(window);
 }
 
 async function CheckEmulation(items) {

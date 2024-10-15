@@ -9,7 +9,7 @@ import { Config } from "./config.js";
 import { jscin } from "./jscin/all.js";
 
 import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
-import { ChromeInputImeExtensionBackground } from "./emulation/impl_chromeext.js";
+import { BackgroundIPCHost } from "./emulation/ipc_background.js";
 
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
@@ -90,7 +90,7 @@ export class IME {
     });
 
     if (this.ime_api.isEmulation) {
-      new ChromeInputImeExtensionBackground(this.ime_api);
+      new BackgroundIPCHost(this.ime_api);
     }
   }
 

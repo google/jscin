@@ -1,97 +1,49 @@
 // Copyright 2013 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview Implementation bindings for attaching to Chrome Extension.
+ * @fileoverview IPC Based Emulation - Content Host.
  * @author hungte@google.com (Hung-Te Lin)
  */
-// TODO(hungte) Change iframe IME UI to page popup.
-
-import { jscin } from "../jscin/jscin.js";
-import { $, jQuery } from "../jquery/jquery.js";
-import { ImeExtensionIPC } from "./ipc.js";
 
 import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("impl_chromeext");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc_content");
 
-class ChromeInputImeExtension {
+import { $, jQuery } from "../jquery/jquery.js";
+import { jscin } from "../jscin/jscin.js";
+import { ImeExtensionIPC } from "./ipc.js";
 
-  constructor() {
-    this.engineID = "chrome_input_ime#impl#chromeext";
-  }
+function CreateImeFrame () {
+  var frame = document.createElement("iframe");
+  var frameURL = chrome.runtime.getURL('emulation/ui.html');
+  frame.setAttribute("src", frameURL);
+  frame.setAttribute("scrolling", "no");
+  frame.setAttribute("frameBorder", 0);
+  frame.setAttribute("allowTransparency", true);
+  frame.style.zIndex = 999999;
+  frame.style.border = 0;
+  frame.style.padding = 0;
+  frame.style.width = "32em";
+  frame.style.height = "11em";
+  frame.style.position = "absolute";
+  frame.style.backgroundColor = "transparent";
+  frame.style.display = "none";
+  var ref = document.getElementsByTagName('body')[0] || document.children[0];
+  ref.appendChild(frame);
+  return frame;
 }
 
-export class ChromeInputImeExtensionBackground extends ChromeInputImeExtension {
+export class ContentIPCHost {
 
-  constructor(ime_api) {
-    super();
-
-    this.ime_api = ime_api;
-
-    let ipc = new ImeExtensionIPC('background');
-    this.ipc = ipc;
-    ipc.attach();
-
-    this.StartListeners();
-  }
-
-  attach() {
-    debug("Nothing to attach in background.");
-  }
-
-  ShowPageAction() {
-    chrome.tabs.getSelected(null, (tab) => { chrome.pageAction.show(tab.id); });
-  }
-
-  StartListeners() {
-    let ime_api = this.ime_api;
-
-    // Setup menu
-    ime_api.onActivate.addListener(() =>                { this.ShowPageAction();});
-
-    // Forward UI events to IME Frame.
-    // Menu is installed by page action window.
-    ime_api.onUiComposition.addListener((arg) =>        { this.ipc.send("UiComposition", arg); });
-    ime_api.onUiCandidates.addListener((arg) =>         { this.ipc.send("UiCandidates", arg); });
-    ime_api.onUiCandidateWindow.addListener((arg) =>    { this.ipc.send("UiCandidateWindow", arg); });
-    ime_api.onBlur.addListener((contextID) =>           { this.ipc.send("Blur", contextID); });
-    ime_api.onImplAcceptedKeys.addListener((keys) =>    { this.ipc.send("ImplAcceptedKeys", keys); });
-
-    ime_api.onFocus.addListener((context, guid) =>      {
-      // BUG: Try harder to show page action, if haven't.
-      this.ShowPageAction();
-      // Notify content.js new context results.
-      this.ipc.send("Focus", context, guid);
-    });
-
-    ime_api.onImplCommitText.addListener(
-      (contextID, text) => { this.ipc.send("ImplCommitText", contextID, text); });
-
-    this.ipc.listen({
-      IpcGetSystemStatus: () => {
-        debug("IpcGetSystemStatus");
-        return {
-          enabled: croscin.instance.config.Emulation(),
-          debug: croscin.instance.config.Debug() }; }
-    }, (...args) => {
-      debug("IPC uncaught event (will send to IME API):", args);
-      return this.ime_api.dispatchEvent(...args);
-    });
-  }
-}
-
-export class ChromeInputImeExtensionContent extends ChromeInputImeExtension {
-
-  constructor(f) {
-    super();
-
+  constructor(window) {
     // Variables.
+    this.engineID = "chrome_input_ime#impl#chromeext";
     this.frame = undefined;
     this.contextID = undefined;
     this.ipc = undefined;
     this.enabled = undefined;
     this.waitForHotkeyUp = false;
     this.attached = [];
-    this.frame_factory = f;
+    this.frame_factory = CreateImeFrame.bind(window);
 
     let ipc = new ImeExtensionIPC('content');
     this.ipc = ipc;
