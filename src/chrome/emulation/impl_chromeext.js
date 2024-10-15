@@ -70,8 +70,8 @@ export class ChromeInputImeExtensionBackground extends ChromeInputImeExtension {
       IpcGetSystemStatus: () => {
         debug("IpcGetSystemStatus");
         return {
-          enabled: croscin.instance.prefGetSupportNonChromeOS(),
-          debug: croscin.instance.debug }; }
+          enabled: croscin.instance.config.Emulation(),
+          debug: croscin.instance.config.Debug() }; }
     }, (...args) => {
       debug("IPC uncaught event (will send to IME API):", args);
       return this.ime_api.dispatchEvent(...args);

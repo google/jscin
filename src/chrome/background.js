@@ -7,7 +7,6 @@
 
 
 import { croscin, jscin } from "./croscin.js";
-import { ChromeInputImeExtensionBackground } from "./emulation/impl_chromeext.js";
 
 /* OAuth (for Google Drive) must be routed from background page. */
 import { oauth } from "./oauth/oauth.js";
@@ -23,11 +22,5 @@ globalThis.enable_google_drive = false;
 document.addEventListener( 'readystatechange', function() {
   if (document.readyState === 'complete') {
     croscin.instance = new croscin.IME();
-    var ime = croscin.instance.ime_api;
-
-    // TODO Sync with content.js behavior.
-    if (ime.isEmulation) {
-      var impl = new ChromeInputImeExtensionBackground(ime);
-    }
   }
 });

@@ -130,6 +130,7 @@ export class Config {
     assert(prop in this.callbacks, "Unknown property", prop);
     this.callbacks[prop].push(callback);
     debug("Bound a new callback:", prop, callback);
+    return this;
   }
   Get(prop) {
     assert(prop in this.config, "Unknown property", prop);

@@ -8,10 +8,12 @@
 import { $, jQuery } from "../jquery/jquery-ui.js";
 import { parseGtab } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
+import { Config } from "../config.js";
 import * as drive from "./drive.js";
 
-
 var table_loading = {};
+var config = new Config();
+await config.Load();
 
 // this is dirty hack
 var bgPage = chrome.extension.getBackgroundPage();
@@ -31,7 +33,7 @@ function SetElementsText(...args) {
 var BuiltinIMs = JSON.parse(
     LoadExtensionResource("tables/builtin.json"));
 
-function init() {
+async function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
@@ -62,8 +64,7 @@ function init() {
       $('#enabled_im_list li').each(function(index) {
         new_list.push($(this).attr('id').replace(/^ime_/, ''));
       });
-      updateEnabledList(new_list);
-      notifyConfigChanged();
+      config.Set("InputMethods", new_list);
     }
   }).disableSelection();
   $("#accordion").accordion({heightStyle: "content"});
@@ -167,10 +168,10 @@ function init() {
     }
   });
 
-  $('#checkSupportNonChromeOS').prop(
-      "checked", instance.prefGetSupportNonChromeOS()).
-      click(function() {
-    instance.prefSetSupportNonChromeOS($(this).prop("checked"));
+  $('#checkSupportNonChromeOS').prop("checked",
+    config.Emulation()).click(function ()
+  {
+    config.Set("Emulation", $(this).prop("checked"));
     var buttons = {};
     buttons[_("optionOK")] = function () {
       $(this).dialog("close");
@@ -180,22 +181,19 @@ function init() {
       modal: true,
       buttons: buttons});
   });
-  $('#checkPunctuations').prop(
-      "checked", instance.prefGetQuickPunctuations()).
-      click(function() {
-    instance.prefSetQuickPunctuations($(this).prop("checked"));
-  });
-  $('#checkRelatedText').prop(
-      "checked", instance.prefGetRelatedText()).
-      click(function() {
-    instance.prefSetRelatedText($(this).prop("checked"));
-  });
-
+  $('#checkPunctuations').prop("checked",
+    config.AddonPunctuations()).click(function () {
+      config.Set("AddonPunctuations", $(this).prop("checked"));
+    });
+  $('#checkRelatedText').prop("checked",
+    config.AddonRelatedText()).click(function () {
+      config.Set("AddonRelatedText", $(this).prop("checked"));
+    });
 
   // To set default check state of checkboxes, do call button("refresh").
-  $('#checkDebugMessage').prop("checked", logger.getEnabled()).
-      click(function() {
-    instance.setDebugMode($(this).prop("checked"));
+  $('#checkDebugMessage').prop("checked",
+    config.Debug()).click(function () {
+      config.Set("Debug", $(this).prop("checked"));
   });
   var module_form = $('#formSelectModule');
   var def_module = instance.getDefaultModule();
@@ -369,8 +367,7 @@ function addTable(content, url) {
     var metadata = jscin.getTableMetadatas()[name];
     addCinTableToList(name, metadata, '#enabled_im_list', true);
     setAddTableStatus("Table added successfully", false);
-    instance.prefInsertEnabledInputMethod(name);
-    notifyConfigChanged();
+    this.config.InsertInputMethod(name);
     if ($('#save_to_drive').is(':checked')) {
       drive.SaveToDrive(metadata.ename, content);
     }
@@ -478,7 +475,6 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
               if (confirm(_("optionAreYouSure"))) {
                 removeCinTable(name);
                 $('#' + id).remove();
-                notifyConfigChanged();
               }
               $(this).dialog("close");
 
@@ -493,7 +489,6 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
                 console.log(metadata);
                 if (confirm(_("optionAreYouSure"))) {
                   addTableUrl(url, metadata.setting);
-                  notifyConfigChanged();
                 }
                 $(this).dialog("close");
               }});
@@ -521,7 +516,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
 
 function loadCinTables() {
   var metadatas = jscin.getTableMetadatas();
-  var tables = getEnabledList();
+  var tables = config.InputMethods();
   tables.forEach(function (name) {
     addCinTableToList(name, metadatas[name], '#enabled_im_list');
   });
@@ -537,21 +532,8 @@ function removeCinTable(name) {
   if(jscin.getCrossQuery() == name) {
     jscin.setCrossQuery('');
   }
-  instance.prefRemoveEnabledInputMethod(name);
+  config.RemoveInputMethod(name);
   jscin.deleteTable(name);
-}
-
-function notifyConfigChanged() {
-  instance.notifyConfigChanged();
-  instance.ActivateInputMethod(instance.pref.im_default);
-}
-
-function getEnabledList() {
-  return instance.pref.im_enabled_list;
-}
-
-function updateEnabledList(enabled) {
-  instance.prefSetEnabledList(enabled);
 }
 
 $(init);

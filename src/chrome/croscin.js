@@ -5,8 +5,11 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
+import { Config } from "./config.js";
 import { jscin } from "./jscin/all.js";
+
 import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
+import { ChromeInputImeExtensionBackground } from "./emulation/impl_chromeext.js";
 
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
@@ -17,14 +20,15 @@ export { jscin };
 export class IME {
 
   constructor() {
-    // TODO(hungte) Make this a real pref.
-    if (jscin.readLocalStorage('debug', false))
-      logger.enableAllLoggers(true);
-
     // The engine ID must match input_components.id in manifest file.
     this.kEngineId = 'cros_cin';
+
     this.kMenuOptions = "options";
     this.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
+    this.kPhrasesDatabase = 'croscinPhrasesDatabase';
+
+    this.engineID = this.kEngineId;
+    this.context = null;
 
     this.imctx = {};
     this.im = null;
@@ -35,31 +39,35 @@ export class IME {
     this.ime_api_type = 'Not available';
 
     this.cross_query = {};
+    this.config = new Config();
 
-    this.kPrefEnabledInputMethodList = 'croscinPrefEnabledInputMethodList';
-    this.kPrefDefaultInputMethod = 'croscinPrefDefaultInputMethod';
-    this.kPrefSupportNonChromeOS = 'croscinPrefSupportNonChromeOS';
-    this.kPrefQuickPunctuations = 'croscinPrefQuckPunctuations';
-    this.kPrefRelatedText = 'croscinPrefRelatedText';
+    this.config.Bind("Debug", (value)=> {
+      logger.enableAllLoggers(value);
+    }).Bind("AddonRelatedText", (value)=> {
+      debug("AddonRelatedText", value);
+      this.imctx.AddonRelatedText = value;
+    }).Bind("AddonPunctuations", (value)=> {
+      debug("AddonPunctuations", value);
+      this.imctx.AddonPunctuations = value;
+    }).Bind("Emulation", (value)=> {
+      debug("Emulation", value);
+      // Can't restart extension here - should
+      // be handled in the options confirm dialog.
+    });
+    
+    // UI related changes (InputMethod)
+    // must be bound only after first time
+    // UI initialization is done.
 
-    this.kPhrasesDatabase = 'croscinPhrasesDatabase';
-
-    this.pref = {
-      im_default: '',
-      im_enabled_list: [],
-      support_non_chromeos: true,
-      quick_punctuations: true,
-      related_text: false,
-    };
-
-    this.engineID = this.kEngineId;
-    this.context = null;
-
-    this.Initialize();
+    this.config.Load().then(() => {
+      this.Initialize();
+    });
   }
 
   Initialize() {
+
     // Initialization.
+    debug("Start to Initialize");
     let version = chrome.runtime.getManifest().version;
     let reload = (version !== jscin.getLocalStorageVersion());
     this.LoadBuiltinTables(reload);
@@ -71,9 +79,19 @@ export class IME {
     this.detect_ime_api();
     this.registerEventHandlers();
 
-    // Start the default input method.
     this.LoadPreferences();
-    this.ActivateInputMethod(this.pref.im_default);
+    this.ActivateInputMethod();
+
+    this.config.Bind("InputMethods", (value)=> {
+      debug("Changed InputMethods(), need to reload UI.");
+      jscin.reload_configuration();
+      this.InitializeUI();
+      this.ActivateInputMethod();
+    });
+
+    if (this.ime_api.isEmulation) {
+      new ChromeInputImeExtensionBackground(this.ime_api);
+    }
   }
 
   // Standard utilities
@@ -340,8 +358,10 @@ export class IME {
   }
 
   ActivateInputMethod(name) {
+    if (name === undefined)
+      name = this.config.DefaultInputMethod();
     if (name && name == this.im_name) {
-      debug("croscin.ActivateInputMethod: already activated:", name);
+      debug("ActivateInputMethod: already activated:", name);
       this.UpdateMenu();
       return;
     }
@@ -369,9 +389,10 @@ export class IME {
       }
       this.im_name = name;
       this.im_label = jscin.get_input_method_label(name);
+
       // TODO(hungte) Move this dirty workaround to jscin global settings.
-      this.imctx.AddonPunctuations = this.prefGetQuickPunctuations();
-      this.imctx.AddonRelatedText = this.prefGetRelatedText();
+      this.imctx.AddonPunctuations = this.config.AddonPunctuations();
+      this.imctx.AddonRelatedText = this.config.AddonRelatedText();
       this.imctx.phrases = this.phrases;
       debug("croscin.im:", this.im);
       this.InitializeUI();
@@ -383,7 +404,7 @@ export class IME {
   UpdateMenu() {
     let menu_items = [];
 
-    this.pref.im_enabled_list.forEach((name) => {
+    this.config.InputMethods().forEach((name) => {
       let label = jscin.get_input_method_label(name) || name;
       menu_items.push({
         "id": "ime:" + name,
@@ -470,26 +491,13 @@ export class IME {
   }
 
   LoadPreferences() {
-    let pref_im_default = jscin.readLocalStorage(
-        this.kPrefDefaultInputMethod, this.pref.im_default);
-    let pref_im_enabled_list = jscin.readLocalStorage(
-        this.kPrefEnabledInputMethodList, this.pref.im_enabled_list);
-    let changed = false;
-
-    // Preferences that don't need to be normalized.
-    this.pref.quick_punctuations = jscin.readLocalStorage(
-        this.kPrefQuickPunctuations, this.pref.quick_punctuations);
-    this.pref.support_non_chromeos = jscin.readLocalStorage(
-        this.kPrefSupportNonChromeOS, this.pref.support_non_chromeos);
-    this.pref.related_text = jscin.readLocalStorage(
-        this.kPrefRelatedText, this.pref.related_text);
 
     // Normalize preferences.
     let metadatas = jscin.getTableMetadatas();
     let k = null;
     let enabled_list = [];
 
-    pref_im_enabled_list.forEach((key) => {
+    this.config.InputMethods().forEach((key) => {
       if (key in metadatas && enabled_list.indexOf(key) < 0)
         enabled_list.push(key);
     });
@@ -500,94 +508,12 @@ export class IME {
       }
     }
     // To compare arrays, hack with string compare.
-    if (pref_im_enabled_list.toString() != enabled_list.toString()) {
-      pref_im_enabled_list = enabled_list;
-      changed = true;
+    if (this.config.InputMethods().toString() != enabled_list.toString()) {
+      warn("LoadPreferences: need to update config.InputMethods:",
+        this.config.InputMethods(), enabled_list);
+      this.config.Set("InputMethods", enabled_list);
     }
-
-    if (pref_im_enabled_list.indexOf(pref_im_default) < 0) {
-      if (pref_im_enabled_list.length > 0) {
-        pref_im_default = pref_im_enabled_list[0];
-      } else {
-        pref_im_default = '';
-      }
-      changed = true;
-    }
-
-    this.pref.im_default = pref_im_default;
-    this.pref.im_enabled_list = pref_im_enabled_list;
-    debug("croscin.prefs", this.pref);
-
-    if (changed) {
-      this.SavePreferences();
-    }
-  }
-
-  SavePreferences() {
-    // Preferences that don't need to be normalized.
-    jscin.writeLocalStorage(this.kPrefDefaultInputMethod, this.pref.im_default);
-    jscin.writeLocalStorage(this.kPrefEnabledInputMethodList,
-                            this.pref.im_enabled_list);
-    jscin.writeLocalStorage(this.kPrefSupportNonChromeOS,
-                            this.pref.support_non_chromeos);
-    jscin.writeLocalStorage(this.kPrefQuickPunctuations,
-                            this.pref.quick_punctuations);
-    jscin.writeLocalStorage(this.kPrefRelatedText,
-                            this.pref.related_text);
-    debug("preferences saved.");
-  }
-
-  prefInsertEnabledInputMethod(name) {
-    if (this.pref.im_enabled_list.indexOf(name) < 0) {
-      this.pref.im_enabled_list.unshift(name);
-      this.prefSetEnabledList(this.pref.im_enabled_list);
-    }
-  }
-
-  prefRemoveEnabledInputMethod(name) {
-    let index = this.pref.im_enabled_list.indexOf(name);
-    if (index < 0) {
-      return;
-    }
-    this.pref.im_enabled_list.splice(index, 1);
-    this.prefSetEnabledList(this.pref.im_enabled_list);
-  }
-
-  prefSetEnabledList(new_list) {
-    this.pref.im_enabled_list = new_list;
-    this.pref.im_default = new_list.length > 0 ? new_list[0] : '';
-    this.SavePreferences();
-  }
-
-  prefGetQuickPunctuations() {
-    return this.pref.quick_punctuations;
-  }
-
-  prefSetQuickPunctuations(new_value) {
-    this.pref.quick_punctuations = new_value;
-    // TODO(hungte) Change this dirty workaround to IM events.
-    this.imctx.AddonPunctuations = new_value;
-    this.SavePreferences();
-  }
-
-  prefGetRelatedText() {
-    return this.pref.related_text;
-  }
-
-  prefSetRelatedText(new_value) {
-    this.pref.related_text = new_value;
-    // TODO(hungte) Change this dirty workaround to IM events.
-    this.imctx.AddonRelatedText = new_value;
-    this.SavePreferences();
-  }
-
-  prefGetSupportNonChromeOS() {
-    return this.pref.support_non_chromeos;
-  }
-
-  prefSetSupportNonChromeOS(new_value) {
-    this.pref.support_non_chromeos = new_value;
-    this.SavePreferences();
+    debug("croscin.config", this.config.config);
   }
 
   getDefaultModule() {
@@ -600,19 +526,6 @@ export class IME {
 
   getAvailableModules() {
     return jscin.get_registered_modules();
-  }
-
-  setDebugMode(new_value) {
-    warn("croscin.setDebugMode:", new_value);
-    jscin.writeLocalStorage('debug', new_value);
-    logger.enableAllLoggers(new_value);
-  }
-
-  notifyConfigChanged() {
-    // Some configuration is changed - we need to validate and refresh all.
-    debug("croscin.notifyConfigChanged: notified.");
-    jscin.reload_configuration();
-    this.InitializeUI();
   }
 
   // IME API Handler
@@ -786,5 +699,7 @@ export class IME {
 export var croscin = {IME: IME, logger: logger};
 console.log("ChromeOS Extension for JavaScript Chinese Input Method.\n\n",
             "To turn on/off debug messages of each component,",
-            "change the `verbose` property via: ", logger.getAllLoggers());
-console.log("To turn on ALL messags, do: ` croscin.logger.enableAllLoggers(); `");
+            "change the `verbose` property from command:\n\n",
+            "  croscin.logger.getAllLoggers() \n\n",
+            "To turn on all components, do:\n\n",
+            "  croscin.logger.enableAllLoggers() \n\n");
