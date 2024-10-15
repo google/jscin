@@ -57,7 +57,7 @@ export class AddonRelatedText extends BaseInputAddon
   keystroke(ctx, ev)
   {
     debug("Check key code = ", ev.code);
-    if (!ctx.allow_related_text || jscin.has_ctrl_alt_meta(ev)||
+    if (!ctx.AddonRelatedText || jscin.has_ctrl_alt_meta(ev)||
         ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
 
@@ -85,7 +85,7 @@ export class AddonRelatedText extends BaseInputAddon
   get_accepted_keys(ctx)
   {
     let keys = this.im.get_accepted_keys(ctx);
-    if (!ctx.allow_related_text)
+    if (!ctx.AddonRelatedText)
       return keys;
 
     this.RefreshShiftMap(ctx);

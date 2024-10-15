@@ -370,8 +370,8 @@ export class IME {
       this.im_name = name;
       this.im_label = jscin.get_input_method_label(name);
       // TODO(hungte) Move this dirty workaround to jscin global settings.
-      this.imctx.allow_ctrl_phrase = this.prefGetQuickPunctuations();
-      this.imctx.allow_related_text = this.prefGetRelatedText();
+      this.imctx.AddonPunctuations = this.prefGetQuickPunctuations();
+      this.imctx.AddonRelatedText = this.prefGetRelatedText();
       this.imctx.phrases = this.phrases;
       debug("croscin.im:", this.im);
       this.InitializeUI();
@@ -566,7 +566,7 @@ export class IME {
   prefSetQuickPunctuations(new_value) {
     this.pref.quick_punctuations = new_value;
     // TODO(hungte) Change this dirty workaround to IM events.
-    this.imctx.allow_ctrl_phrase = new_value;
+    this.imctx.AddonPunctuations = new_value;
     this.SavePreferences();
   }
 
@@ -577,7 +577,7 @@ export class IME {
   prefSetRelatedText(new_value) {
     this.pref.related_text = new_value;
     // TODO(hungte) Change this dirty workaround to IM events.
-    this.imctx.allow_related_text = new_value;
+    this.imctx.AddonRelatedText = new_value;
     this.SavePreferences();
   }
 
