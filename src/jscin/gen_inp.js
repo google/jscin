@@ -479,7 +479,7 @@ export class GenInp extends BaseInputMethod
       }
 
       if ((keyinfo.key == 'Backspace' || keyinfo.key == 'Delete') && len) {
-        self.keystroke = self.keystroke.substr(0, len-1);
+        self.keystroke = self.keystroke.substring(0, len-1);
         self.display_keystroke = self.display_keystroke.slice(0, len-1);
         inpinfo.keystroke = self.display_keystroke.join('');
         inpinfo.mcch = '';

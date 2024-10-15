@@ -360,25 +360,14 @@ export class JavaScriptInputMethod
 
   // Platform-dependent utilities
 
-  hasLzString() {
-    return typeof(LZString) != typeof(undefined);
-  }
-
   readLocalStorage(key, default_value) {
-    if (typeof(localStorage) == typeof(undefined)) {
+    if (typeof(localStorage) == typeof(undefined))
       globalThis.localStorage = {};
-    }
     let data = localStorage[key];
-    if (!data) {
+    if (!data)
       return default_value;
-    }
-    if (data[0] == '!') {
-      if (!this.hasLzString()) {
-        error("LZ-String not available. Dropping storage key:", key);
-        return default_value;
-      }
-      data = LZString.decompress(data.substr(1));
-    }
+    if (data[0] == '!')
+      data = LZString.decompress(data.substring(1));
     return JSON.parse(data);
   }
 
@@ -387,7 +376,7 @@ export class JavaScriptInputMethod
       localStorage = {};
     }
     let val = JSON.stringify(data);
-    if (val.length > 100 && this.hasLzString())
+    if (val.length > 100)
       val = '!' + LZString.compress(val);
     localStorage[key] = val;
   }
