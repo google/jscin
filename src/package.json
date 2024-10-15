@@ -1,0 +1,9 @@
+{
+  "name": "jscin",
+  "description": "JavaScript based Chinese Input Method",
+
+  "version": "2.9",
+  "type": "module",
+  "author": "Hung-Te Lin <hungte@gmail.com>",
+  "license": "Apache-2.0"
+}
