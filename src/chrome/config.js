@@ -112,6 +112,19 @@ export class Config {
     // Manifest v3 provides a Promise but v2 does not.
     return new Promise((resolve, reject) => {
       this.storage.get(props, (data) => {
+
+        /* Migration check from pre-chrome.storage */
+        let new_key = 'InputMethods';
+        let old_key = 'croscinPrefEnabledInputMethodList';
+        if (props.includes(new_key) && !(new_key in data)) {
+          // Probably the first time to migrate.
+          // Let's look at localStorage.
+          let ims = localStorage[old_key];
+          if (ims && ims.length < 100) {
+            data.InputMethods = JSON.parse(ims);
+          }
+        }
+
         Object.assign(this.config, data);
         debug("Load: query:", props, "storage:", data, "live:", this.config);
         this.Apply(data);
