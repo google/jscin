@@ -58,7 +58,7 @@ export class Config {
     this.config = {
       Debug: false,
       Emulation: false,
-      AddonRelatedText: true,
+      AddonRelatedText: false,
       AddonPunctuations: true,
       InputMethods: [],
     };
