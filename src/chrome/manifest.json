@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_manifestName__",
-  "version": "0.0.24",
+  "version": "0.0.25",
 
   "default_locale": "en",
   "description": "__MSG_manifestDesc__",
@@ -37,13 +37,15 @@
   } ],
   "web_accessible_resources": [
      "*.js",
+     "emulation/*",
      "jquery/*",
      "jscin/*",
-     "emulation/*"
+     "tables/*"
   ],
   "permissions": [
     "http://*/", "https://*/",
-    "input", "unlimitedStorage", "storage",
+    "storage", "unlimitedStorage",
+    "input",
     "tabs", "https://docs.google.com/feeds/*",
     "https://www.google.com/accounts/OAuthGetRequestToken",
     "https://www.google.com/accounts/OAuthAuthorizeToken",

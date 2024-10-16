@@ -112,12 +112,10 @@ export class ChromeInputIME {
     this.DeleteContext(contextID);
   }
 
-  SetDefinedParams(dest, src) {
-    let i;
-    for (i = 2; i < arguments.length; i++) {
-      let param_name = arguments[i];
-      if (param_name in src)
-        dest[param_name] = src[param_name];
+  SetDefinedParams(dest, src, ...params) {
+    for (let name of params) {
+      if (name in src)
+        dest[name] = src[name];
     }
   };
 

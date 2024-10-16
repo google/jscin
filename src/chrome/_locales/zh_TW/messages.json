@@ -73,7 +73,7 @@
   "optionRelatedText": {"message":
     "支援聯想字 (按 Shift + 選擇鍵)"},
   "optionAlertChangeSupportNonChromeOS": {"message":
-    "更改此設定要到下次重新開啟 Chrome 瀏覽器才會生效。" },
+    "更改此設定要到下次重新開啟 Chrome 瀏覽器才會完全生效。" },
   "optionAlert": {"message":
     "注意!" },
   "optionOK": {"message":

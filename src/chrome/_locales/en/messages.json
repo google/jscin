@@ -62,7 +62,7 @@
   "optionQueryKeystrokes": {"message":
     "Display corresponding keystrokes of this input method."},
   "optionRelatedText": {"message":
-    "Use Related Text input (press Shift + selection keys)."},
+    "Use Related Text input (Shift + selection keys)."},
   "optionAreYouSure": {"message":
     "Are you sure?" },
 
@@ -71,7 +71,7 @@
   "optionSupportNonChromeOS": {"message":
     "Support Non-ChromeOS environments" },
   "optionPunctuations": {"message":
-    "Support quick Chinese punctuations (by Ctrl+.,';[]...)" },
+    "Support quick Chinese punctuations (Ctrl+.,';[]...)" },
   "optionAlertChangeSupportNonChromeOS": {"message":
     "This setting will take effect next time Chrome restarted." },
   "optionAlert": {"message":
