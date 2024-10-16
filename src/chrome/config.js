@@ -70,7 +70,7 @@ export class Config {
       return;
     let applies = {};
     for (let k in changes) {
-      if (!changes[k]?.newValue)
+      if (!('newValue' in changes[k]))
         continue;
       let v = changes[k].newValue;
       this.config[k] = v;
