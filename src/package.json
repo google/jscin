@@ -5,5 +5,7 @@
   "version": "2.9",
   "type": "module",
   "author": "Hung-Te Lin <hungte@gmail.com>",
+  "keywords": ["input method", "ime", "chinese"],
+  "homepage": "https://github.com/google/jscin",
   "license": "Apache-2.0"
 }
