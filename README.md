@@ -1,5 +1,12 @@
 # JavaScript based Chinese Input Method
 
+For how to install or run JsCIN, please check the [user guide
+document](docs/USER_GUIDE.md).
+
+關於如何安裝與使用，請參考[使用說明文件](docs/USER_GUIDE.md).
+
+## Introduction
+
 Porting the input method environment (IME) to everywhere is painful, especially
 when you failed to find your favorite input method on a new tablet or phone
 devices. It would be great if we can have the input methods as web browser
