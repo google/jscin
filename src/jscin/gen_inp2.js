@@ -182,7 +182,7 @@ export class GenInp2 extends BaseInputMethod
 
   Glob2Regex(pattern) {
     return new RegExp("^" + pattern
-      .replace(new RegExp('([\\][\\\\\./^$()!|{}+-])', "g"), "\\$1")
+      .replace(new RegExp('([\\][\\\\./^$()!|{}+-])', "g"), "\\$1")
       .replace(/\?/g, ".").replace(/\*/g, ".*")
       + "$");
   }
