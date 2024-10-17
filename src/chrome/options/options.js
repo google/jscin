@@ -34,10 +34,10 @@ var BuiltinIMs = JSON.parse(
 async function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
-      "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddDrive",
+      "optionAddTables", "optionAddUrl", "optionAddFile",
       "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
       "optionTableDetailTypeHeader", "optionQueryKeystrokes",
-      "optionSaveToDrive", "optionSettingChoices",
+      "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS",
       "optionAlertChangeSupportNonChromeOS",
       "optionRelatedText", "optionPunctuations",
