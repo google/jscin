@@ -185,3 +185,21 @@ export class Config {
     this.Set("InputMethods", list);
   }
 }
+
+/* Some configurations may be in an external resource. */
+export async function LoadResource(url) {
+  if (!url.includes('://'))
+    url = chrome.runtime.getURL(url);
+  log("LoadResource:", url);
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok)
+      log("LoadResource: response is NOT ok.");
+
+    return await response.text();
+  } catch (error) {
+    log("LoadResource: caught error:", error);
+  }
+  return undefined;
+}
