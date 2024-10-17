@@ -307,7 +307,7 @@ export class JavaScriptInputMethod
     delete table_metadata[name];
     this.deleteLocalStorage(this.kTableDataKeyPrefix + name);
     this.deleteLocalStorage(this.kRawDataKeyPrefix + name);
-    this.writeLocalStorage(thithis.kTableMetadataKey, table_metadata);
+    this.writeLocalStorage(this.kTableMetadataKey, table_metadata);
   }
 
   // Loads from LocalStorage and write into chrome.debug,
