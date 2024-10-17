@@ -155,7 +155,7 @@ export class GenInp extends BaseInputMethod
       self.mkey_list = [];
     }
     function wildcard2re(s) {
-      return s.replace('.', '\\.').replace('?', '.').replace('*', '.*');
+      return s.replaceAll('.', '\\.').replaceAll('?', '.').replaceAll('*', '.*');
     }
     function pick_cch_wild(head, dir, keystroke, mcch_size) {
       let mcch = [];
