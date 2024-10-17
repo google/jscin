@@ -70,6 +70,15 @@ export class Config {
       return;
     let applies = {};
     for (let k in changes) {
+      // chrome.storage.onChanged listens to all changs, even outside the scope
+      // of Config, so we have to skip changes not in the known list.
+      if (!(k in this.config)) {
+        debug("Not a config property:", k);
+        continue;
+      }
+      /* Currently we only want to apply the "new" value.
+       * Delete (only oldValue and no newValue) won't be applied.
+       */
       if (!('newValue' in changes[k]))
         continue;
       let v = changes[k].newValue;
