@@ -100,6 +100,22 @@ export function parseCin(cin_input) {
                     ' missing');
   }
 
+  // Some CIN tables (https://github.com/chinese-opendesktop/cin-tables) have
+  // ename in multi-locales format as `label:locale;label:local;...`.
+  let ename = data.ename;
+  if (ename.includes(':') && ename.includes(';')) {
+    try {
+      let entries = ename.split(';');
+      let locales = Object.fromEntries(entries.map((v)=>v.split(':').reverse()));
+      if ('en' in locales) {
+        data.names = locales;
+        data.ename = locales.en;
+      }
+    } catch (err) {
+      console.error("Unknown type of ename", ename);
+    }
+  }
+
   // Detect modules (for backward compatibility).
   if (!data.MODULE && data.EXTENSION_ID)
     data.MODULE = 'CrExtInp';
