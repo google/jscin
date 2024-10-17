@@ -182,7 +182,7 @@ export class Config {
     if (this.InputMethods().includes(name))
       return;
     this.Set("InputMethods",
-      [...[name], this.InputMethods()]);
+      [name, ...this.InputMethods()]);
   }
   RemoveInputMethod(name) {
     let list = this.InputMethods();

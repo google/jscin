@@ -323,7 +323,7 @@ function addTable(content, url) {
     var metadata = jscin.getTableMetadatas()[name];
     addCinTableToList(name, metadata, '#enabled_im_list', true);
     setAddTableStatus("Table added successfully", false);
-    this.config.InsertInputMethod(name);
+    config.InsertInputMethod(name);
   } else {
     var msg = result[1];
     setAddTableStatus("Could not parse cin file. " + msg, true);
