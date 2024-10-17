@@ -1,11 +1,24 @@
 {
   "name": "jscin",
   "description": "JavaScript based Chinese Input Method",
-
   "version": "2.9",
   "type": "module",
-  "author": "Hung-Te Lin <hungte@gmail.com>",
-  "keywords": ["input method", "ime", "chinese"],
+  "author": "Hung-Te Lin <hungte@chromium.org>",
+  "contributors": [
+    "Kuang-che Wu <kcwu@chromium.org>",
+    "Zach Kuznia <zork@chromium.org>",
+    "Po-hsiang Hao <phao@google.com>",
+    "Mathias Rangel Wulff <m@rawu.dk>",
+    "Josh Wu <monza.wu@gmail.com>"
+  ],
+  "keywords": [
+    "input method",
+    "ime",
+    "chinese"
+  ],
   "homepage": "https://github.com/google/jscin",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "node-localstorage": "^3.0.5"
+  }
 }

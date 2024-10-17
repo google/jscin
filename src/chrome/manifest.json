@@ -17,7 +17,7 @@
       "description": "__MSG_manifestImeDesc__",
       "type": "ime",
       "id": "cros_cin",
-      "language": "zh-TW",
+      "language": ["zh-TW", "zh-HK", "zh"],
       "layouts": ["us"]
   } ],
   "page_action": {
