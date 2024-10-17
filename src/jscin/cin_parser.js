@@ -100,25 +100,43 @@ export function parseCin(cin_input) {
                     ' missing');
   }
 
-  // Some CIN tables (https://github.com/chinese-opendesktop/cin-tables) have
-  // ename in multi-locales format as `label:locale;label:local;...`.
-  let ename = data.ename;
-  if (ename.includes(':') && ename.includes(';')) {
-    try {
-      let entries = ename.split(';');
-      let locales = Object.fromEntries(entries.map((v)=>v.split(':').reverse()));
-      if ('en' in locales) {
-        data.names = locales;
-        data.ename = locales.en;
-      }
-    } catch (err) {
-      console.error("Unknown type of ename", ename);
-    }
-  }
-
   // Detect modules (for backward compatibility).
   if (!data.MODULE && data.EXTENSION_ID)
     data.MODULE = 'CrExtInp';
+
+  // Some CIN tables (https://github.com/chinese-opendesktop/cin-tables) have
+  // ename in multi-locales format as `label:locale;label:local;...`.
+  // One reference is https://vchewing.github.io/CIN_EVOLUTION.html but it was
+  // using 'intlname'. Currently we have no plan to render the names for
+  // different locales, however if the ename was using intlname format then we
+  // have a problem in displaying and processing the storage so that must be
+  // converted. Also, it's not easy to justify if a ename really wants ':'
+  // (although it'll break croscin UI today) or it's intlname; so let's do a
+  // tricky assumption 'Every intlname expects at least two locales, and "en"
+  // is one of the locales'.
+  function parseLocales(intlname) {
+    const re = /(?<label>[^:;]+):(?<locale>[^:;]+);?/g;
+    let result = {}
+    for (let m of intlname.matchAll(re)) {
+      result[[m.groups.locale]] = m.groups.label;
+    }
+    if (!Object.keys(result).length)
+      return null;
+    return result;
+  }
+  function normalizeEName(parsed, ename) {
+    if (!ename.includes(':') || !ename.includes(';'))
+      return;
+    let r = parseLocales(ename);
+    if (!r || !r.en)
+      return;
+    if (!('intlname' in parsed)) {
+      parsed.intlname = ename;
+    }
+    parsed.ename = r.en;
+  }
+
+  normalizeEName(data, data.ename);
 
   let parsed_data = {
     metadata: {
