@@ -16,7 +16,7 @@
     "ename": "ChangJei",
     "cname": "倉頡",
     "options": {},
-    "detect": { "wirm": "國" }
+    "detect": { "bmr": "同" }
   },
   {
     "ename": "SimpleX",
@@ -36,7 +36,7 @@
       "SPACE_AUTOUP": true,
       "SPACE_RESET": true
     },
-    "detect": { "a": "對" }
+    "detect": { "ca": "夕" }
   },
   {
     "ename": "Dayi",
@@ -44,7 +44,7 @@
     "options": {
       "SELKEY_SHIFT": true
     },
-    "detect": { "a": "人" }
+    "detect": { "mg": "字" }
   },
   {
     "ename": "Array30",
