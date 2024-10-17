@@ -3,6 +3,7 @@
 
 import {parseCin} from '../jscin/cin_parser.js';
 import {jscin} from '../jscin/jscin.js';
+import {CreateKeyEvent} from '../jscin/key_event.js';
 
 import '../jscin/base_inp.js';
 import '../jscin/gen_inp2.js';
@@ -12,53 +13,13 @@ import fs from 'node:fs';
 let print = console.log
 jscin.debug = true;
 
-function dump_object(obj, indent) {
-  if (obj == null) return 'null';
-  if (typeof(obj) == 'string') return "'" + obj + "'";
-  if (typeof(obj) != 'object') return obj;
-  if (obj.constructor.toString().match(/array/i)) {
-    return '[' + obj + ']';
-  }
-
-  var prefix = '';
-  for (var i = 0; i < indent; i++) prefix += ' ';
-
-  var s = '';
-  for (var k in obj) {
-    s += prefix + k + ': ' + dump_object(obj[k], indent+2) + '\n';
-  }
-  return s;
-}
-
-function dump_inpinfo(inpinfo) {
-  return dump_object(inpinfo, 2);
-}
-
-function build_reverse_map(from) {
-  var to = {};
-  for (var k in from) {
-    if (from[k] in to)
-      continue;
-    to[from[k]] = k;
-  }
-  return to;
-}
-
 function simulate(inst, inpinfo, input, result, expects) {
   var committed = '';
-  // FIX(hungte) jscin.kImeKeyCodeTable is removed.
-  var c2code = build_reverse_map(jscin.kImeKeyCodeTable);
-  for (var i in input) {
-    var code = c2code[input[i].toUpperCase()] || '';
-    if (code == '') {
-      print("Sorry, unknown input: ", input[i]);
-      return false;
-    }
 
-    var keyinfo = {type: 'keydown', key: input[i], code: code};
-    // print(dump_object(keyinfo));
+  for (var i in input) {
+    var keyinfo = CreateKeyEvent(input[i]);
     var ret = inst.keystroke(inpinfo, keyinfo);
-    print('ret=', ret, ", inpinfo: ", dump_inpinfo(inpinfo));
+    print('ret=', ret, ", inpinfo: ", inpinfo);
 
     var expect;
     if (!expects || expects[i] == undefined) {

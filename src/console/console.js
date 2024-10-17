@@ -7,6 +7,7 @@
 
 import {jscin} from "../jscin/jscin.js";
 import {parseCin} from "../jscin/cin_parser.js";
+import {CreateKeyEvent} from "../jscin/key_event.js";
 import "../jscin/base_inp.js";
 import "../jscin/gen_inp2.js";
 
@@ -16,102 +17,6 @@ import { stdin as input, stdout as output } from 'node:process';
 
 var imctx = {};
 var im = null;
-
-function CreateKeyEvent(key) {
-  // http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent
-  const KeyToCode = {
-    "Backspace":"Backspace",
-    "Tab":	"Tab",
-    "Enter":	"Enter",
-    "Shift":    "ShiftLeft",
-    "Control":  "ControlLeft",
-    "Alt":	"AltLeft",
-    "Pause":	"Pause",
-    "CapsLock":	"CapsLock",
-    "Escape":	"Escape",
-    " ":	"Space",
-    "PageUp":	"PageUp",
-    "PageDown":	"PageDown",
-    "End":	"End",
-    "Home":	"Home",
-    "ArrowLeft":	"ArrowLeft",
-    "ArrowUp":	"ArrowUp",
-    "ArrowRight":	"ArrowRight",
-    "ArrowDown":	"ArrowDown",
-    "Insert":	"Insert",
-    "Delete":	"Delete",
-    "0":	"Digit0",
-    "1":	"Digit1",
-    "2":	"Digit2",
-    "3":	"Digit3",
-    "4":	"Digit4",
-    "5":	"Digit5",
-    "6":	"Digit6",
-    "7":	"Digit7",
-    "8":	"Digit8",
-    "9":	"Digit9",
-    "a":	"KeyA",
-    "b":	"KeyB",
-    "c":	"KeyC",
-    "d":	"KeyD",
-    "e":	"KeyE",
-    "f":	"KeyF",
-    "g":	"KeyG",
-    "h":	"KeyH",
-    "i":	"KeyI",
-    "j":	"KeyJ",
-    "k":	"KeyK",
-    "l":	"KeyL",
-    "m":	"KeyM",
-    "n":	"KeyN",
-    "o":	"KeyO",
-    "p":	"KeyP",
-    "q":	"KeyQ",
-    "r":	"KeyR",
-    "s":	"KeyS",
-    "t":	"KeyT",
-    "u":	"KeyU",
-    "v":	"KeyV",
-    "w":	"KeyW",
-    "x":	"KeyX",
-    "y":	"KeyY",
-    "z":	"KeyZ",
-    "F1":	"F1",
-    "F2":	"F2",
-    "F3":	"F3",
-    "F4":	"F4",
-    "F5":	"F5",
-    "F6":	"F6",
-    "F7":	"F7",
-    "F8":	"F8",
-    "F9":	"F9",
-    "F10":	"F10",
-    "F11":	"F11",
-    "F12":	"F12",
-    "NumLock":	"NumLock",
-    "ScrollLock":	"ScrollLock",
-    ";":	"Semicolon",
-    "=":	"Equal",
-    ",":	"Comma",
-    "-":	"Minus",
-    ".":	"Period",
-    "/":	"Slash",
-    "`":	"BackQuote",
-    "[":	"BracketLeft",
-    "/":	"Backslash",
-    "]":	"BracketRight",
-    "'":        "Quote",
-  };
-
-  let code = key;
-  if (code in KeyToCode)
-    code = KeyToCode[code];
-  return {
-    type: "keydown",
-    key: key,
-    code: code,
-  };
-}
 
 const print = console.log;
 const write = console.log;
@@ -189,7 +94,7 @@ async function console_main(argv) {
 
   while (true) {
     const str = await rl.question("> ");
-    print(`#Raw inpu [${str}]`);
+    print(`#Raw input [${str}]`);
     let keycode = null;
     if (str.charCodeAt(0) == '\t') {
       keycode = str.substring(1);
