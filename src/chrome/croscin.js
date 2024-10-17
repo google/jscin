@@ -54,7 +54,7 @@ export class IME {
       // Can't restart extension here - should
       // be handled in the options confirm dialog.
     });
-    
+
     // UI related changes (InputMethod)
     // must be bound only after first time
     // UI initialization is done.
@@ -75,6 +75,7 @@ export class IME {
       jscin.reloadNonBuiltinTables();
       jscin.setLocalStorageVersion(version);
     }
+    jscin.backupTables();
     jscin.reload_configuration();
     this.detect_ime_api();
     this.registerEventHandlers();

@@ -310,6 +310,32 @@ export class JavaScriptInputMethod
     this.writeLocalStorage(thithis.kTableMetadataKey, table_metadata);
   }
 
+  // Loads from LocalStorage and write into chrome.debug,
+  // prepare for Manifest V3.
+  backupTables() {
+    chrome.storage.local.getKeys((keys) => {
+      debug("backupTables - found keys in local storage:", keys);
+      for (let v of Object.values(this.getTableMetadatas())) {
+        if (v.builtin)
+          continue;
+
+        let name = v.ename;
+        let kData = this.kTableDataKeyPrefix + name;
+
+        if (keys.includes(kData))
+          continue;
+        if (!this.isInLocalStorage(kData))
+          continue;
+
+        let items = {[kData]: localStorage[kData]};
+        chrome.storage.local.set(
+          items, ()=>{
+            debug("Backed up the table for MV3:", name);
+          });
+      }
+    });
+  }
+
   reloadNonBuiltinTables() {
     let metadatas = this.getTableMetadatas();
     for (name in metadatas) {
