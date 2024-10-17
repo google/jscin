@@ -311,9 +311,11 @@ export class JavaScriptInputMethod
   }
 
   // Loads from LocalStorage and write into chrome.debug,
-  // prepare for Manifest V3.
+  // prepare for Manifest V3. In Chrome 130+ we may call getKeys,
+  // but for now only get() is widely available.
   backupTables() {
-    chrome.storage.local.getKeys((keys) => {
+    chrome.storage.local.get(null, (items) => {
+      let keys = Object.keys(items);
       debug("backupTables - found keys in local storage:", keys);
       for (let v of Object.values(this.getTableMetadatas())) {
         if (v.builtin)
