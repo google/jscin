@@ -93,6 +93,12 @@ export class IME {
     if (this.ime_api.isEmulation) {
       new BackgroundIPCHost(this.ime_api);
     }
+
+    // Clear oath secrets, prepare for migration.
+    for (let k in localStorage) {
+      if (k.startsWith("oauth"))
+        delete localStorage[k];
+    }
   }
 
   // Standard utilities

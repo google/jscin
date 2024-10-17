@@ -9,7 +9,6 @@ import { $, jQuery } from "../jquery/jquery-ui.js";
 import { parseGtab } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
 import { Config } from "../config.js";
-import * as drive from "./drive.js";
 
 var table_loading = {};
 var config = new Config();
@@ -20,7 +19,6 @@ var bgPage = chrome.extension.getBackgroundPage();
 var jscin = bgPage.jscin;
 var instance = bgPage.croscin.instance;
 var logger = bgPage.croscin.logger;
-var enable_google_drive = bgPage.enable_google_drive;
 
 var _ = chrome.i18n.getMessage;
 
@@ -45,8 +43,6 @@ async function init() {
       "optionRelatedText", "optionPunctuations",
       "optionSelectDefaultInputModule", "optionSandbox",
       "optionDebug", "optionDebugMessage");
-
-  $('.optionAddDrive').toggle(enable_google_drive);
 
   $('#available_im_list').sortable({
     revert: true,
@@ -98,7 +94,6 @@ async function init() {
     $("#file_div").hide();
     $("#url_div").show();
     $("#doc_div").hide();
-    $("#save_to_drive_input").toggle(enable_google_drive);
 
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
@@ -123,7 +118,6 @@ async function init() {
     $("#file_div").show();
     $("#url_div").hide();
     $("#doc_div").hide();
-    $("#save_to_drive_input").toggle(enable_google_drive);
 
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
@@ -141,31 +135,6 @@ async function init() {
         }
       }
     ]).dialog("open");
-  });
-
-  $(".optionAddDrive").button().click(function(event) {
-    setAddTableStatus("");
-    $("#url_div").hide();
-    $("#file_div").hide();
-    $("#doc_div").show();
-    drive.setDocStatus("");
-    $("#save_to_drive").prop('checked', false);
-    $("#save_to_drive_input").hide();
-    bgPage.oauth.authorize(function() {
-      $('#doc_list').empty();
-      drive.getDocumentList("");
-    });
-    // #add_table_dialog will be open after the docs are ready
-    // in drive.js: drive.renderDocList()
-  });
-
-  $('#save_to_drive').change(function() {
-    if ($('#save_to_drive').is(':checked')) {
-      $('#auth_status').text("(Uncheck if you refuse to authenticate.)");
-      bgPage.oauth.authorize(function() {
-        $('#auth_status').text('(Successfully authenticated.)');
-      });
-    }
   });
 
   $('#checkSupportNonChromeOS').prop("checked",
@@ -327,19 +296,6 @@ function addTabFile(files) {
   }
 }
 
-function addTableDrive(docs) {
-  if(docs.length == 0) {
-    return;
-  }
-  var doc;
-  for (var i = 0; doc = docs[i]; ++i) {
-    if ($('#radio' + i).is(':checked')) {
-      break;
-    }
-  }
-  addTableUrl(doc.entry.content.src + '&format=txt');
-}
-
 function addTable(content, url) {
   // Parse the entry
   var result = parseCin(content);
@@ -368,9 +324,6 @@ function addTable(content, url) {
     addCinTableToList(name, metadata, '#enabled_im_list', true);
     setAddTableStatus("Table added successfully", false);
     this.config.InsertInputMethod(name);
-    if ($('#save_to_drive').is(':checked')) {
-      drive.SaveToDrive(metadata.ename, content);
-    }
   } else {
     var msg = result[1];
     setAddTableStatus("Could not parse cin file. " + msg, true);
@@ -492,17 +445,6 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
                 }
                 $(this).dialog("close");
               }});
-          }
-
-          if (enable_google_drive && jscin.has_input_method_rawdata(name)) {
-            var raw_content = jscin.get_input_method_rawdata(name);
-            buttons.push( { text: _('optionBackupToDrive'),
-            click: function () {
-              if (confirm(_("optionAreYouSure"))) {
-                SaveToDrive(metadata.ename, raw_content);
-              }
-              $(this).dialog("close");
-            } });
           }
         }
         $('#table_detail_dialog').dialog({
