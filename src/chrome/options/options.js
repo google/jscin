@@ -31,6 +31,16 @@ function SetElementsText(...args) {
 var BuiltinIMs = JSON.parse(
     LoadExtensionResource("tables/builtin.json"));
 
+function encodeId(name) {
+  let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
+  console.log(decodeId(v));
+  return v;
+}
+
+function decodeId(id) {
+  return id.match(/.{2}/g).map((v)=>String.fromCharCode(parseInt(v, 16))).join('');
+}
+
 async function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
@@ -58,7 +68,7 @@ async function init() {
     update: function (event, ui) {
       var new_list = [];
       $('#enabled_im_list li').each(function(index) {
-        new_list.push($(this).attr('id').replace(/^ime_/, ''));
+        new_list.push(decodeId($(this).attr('id').replace(/^ime_/, '')));
       });
       config.Set("InputMethods", new_list);
     }
@@ -199,11 +209,7 @@ function LoadExtensionResource(url) {
 }
 
 function removeFileExtension(filename) {
-  var dotPos = filename.indexOf('.');
-  if(dotPos >= 0) {
-    filename = filename.slice(0, dotPos);
-  }
-  return filename;
+  return filename.split('.')[0];
 }
 
 function addTableUrl(url) {
@@ -236,10 +242,8 @@ function addTableUrl(url) {
     xhr.onload = function(e) {
       try {
         var ename = url;
-        var slashPos = ename.lastIndexOf('/');
-        if(slashPos >= 0) {
-          ename = ename.slice(slashPos + 1, ename.length);
-        }
+        if (ename.includes('/'))
+          ename = ename.split('/').pop().split('?')[0];
         ename = removeFileExtension(ename);
         addTable('%ename ' + ename + '\n' + parseGtab(e.currentTarget.response));
       } catch (error) {
@@ -309,7 +313,7 @@ function addTable(content, url) {
         setAddTableStatus("Table not added", true);
         return;
       } else {
-        $('#ime_' + name).remove();
+        $('#ime_' + encodeId(name)).remove();
       }
     }
     // install_input_method will parse raw content again...
@@ -378,8 +382,8 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
   // TODO(hungte) ename or name?
   var builtin = metadata.builtin && (metadata.ename in BuiltinIMs)
   var setting = metadata.setting;
-  // TODO(hungte) encodeURIComponent()?
-  var id = 'ime_' + name;
+  // id must be safe for jQuery expressions.
+  var id = `ime_${encodeId(name)}`;
   var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
   var kExternalModule = 'CrExtInp';
   var isRemote = (kExternalModule == module);
