@@ -75,7 +75,6 @@ export class IME {
       jscin.reloadNonBuiltinTables();
       jscin.setLocalStorageVersion(version);
     }
-    jscin.backupTables();
     jscin.reload_configuration();
     this.detect_ime_api();
     this.registerEventHandlers();
@@ -99,6 +98,8 @@ export class IME {
       if (k.startsWith("oauth"))
         delete localStorage[k];
     }
+    // Backup IM tables for future MV3
+    jscin.backupTables();
   }
 
   // Standard utilities
