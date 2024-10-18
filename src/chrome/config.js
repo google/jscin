@@ -196,19 +196,23 @@ export class Config {
 }
 
 /* Some configurations may be in an external resource. */
-export async function LoadResource(url) {
+export async function LoadResource(url, asArrayBuffer=false) {
   if (!url.includes('://'))
     url = chrome.runtime.getURL(url);
-  log("LoadResource:", url);
+  debug("LoadResource:", url);
 
   try {
     const response = await fetch(url);
-    if (!response.ok)
-      log("LoadResource: response is NOT ok.");
-
-    return await response.text();
-  } catch (error) {
-    log("LoadResource: caught error:", error);
+    if (!response.ok) {
+      throw "LoadResource: response is NOT ok.";
+    }
+    if (asArrayBuffer)
+      return response.arrayBuffer();
+    else
+      return response.text();
+  } catch (err) {
+    debug("LoadResource: caught error:", err);
+    throw err;
   }
   return undefined;
 }
