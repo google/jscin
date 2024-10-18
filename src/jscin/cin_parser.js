@@ -100,10 +100,6 @@ export function parseCin(cin_input) {
                     ' missing');
   }
 
-  // Detect modules (for backward compatibility).
-  if (!data.MODULE && data.EXTENSION_ID)
-    data.MODULE = 'CrExtInp';
-
   // Normalize mandatory commands without values
   if (data.selkey === true) {
     data.selkey = '';
