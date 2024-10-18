@@ -30,7 +30,6 @@ export class JavaScriptInputMethod
     // Configuration key names.
     this.kTableMetadataKey = "table_metadata";
     this.kTableDataKeyPrefix = "table_data-";
-    this.kRawDataKeyPrefix = "raw_data-";
     this.kVersionKey = "version";
     this.kCrossQueryKey = "cross_query";
     this.kModuleNameKey = 'default_module_name';
@@ -213,14 +212,6 @@ export class JavaScriptInputMethod
     return this.input_methods[name].label;
   }
 
-  has_input_method_rawdata(name) {
-    return this.isInLocalStorage(this.kRawDataKeyPrefix + name);
-  }
-
-  get_input_method_rawdata(name) {
-    return this.readLocalStorage(this.kRawDataKeyPrefix + name);
-  }
-
   // -------------------------------------------------------------------
   // Configurations
 
@@ -276,8 +267,6 @@ export class JavaScriptInputMethod
     table_metadata[name] = metadata;
     this.writeLocalStorage(this.kTableMetadataKey, table_metadata);
     this.writeLocalStorage(this.kTableDataKeyPrefix + name, data);
-    if (raw_data && !metadata.builtin)
-      this.writeLocalStorage(this.kRawDataKeyPrefix + name, raw_data);
   }
 
   getTableMetadatas() {
@@ -312,7 +301,6 @@ export class JavaScriptInputMethod
     let table_metadata = this.readLocalStorage(this.kTableMetadataKey, {});
     delete table_metadata[name];
     this.deleteLocalStorage(this.kTableDataKeyPrefix + name);
-    this.deleteLocalStorage(this.kRawDataKeyPrefix + name);
     this.writeLocalStorage(this.kTableMetadataKey, table_metadata);
   }
 
@@ -345,25 +333,14 @@ export class JavaScriptInputMethod
       }
     });
   }
-
-  reloadNonBuiltinTables() {
-    let metadatas = this.getTableMetadatas();
-    for (name in metadatas) {
-      let table = metadatas[name];
-      if (table.builtin)
+  async deleteRawData() {
+    const kRawDataKeyPrefix = "raw_data-";
+    for (let k in localStorage) {
+      if (!k.startsWith(kRawDataKeyPrefix))
         continue;
-
-      let content = this.readLocalStorage(this.kRawDataKeyPrefix + name, "");
-      let result = this.install_input_method(name, content, {
-        url: table.url, setting: table.setting });
-      if (result[0]) {
-        debug("reloaded table:", name);
-      } else {
-        error("Parse error when reloading table:", name);
-        return false;
-      }
+      delete localStorage[k];
+      log("Removed raw table", k);
     }
-    return true;
   }
 
   // Platform-dependent utilities
