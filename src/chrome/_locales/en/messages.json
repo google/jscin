@@ -24,11 +24,11 @@
   "optionAvailableTables": {"message":
     "Available input methods:" },
   "optionAddTables": {"message":
-    "Add more input tables (*.cin or *.gtab):" },
+    "Add more input method tables (*.cin or *.gtab):" },
   "optionAddUrl": {"message":
-    "Add Input Table from URL" },
+    "From network (remote URL)" },
   "optionAddFile": {"message":
-    "Add Input Table from downloaded local file" },
+    "From a local file" },
   "optionAddDrive": {"message":
     "Add Input Table from Google Drive" },
   "optionSaveToDrive": {"message":
