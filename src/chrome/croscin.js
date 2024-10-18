@@ -307,39 +307,40 @@ export class IME {
 
   UpdateCandidates(candidate_list, labels) {
     if (candidate_list === undefined) {
-      debug("candidate_list is undefined");
+      assert("candidate_list (mcch) is undefined");
       return;
+    }
+    if (typeof(candidate_list) == typeof('')) {
+      assert('candidate_list (mcch) should be an array!', candidate_list);
+      candidate_list = candidate_list.split('');
     }
     debug("croscin.UpdateCandidates: candidate_list:", candidate_list,
           "labels:", labels);
-    if (candidate_list.length > 0) {
+    let candidates = candidate_list.map((c, i) => ({
+      candidate: c,
+      id: i,
+      label: labels.charAt(i)})
+    );
+    let len = candidates.length;
+    debug('candidates:', candidates);
+
+    if (len) {
       let arg = this.GetContextArg();
-      let candidates = [];
-      for (let i = 0; i < candidate_list.length; i++) {
-        // TODO(hungte) fix label, annotation
-        candidates.push({
-          'candidate': candidate_list[i],
-          'id': i,
-          'label': labels.charAt(i),
-        });
-      }
-      debug('candidates:', candidates);
       arg.candidates = candidates;
       this.ime_api.setCandidates(arg);
       this.SetCandidatesWindowProperty({
-        pageSize: candidate_list.length,
-        visible: true});
+        pageSize: len, visible: true});
     } else {
       this.SetCandidatesWindowProperty({visible: false});
     }
-    return candidate_list.length > 0;
+    return len > 0;
   }
 
   UpdateUI(keystroke, mcch, selkey, lcch, cursor) {
     if (arguments.length == 0) {
       keystroke = this.imctx.keystroke;
-      mcch = this.imctx.mcch;
       selkey = this.imctx.selkey;
+      mcch = this.imctx.mcch;
       lcch = this.imctx.lcch;
       cursor = this.imctx.edit_pos;
     }

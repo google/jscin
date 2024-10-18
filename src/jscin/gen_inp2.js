@@ -9,6 +9,7 @@
 // TODO(hungte) Indicators for candidates to show "composition state" or
 // "selection only state".
 // TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
+// TODO(hungte) Change mcch (candidates) to array instead of a string.
 
 import {jscin} from "./jscin.js";
 import {BaseInputMethod} from "./base_inp.js";
