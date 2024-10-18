@@ -63,9 +63,9 @@ export var LZString = {
       numBits: 2,
       result: "",
       data: {string:"", val:0, position:0}
-    }, i;
+    };
 
-    for (i = 0; i < uncompressed.length; i += 1) {
+    for (let i = 0; i < uncompressed.length; i += 1) {
       context.c = uncompressed.charAt(i);
       if (!Object.prototype.hasOwnProperty.call(context.dictionary,context.c)) {
         context.dictionary[context.c] = context.dictSize++;
@@ -126,14 +126,13 @@ export var LZString = {
         numBits = 3,
         entry = "",
         result = "",
-        i,
         w,
         c,
         errorCount=0,
         literal,
         data = {string:compressed, val:compressed.charCodeAt(0), position:32768, index:1};
 
-    for (i = 0; i < 3; i += 1) {
+    for (let i = 0; i < 3; i += 1) {
       dictionary[i] = i;
     }
 

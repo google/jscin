@@ -82,17 +82,13 @@ $(function() {
       var selectionEnd = get('selectionEnd', text.length);
       var cursor = get('cursor', text.length);
       var segments = get('segments', []);
-      var i, len;
-      var data = [];
-      for (i = 0, len = text.length; i < len; i++) {
-        data.push({text: text[i]});
-      }
+      var data = text.split('').map((c) => ({text: c}));
       data.push({text: nbsp});
       data[cursor].cursor = true;
-      for (i = selectionStart; i < selectionEnd; i++) {
+      for (let i = selectionStart; i < selectionEnd; i++) {
         data[i].selected = true;
       }
-      for (i = 0; i < segments.length; i++) {
+      for (let i in segments) {
         for (var idx = segments[i].start; idx < segments[i].end; idx++) {
           data[idx].segment = (i + 1);
         }
@@ -100,17 +96,17 @@ $(function() {
       ui.empty();
       var node = $('<span/>');
       var segi = undefined;
-      for (i = 0, len = data.length; i < len; i++) {
-        if (data[i].segment != segi) {
+      for (let d of data) {
+        if (d.segment != segi) {
           // new segment.
           ui.append(node);
-          segi = data[i].segment;
+          segi = d.segment;
           node = $('<span/>');
           if (segi)
             node.attr('class', 'segment');
         }
-        var newdata = document.createTextNode(data[i].text);
-        if (data[i].cursor) {
+        var newdata = document.createTextNode(d.text);
+        if (d.cursor) {
           var cursor = $('<span class="cursor">');
           if (segi) {
             newdata = cursor.append(newdata);

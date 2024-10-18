@@ -182,9 +182,9 @@ export class ContentIPCHost {
 
   FindElementByFrame(frame) {
     let nodes = document.getElementsByTagName('iframe');
-    for (let i = 0, len = nodes.length; i < len; i++) {
-      if (nodes[i].contentWindow == frame)
-        return nodes[i];
+    for (let n of nodes) {
+      if (n.contentWindow == frame)
+        return n;
     }
     return undefined;
   }

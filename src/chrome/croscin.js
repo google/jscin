@@ -149,14 +149,10 @@ export class IME {
     if(list === undefined) {
       return;
     }
+    assert(typeof(list) == typeof([]), "list must be arrray");
+    let candidates = list.map(
+      (v, i) => ({candidate: v, id: i}));
     let arg = this.GetContextArg();
-    let candidates = [];
-    for(let i = 0; i < list.length; i++) {
-      candidates[i] = {
-        candidate: list[i],
-        id: i,
-      }
-    }
     arg.candidates = candidates;
     this.ime_api.setCandidates(arg);
     this.SetCandidatesWindowProperty({

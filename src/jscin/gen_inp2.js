@@ -44,8 +44,7 @@ export class GenInp2 extends BaseInputMethod
 
     let key;
 
-    for (let i = 0, len = this.selkey.length; i < len; i++) {
-      let k = this.selkey[i];
+    for (let k of this.selkey) {
       if (k in this.keyname || this.endkey.includes(k))
         this.opts.OPT_AUTO_COMPOSE = false;
     }
@@ -220,8 +219,8 @@ export class GenInp2 extends BaseInputMethod
     trace(pattern);
     let regex = this.Glob2Regex(pattern);
     // Currently looping with index is the fastest way to iterate an array.
-    for (let i = 0, len = array.length; i < len; i++) {
-      if (regex.test(array[i]) && callback(array[i]))
+    for (let v of array) {
+      if (regex.test(v) && callback(v))
         break;
     }
   }
@@ -243,11 +242,8 @@ export class GenInp2 extends BaseInputMethod
 
   UpdateComposition(ctx) {
     debug("UpdateCandidates", ctx.composition);
-    ctx.display_composition = '';
-    for (let i = 0; i < ctx.composition.length; i++) {
-      let c = ctx.composition[i];
-      ctx.display_composition += this.keyname[c] || c;
-    }
+    ctx.display_composition = ctx.composition.split('').map(
+      (c) => this.keyname[c] || c).join('');
     // Compatible with gen_inp.
     ctx.keystroke = ctx.display_composition;
 
@@ -302,12 +298,12 @@ export class GenInp2 extends BaseInputMethod
     this.ClearCandidates(ctx);
 
     // Currently looping with index is the fastest way to iterate an array.
-    for (let i = 0, len = lookup.length; i < len; i++) {
-      if (regex.test(lookup[i])) {
-        ctx.candidates += this.table[lookup[i]];
-        if (ctx.candidates.length >= this.MAX_GLOB_PAGES * ctx.selkey.length)
-          break;
-      }
+    for (let l of lookup) {
+      if (!regex.test(l))
+        continue;
+      ctx.candidates += this.table[l];
+      if (ctx.candidates.length >= this.MAX_GLOB_PAGES * ctx.selkey.length)
+        break;
     }
     this.UpdateCandidates(ctx);
     return ctx.candidates.length > 0;
