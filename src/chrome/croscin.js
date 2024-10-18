@@ -25,7 +25,6 @@ export class IME {
 
     this.kMenuOptions = "options";
     this.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
-    this.kPhrasesDatabase = 'croscinPhrasesDatabase';
 
     this.engineID = this.kEngineId;
     this.context = null;
@@ -396,7 +395,6 @@ export class IME {
       // TODO(hungte) Move this dirty workaround to jscin global settings.
       this.imctx.AddonPunctuations = this.config.AddonPunctuations();
       this.imctx.AddonRelatedText = this.config.AddonRelatedText();
-      this.imctx.phrases = this.phrases;
       debug("croscin.im:", this.im);
       this.InitializeUI();
     } else {
@@ -470,13 +468,6 @@ export class IME {
       jscin.install_input_method(null, content, {builtin: true});
     }
 
-    // Load phrases
-    let phrases = jscin.readLocalStorage(this.kPhrasesDatabase, undefined);
-    if (reload || !phrases) {
-      phrases = JSON.parse(await LoadResource("tables/tsi.json"));
-      jscin.writeLocalStorage(this.kPhrasesDatabase, phrases);
-    }
-    this.phrases = phrases;
   }
 
   LoadPreferences() {

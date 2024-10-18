@@ -6,10 +6,26 @@
  */
 
 import { jscin } from "./jscin.js";
+import { LoadResource } from "../config.js";
 import { BaseInputAddon } from "./base_addon.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("addon.RelatedText");
+
+const kPhrasesDatabase = 'croscinPhrasesDatabase';
+
+// the phrases database is so large that we want to hold only one copy in the
+// module level.
+var phrases = undefined;
+
+async function LoadPhrases(reload) {
+  // Load phrases
+  phrases = jscin.readLocalStorage(kPhrasesDatabase, undefined);
+  if (reload || !phrases) {
+    phrases = JSON.parse(await LoadResource("tables/tsi.json"));
+    jscin.writeLocalStorage(kPhrasesDatabase, phrases);
+  }
+}
 
 export class AddonRelatedText extends BaseInputAddon
 {
@@ -61,6 +77,12 @@ export class AddonRelatedText extends BaseInputAddon
         ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
 
+    // Late loading phrases. No await, and we whope the users won't have
+    // RelatedText in the first keystroke.
+    if (phrases === undefined) {
+      LoadPhrases();
+    }
+
     this.RefreshShiftMap(ctx);
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
       ctx.mcch = '';
@@ -110,7 +132,7 @@ export class AddonRelatedText extends BaseInputAddon
 
   FindRelatedText(ctx) {
     let text = ctx.cch;
-    let candidates = ctx.phrases && ctx.phrases[text];
+    let candidates = phrases && phrases[text];
     if (!candidates)
       return false;
 
