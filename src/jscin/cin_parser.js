@@ -104,6 +104,11 @@ export function parseCin(cin_input) {
   if (!data.MODULE && data.EXTENSION_ID)
     data.MODULE = 'CrExtInp';
 
+  // Normalize mandatory commands without values
+  if (data.selkey === true) {
+    data.selkey = '';
+  }
+
   // Some CIN tables (https://github.com/chinese-opendesktop/cin-tables) have
   // ename in multi-locales format as `label:locale;label:local;...`.
   // One reference is https://vchewing.github.io/CIN_EVOLUTION.html but it was
