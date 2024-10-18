@@ -287,9 +287,15 @@ export class JavaScriptInputMethod
   getDefaultModuleName() {
     let name = this.readLocalStorage(this.kModuleNameKey,
                                       this.kDefaultModuleName);
-    if (!this.get_registered_modules().includes(name)) {
-      trace("Default module not available:", name);
+    if (!name)
       name = this.kDefaultModuleName;
+
+    let modules = this.get_registered_modules();
+    if (!modules.includes(name)) {
+      let first = modules[0];
+      debug("Default module not avaialble and fallback to the 1st registered:",
+            name, "=>", first);
+      name = first;
     }
     return name;
   }
