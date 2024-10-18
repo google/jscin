@@ -37,8 +37,8 @@ function SetElementsText(...args) {
   }
 }
 
-var BuiltinIMs = JSON.parse(
-    LoadExtensionResource("tables/builtin.json"));
+var BuiltinIMs = JSON.parse(await LoadResource("tables/builtin.json"));
+var BuiltinOptions = JSON.parse(await LoadResource("options/builtin_options.json"));
 
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
@@ -87,7 +87,7 @@ async function init() {
 
   // TODO(hungte) we should autodetect again after source is specified.
   var select = $("#add_table_setting");
-  var setting_options = JSON.parse(LoadExtensionResource("options/builtin_options.json"));
+  var setting_options = JSON.parse(await LoadResource("options/builtin_options.json"));
   select.empty();
   for (var i in setting_options) {
     var setting = setting_options[i];
@@ -208,19 +208,6 @@ async function init() {
   $('#formSelectModule').controlgroup();
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
-}
-
-function LoadExtensionResource(url) {
-  var rsrc = chrome.runtime.getURL(url);
-  var xhr = new XMLHttpRequest();
-  debug("LoadExtensionResource:", url);
-  xhr.open("GET", rsrc, false);
-  xhr.send();
-  if (xhr.readyState != 4 || xhr.status != 200) {
-    debug("LoadExtensionResource: failed to fetch:", url);
-    return null;
-  }
-  return xhr.responseText;
 }
 
 function removeFileExtension(filename) {
@@ -388,8 +375,7 @@ function setAddTableStatus(status, err) {
 }
 
 function getSettingOption(data) {
-  var setting_options = JSON.parse(
-      LoadExtensionResource("options/builtin_options.json"));
+  var setting_options = BuiltinOptions;
   var setting = setting_options[
       document.getElementById("add_table_setting").selectedIndex];
   if (setting.auto_detect) {

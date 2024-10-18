@@ -5,7 +5,7 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { Config } from "./config.js";
+import { Config, LoadResource } from "./config.js";
 import { jscin } from "./jscin/all.js";
 
 import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
@@ -64,13 +64,11 @@ export class IME {
     });
   }
 
-  Initialize() {
-
-    // Initialization.
+  async Initialize() {
     debug("Start to Initialize");
     let version = chrome.runtime.getManifest().version;
     let reload = (version !== jscin.getLocalStorageVersion());
-    this.LoadBuiltinTables(reload);
+    await this.LoadBuiltinTables(reload);
     if (reload) {
       jscin.reloadNonBuiltinTables();
       jscin.setLocalStorageVersion(version);
@@ -429,20 +427,6 @@ export class IME {
     this.ime_api.setMenuItems(arg);
   }
 
-  LoadExtensionResource(url) {
-    let xhr = new XMLHttpRequest();
-    if (url.indexOf('://') < 0)
-      url = chrome.runtime.getURL(url);
-    debug("croscin.LoadExtensionResource:", url);
-    xhr.open("GET", url, false);
-    xhr.send();
-    if (xhr.readyState != 4 || xhr.status != 200) {
-      debug("croscin.LoadExtensionResource: failed to fetch:", url);
-      return null;
-    }
-    return xhr.responseText;
-  }
-
   BuildCharToKeyMap(data) {
     let map = {};
     for(let key in data.chardef) {
@@ -465,8 +449,8 @@ export class IME {
     return map;
   }
 
-  LoadBuiltinTables(reload) {
-    let list = this.LoadExtensionResource("tables/builtin.json");
+  async LoadBuiltinTables(reload) {
+    let list = await LoadResource("tables/builtin.json");
     if (!list) {
       debug("croscin.LoadBuiltinTables: No built-in tables.");
       return;
@@ -478,7 +462,7 @@ export class IME {
         debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
-      let content = this.LoadExtensionResource("tables/" + list[table_name]);
+      let content = await LoadResource("tables/" + list[table_name]);
       if (!content) {
         debug("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
@@ -489,7 +473,7 @@ export class IME {
     // Load phrases
     let phrases = jscin.readLocalStorage(this.kPhrasesDatabase, undefined);
     if (reload || !phrases) {
-      phrases = JSON.parse(this.LoadExtensionResource("tables/tsi.json"));
+      phrases = JSON.parse(await LoadResource("tables/tsi.json"));
       jscin.writeLocalStorage(this.kPhrasesDatabase, phrases);
     }
     this.phrases = phrases;
