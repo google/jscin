@@ -85,7 +85,10 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround。
 
 %MODULE <NAME>
-  指定輸入法模組。目前 JsCIN 唯一支援的是 Crome Extension "CrExtInp"。
+  指定輸入法模組。目前的 JsCIN 除了 %gen_inp 可用的 gen_inp 與 gen_inp2 外，
+  其實曾經支援過 CrExtInp 這個特別的模組，它是專用於跨 Chrome extension
+  的輸入法，例如酷音。 不過隨著 NaCl 的終止，JsCIN/酷音也消失了，所以
+  這個指令現在等於沒用也不該設定。
 
 -----------------------------------------------------------------------------
 JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)

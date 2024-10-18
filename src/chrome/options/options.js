@@ -428,8 +428,6 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
   // id must be safe for jQuery expressions.
   var id = `ime_${encodeId(name)}`;
   var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
-  var kExternalModule = 'CrExtInp';
-  var isRemote = (kExternalModule == module);
 
   var display_name = cname + ' (' + ename + ')';
   var builtin_desc = builtin ? ' [' + _("optionBuiltin") + ']' : "";
@@ -453,7 +451,6 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
         $('.optionTableDetailSource').val(builtin ? _("optionBuiltin") : url);
         $('.optionTableDetailType').text(setting_display_name);
         $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
-        $('#query_keystrokes').prop('disabled', isRemote);
 
         var buttons = [{
           text: ' OK ',
@@ -482,7 +479,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
             } });
         }
 
-        if (!builtin && !isRemote) {
+        if (!builtin) {
           if (url.includes('://')) {
             buttons.push({
               text: _('optionReload'),
