@@ -92,14 +92,28 @@
       </div>
 
       <div id="table_detail_dialog">
-        <span class="optionTableDetail"></span><br/>
-        <span class="optionTableDetailNameHeader"></span>
-        <span class="optionTableDetailName"></span><br/>
-        <span class="optionTableDetailTypeHeader"></span>
-        <span class="optionTableDetailType"></span><br/>
-        <span class="optionTableDetailSourceHeader"></span>
-        <span class="optionTableDetailSource"
-              style="word-wrap: break-word; word-break: break-all;"></span><br/>
+        <span class="optionTableDetail"></span>
+
+        <p>
+          <span class="optionTableDetailNameHeader"></span>
+          <span class="optionTableDetailName"></span>
+        </p>
+
+        <p>
+          <span class="optionTableDetailTypeHeader"></span>
+          <span class="optionTableDetailType"></span>
+        </p>
+
+        <p>
+          <span class="optionTableDetailSourceHeader"></span><br/>
+          &nbsp;
+          <textarea
+              class="optionTableDetailSource"
+              style="word-wrap: break-word; word-break: break-all; resize: none;"
+              rows="2" cols="60" wrap="hard" disabled>
+          </textarea>
+        </p>
+
         <p>
           <input type="checkbox" class="optionQueryKeystrokesCheckbox" id="query_keystrokes">
           <label for="query_keystrokes" class="optionQueryKeystrokes"></label>

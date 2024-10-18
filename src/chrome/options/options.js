@@ -289,7 +289,7 @@ function addTabFile(files) {
           console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.');
           var reader = new FileReader();
           reader.onload = function(event) {
-            addTable(event.target.result);
+            addTable(event.target.result, file.name);
           }
           reader.readAsText(file);
         }
@@ -380,7 +380,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
   var module = metadata.module;
   var url = metadata.url || '';
   // TODO(hungte) ename or name?
-  var builtin = metadata.builtin && (metadata.ename in BuiltinIMs)
+  var builtin = metadata.builtin && (metadata.ename in BuiltinIMs);
   var setting = metadata.setting;
   // id must be safe for jQuery expressions.
   var id = `ime_${encodeId(name)}`;
@@ -407,7 +407,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
   $('#' + id).prepend(icon).click(
       function() {
         $('.optionTableDetailName').text(display_name);
-        $('.optionTableDetailSource').text(builtin ? _("optionBuiltin") : url);
+        $('.optionTableDetailSource').val(builtin ? _("optionBuiltin") : url);
         $('.optionTableDetailType').text(setting_display_name);
         $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
         $('#query_keystrokes').prop('disabled', isRemote);
@@ -425,7 +425,8 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
             $(this).dialog("close");
           } }];
 
-        if (!builtin) {
+        /* Currently we expect at least one IM is enabled. */
+        if (!builtin && config.InputMethods().length > 1) {
           // TODO(hungte) We should not allow removing active IME.
           buttons.push( { text: _('optionRemove'),
             click: function () {
@@ -439,7 +440,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
         }
 
         if (!builtin && !isRemote) {
-          if (url) {
+          if (url.includes('://')) {
             buttons.push({
               text: _('optionReload'),
               click: function() {
