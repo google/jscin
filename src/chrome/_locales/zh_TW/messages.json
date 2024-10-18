@@ -26,9 +26,9 @@
   "optionAddTables": {"message":
     "新增更多輸入法 (*.cin 或 *.gtab):" },
   "optionAddUrl": {"message":
-    "由指定網址(URL)新增輸入法" },
+    "由遠端網址(URL)新增" },
   "optionAddFile": {"message":
-    "由已下載的檔案新增輸入法" },
+    "由已下載的檔案新增" },
   "optionAddDrive": {"message":
     "由 Google Drive 新增輸入法" },
   "optionSaveToDrive": {"message":

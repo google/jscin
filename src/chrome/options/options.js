@@ -95,7 +95,7 @@ async function init() {
 
   $("#add_table_dialog").dialog({
     autoOpen: false,
-    width: 800,
+    width: 500,
     modal: true,
   });
 
@@ -146,6 +146,13 @@ async function init() {
       }
     ]).dialog("open");
   });
+
+  function SameWidth(e1, e2) {
+    const w = Math.max(e1.width(), e2.width());
+    e1.width(w);
+    e2.width(w);
+  }
+  SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
   $('#checkSupportNonChromeOS').prop("checked",
     config.Emulation()).click(function ()
