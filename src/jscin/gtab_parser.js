@@ -26,6 +26,25 @@
 //   };
 // };
 
+export function IsGTabBlob(blob) {
+  /* The TableHead is very large - roughly 86779 bytes. */
+  console.log("IsGTabBlob: blob length:", blob.byteLength);
+  if (blob.byteLength < 0x15300)
+    return false;
+
+  // from gtab_parser, the gtab files start with int32 'version' and it's
+  // usually 0x00, at least unlikely to be a printable string. For CIN files,
+  // the starting byte is usually printable, or 0xEF for UTF8 BOM. So we can
+  // quickly decide the type by checking the first byte.
+  let leading_byte = new Uint8Array(blob.slice(0, 1))[0];
+  if (leading_byte >= 32) {
+    console.log("IsGTabBlob: invalid leading byte:", leading_byte);
+    return false;
+  }
+  console.log("IsGTabBlob: Looks like a GTAB.");
+  return true;
+}
+
 export function parseGtab(arraybuffer) {
 
   let MAX_GTAB_QUICK_KEYS = 46;

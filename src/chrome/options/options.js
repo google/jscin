@@ -6,9 +6,12 @@
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
-import { parseGtab } from "../jscin/gtab_parser.js";
+import { parseGtab, IsGTabBlob } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
-import { Config } from "../config.js";
+import { Config, LoadResource } from "../config.js";
+
+import { AddLogger } from "../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
 
 var table_loading = {};
 var config = new Config();
@@ -18,7 +21,13 @@ await config.Load();
 var bgPage = chrome.extension.getBackgroundPage();
 var jscin = bgPage.jscin;
 var instance = bgPage.croscin.instance;
-var logger = bgPage.croscin.logger;
+
+if (config.Debug()) {
+  logger.enable();
+  window.bgPage = bgPage;
+  window.config = config;
+  window.logger = logger;
+}
 
 var _ = chrome.i18n.getMessage;
 
@@ -33,7 +42,6 @@ var BuiltinIMs = JSON.parse(
 
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
-  console.log(decodeId(v));
   return v;
 }
 
@@ -205,11 +213,11 @@ async function init() {
 function LoadExtensionResource(url) {
   var rsrc = chrome.runtime.getURL(url);
   var xhr = new XMLHttpRequest();
-  console.log("LoadExtensionResource:", url);
+  debug("LoadExtensionResource:", url);
   xhr.open("GET", rsrc, false);
   xhr.send();
   if (xhr.readyState != 4 || xhr.status != 200) {
-    console.log("LoadExtensionResource: failed to fetch:", url);
+    debug("LoadExtensionResource: failed to fetch:", url);
     return null;
   }
   return xhr.responseText;
@@ -219,91 +227,117 @@ function removeFileExtension(filename) {
   return filename.split('.')[0];
 }
 
-function addTableUrl(url) {
-  if (url.replace(/^\s+|s+$/g, "") == "") {
-    setAddTableStatus("URL is empty", true);
-    return;
+function GuessNameFromURL(url) {
+  const guess = removeFileExtension(url.split('\\').pop().split('/').pop().split('?')[0]);
+  return guess || '<Unknown>';
+}
+
+function addTableFromBlob(blob, source) {
+  debug("addTableFromBlob", source, blob);
+
+  if (source instanceof File) {
+    source = source.name;
+  }
+  assert(typeof(source) === 'string', "Source must be either URL or File:", source);
+
+  if (IsGTabBlob(blob)) {
+    try {
+      // No %ename from blob so let's "guess" from the URL name or the file
+      // name.
+      let ename = GuessNameFromURL(source);
+      debug("Parsing GTAB into CIN:", source, ename);
+      let cin = `%ename ${ename}\n` + parseGtab(blob);
+      debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
+      if (addTable(cin)) {
+        debug("addTableFromBlob: success.", source);
+        return true;
+      } else {
+        debug("addTableFromBlob: Failed adding table:", source);
+      }
+    } catch (err) {
+      warn("Failed to parse as GTAB from:", source, err);
+    }
   }
 
-  // Convert github blobs to raw format.
-  url = url.replace(RegExp('^[^:]*://github.com/([^/]*)/([^/]*)/blob/'),
-                    'https://raw.github.com/$1/$2/');
-
-  if (table_loading[url]) {
-    setAddTableStatus("Table is loading", false);
-  } else {
-    table_loading[url] = true;
-
-    setAddTableStatus("Loading...", false);
-    var xhr = new XMLHttpRequest();
-    var showProgress = function(evt) {
-      if (evt.lengthComputable && evt.total > 0) {
-        var percentComplete = evt.loaded / evt.total;
-        // TODO(hungte) Complete the progress bar stuff.
-        // $('#progressbar').progressbar({value: percentComplete});
-      } else {
-        // $('#progressbar').progressbar({value: false});
-      }
-    };
-    xhr.addEventListener("progress", showProgress, false);
-    xhr.onload = function(e) {
-      try {
-        var ename = url;
-        if (ename.includes('/'))
-          ename = ename.split('/').pop().split('?')[0];
-        ename = removeFileExtension(ename);
-        addTable('%ename ' + ename + '\n' + parseGtab(e.currentTarget.response));
-      } catch (error) {
-        console.log(error);
-        console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.')
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener("progress", showProgress, false);
-        xhr.onreadystatechange = function () {
-          if (this.readyState == 4) {
-            if (this.status == 200) {
-              addTable(this.responseText, url);
-            } else {
-              // Update the UI
-              setAddTableStatus("Could not read url.  Server returned " +
-                                this.status, true);
-            }
-            delete table_loading[url];
-          }
-        }
-        xhr.open("GET", url, true);
-        xhr.send(null);
-      }
+  for (let locale of ['utf-8', 'big5', 'gbk', 'gb18030', 'utf-16le', 'utf-16be']) {
+    try {
+      let t = new TextDecoder(locale, {fatal: true}).decode(blob);
+      addTable(t, source);
+      debug("Succesfully added a table:", source, locale, t.substring(0,100).split('\n'));
+      return;
+    } catch (err) {
+      debug("Failed to parse CIN file:", source, locale);
     }
-    xhr.open("GET", url, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.send(null);
   }
 }
 
-function addTabFile(files) {
-  for (var i = 0, file; file = files[i]; i++) {
-    var reader = new FileReader();
+async function addTableUrl(url, progress=true) {
+  let name = GuessNameFromURL(url);
+  debug("addTableUrl:", name, url);
+  try {
+    if (url.replace(/^\s+|s+$/g, "") == "") {
+      setAddTableStatus("URL is empty.", true);
+      return;
+    }
+    // Convert github blobs to raw format.
+    url = url.replace(RegExp('^[^:]*://github.com/([^/]*)/([^/]*)/blob/'),
+      'https://raw.github.com/$1/$2/');
 
-    reader.onload = function(file) {
-      return function(e) {
-        var ename = removeFileExtension(file.name);
-        try {
-          addTable('%ename ' + ename + '\n' + parseGtab(e.target.result));
-        } catch (error) {
-          if(error.name != 'URIError') {
-            throw error;
-          }
-          console.log('addTabFile: Cannot be parsed as gtab. Try cin instead.');
-          var reader = new FileReader();
-          reader.onload = function(event) {
-            addTable(event.target.result, file.name);
-          }
-          reader.readAsText(file);
+    if (table_loading[url]) {
+      setAddTableStatus(`Still loading <${name}>...`, false);
+      debug("Already loading:", url);
+      return;
+    }
+    table_loading[url] = true;
+    setAddTableStatus(`Loading <${name}>...`, false);
+
+    let blob;
+    if (progress) {
+      let xhr = new XMLHttpRequest();
+      xhr.addEventListener("progress", (e)=> {
+        debug("progress", e);
+        if (e.lengthComputable && e.total > 0) {
+          let pct = Math.round(e.loaded / e.total * 100);
+          setAddTableStatus(`Loading <${name}>: ${pct}%`, false);
+          // $('#progressbar').progressbar({value: percentComplete});
+        } else {
+          setAddTableStatus(`Loading <${name}>: ${e.loaded} bytes`, false);
         }
-      };
-    } (file);
+      }, false);
+      xhr.addEventListener("load", (e)=> {
+        blob = e.currentTarget.response;
+        addTableFromBlob(blob, url);
+        delete table_loading[url];
+      });
+      xhr.open("GET", url, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.send(null);
+    } else {
+      blob = await LoadResource(url, true);
+      addTableFromBlob(blob, url);
+      delete table_loading[url];
+    }
+  } catch (err) {
+    delete table_loading[url];
+    error("addTabUrl: error", url, err);
+    setAddTableStatus(`Failed to load <${name}>.  Server returned ${this.status}`, true);
+    return;
+  }
+}
 
-    reader.readAsArrayBuffer(file);
+async function addTabFile(files) {
+  for (let f of files) {
+    debug("addTabFile", f);
+    let fr = new FileReader();
+    fr.addEventListener("load", (event) => {
+      addTableFromBlob(fr.result, f);
+    });
+    fr.addEventListener("error", (event) => {
+      error("Failed loading file:", f);
+    });
+
+    // Trigger the read event.
+    fr.readAsArrayBuffer(f);
   }
 }
 
@@ -318,7 +352,7 @@ function addTable(content, url) {
     if (metadata) {
       if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
         setAddTableStatus("Table not added", true);
-        return;
+        return false;
       } else {
         $('#ime_' + encodeId(name)).remove();
       }
@@ -333,18 +367,20 @@ function addTable(content, url) {
     // jscin.install_input_method.
     var metadata = jscin.getTableMetadatas()[name];
     addCinTableToList(name, metadata, '#enabled_im_list', true);
-    setAddTableStatus("Table added successfully", false);
+    setAddTableStatus(`Table added successfully: ${name}`, false);
     config.InsertInputMethod(name);
+    return true;
   } else {
     var msg = result[1];
-    setAddTableStatus("Could not parse cin file. " + msg, true);
+    setAddTableStatus("Could not parse CIN file. " + msg, true);
+    return false;
   }
 }
 
-function setAddTableStatus(status, error) {
+function setAddTableStatus(status, err) {
   var status_field = document.getElementById("add_table_status");
   status_field.innerText = status;
-  if (error) {
+  if (err) {
     status_field.className = "status_error";
   } else {
     status_field.className = "status_ok";
@@ -370,7 +406,7 @@ function getSettingOption(data) {
             !data.data.chardef[key].includes(opt.detect[key]))
           return;
       }
-      console.log("matched:", opt);
+      debug("getSettingOption: matched:", opt);
       matched = opt;
     });
     var result = matched || from_table || setting;
@@ -451,7 +487,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
             buttons.push({
               text: _('optionReload'),
               click: function() {
-                console.log(metadata);
+                debug("optionReload:", metadata);
                 if (confirm(_("optionAreYouSure"))) {
                   addTableUrl(url, metadata.setting);
                 }
@@ -482,7 +518,7 @@ function loadCinTables() {
 }
 
 function removeCinTable(name) {
-  console.log('removeCinTable:', name);
+  debug('removeCinTable:', name);
   if(jscin.getCrossQuery() == name) {
     jscin.setCrossQuery('');
   }
