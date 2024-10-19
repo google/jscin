@@ -9,7 +9,6 @@ import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc_content");
 
 import { $, jQuery } from "../jquery/jquery.js";
-import { jscin } from "../jscin/jscin.js";
 import { getKeyDescription, hasCtrlAltMeta } from "../jscin/key_event.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
@@ -165,11 +164,20 @@ export class ContentIPCHost {
     }
   }
 
+  getGuid() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16).substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+  }
+
   FocusHandler(ev) {
     let node = ev.target;
     debug("FocusHandler", ev.target, document.activeElement);
     this.node = node;
-    this.guid = jscin.guid();
+    this.guid = this.getGuid();
     this.SendMessage("ImplFocus", this.guid);
   }
 
