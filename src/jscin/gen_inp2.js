@@ -118,28 +118,8 @@ export class GenInp2 extends BaseInputMethod
       // Only seen on greek.cin
       this.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE = true;
     }
-
-    // Adjust any context data.
     if (this.opts.OPT_SELKEY_SHIFT) {
-      let prefix = ' ';
-      // Space (' ') cannot be set in CIN selkey, so input methods like Dayi
-      // and Boshiamy that expecting to select the first candidate by Space,
-      // they need SELKEY_SHIFT. However when SPACE_AUTOUP is also set (like
-      // Boshiamy), SPACE = commit the first candidate so with RelatedText
-      // turned on, SPACE will keep committing unexpected words so '0' may a
-      // better choice - and implementations like Boshiamy on Mac did use 0.
-      // Some tables already took that into consideration and some don't.
-      // We should do a 'guess' here for better user experience.
-      if (this.opts.OPT_SPACE_AUTOUP) {
-        if (this.selkey.startsWith('012')) {
-          prefix = '';
-          debug("SELKEY_SHIFT ignored because AUTO_UPCHAR + selkey starts with 0");
-        } else if (this.selkey.startsWith('123') && !this.selkey.includes('0')) {
-          prefix = '0';
-          debug("SELKEY_SHIFT shifted with 0");
-        }
-      }
-      this.selkey = prefix + this.selkey;
+      this.selkey = ' ' + this.selkey;
     }
   }
 

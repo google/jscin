@@ -11,6 +11,7 @@
 
 import { parseCin } from "./cin_parser.js";
 import { LZString } from "./lz-string.js";
+import { applyInputMethodTableQuirks } from './quirks.js';
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin");
@@ -174,6 +175,7 @@ export class JavaScriptInputMethod
     let module = this.input_methods[name]["module"];
     if (!data)
       data = this.getTableData(name);
+    applyInputMethodTableQuirks(data);
     let instance = new module(name, data);
     instance.init(context);
     this.addons.forEach((addon) => {
