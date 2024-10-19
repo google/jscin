@@ -93,6 +93,26 @@
   "crossQueryAuxText": {"message":
     "反查: "},
 
+  "tableStatusURLisEmpty": {"message":
+    "空白網址無法下載。" },
+  "tableStatusStillDownloadingName": {"message":
+    "仍在下載 <$1>..." },
+  "tableStatusDownloadingName": {"message":
+    "下載 <$1>..." },
+  "tableStatusDownloadingNamePct": {"message":
+    "下載 <$1>: $2%" },
+  "tableStatusDownloadingNameBytes": {"message":
+    "下載 <$1>: $2 位元組..." },
+  "tableStatusDownloadedParseName": {"message":
+    "已下載完成 <$1>, 開始分析..." },
+  "tableStatusDownloadFailNameStatus": {"message":
+    "無法下載  <$1>.  訊息: $2" },
+   "tableStatusNotAdded": {"message":
+     "未載入輸入法表格。" },
+   "tableStatusAddedName": {"message":
+     "成功新增輸入法: $1" },
+   "tableStatusFailedParsingMsg": {"message":
+     "無法分析檔案: $1" },
 
   "dummy": {"message": "" }
 }

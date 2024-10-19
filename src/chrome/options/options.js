@@ -263,7 +263,7 @@ async function addTableUrl(url, progress=true) {
   debug("addTableUrl:", name, url);
   try {
     if (url.replace(/^\s+|s+$/g, "") == "") {
-      setAddTableStatus("URL is empty.", true);
+      setAddTableStatus(_("tableStatusURLisEmpty"), true);
       return;
     }
     // Convert github blobs to raw format.
@@ -271,12 +271,12 @@ async function addTableUrl(url, progress=true) {
       'https://raw.github.com/$1/$2/');
 
     if (table_loading[url]) {
-      setAddTableStatus(`Still loading <${name}>...`, false);
+      setAddTableStatus(_("tableStatusStillDownloadingName", name), false);
       debug("Already loading:", url);
       return;
     }
     table_loading[url] = true;
-    setAddTableStatus(`Loading <${name}>...`, false);
+    setAddTableStatus(_("tableStatusDownloadingName", name), false);
 
     let blob;
     if (progress) {
@@ -285,29 +285,41 @@ async function addTableUrl(url, progress=true) {
         debug("progress", e);
         if (e.lengthComputable && e.total > 0) {
           let pct = Math.round(e.loaded / e.total * 100);
-          setAddTableStatus(`Loading <${name}>: ${pct}%`, false);
-          // $('#progressbar').progressbar({value: percentComplete});
+          setAddTableStatus(_("tableStatusDownloadingNamePct", [name, pct]), false);
         } else {
-          setAddTableStatus(`Loading <${name}>: ${e.loaded} bytes`, false);
+          setAddTableStatus(_("tableStatusDownloadingNameBytes", [name, e.loaded]), false);
         }
       }, false);
       xhr.addEventListener("load", (e)=> {
+        setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
         blob = e.currentTarget.response;
         addTableFromBlob(blob, url);
         delete table_loading[url];
       });
+      xhr.onreadystatechange = (e) => {
+        if (xhr.readyState != 4)
+          return;
+        if (xhr.status == 200) {
+          // should be handled by the 'load' event.
+        } else {
+          debug(xhr);
+          setAddTableStatus(_("tableStatusDownloadFailNameStatus", [name, xhr.statusText]), true);
+          delete table_loading[url];
+        }
+      }
       xhr.open("GET", url, true);
       xhr.responseType = 'arraybuffer';
       xhr.send(null);
     } else {
       blob = await LoadResource(url, true);
+      setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
       addTableFromBlob(blob, url);
       delete table_loading[url];
     }
   } catch (err) {
     delete table_loading[url];
     error("addTabUrl: error", url, err);
-    setAddTableStatus(`Failed to load <${name}>.  Server returned ${this.status}`, true);
+    setAddTableStatus(_("tableStatusDownloadFailNameStatus", [name, this.status]), true);
     return;
   }
 }
@@ -338,7 +350,7 @@ function addTable(content, url) {
     var metadata = jscin.getTableMetadatas()[name];
     if (metadata) {
       if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
-        setAddTableStatus("Table not added", true);
+        setAddTableStatus(_("tableStatusNotAdded"), true);
         return false;
       } else {
         $('#ime_' + encodeId(name)).remove();
@@ -354,12 +366,12 @@ function addTable(content, url) {
     // jscin.install_input_method.
     var metadata = jscin.getTableMetadatas()[name];
     addCinTableToList(name, metadata, '#enabled_im_list', true);
-    setAddTableStatus(`Table added successfully: ${name}`, false);
+    setAddTableStatus(_("tableStatusAddedName", name), false);
     config.InsertInputMethod(name);
     return true;
   } else {
     var msg = result[1];
-    setAddTableStatus("Could not parse CIN file. " + msg, true);
+    setAddTableStatus(_("tableStatusFailedParsingMsg", msg), true);
     return false;
   }
 }

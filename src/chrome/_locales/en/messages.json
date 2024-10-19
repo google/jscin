@@ -90,6 +90,27 @@
   "optionReloadExtensionOrRestart": {"message":
     "Please reload extension or restart browser." },
 
+  "tableStatusURLisEmpty": {"message":
+    "URL is empty." },
+  "tableStatusStillDownloadingName": {"message":
+    "Still downloading <$1>..." },
+  "tableStatusDownloadingName": {"message":
+    "Downloading <$1>..." },
+  "tableStatusDownloadingNamePct": {"message":
+    "Downloading <$1>: $2%" },
+  "tableStatusDownloadingNameBytes": {"message":
+    "Downloading <$1>: $2 bytes..." },
+  "tableStatusDownloadedParseName": {"message":
+    "Downloaded <$1>, starting to parse..." },
+  "tableStatusDownloadFailNameStatus": {"message":
+    "Failed to download <$1>. Server returned: $2" },
+   "tableStatusNotAdded": {"message":
+     "Table not added." },
+   "tableStatusAddedName": {"message":
+     "Table added successfully: $1" },
+   "tableStatusFailedParsingMsg": {"message":
+     "Could not parse the file: $1" },
+
   "crossQueryAuxText": {"message":
     "Look up: "},
 
