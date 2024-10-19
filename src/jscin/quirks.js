@@ -12,6 +12,10 @@ function BoshiamyQuirks(data) {
   if (!(data.SELKEY_SHIFT && data.SPACE_AUTOUP))
     return false;
 
+  // Check options/builtin_options.json for Boshiamy detection.
+  if (!data.chardef['ca'].includes('\u5915'))
+    return false;
+
   // Space (' ') cannot be set in CIN selkey, so input methods like Dayi
   // and Boshiamy that expecting to select the first candidate by Space,
   // they need SELKEY_SHIFT. However when SPACE_AUTOUP is also set (like
@@ -25,10 +29,10 @@ function BoshiamyQuirks(data) {
   // - Official gcin (boshiamy-*.gtab):           123456789
   // - Official cin  (boshiamy-c.cin, liu57.cin): 0123456789
   // - Github cin-tables (boshiamy.cin):          1234567890
-  // - liu5.cin:                1234567890
-  // - liu7.cin:                0123456789
-  // - noseeing.cin (LuneIME):  1234567890, %space_style=1
-  // - noseeing-12.gtb:         1234567890
+  // - liu5.cin:                                  1234567890
+  // - liu7.cin:                                  0123456789
+  // - noseeing.cin (LuneIME):                    1234567890, %space_style=1
+  // - noseeing-12.gtb:                           1234567890
 
   const known_list = [
     '123456789',
