@@ -8,7 +8,8 @@
 import { $, jQuery } from "../jquery/jquery-ui.js";
 import { parseGtab, IsGTabBlob } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
-import { Config, LoadResource } from "../config.js";
+import { Config } from "../config.js";
+import { LoadJSON, LoadArrayBuffer } from "../jscin/storage.js";
 
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
@@ -37,8 +38,8 @@ function SetElementsText(...args) {
   }
 }
 
-var BuiltinIMs = JSON.parse(await LoadResource("tables/builtin.json"));
-var BuiltinOptions = JSON.parse(await LoadResource("options/builtin_options.json"));
+var BuiltinIMs = await LoadJSON("tables/builtin.json");
+var BuiltinOptions = await LoadJSON("options/builtin_options.json");
 
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
@@ -87,17 +88,14 @@ async function init() {
 
   // TODO(hungte) we should autodetect again after source is specified.
   var select = $("#add_table_setting");
-  var setting_options = JSON.parse(await LoadResource("options/builtin_options.json"));
   select.empty();
-  for (var i in setting_options) {
-    var setting = setting_options[i];
-    var option = $("<option>", {"id": "option" + i});
-    option.text(setting.ename + ' ' + setting.cname);
-    if ("default" in setting && setting["default"]) {
+  BuiltinOptions.forEach((entry, i) => {
+    var option = $("<option>", {id: `option${i}`});
+    option.text(`${entry.ename} ${entry.cname}`);
+    if (entry.default)
       option.attr("selected", "selected");
-    }
     select.append(option);
-  }
+  });
 
   $("#add_table_dialog").attr("title", _("optionAddTable"));
 
@@ -311,7 +309,7 @@ async function addTableUrl(url, progress=true) {
       xhr.responseType = 'arraybuffer';
       xhr.send(null);
     } else {
-      blob = await LoadResource(url, true);
+      blob = await LoadArrayBuffer(url, true);
       setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
       addTableFromBlob(blob, url);
       delete table_loading[url];
@@ -387,13 +385,12 @@ function setAddTableStatus(status, err) {
 }
 
 function getSettingOption(data) {
-  var setting_options = BuiltinOptions;
-  var setting = setting_options[
+  var setting = BuiltinOptions[
       document.getElementById("add_table_setting").selectedIndex];
   if (setting.auto_detect) {
     var matched = undefined;
     var from_table = undefined;
-    setting_options.forEach(function (opt) {
+    BuiltinOptions.forEach(function (opt) {
       if (opt.from_table)
         from_table = opt;
       if (!opt.detect || matched)

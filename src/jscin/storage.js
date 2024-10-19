@@ -6,6 +6,8 @@
  */
 
 import { LZString } from "./lz-string.js";
+import { AddLogger } from "./logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("storage");
 
 // A general asynchronous storage provider.
 export class Storage {
@@ -98,4 +100,59 @@ export class ChromeStorage extends Storage {
   async remove(key) {
     return this.storage.remove(key, ()=>{});
   }
+}
+
+export async function LoadResource(url) {
+  let fetcher = fetch;
+  if (!url.includes('://')) {
+    if (globalThis.chrome && chrome.runtime) {
+      // Chrome browser (extension only)
+      url = chrome.runtime.getURL(url);
+    } else {
+      // Node.js
+      fetcher = (await import("file-fetch")).default;
+    }
+  }
+
+  debug("LoadResource:", url);
+  try {
+    const response = await fetcher(url);
+    if (!response.ok) {
+      trace("LoadResource: response is not OK:", url, response.status);
+      return;
+    }
+    return response;
+  } catch (err) {
+    trace("LoadResource: caught error:", err);
+  }
+  return;
+}
+
+export async function LoadText(url) {
+  return (await LoadResource(url))?.text();
+}
+export async function LoadJSON(url) {
+  return (await LoadResource(url))?.json();
+}
+
+async function response2Blob(response) {
+  if (!response)
+    return response;
+  if (response.blob)
+    return response.blob();
+  return new Blob([await response.text()], {type: 'plain/text'});
+}
+
+export async function LoadBlob(url) {
+  // node.js file-fetch does not support blob().
+  return response2Blob(await LoadResource(url));
+}
+export async function LoadArrayBuffer(url) {
+  // node.js file-fetch does not support arrayBuffer().
+  let response = await LoadResource(url);
+  if (!response)
+    return response;
+  if (response.arrayBuffer)
+    return response.arrayBuffer();
+  return (await response2Blob(response)).arrayBuffer();
 }

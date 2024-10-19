@@ -19,6 +19,7 @@
   "homepage": "https://github.com/google/jscin",
   "license": "Apache-2.0",
   "dependencies": {
+    "file-fetch": "^2.0.0",
     "node-localstorage": "^3.0.5"
   }
 }

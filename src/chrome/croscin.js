@@ -5,9 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { Config, LoadResource } from "./config.js";
+import { Config  } from "./config.js";
 import { jscin } from "./jscin/all.js";
 import { getKeyDescription } from "./jscin/key_event.js";
+import { LoadJSON, LoadText } from "./jscin/storage.js";
 
 import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
 import { BackgroundIPCHost } from "./emulation/ipc_background.js";
@@ -449,19 +450,18 @@ export class IME {
   }
 
   async LoadBuiltinTables(reload) {
-    let list = await LoadResource("tables/builtin.json");
+    let list = await LoadJSON("tables/builtin.json");
     if (!list) {
       debug("croscin.LoadBuiltinTables: No built-in tables.");
       return;
     }
     let table_metadata = jscin.getTableMetadatas();
-    list = JSON.parse(list);
     for (let table_name in list) {
       if (table_name in table_metadata && !reload) {
         debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
-      let content = await LoadResource("tables/" + list[table_name]);
+      let content = await LoadText("tables/" + list[table_name]);
       if (!content) {
         debug("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;

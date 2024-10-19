@@ -6,7 +6,7 @@
  */
 
 import { jscin } from "./jscin.js";
-import { LoadResource } from "../config.js";
+import { LoadJSON } from "./storage.js";
 import { BaseInputAddon } from "./base_addon.js";
 import { getUnshiftedKey, hasCtrlAltMeta } from "./key_event.js";
 
@@ -23,7 +23,7 @@ async function LoadPhrases(reload) {
   // Load phrases
   phrases = jscin.readLocalStorage(kPhrasesDatabase, undefined);
   if (reload || !phrases) {
-    phrases = JSON.parse(await LoadResource("tables/tsi.json"));
+    phrases = await LoadJSON("tables/tsi.json");
     jscin.writeLocalStorage(kPhrasesDatabase, phrases);
   }
 }
