@@ -8,6 +8,7 @@
 import { jscin } from "./jscin.js";
 import { LoadResource } from "../config.js";
 import { BaseInputAddon } from "./base_addon.js";
+import { getUnshiftedKey, hasCtrlAltMeta } from "./key_event.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("addon.RelatedText");
@@ -73,7 +74,7 @@ export class AddonRelatedText extends BaseInputAddon
   keystroke(ctx, ev)
   {
     debug("Check key code = ", ev.code);
-    if (!ctx.AddonRelatedText || jscin.has_ctrl_alt_meta(ev)||
+    if (!ctx.AddonRelatedText || hasCtrlAltMeta(ev)||
         ev.key == 'Shift')
       return this.im.keystroke(ctx, ev);
 
@@ -86,7 +87,7 @@ export class AddonRelatedText extends BaseInputAddon
     this.RefreshShiftMap(ctx);
     if (this.last_mcch && ev.type == 'keydown' && ctx.mcch === this.last_mcch) {
       ctx.mcch = '';
-      let k = jscin.get_unshifted_key(ev);
+      let k = getUnshiftedKey(ev);
       debug("Unshifted:", k);
       if ((ev.shiftKey || ctx.auto_compose) &&
           this.InSelectionKey(ctx, k) &&

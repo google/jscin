@@ -7,6 +7,7 @@
 
 import { Config, LoadResource } from "./config.js";
 import { jscin } from "./jscin/all.js";
+import { getKeyDescription } from "./jscin/key_event.js";
 
 import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
 import { BackgroundIPCHost } from "./emulation/ipc_background.js";
@@ -175,7 +176,7 @@ export class IME {
     if (this.imctx.check_accepted_keys &&
         !this.ime_api.onImplAcceptedKeys &&
         !this.im.get_accepted_keys(this.imctx).includes(
-            jscin.get_key_description(keyData))) {
+          getKeyDescription(keyData))) {
       debug("Key not accepted", keyData);
       return false;
     }

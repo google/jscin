@@ -7,7 +7,7 @@
 
 import {jscin} from "../jscin/jscin.js";
 import {parseCin} from "../jscin/cin_parser.js";
-import {CreateKeyEvent} from "../jscin/key_event.js";
+import {KeyEvent} from "../jscin/key_event.js";
 import "../jscin/base_inp.js";
 import "../jscin/gen_inp2.js";
 
@@ -101,7 +101,7 @@ async function console_main(argv) {
       str = ' ';
     }
     for (let i in str) {
-      let ev = CreateKeyEvent(str[i], keycode);
+      let ev = new KeyEvent(str[i], keycode);
       print("# Simulating:", ev.key, '[', ev.code, ']');
       Simulate(ev);
     }

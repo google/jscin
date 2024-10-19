@@ -3,7 +3,7 @@
 
 import {parseCin} from '../jscin/cin_parser.js';
 import {jscin} from '../jscin/jscin.js';
-import {CreateKeyEvent} from '../jscin/key_event.js';
+import {KeyEvent} from '../jscin/key_event.js';
 
 import '../jscin/base_inp.js';
 import '../jscin/gen_inp2.js';
@@ -17,7 +17,7 @@ function simulate(inst, inpinfo, input, result, expects) {
   var committed = '';
 
   for (var i in input) {
-    var keyinfo = CreateKeyEvent(input[i]);
+    var keyinfo = new KeyEvent(input[i]);
     var ret = inst.keystroke(inpinfo, keyinfo);
     print('ret=', ret, ", inpinfo: ", inpinfo);
 

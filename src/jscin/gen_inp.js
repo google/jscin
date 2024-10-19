@@ -7,6 +7,7 @@
 
 import {jscin} from "./jscin.js";
 import {BaseInputMethod} from "./base_inp.js";
+import {hasCtrlAltMeta} from "./key_event.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp");
@@ -569,7 +570,7 @@ export class GenInp extends BaseInputMethod
 
         len = self.keystroke.length;
 
-        if (jscin.has_ctrl_alt_meta(keyinfo)) { // don't support qphrase
+        if (hasCtrlAltMeta(keyinfo)) { // don't support qphrase
           return jscin.IMKEY_IGNORE;
         } else if (keyinfo.shiftKey) {
           if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {

@@ -98,7 +98,7 @@ export class BaseInputMethod
 
   // TODO(hungte) See if we can move this into context.
   // Called when system wants to get a list of allowed key strokes.
-  // Note each value must follow jscin.get_key_description.
+  // Note each value must follow key_event.getKeyDescription.
   get_accepted_keys(ctx)
   {
     let has_keystroke = (ctx.keystroke || '').length;

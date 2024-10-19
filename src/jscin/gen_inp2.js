@@ -12,6 +12,7 @@
 // TODO(hungte) Change mcch (candidates) to array instead of a string.
 
 import {jscin} from "./jscin.js";
+import {hasCtrlAltMeta} from "./key_event.js";
 import {BaseInputMethod} from "./base_inp.js";
 
 import { AddLogger } from "./logger.js";
@@ -565,7 +566,7 @@ export class GenInp2 extends BaseInputMethod
   }
   ProcessKeystroke(ctx, ev) {
     debug("ProcessKeystroke", ev);
-    if (ev.type != 'keydown' || jscin.has_ctrl_alt_meta(ev)) {
+    if (ev.type != 'keydown' || hasCtrlAltMeta(ev)) {
       return this.ResultIgnored(ctx);
     }
 

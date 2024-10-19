@@ -10,6 +10,7 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc_co
 
 import { $, jQuery } from "../jquery/jquery.js";
 import { jscin } from "../jscin/jscin.js";
+import { getKeyDescription, hasCtrlAltMeta } from "../jscin/key_event.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
 function CreateImeFrame () {
@@ -97,7 +98,7 @@ export class ContentIPCHost {
     // 'array.includes' if we want to look at ev.code.
     // Also, we can't check ev.shiftKey because that will be false when the key
     // is released (KeyUp).
-    return ev.key == 'Shift' && !jscin.has_ctrl_alt_meta(ev);
+    return ev.key == 'Shift' && !hasCtrlAltMeta(ev);
   }
 
   KeyUpEventHandler(ev) {
@@ -130,7 +131,7 @@ export class ContentIPCHost {
     if (!this.im_accepted_keys)
       return;
 
-    let desc = jscin.get_key_description(ev);
+    let desc = getKeyDescription(ev);
     if (this.im_accepted_keys.includes(desc)) {
       ev.preventDefault();
       ev.stopPropagation();
