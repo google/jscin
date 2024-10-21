@@ -50,6 +50,8 @@ export class CompressedStorage extends Storage {
       return def_val;
 
     let value = await super.get(key);
+    if (!value)
+      return value;
     if (this.isCompressed(value))
       value = LZString.decompress(value.substring(1));
     return JSON.parse(value);
