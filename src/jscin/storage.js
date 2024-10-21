@@ -16,6 +16,7 @@ export class Storage {
       backend = globalThis.localStorage || {};
     }
     this.storage = backend;
+    this.callbacks = [];
   }
   async get(key, def_val) {
     if (def_val && !(await this.has(key)))
@@ -23,16 +24,36 @@ export class Storage {
     return this.storage[key];
   }
   async set(key, value) {
+    let changes = {newValue: value};
+    if (key in this.storage) {
+      changes.oldValue = this.storage[key];
+    }
     this.storage[key] = value;
+    this.onChanged({[key]: changes});
   }
   async remove(key) {
+    let v = this.storage[key];
     delete this.storage[key];
+    this.onChanged({[key]: {oldValue: v}});
   }
   async has(key) {
     return key in this.storage;
   }
   async getKeys() {
     return Object.keys(this.storage);
+  }
+  listen(callback) {
+    this.callbacks.push(callback);
+  }
+  onChanged(changes, namespace) {
+    if (!this.callbacks.length)
+      return;
+    debug("onChanged:", changes, "namespace:", namespace);
+    // namespace may be undefined.
+    if ((namespace && namespace != 'local'))
+      return;
+    for (let c of this.callbacks)
+      c(changes);
   }
 }
 
@@ -67,6 +88,17 @@ export class CompressedStorage extends Storage {
     if (this.needCompress(v))
       v = this.prefix + LZString.compress(v);
     return super.set(key, v);
+  }
+  onChanged(changes, namespace) {
+    for (let k in changes) {
+      for (let t of ["newValue", "oldValue"]) {
+        if (t in changes[k]) {
+          changes[k][t] = this.getReturnValue(changes[k][t]);
+        }
+      }
+    }
+    debug("CompressedStorage: changes are:", changes);
+    super.onChanged(changes, namespace);
   }
 }
 
@@ -110,6 +142,12 @@ export class ChromeStorage extends Storage {
         resolve(Object.keys(items));
       });
   });
+  }
+  listen(callback) {
+    if (!this.callbacks.length && this.storage.onChanged) {
+      this.storage.onChanged.addListener(this.onChanged.bind(this));
+    }
+    super.listen(callback);
   }
 }
 
