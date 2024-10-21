@@ -31,6 +31,9 @@ export class Storage {
   async has(key) {
     return key in this.storage;
   }
+  async getKeys() {
+    return Object.keys(this.storage);
+  }
 }
 
 // A storage provider based on localStorage with compression
@@ -45,16 +48,19 @@ export class CompressedStorage extends Storage {
   needCompress(value) {
     return value.startsWith(this.prefix) || value.length >= 100;
   }
-  async get(key, def_val) {
-    if (def_val && !(await this.has(key)))
-      return def_val;
-
-    let value = await super.get(key);
+  getReturnValue(value) {
     if (!value)
       return value;
     if (this.isCompressed(value))
       value = LZString.decompress(value.substring(1));
     return JSON.parse(value);
+  }
+  async get(key, def_val) {
+    // def_val can't be decompressed so we have to handle it first.
+    if (def_val && !(await this.has(key)))
+      return def_val;
+
+    return this.getReturnValue(await super.get(key));
   }
   async set(key, value) {
     let v = JSON.stringify(value);
@@ -91,16 +97,19 @@ export class ChromeStorage extends Storage {
       });
     });
   }
-  async has(key) {
-    // TODO switch to getKeys after Chrome 130 is widely available.
-    return new Promise((resolve) => {
-      return this.storage.get(null, (v)=>{
-        resolve(Object.keys(v).includes(key));
-      });
-    });
-  }
   async remove(key) {
     return this.storage.remove(key, ()=>{});
+  }
+  async has(key) {
+    return (await this.getKeys()).includes(key);
+  }
+  async getKeys() {
+    // TODO switch to getKeys after Chrome 130 is widely available.
+    return new Promise((resolve) => {
+      this.storage.get(null, (items) => {
+        resolve(Object.keys(items));
+      });
+  });
   }
 }
 
