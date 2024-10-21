@@ -131,9 +131,7 @@ export function parseCin(cin_input) {
     let r = parseLocales(ename);
     if (!r || !r.en)
       return;
-    if (!('intlname' in parsed)) {
-      parsed.intlname = ename;
-    }
+    parsed.intlname = parsed.intlname || ename;
     parsed.ename = r.en;
   }
 
