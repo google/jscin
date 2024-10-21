@@ -461,12 +461,13 @@ export class IME {
         debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
-      let content = await LoadText("tables/" + list[table_name]);
+      let url = chrome.runtime.getURL("tables/" + list[table_name]);
+      let content = await LoadText(url);
       if (!content) {
         debug("croscin.LoadBuiltinTables: Failed to load:", table_name);
         continue;
       }
-      jscin.install_input_method(null, content, {builtin: true});
+      jscin.install_input_method(null, content, {builtin: true, url: url});
     }
 
   }

@@ -89,6 +89,7 @@ async function init() {
   // TODO(hungte) we should autodetect again after source is specified.
   var select = $("#add_table_setting");
   select.empty();
+
   BuiltinOptions.forEach((entry, i) => {
     var option = $("<option>", {id: `option${i}`});
     option.text(`${entry.ename} ${entry.cname}`);
@@ -418,7 +419,8 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
   var module = metadata.module;
   var url = metadata.url || '';
   // TODO(hungte) ename or name?
-  var builtin = metadata.builtin && (metadata.ename in BuiltinIMs);
+  var ext_url = chrome.runtime.getURL("tables/");
+  var builtin = (metadata.builtin || url.startsWith(ext_url)) && (metadata.ename in BuiltinIMs);
   var setting = metadata.setting;
   // id must be safe for jQuery expressions.
   var id = `ime_${encodeId(name)}`;
@@ -443,7 +445,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
   $('#' + id).prepend(icon).click(
       function() {
         $('.optionTableDetailName').text(display_name);
-        $('.optionTableDetailSource').val(builtin ? _("optionBuiltin") : url);
+        $('.optionTableDetailSource').val(url);
         $('.optionTableDetailType').text(setting_display_name);
         $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
 
@@ -474,18 +476,16 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
             } });
         }
 
-        if (!builtin) {
-          if (url.includes('://')) {
-            buttons.push({
-              text: _('optionReload'),
-              click: function() {
-                debug("optionReload:", metadata);
-                if (confirm(_("optionAreYouSure"))) {
-                  addTableUrl(url, metadata.setting);
-                }
-                $(this).dialog("close");
-              }});
-          }
+        if (url && url.includes('://')) {
+          buttons.push({
+            text: _('optionReload'),
+            click: function() {
+              debug("optionReload:", metadata);
+              if (confirm(_("optionAreYouSure"))) {
+                addTableUrl(url, metadata.setting);
+              }
+              $(this).dialog("close");
+            }});
         }
         $('#table_detail_dialog').dialog({
           title: _("optionTableDetail"),
