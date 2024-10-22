@@ -55,6 +55,7 @@ export class GenInp2 extends BaseInputMethod
     let opts_remap = {
       SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
+      SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
       AUTO_FULLUP: 'OPT_COMMIT_ON_FULL'
     };
@@ -87,6 +88,7 @@ export class GenInp2 extends BaseInputMethod
         // GTAB_space_auto_first_any: Boshiamy
         this.opts.OPT_SPACE_AUTOUP = true;
         this.opts.OPT_SELKEY_SHIFT = true;
+        this.opts.OPT_SPACE_RESET = true;
         break;
 
       case 2:
@@ -162,8 +164,14 @@ export class GenInp2 extends BaseInputMethod
     // beep.
   }
 
-  ResultError(ctx) {
-    this.NotifyError(ctx);
+  ResultError(ctx, key) {
+    if (this.opts.OPT_SPACE_RESET && key == ' ') {
+      // TODO we should display the current (wrong) composition in a different
+      // color to indicate it's error... Maybe in auxiliaryText?
+      this.ResetContext(ctx);
+    } else {
+      this.NotifyError(ctx);
+    }
     return jscin.IMKEY_ABSORB;
   }
 
@@ -436,11 +444,11 @@ export class GenInp2 extends BaseInputMethod
     return this.CommitText(ctx, index);
   }
 
-  ConvertComposition(ctx) {
+  ConvertComposition(ctx, key) {
     if (this.IsEmptyComposition(ctx))
       return this.ResultIgnored(ctx);
     if (!this.PrepareCandidates(ctx, false)) {
-      return this.ResultError(ctx);
+      return this.ResultError(ctx, key);
     }
     this.ShiftState(ctx);
     if (this.IsSingleCandidate(ctx) || this.opts.OPT_SPACE_AUTOUP) {
@@ -466,7 +474,7 @@ export class GenInp2 extends BaseInputMethod
         return this.ResultProcessed(ctx);
 
       case ' ':
-        return this.ConvertComposition(ctx);
+        return this.ConvertComposition(ctx, key);
 
       default:
         // Some keys may be EndKey, SelectionKey, and CompositionKey at the
@@ -487,30 +495,30 @@ export class GenInp2 extends BaseInputMethod
         if (this.CanDoComposition(ctx, key)) {
           if (this.IsEndKey(ctx, key)) {
             this.AddComposition(ctx, key);
-            return this.ConvertComposition(ctx);
+            return this.ConvertComposition(ctx, key);
           }
         } else {
           if (this.IsSelectionKey(ctx, key) && !this.IsEmptyCandidates(ctx)) {
             if (this.SelectCommit(ctx, key))
               return this.ResultCommit(ctx);
-            return this.ResultError(ctx);
+            return this.ResultError(ctx, key);
           }
         }
 
         if (this.IsCompositionKey(ctx, key) || this.CanDoComposition(ctx, key)) {
           if (!this.AddComposition(ctx, key))
-            return this.ResultError(ctx);
+            return this.ResultError(ctx, key);
 
           if (this.opts.OPT_COMMIT_ON_FULL && this.IsFullComposition(ctx))
-            return this.ConvertComposition(ctx);
+            return this.ConvertComposition(ctx, key);
 
           if (this.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE &&
             this.IsSingleCandidate(ctx))
-            return this.ConvertComposition(ctx);
+            return this.ConvertComposition(ctx, key);
 
           // Implicit endkeys (Array30/XCIN25 W[0-9])
           if (!this.IsCompositionKey(ctx, key))
-            return this.ConvertComposition(ctx);
+            return this.ConvertComposition(ctx, key);
 
           return this.ResultProcessed(ctx);
         }
@@ -554,7 +562,7 @@ export class GenInp2 extends BaseInputMethod
         if (this.IsSelectionKey(ctx, key)) {
           if (this.SelectCommit(ctx, key))
             return this.ResultCommit(ctx);
-          return this.ResultError(ctx);
+          return this.ResultError(ctx, key);
         }
         if (this.IsCompositionKey(ctx, key)) {
           this.CommitText(ctx, 0);
