@@ -14,14 +14,14 @@ import { LoadJSON, LoadArrayBuffer } from "../jscin/storage.js";
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
 
-var table_loading = {};
-var config = new Config();
+let table_loading = {};
+let config = new Config();
 await config.Load();
 
 // this is dirty hack
-var bgPage = chrome.extension.getBackgroundPage();
-var jscin = bgPage.jscin;
-var instance = bgPage.croscin.instance;
+let bgPage = chrome.extension.getBackgroundPage();
+let jscin = bgPage.jscin;
+let instance = bgPage.croscin.instance;
 
 if (config.Debug()) {
   logger.enable();
@@ -30,7 +30,7 @@ if (config.Debug()) {
   window.logger = logger;
 }
 
-var _ = chrome.i18n.getMessage;
+let _ = chrome.i18n.getMessage;
 
 function SetElementsText(...args) {
   for (let name of args) {
@@ -38,8 +38,8 @@ function SetElementsText(...args) {
   }
 }
 
-var BuiltinIMs = await LoadJSON("tables/builtin.json");
-var BuiltinOptions = await LoadJSON("options/builtin_options.json");
+let BuiltinIMs = await LoadJSON("tables/builtin.json");
+let BuiltinOptions = await LoadJSON("options/builtin_options.json");
 
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
@@ -75,7 +75,7 @@ async function init() {
     cancel: "li:only-child",
     helper: 'clone',
     update: function (event, ui) {
-      var new_list = [];
+      let new_list = [];
       $('#enabled_im_list li').each(function(index) {
         new_list.push(decodeId($(this).attr('id').replace(/^ime_/, '')));
       });
@@ -84,14 +84,14 @@ async function init() {
   }).disableSelection();
   $("#accordion").accordion({heightStyle: "content"});
 
-  loadCinTables();
+  loadTables();
 
   // TODO(hungte) we should autodetect again after source is specified.
-  var select = $("#add_table_setting");
+  let select = $("#add_table_setting");
   select.empty();
 
   BuiltinOptions.forEach((entry, i) => {
-    var option = $("<option>", {id: `option${i}`});
+    let option = $("<option>", {id: `option${i}`});
     option.text(`${entry.ename} ${entry.cname}`);
     if (entry.default)
       option.attr("selected", "selected");
@@ -116,7 +116,7 @@ async function init() {
       {
         text: _("optionAddTable"),
         click: function() {
-          var url = document.getElementById("cin_table_url_input").value;
+          let url = document.getElementById("cin_table_url_input").value;
           addTableUrl(url);
           $(this).dialog("close");
         }
@@ -140,7 +140,7 @@ async function init() {
       {
         text: _("optionAddTable"),
         click: function() {
-          var files = document.getElementById("cin_table_file_input").files;
+          let files = document.getElementById("cin_table_file_input").files;
           addTabFile(files);
           $(this).dialog("close");
         }
@@ -165,7 +165,7 @@ async function init() {
     config.Emulation()).click(function ()
   {
     config.Set("Emulation", $(this).prop("checked"));
-    var buttons = {};
+    let buttons = {};
     buttons[_("optionOK")] = function () {
       $(this).dialog("close");
     };
@@ -188,10 +188,10 @@ async function init() {
     config.Debug()).click(function () {
       config.Set("Debug", $(this).prop("checked"));
   });
-  var module_form = $('#formSelectModule');
-  var def_module = instance.getDefaultModule();
+  let module_form = $('#formSelectModule');
+  let def_module = instance.getDefaultModule();
   module_form.empty();
-  var im_modules = instance.getAvailableModules();
+  let im_modules = instance.getAvailableModules();
   im_modules.forEach(function (name) {
     if (!name.startsWith("Gen"))
       return;
@@ -245,15 +245,20 @@ function addTableFromBlob(blob, source) {
     }
   }
 
+  let t;
   for (let locale of ['utf-8', 'big5', 'gbk', 'gb18030', 'utf-16le', 'utf-16be']) {
     try {
-      let t = new TextDecoder(locale, {fatal: true}).decode(blob);
-      addTable(t, source);
-      debug("Succesfully added a table:", source, locale, t.substring(0,100).split('\n'));
-      return;
+      t = new TextDecoder(locale, {fatal: true}).decode(blob);
+      break;
     } catch (err) {
-      debug("Failed to parse CIN file:", source, locale);
+      debug("Failed to decode CIN file:", source, locale);
     }
+  }
+  if (t && addTable(t, source)) {
+    debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
+    return;
+  } else {
+    debug("Failed to decode the table:", source);
   }
 }
 
@@ -340,43 +345,56 @@ async function addTabFile(files) {
 }
 
 function addTable(content, url) {
-  // Parse the entry
-  var result = parseCin(content);
-  var name;
-  if (result[0]) {
-    var data = result[1];
-    name = data.metadata.ename;
-    var metadata = jscin.getTableMetadatas()[name];
-    if (metadata) {
-      if (!confirm("Do you wish to overwrite " + data.metadata.ename + "?")) {
-        setAddTableStatus(_("tableStatusNotAdded"), true);
-        return false;
-      } else {
-        $('#ime_' + encodeId(name)).remove();
-      }
-    }
-    // install_input_method will parse raw content again...
-    result = jscin.install_input_method(name, content,
-        { setting: getSettingOption(data), url: url });
-  }
-  // Update the UI
-  if (result[0]) {
-    // We must reload metadata, since it may be modified in
-    // jscin.install_input_method.
-    var metadata = jscin.getTableMetadatas()[name];
-    addCinTableToList(name, metadata, '#enabled_im_list', true);
-    setAddTableStatus(_("tableStatusAddedName", name), false);
-    config.InsertInputMethod(name);
-    return true;
-  } else {
-    var msg = result[1];
-    setAddTableStatus(_("tableStatusFailedParsingMsg", msg), true);
+  // Parse the content
+  let [success, result] = parseCin(content);
+
+  if (!success) {
+    // result is now the error message.
+    setAddTableStatus(_("tableStatusFailedParsingMsg", result), true);
     return false;
   }
+
+  let cin = result.data;
+  let name = cin.ename;
+  let info = jscin.getTableMetadatas()[name];
+  if (info) {
+    if (!confirm(`Do you wish to overwrite ${info.cname} / ${info.ename} ?`)) {
+      setAddTableStatus(_("tableStatusNotAdded"), true);
+      return false;
+    } else {
+      $('#ime_' + encodeId(name)).remove();
+    }
+  }
+
+  // install_input_method will parse raw content again...
+  [success, result] = jscin.install_input_method(name, content,
+      { setting: getSettingOption(cin), url: url });
+  let msg = result;
+  if (!success) {
+    setAddTableStatus(_("tableStatusFailedParsingMsg", result), true);
+    return false;
+  }
+
+  assert(success, "install_input_method should not fail");
+  // New table format
+  let table = {
+    cin: result.data,
+    info: result.metadata,
+    setting: result.metadata.setting
+  }
+  let new_name = table.info.ename;
+
+  // Update the UI
+  // We must reload metadata, since it may be modified in
+  // jscin.install_input_method.
+  addTableToList(name, table.info, '#enabled_im_list', true);
+  setAddTableStatus(_("tableStatusAddedName", name), false);
+  config.InsertInputMethod(name);
+  return true;
 }
 
 function setAddTableStatus(status, err) {
-  var status_field = document.getElementById("add_table_status");
+  let status_field = document.getElementById("add_table_status");
   status_field.innerText = status;
   if (err) {
     status_field.className = "status_error";
@@ -385,27 +403,27 @@ function setAddTableStatus(status, err) {
   }
 }
 
-function getSettingOption(data) {
-  var setting = BuiltinOptions[
+function getSettingOption(cin) {
+  let setting = BuiltinOptions[
       document.getElementById("add_table_setting").selectedIndex];
   if (setting.auto_detect) {
-    var matched = undefined;
-    var from_table = undefined;
+    let matched = undefined;
+    let from_table = undefined;
     BuiltinOptions.forEach(function (opt) {
       if (opt.from_table)
         from_table = opt;
       if (!opt.detect || matched)
         return;
 
-      for (var key in opt.detect) {
-        if (!data.data.chardef[key] ||
-            !data.data.chardef[key].includes(opt.detect[key]))
+      for (let key in opt.detect) {
+        if (!cin.chardef[key] ||
+            !cin.chardef[key].includes(opt.detect[key]))
           return;
       }
       debug("getSettingOption: matched:", opt);
       matched = opt;
     });
-    var result = matched || from_table || setting;
+    let result = matched || from_table || setting;
     // Make a record so we can re-parse its setting next time.
     result.by_auto_detect = true;
     return result;
@@ -413,30 +431,30 @@ function getSettingOption(data) {
   return setting;
 }
 
-function addCinTableToList(name, metadata, list_id, do_insert) {
-  var ename = metadata.ename;
-  var cname = metadata.cname;
-  var module = metadata.module;
-  var url = metadata.url || '';
+function addTableToList(name, metadata, list_id, do_insert) {
+  let ename = metadata.ename;
+  let cname = metadata.cname;
+  let module = metadata.module;
+  let url = metadata.url || '';
   // TODO(hungte) ename or name?
-  var ext_url = chrome.runtime.getURL("tables/");
-  var builtin = (metadata.builtin || url.startsWith(ext_url)) && (metadata.ename in BuiltinIMs);
-  var setting = metadata.setting;
+  let ext_url = chrome.runtime.getURL("tables/");
+  let builtin = (metadata.builtin || url.startsWith(ext_url)) && (metadata.ename in BuiltinIMs);
+  let setting = metadata.setting;
   // id must be safe for jQuery expressions.
-  var id = `ime_${encodeId(name)}`;
-  var icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
+  let id = `ime_${encodeId(name)}`;
+  let icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
 
-  var display_name = cname + ' (' + ename + ')';
-  var builtin_desc = builtin ? ' [' + _("optionBuiltin") + ']' : "";
+  let display_name = `${cname} (${ename})`;
+  let builtin_desc = builtin ? `[${_("optionBuiltin")}]` : "";
 
-  var item = $('<li class="ui-state-default"></li>').attr('id', id).text(
-               display_name + builtin_desc);
+  let item = $('<li class="ui-state-default"></li>').attr('id', id).text(
+               `${display_name} ${builtin_desc}`);
   if (do_insert)
     $(list_id).prepend(item);
   else
     $(list_id).append(item);
 
-  var setting_display_name = (
+  let setting_display_name = (
       setting ? (setting.cname || "") + " (" + (setting.ename || "") + ")" +
                 (setting.by_auto_detect ? " " + _("optionTypeAuto") : ""):
       _("optionBuiltin"));
@@ -449,7 +467,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
         $('.optionTableDetailType').text(setting_display_name);
         $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
 
-        var buttons = [{
+        let buttons = [{
           text: ' OK ',
           click: function () {
             if($('#query_keystrokes').is(':checked')) {
@@ -468,7 +486,7 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
           buttons.push( { text: _('optionRemove'),
             click: function () {
               if (confirm(_("optionAreYouSure"))) {
-                removeCinTable(name);
+                removeTable(name);
                 $('#' + id).remove();
               }
               $(this).dialog("close");
@@ -496,21 +514,26 @@ function addCinTableToList(name, metadata, list_id, do_insert) {
       });
 }
 
-function loadCinTables() {
-  var metadatas = jscin.getTableMetadatas();
-  var tables = config.InputMethods();
-  tables.forEach(function (name) {
-    addCinTableToList(name, metadatas[name], '#enabled_im_list');
-  });
-  for (var name in metadatas) {
-    if (!tables.includes(name)) {
-      addCinTableToList(name, metadatas[name], '#available_im_list');
-    }
+function loadTables() {
+  let available = jscin.getTableMetadatas();
+  let enabled = config.InputMethods();
+
+  // First make sure we've visited all in the 'enabled', so we have more chance
+  // to see the available input methods even if table info list is out of sync.
+  for (let name of enabled) {
+    addTableToList(name, available[name], '#enabled_im_list');
+  }
+
+  // Next add anything available but not in the enabled.
+  for (let name in available) {
+    if (enabled.includes(name))
+      continue;
+    addTableToList(name, available[name], '#available_im_list');
   }
 }
 
-function removeCinTable(name) {
-  debug('removeCinTable:', name);
+function removeTable(name) {
+  debug('removeTable:', name);
   if(jscin.getCrossQuery() == name) {
     jscin.setCrossQuery('');
   }
