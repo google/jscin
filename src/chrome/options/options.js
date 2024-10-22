@@ -9,7 +9,7 @@ import { $, jQuery } from "../jquery/jquery-ui.js";
 import { parseGtab, IsGTabBlob } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
 import { Config } from "../config.js";
-import { LoadJSON, LoadArrayBuffer } from "../jscin/storage.js";
+import { ChromeStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
 
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
@@ -30,7 +30,31 @@ if (config.Debug()) {
   window.logger = logger;
 }
 
+// _: Let Chrome decide (_locales)
 let _ = chrome.i18n.getMessage;
+
+// __: Follow UI Language
+function __(ename, cname) {
+  if (chrome.i18n.getUILanguage().startsWith('zh'))
+    return cname;
+  return ename;
+}
+
+let hasZH = false;
+chrome.i18n.getAcceptLanguages((locales) => {
+  for (let v of locales) {
+    if (v.startsWith('zh')) {
+      hasZH = true;
+      break;
+    }
+  }
+});
+// ___: If accept_languages includes Chinese
+function ___(ename, cname) {
+  if (hasZH)
+    return cname;
+  return ename;
+}
 
 function SetElementsText(...args) {
   for (let name of args) {
@@ -53,7 +77,7 @@ function decodeId(id) {
 async function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
-      "optionAddTables", "optionAddUrl", "optionAddFile",
+      "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddOpenDesktop",
       "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
       "optionTableDetailTypeHeader", "optionQueryKeystrokes",
       "optionSettingChoices",
@@ -111,12 +135,14 @@ async function init() {
     $("#file_div").hide();
     $("#url_div").show();
     $("#doc_div").hide();
+    $("#odlist_div").hide();
+    $('#cin_table_url_input').addClass("ui-corner-all");
 
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
         text: _("optionAddTable"),
         click: function() {
-          let url = document.getElementById("cin_table_url_input").value;
+          let url = $("#cin_table_url_input").val();
           addTableUrl(url);
           $(this).dialog("close");
         }
@@ -128,6 +154,7 @@ async function init() {
         }
       }
     ]).dialog("open");
+    select.selectmenu();
   });
 
   $(".optionAddFile").button().click(function(event) {
@@ -135,6 +162,8 @@ async function init() {
     $("#file_div").show();
     $("#url_div").hide();
     $("#doc_div").hide();
+    $("#odlist_div").hide();
+    $('#cin_table_file_input').button().addClass("ui-corner-all");
 
     $("#add_table_dialog").dialog('option', 'buttons', [
       {
@@ -152,12 +181,66 @@ async function init() {
         }
       }
     ]).dialog("open");
+    select.selectmenu();
   });
 
-  function SameWidth(e1, e2) {
-    const w = Math.max(e1.width(), e2.width());
-    e1.width(w);
-    e2.width(w);
+  $(".optionAddOpenDesktop").button().click(function (event) {
+    $("#file_div").hide();
+    $("#url_div").hide();
+    $("#doc_div").hide();
+    $("#odlist_div").show();
+    let list = $("#odlist_select");
+
+    function loadOD(reload) {
+      list.empty();
+      list.append('<option>Loading...</option>')
+      $('.btnAddTable').hide();
+
+      openDesktop.load(reload).then((data) => {
+        list.empty();
+        data.forEach((v) => {
+          list.append($('<option></option>').val(v.cin).text(
+            `${v.cname} (${v.ename}) - ${___(v.edesc, v.cdesc)}`));
+        });
+      });
+    }
+    list.change(() => {
+      $('.btnAddTable').show();
+    });
+    loadOD();
+
+    $("#add_table_dialog").dialog('option', 'buttons', [
+      {
+        text: _("optionAddTable"),
+        class: 'btnAddTable',
+        click: function() {
+          let val = $('#odlist_select').val();
+          $(this).dialog("close");
+          addTableUrl(openDesktop.getURL(val));
+        }
+      },
+      {
+        text: _("optionCancel"),
+        click: function() {
+          $(this).dialog("close");
+        }
+      },
+      {
+        text: _('optionReload'),
+        click: function() {
+          if (confirm(_("optionAreYouSure"))) {
+            loadOD(true);
+          }
+        }
+      },
+    ]).dialog("open");
+    $('.btnAddTable').hide();
+    select.selectmenu();
+  });
+
+  function SameWidth(...args) {
+    const w = Math.max(...args.map((e)=>e.width()));
+    args.forEach((e)=>e.width(w));
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
@@ -322,7 +405,7 @@ async function addTableUrl(url, progress=true) {
     }
   } catch (err) {
     delete table_loading[url];
-    error("addTabUrl: error", url, err);
+    error("addTableUrl: error", url, err);
     setAddTableStatus(_("tableStatusDownloadFailNameStatus", [name, this.status]), true);
     return;
   }
@@ -540,5 +623,49 @@ function removeTable(name) {
   config.RemoveInputMethod(name);
   jscin.deleteTable(name);
 }
+
+class ChineseOpenDesktop {
+  constructor() {
+    this.OD_URL = 'https://github.com/chinese-opendesktop/cin-tables/raw/refs/heads/master/';
+    this.KEY_STORAGE = 'chinese-opendesktop/cin-tables';
+    this.storage = new ChromeStorage();
+    this.cache = null;
+  }
+  getURL(file) {
+    return `${this.OD_URL}${file}`;
+  }
+  parseIndex(text) {
+    let result = [];
+    if (!text)
+      return result;
+    for (let line of text.split('\n')) {
+      let regex = /^ *(?<cin>[^\.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);(?<edesc>.*)"/;
+      let v = line.match(regex)?.groups;
+      if (!v)
+        continue;
+      result.push(v);
+    }
+    debug("parseInt: result", result);
+    return result;
+  }
+  async load(force) {
+    if (this.cache && !force)
+      return this.cache;
+    if (!force) {
+      this.cache = await this.storage.get(this.KEY_STORAGE);
+    }
+    if (!this.cache || force) {
+      debug("OD: Need to reload the README from remote.");
+      this.cache = this.parseIndex(await LoadText(this.getURL("README"))) || [];
+      this.storage.set(this.KEY_STORAGE, this.cache);
+    }
+    return this.cache;
+  }
+  get() {
+    return this.result;
+  }
+}
+
+var openDesktop = new ChineseOpenDesktop();
 
 $(init);

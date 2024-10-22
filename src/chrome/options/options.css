@@ -59,3 +59,37 @@ table.cin_tables .even_row {
 .link_head {
   width: 15%;
 }
+
+#cin_table_url_input {
+  padding: 0.3em;
+  margin: 0.3em;
+  font-size: 1.2em;
+}
+
+select#odlist_select option {
+  padding-right, padding-left: 1em;
+}
+
+select#odlist_select {
+  padding: 0.5em;
+  width: 35em;
+}
+
+input[type=file]::file-selector-button {
+  padding-right: 1em;
+  margin-right: 1em;
+  transition: .5s;
+}
+
+/*
+.input_container {
+  border: 1px solid #e5e5e5;
+}
+
+
+input[type=file]::file-selector-button:hover {
+  background-color: #eee;
+  border: 0px;
+  border-right: 1px solid #e5e5e5;
+}
+*/

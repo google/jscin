@@ -28,6 +28,7 @@
         <p class="optionAddTables" style="clear: both;"></p>
         <p><button class="optionAddFile"></button></p>
         <p><button class="optionAddUrl"></button></p>
+        <p><button class="optionAddOpenDesktop"></button></p>
         <!-- TODO(hungte) Make this a progress bar. -->
         <div id="add_table_status"></div>
       </div>
@@ -74,16 +75,23 @@
       <div id="add_table_dialog">
         <p>
           <div id="url_div">
+            URL:
             <input type=text id="cin_table_url_input" size="40"
-                   placeholder="Enter a URL"></input>
+                   placeholder="http://..., https://...."></input>
             <br/>
           </div>
-          <div id="file_div">
-            <input type=file id="cin_table_file_input"></input>
-          </div>
+          <form name="file_form">
+            <div id="file_div" class="input_container">
+              <input type=file id="cin_table_file_input"></input>
+            </div>
+          </form>
           <div id="doc_div">
             <p id="doc_status"></p>
             <div id="doc_list"></div>
+          </div>
+          <div id="odlist_div">
+            <select size=10 id="odlist_select">
+            </select>
           </div>
         </p>
         <p>

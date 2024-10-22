@@ -29,6 +29,8 @@
     "From network (remote URL)" },
   "optionAddFile": {"message":
     "From a local file" },
+  "optionAddOpenDesktop": {"message":
+    "From GitHub chinese-opendesktop/cin-tables" },
   "optionAddDrive": {"message":
     "Add Input Table from Google Drive" },
   "optionSaveToDrive": {"message":
