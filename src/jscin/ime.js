@@ -87,7 +87,7 @@ const KEY_TABLE_PREFIX = "table-";
  */
 
 export class InputMethodsEnvironment {
-  constructor(storage, old_storage) {
+  constructor(storage) {
     if (!storage) {
       if (globalThis.chrome?.storage.local) {
         storage = new ChromeStorage();
@@ -96,16 +96,7 @@ export class InputMethodsEnvironment {
         debug("InputMethodsEnvironment: Selected Storage for new storage debugging.");
       }
     }
-    if (!old_storage) {
-      if (globalThis.localStorage) {
-        old_storage = new CompressedStorage();
-      } else {
-        old_storage = new Storage();
-        debug("InputMethodsEnvironment: Selected Storage for old storage for debugging.");
-      }
-    }
     this.storage = storage;
-    this.old_storage = old_storage;
 
     this.info_list = {};
     this.tables = {}
@@ -316,61 +307,6 @@ export class InputMethodsEnvironment {
     }
     debug("Rebuild finished.", list);
     return this.saveTableInfoList(list);
-  }
-
-  // ----- Migration -----
-
-  // Migrate from version <= v2.27.0
-  migrateTable(data, meta) {
-    if ('cin' in data)
-      return data;
-
-    // Ok, not a new format; let's try if it's ok for migration
-    if (!data.ename || !data.cname || !data.chardef) {
-      error("migrateTable: Unkown format:",  data.ename, data);
-      return data;
-    }
-
-    let info = meta[data.ename] || {};
-    let table = this.createTable(data, meta.url, meta.setting);
-    debug("Migrated the table to new format:", table.cin.ename, data, "=>", table);
-    return table;
-  }
-
-  async migrateAllTables() {
-    const kTableOldMetadataKey = "table_metadata";
-    const kTableOldDataKeyPrefix = "table_data-";
-
-    let old_meta = await this.old_storage.get(kTableOldMetadataKey);
-    let infos = await this.storage.get(KEY_INFO_LIST) || {};
-    debug("migrateAllTables: start to check...", old_meta, infos);
-    // In case old_meta was corrupted, we want to keep migrating even if the
-    // metadata does not have the
-    for (let k of await this.old_storage.getKeys()) {
-      if (!k.startsWith(kTableOldDataKeyPrefix))
-        continue;
-      assert(kTableOldDataKeyPrefix.endsWith('-'),
-             "The old table data key must end with '-'");
-      let name = k.substring(kTableOldDataKeyPrefix.length);
-      let meta = old_meta[name] ||{};
-      if (meta.builtin) {
-        debug("Ignore built-in table:", name);
-        continue;
-      }
-      debug("Checking if we need to migarte the old table:", name, k);
-      let new_k = this.tableKey(name);
-      assert(new_k != k, "The key must be different for migration", k, new_k);
-      if (await this.storage.has(new_k)) {
-        debug("New table is already there, skip:", name, new_k);
-        continue;
-      }
-      // Now we have a new table.
-      let table = this.migrateTable(await this.old_storage.get(k), meta);
-      infos[name] = table.info;
-      await this.storage.set(new_k, table);
-    }
-    await this.storage.set(KEY_INFO_LIST, infos);
-    debug("migrateTable: All tables migrated.", infos);
   }
 
   // ----- Input Methods -----
