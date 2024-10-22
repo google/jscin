@@ -20,12 +20,9 @@ const kPhrasesDatabase = 'croscinPhrasesDatabase';
 var phrases = undefined;
 
 async function LoadPhrases(reload) {
-  // Load phrases
-  phrases = jscin.readLocalStorage(kPhrasesDatabase, undefined);
-  if (reload || !phrases) {
-    phrases = await LoadJSON("tables/tsi.json");
-    jscin.writeLocalStorage(kPhrasesDatabase, phrases);
-  }
+  // Loading JSON directly from extension is ~36ms while loading from
+  // localStorage or ChromeStorage is ~16ms. So let's read from the extension.
+  phrases = await LoadJSON("tables/tsi.json");
 }
 
 export class AddonRelatedText extends BaseInputAddon
