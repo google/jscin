@@ -329,7 +329,7 @@ export class InputMethodsEnvironment {
     // table: from param, or from storage.
     if (!table)
       table = await this.loadTable(name);
-    if (!table) {
+    if (!table || !table.cin) {
       error("No table found for:", name);
       return;
     }

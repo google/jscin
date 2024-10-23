@@ -90,6 +90,10 @@ export class JavaScriptInputMethod
     let module = this.input_methods[name]["module"];
     if (!data)
       data = this.getTableData(name);
+    if (!data) {
+      debug("Invalid table:", name);
+      return false;
+    }
     applyInputMethodTableQuirks(data);
     let instance = new module(name, data);
     instance.init(context);
