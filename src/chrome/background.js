@@ -24,10 +24,6 @@ async function welcome_chromeos() {
   });
 }
 
-document.addEventListener( 'readystatechange', function() {
-  if (document.readyState === 'complete') {
-    croscin.instance = new croscin.IME();
-    if (window.navigator.userAgent.includes(' CrOS '))
-      welcome_chromeos();
-  }
-});
+croscin.instance = new croscin.IME();
+if (window.navigator.userAgent.includes(' CrOS '))
+  welcome_chromeos();
