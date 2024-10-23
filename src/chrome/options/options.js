@@ -190,6 +190,11 @@ async function init() {
     $("#doc_div").hide();
     $("#odlist_div").show();
     let list = $("#odlist_select");
+    list.change(() => {
+      $('.btnAddTable').show();
+    }).dblclick(() => {
+      $('.btnAddTable').click();
+    });
 
     function loadOD(reload) {
       list.empty();
@@ -204,9 +209,6 @@ async function init() {
         });
       });
     }
-    list.change(() => {
-      $('.btnAddTable').show();
-    });
     loadOD();
 
     $("#add_table_dialog").dialog('option', 'buttons', [
