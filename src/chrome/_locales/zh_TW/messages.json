@@ -23,6 +23,8 @@
     "已啓用的輸入法:" },
   "optionAvailableTables": {"message":
     "其它已安裝的輸入法:" },
+  "optionBytesInUse": {"message":
+    "已使用儲存空間: $1 位元組" },
   "optionAddTables": {"message":
     "新增更多輸入法 (*.cin 或 *.gtab):" },
   "optionAddUrl": {"message":

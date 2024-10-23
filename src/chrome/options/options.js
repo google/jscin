@@ -9,7 +9,7 @@ import { $, jQuery } from "../jquery/jquery-ui.js";
 import { parseGtab, IsGTabBlob } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
 import { Config } from "../config.js";
-import { ChromeStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
+import { ChromeStorage, CompressedStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
 
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
@@ -109,6 +109,7 @@ async function init() {
   $("#accordion").accordion({heightStyle: "content"});
 
   loadTables();
+  updateBytesInUse(); // no need to wait.
 
   // TODO(hungte) we should autodetect again after source is specified.
   let select = $("#add_table_setting");
@@ -475,7 +476,15 @@ function addTable(content, url) {
   addTableToList(name, table.info, '#enabled_im_list', true);
   setAddTableStatus(_("tableStatusAddedName", name), false);
   config.InsertInputMethod(name);
+  updateBytesInUse(); // no need to wait.
   return true;
+}
+
+async function updateBytesInUse() {
+  // TODO(hungte) Change this to ime.storage when we moved to the ime.js.
+  let storage = new CompressedStorage();
+  const bytes_in_use = await storage.getBytesInUse();
+  $('.optionBytesInUse').text(_("optionBytesInUse", `${bytes_in_use}`));
 }
 
 function setAddTableStatus(status, err) {
@@ -619,6 +628,7 @@ function removeTable(name) {
   if (config.InputMethods().includes(name))
     config.RemoveInputMethod(name);
   jscin.deleteTable(name);
+  updateBytesInUse(); // no need to wait.
 }
 
 class ChineseOpenDesktop {
@@ -655,6 +665,7 @@ class ChineseOpenDesktop {
       debug("OD: Need to reload the README from remote.");
       this.cache = this.parseIndex(await LoadText(this.getURL("README"))) || [];
       this.storage.set(this.KEY_STORAGE, this.cache);
+      updateBytesInUse(); // no need to wait.
     }
     return this.cache;
   }

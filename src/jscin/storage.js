@@ -42,6 +42,9 @@ export class Storage {
   async getKeys() {
     return Object.keys(this.storage);
   }
+  async getBytesInUse() {
+    return JSON.stringify(this.storage).length;
+  }
   listen(callback) {
     this.callbacks.push(callback);
   }
@@ -141,7 +144,14 @@ export class ChromeStorage extends Storage {
       this.storage.get(null, (items) => {
         resolve(Object.keys(items));
       });
-  });
+    });
+  }
+  async getBytesInUse() {
+    return new Promise((resolve) => {
+      this.storage.getBytesInUse((num) => {
+        resolve(num);
+      });
+    });
   }
   listen(callback) {
     if (!this.callbacks.length && this.storage.onChanged) {
