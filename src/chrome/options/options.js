@@ -614,8 +614,8 @@ function removeTable(name) {
   debug('removeTable:', name);
   if (config.AddonCrossQuery() == name)
     config.Set("AddonCrossQuery", "");
-
-  config.RemoveInputMethod(name);
+  if (config.InputMethods().includes(name))
+    config.RemoveInputMethod(name);
   jscin.deleteTable(name);
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
+// Copyright 2024 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview The Input Methods Environment for JsCIN
@@ -232,6 +232,17 @@ export class InputMethodsEnvironment {
     debug("Removing the table for:", name, key);
     delete this.info_list[name];
     delete this.tables[name];
+
+    // we must also delete the old tables otherwise it will return in next
+    // migration.
+    const legacy_key = `table_data-${name}`;
+    try {
+      this.storage.remove(legacy_key);
+      delete localStorage[legacy_key];
+    } catch (err) {
+      error("Failed removing old table:", legacy_key);
+    }
+
     await this.storage.remove(key);
     await this.saveTableInfoList();
     return true;

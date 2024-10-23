@@ -99,7 +99,6 @@ export class IME {
         delete localStorage[k];
     }
     // Backup IM tables for future MV3, and further cleanups.
-    jscin.backupTables();
     jscin.deleteRawData();
   }
 

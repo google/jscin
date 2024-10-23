@@ -76,6 +76,9 @@ export class Migration {
       assert(new_k != k, "The key must be different for migration", k, new_k);
       if (await this.storage.has(new_k)) {
         debug("New table is already there, skip:", name, new_k);
+        // Note we are not deleting the old table so users may switch between,
+        // however that means we have to delete both the old and new tables
+        // when removing a table in the Options.
         continue;
       }
       // Now we have a new table.
