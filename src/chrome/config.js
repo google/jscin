@@ -88,6 +88,11 @@ export class Config {
     debug("onChanged (filtered):", applies);
     this.Apply(applies);
   }
+  forEach(c) {
+    for (let [k, v] of Object.entries(this.config)) {
+      c(k, v);
+    }
+  }
 
   CheckProperties(props) {
     if (!props)

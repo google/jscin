@@ -44,16 +44,18 @@ export class IME {
 
     this.config.Bind("Debug", (value)=> {
       logger.enableAllLoggers(value);
-    }).Bind("AddonRelatedText", (value)=> {
-      debug("AddonRelatedText", value);
-      this.imctx.AddonRelatedText = value;
-    }).Bind("AddonPunctuations", (value)=> {
-      debug("AddonPunctuations", value);
-      this.imctx.AddonPunctuations = value;
     }).Bind("Emulation", (value)=> {
       debug("Emulation", value);
       // Can't restart extension here - should
       // be handled in the options confirm dialog.
+    });
+    this.config.forEach((key, value) => {
+      if (!key.startsWith('Addon'))
+        return;
+      this.config.Bind(key, (v) => {
+        debug("Config: set:", key, "=>", v);
+        this.imctx[key] = v;
+      });
     });
 
     // UI related changes (InputMethod)
@@ -370,38 +372,42 @@ export class IME {
       return;
     }
 
-    if (name in jscin.input_methods) {
-      debug("croscin.ActivateInputMethod: Started:", name);
-      this.imctx = {};
-      this.im = jscin.create_input_method(name, this.imctx);
-      // For delayed response (ex, external IM modules, see IMKEY_DELAY).
-      this.im.set_notifier(() => {
-        if (!this.context) {
-          debug("IM notified after context destroyed.");
-          return;
-        }
-        this.UpdateUI();
-        if (this.imctx.cch) {
-          this.Commit(this.imctx.cch);
-          this.imctx.cch_publish = this.imctx.cch;
-          this.imctx.cch = '';
-        }
-      });
-      // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
-      if (!this.ime_api.isEmulation) {
-        this.imctx.commit_on_blur = true;
-      }
-      this.im_name = name;
-      this.im_label = jscin.get_input_method_label(name);
-
-      // TODO(hungte) Move this dirty workaround to jscin global settings.
-      this.imctx.AddonPunctuations = this.config.AddonPunctuations();
-      this.imctx.AddonRelatedText = this.config.AddonRelatedText();
-      debug("croscin.im:", this.im);
-      this.InitializeUI();
-    } else {
-      debug("croscin.ActivateInputMethod: Invalid item:", name);
+    if (!(name in jscin.input_methods)) {
+      debug("ActivateInputMethod: ERROR: Invalid name:", name);
+      return;
     }
+
+    this.imctx = {};
+    this.im = jscin.create_input_method(name, this.imctx);
+    // For delayed response (ex, external IM modules, see IMKEY_DELAY).
+    this.im.set_notifier(() => {
+      if (!this.context) {
+        debug("IM notified after context destroyed.");
+        return;
+      }
+      this.UpdateUI();
+      if (this.imctx.cch) {
+        this.Commit(this.imctx.cch);
+        this.imctx.cch_publish = this.imctx.cch;
+        this.imctx.cch = '';
+      }
+    });
+    // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
+    if (!this.ime_api.isEmulation) {
+      this.imctx.commit_on_blur = true;
+    }
+    this.im_name = name;
+    this.im_label = jscin.get_input_method_label(name);
+
+    // Apply Addon configuration.
+    this.config.forEach((key, value) => {
+      if (!key.startsWith('Addon'))
+        return;
+      this.imctx[key] = value;
+    });
+
+    this.InitializeUI();
+    debug("activateInputMethod: Started:", name, this.im);
   }
 
   UpdateMenu() {
