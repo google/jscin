@@ -52,8 +52,8 @@ chrome.i18n.getAcceptLanguages((locales) => {
 // ___: If accept_languages includes Chinese
 function ___(ename, cname) {
   if (hasZH)
-    return cname;
-  return ename;
+    return cname || ename;
+  return ename || cname;
 }
 
 function SetElementsText(...args) {
@@ -639,7 +639,7 @@ class ChineseOpenDesktop {
     if (!text)
       return result;
     for (let line of text.split('\n')) {
-      let regex = /^ *(?<cin>[^\.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);(?<edesc>.*)"/;
+      let regex = /^ *(?<cin>[^\.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);?(?<edesc>.*)?"/;
       let v = line.match(regex)?.groups;
       if (!v)
         continue;
