@@ -7,17 +7,17 @@
 import { $, jQuery } from "../jquery/jquery.js";
 
 $(function() {
-  var bgpage = chrome.extension.getBackgroundPage();
-  var ime_api = bgpage.croscin.instance.ime_api;
+  let bgpage = chrome.extension.getBackgroundPage();
+  let ime_api = bgpage.croscin.instance.ime_api;
   if (!ime_api.onUiMenu) {
     return;
   }
 
   ime_api.onUiMenu.addListener(function (engine) {
-    var ui = $('#menu');
+    let ui = $('#menu');
     ui.empty();
     engine.menuitems.forEach(function (item) {
-      var label = item.label || item.id;
+      const label = item.label || item.id;
       ui.append(
           $('<div/>',  {text: label, 'class': item.checked ? "active" : ""})
           .click(function () {

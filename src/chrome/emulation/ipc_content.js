@@ -13,8 +13,8 @@ import { getKeyDescription, hasCtrlAltMeta } from "../jscin/key_event.js";
 import { ImeExtensionIPC } from "./ipc.js";
 
 function CreateImeFrame () {
-  var frame = document.createElement("iframe");
-  var frameURL = chrome.runtime.getURL('emulation/ui.html');
+  let frame = document.createElement("iframe");
+  const frameURL = chrome.runtime.getURL('emulation/ui.html');
   frame.setAttribute("src", frameURL);
   frame.setAttribute("scrolling", "no");
   frame.setAttribute("frameBorder", 0);
@@ -27,7 +27,7 @@ function CreateImeFrame () {
   frame.style.position = "absolute";
   frame.style.backgroundColor = "transparent";
   frame.style.display = "none";
-  var ref = document.getElementsByTagName('body')[0] || document.children[0];
+  let ref = document.getElementsByTagName('body')[0] || document.children[0];
   ref.appendChild(frame);
   return frame;
 }
@@ -130,7 +130,7 @@ export class ContentIPCHost {
     if (!this.im_accepted_keys)
       return;
 
-    let desc = getKeyDescription(ev);
+    const desc = getKeyDescription(ev);
     if (this.im_accepted_keys.includes(desc)) {
       ev.preventDefault();
       ev.stopPropagation();

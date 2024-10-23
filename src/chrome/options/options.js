@@ -674,6 +674,6 @@ class ChineseOpenDesktop {
   }
 }
 
-var openDesktop = new ChineseOpenDesktop();
+let openDesktop = new ChineseOpenDesktop();
 
 $(init);

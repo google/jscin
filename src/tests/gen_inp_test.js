@@ -14,14 +14,14 @@ let print = console.log
 jscin.debug = true;
 
 function simulate(inst, inpinfo, input, result, expects) {
-  var committed = '';
+  let committed = '';
 
-  for (var i in input) {
-    var keyinfo = new KeyEvent(input[i]);
-    var ret = inst.keystroke(inpinfo, keyinfo);
+  for (let i in input) {
+    let keyinfo = new KeyEvent(input[i]);
+    let ret = inst.keystroke(inpinfo, keyinfo);
     print('ret=', ret, ", inpinfo: ", inpinfo);
 
-    var expect;
+    let expect;
     if (!expects || expects[i] == undefined) {
       // By default, only allow COMMIT in end of input.
       expect = { ret: parseInt(i)+1 == input.length ?
@@ -30,8 +30,8 @@ function simulate(inst, inpinfo, input, result, expects) {
       expect = expects[i];
     }
 
-    var ok = true;
-    var to_check = ['keystroke', 'mcch', 'cch', 'selkey'];
+    let ok = true;
+    let to_check = ['keystroke', 'mcch', 'cch', 'selkey'];
     to_check.forEach(function (name) {
       if (expect[name] != undefined) {
         if (inpinfo[name] != expect[name]) {
@@ -60,20 +60,20 @@ function simulate(inst, inpinfo, input, result, expects) {
 
 function loadTableFromFile(filename) {
   const content = fs.readFileSync(filename, 'utf8');
-  var results = parseCin(content);
+  let results = parseCin(content);
   if (!results[0]) {
     jscin.log('failed to load:', filename, 'msg:', results[1]);
     return;
   }
-  var table_metadata = results[1].metadata;
-  var table_data = results[1].data;
-  var name = table_metadata.ename;
+  let table_metadata = results[1].metadata;
+  let table_data = results[1].data;
+  let name = table_metadata.ename;
   jscin.addTable(name, table_metadata, table_data);
   return name;
 }
 
 function main() {
-  var test_list = [
+  let test_list = [
     {
       table: "test_ar30_gcin.cin",
       test: [
@@ -131,14 +131,14 @@ function main() {
     }
   ];
 
-  var total_failure = 0;
-  var total_tested = 0;
+  let total_failure = 0;
+  let total_tested = 0;
   test_list.forEach(function (test) {
-    var failure = 0;
-    var name = loadTableFromFile(test.table);
+    let failure = 0;
+    let name = loadTableFromFile(test.table);
     jscin.reload_configuration();
-    var inpinfo = {};
-    var inst = jscin.create_input_method(name, inpinfo);
+    let inpinfo = {};
+    let inst = jscin.create_input_method(name, inpinfo);
     test.test.forEach(function (entry) {
       total_tested++;
       if (!simulate(inst, inpinfo, entry.input, entry.result, entry))

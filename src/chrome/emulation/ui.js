@@ -15,20 +15,20 @@ $(function() {
   debug("ui.js started:", window.location.href);
 
   // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
-  var nbsp = '\xa0';
+  let nbsp = '\xa0';
 
-  var ipc = new ImeExtensionIPC('iframe');
+  let ipc = new ImeExtensionIPC('iframe');
   ipc.attach();
   ipc.listen({
     UiMenu: function (engine) {
-      var ui = $('#imePanel #menu');
+      let ui = $('#imePanel #menu');
       if (!ui)
         return;
       debug(ui);
       ui.empty();
       engine.menuitems.forEach(function (item) {
         debug("item", item);
-        var label = item.label || item.id;
+        let label = item.label || item.id;
         ui.append(
             $('<div/>',  {text: label, 'class': item.checked ? "active" : ""})
             .click(function () {
@@ -39,8 +39,8 @@ $(function() {
     },
 
     UiCandidateWindow: function (engine) {
-      var ui = $('#imePanel #auxiliaryText');
-      var _ = chrome.i18n.getMessage;
+      let ui = $('#imePanel #auxiliaryText');
+      let _ = chrome.i18n.getMessage;
       // TODO(hungte) Remove the hard-coded prefix.
       // The auxiliaryText looks better if we always keep it.
       ui.text("|" + nbsp + engine.candidate_window.auxiliaryText + nbsp).
@@ -70,32 +70,32 @@ $(function() {
     },
 
     UiComposition: function (context) {
-      var ui = $('#imePanel #composition');
-      var arg = context.composition;
+      let ui = $('#imePanel #composition');
+      let arg = context.composition;
       function get(key, def) {
-        var val = arg[key];
+        let val = arg[key];
         return (typeof(arg[key]) == typeof(undefined)) ? def : val;
       }
       debug("arg", arg);
-      var text = get('text', '');
-      var selectionStart = get('selectionStart', 0);
-      var selectionEnd = get('selectionEnd', text.length);
-      var cursor = get('cursor', text.length);
-      var segments = get('segments', []);
-      var data = text.split('').map((c) => ({text: c}));
+      let text = get('text', '');
+      let selectionStart = get('selectionStart', 0);
+      let selectionEnd = get('selectionEnd', text.length);
+      let cursor = get('cursor', text.length);
+      let segments = get('segments', []);
+      let data = text.split('').map((c) => ({text: c}));
       data.push({text: nbsp});
       data[cursor].cursor = true;
       for (let i = selectionStart; i < selectionEnd; i++) {
         data[i].selected = true;
       }
       for (let i in segments) {
-        for (var idx = segments[i].start; idx < segments[i].end; idx++) {
+        for (let idx = segments[i].start; idx < segments[i].end; idx++) {
           data[idx].segment = (i + 1);
         }
       }
       ui.empty();
-      var node = $('<span/>');
-      var segi = undefined;
+      let node = $('<span/>');
+      let segi = undefined;
       for (let d of data) {
         if (d.segment != segi) {
           // new segment.
@@ -105,9 +105,9 @@ $(function() {
           if (segi)
             node.attr('class', 'segment');
         }
-        var newdata = document.createTextNode(d.text);
+        let newdata = document.createTextNode(d.text);
         if (d.cursor) {
-          var cursor = $('<span class="cursor">');
+          let cursor = $('<span class="cursor">');
           if (segi) {
             newdata = cursor.append(newdata);
           } else {
@@ -121,10 +121,10 @@ $(function() {
 
     // TODO(hungte) Fire CandidateClicked event.
     UiCandidates: function (context) {
-      var ui = $('#imePanel #candidates');
+      let ui = $('#imePanel #candidates');
       ui.empty().append(nbsp);
       context.candidates.forEach(function (item) {
-        var label = item.label || item.id;
+        let label = item.label || item.id;
         ui.append(
             $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
             prepend($('<span/>', {text: label, "class": "candidate_label"})));
