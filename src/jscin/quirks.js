@@ -9,12 +9,21 @@ import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp2");
 
 function BoshiamyQuirks(data) {
-  if (!(data.SELKEY_SHIFT && data.SPACE_AUTOUP))
+  // Check options/builtin_options.json for Boshiamy detection. Use ?. because
+  // not all tables have 'ca'.
+  if (!data.chardef['ca']?.includes('\u5915'))
     return false;
 
-  // Check options/builtin_options.json for Boshiamy detection.
-  if (!data.chardef['ca'].includes('\u5915'))
-    return false;
+  // The Boshiamy tables may either set %space_style=1, or detected and then
+  // set data.{SELKEY_SHIFT,SPACE_AUTOUP}.
+
+  if ('space_style' in data) {
+    if (data.space_style != '1')
+      return false;
+  } else {
+    if (!(data.SELKEY_SHIFT && data.SPACE_AUTOUP))
+      return false;
+  }
 
   // Space (' ') cannot be set in CIN selkey, so input methods like Dayi
   // and Boshiamy that expecting to select the first candidate by Space,
@@ -49,6 +58,7 @@ function BoshiamyQuirks(data) {
   data.selkey = newkey;
   // Already shifted.
   delete data.SELKEY_SHIFT;
+  delete data.space_style;
   return true;
 }
 
