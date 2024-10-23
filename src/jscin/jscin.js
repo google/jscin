@@ -96,9 +96,9 @@ export class JavaScriptInputMethod
     applyInputMethodTableQuirks(data);
     let instance = new module(name, data);
     instance.init(context);
-    this.addons.forEach((addon) => {
+    for (let addon of this.addons) {
       instance = new addon('addon', instance);
-    });
+    }
     return instance;
   }
 

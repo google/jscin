@@ -36,7 +36,7 @@ class BaseIPC {
       return;
     }
     debug("ipc> IpcHandler:", message.data, this.handlers);
-    this.handlers.forEach((handler) => {
+    for (let handler of this.handlers) {
       let result = handler(message.data);
       if (typeof(result) != 'undefined' && response) {
         debug("ipc> response is returned:", handler, result);
@@ -44,7 +44,7 @@ class BaseIPC {
         // chrome.runtime.onMessage cannot take more than one response .
         response = null;
       }
-    });
+    }
   }
 
   /*

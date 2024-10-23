@@ -24,7 +24,7 @@
   "optionAvailableTables": {"message":
     "Available input methods:" },
   "optionBytesInUse": {"message":
-    "Total size in storage: $1 byte(s)." },
+    "Total size in storage: $1 bytes." },
   "optionAddTables": {"message":
     "Add more input method tables (*.cin or *.gtab):" },
   "optionAddUrl": {"message":

@@ -386,15 +386,15 @@ export class IME {
   UpdateMenu() {
     let menu_items = [];
 
-    this.config.InputMethods().forEach((name) => {
+    for (let name of this.config.InputMethods()) {
       let label = jscin.get_input_method_label(name) || name;
       menu_items.push({
-        "id": "ime:" + name,
+        "id": `ime:${name}`,
         "label": label,
         "style": "radio",
         "checked": name == this.im_name,
       });
-    });
+    }
     debug("croscin.UpdateMenu:", menu_items);
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
@@ -418,10 +418,10 @@ export class IME {
         debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
-      let url = chrome.runtime.getURL("tables/" + list[table_name]);
+      let url = chrome.runtime.getURL(`tables/${list[table_name]}`);
       let content = await LoadText(url);
       if (!content) {
-        debug("croscin.LoadBuiltinTables: Failed to load:", table_name);
+        debug("croscin.LoadBuiltinTables: Failed to load:", url);
         continue;
       }
       jscin.install_input_method(null, content, {builtin: true, url: url});

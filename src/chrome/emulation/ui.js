@@ -26,7 +26,7 @@ $(function() {
         return;
       debug(ui);
       ui.empty();
-      engine.menuitems.forEach(function (item) {
+      for (let item of engine.menuitems) {
         debug("item", item);
         let label = item.label || item.id;
         ui.append(
@@ -35,7 +35,7 @@ $(function() {
               ipc.send('MenuItemActivated', engine.engineID,
                 engine.menuitems[$(this).index()].id);
             }));
-      });
+      }
     },
 
     UiCandidateWindow: function (engine) {
@@ -43,9 +43,9 @@ $(function() {
       let _ = chrome.i18n.getMessage;
       // TODO(hungte) Remove the hard-coded prefix.
       // The auxiliaryText looks better if we always keep it.
-      ui.text("|" + nbsp + engine.candidate_window.auxiliaryText + nbsp).
+      ui.text(`|${nbps}${engine.candidate_window.auxiliaryText}${nbsp}`).
           prepend($('<span/>').css({color: '#444'}).
-          text(_("imeToggleHint") + nbsp));
+          text(`${_("imeToggleHint")}${nbsp}`));
 
       if (false) {
         // The correct way (for debug)
@@ -123,12 +123,12 @@ $(function() {
     UiCandidates: function (context) {
       let ui = $('#imePanel #candidates');
       ui.empty().append(nbsp);
-      context.candidates.forEach(function (item) {
+      for (let item of context.candidates) {
         let label = item.label || item.id;
         ui.append(
             $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
             prepend($('<span/>', {text: label, "class": "candidate_label"})));
-      });
+      }
     }
   });
   ipc.send("IpcUiReady");

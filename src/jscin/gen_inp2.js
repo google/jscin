@@ -384,9 +384,9 @@ export class GenInp2 extends BaseInputMethod
     debug("CreateCompositionByGroups key_by_group", key_by_group, newgroup, key);
     key_by_group[newgroup] = key;
     ctx.composition = '';
-    Object.keys(key_by_group).sort().forEach((g) => {
+    for (let g of Object.keys(key_by_group).sort()) {
       ctx.composition += key_by_group[g];
-    });
+    }
     return true;
     // TODO(hungte) Make an index for DelComposition to delete last entered
     // key, or only update the displayed composition.

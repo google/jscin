@@ -405,9 +405,8 @@ export class InputMethodsEnvironment {
     let instance = new module(name, table.cin);
     debug("activateInputMethod: Created input method:", name, instance, module.name);
 
-    this.addons.forEach((addon) => {
+    for (let addon of this.addons)
       instance = new addon('addon', instance);
-    });
 
     instance.init(ctx);
     return instance;

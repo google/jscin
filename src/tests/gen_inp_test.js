@@ -32,7 +32,7 @@ function simulate(inst, inpinfo, input, result, expects) {
 
     let ok = true;
     let to_check = ['keystroke', 'mcch', 'cch', 'selkey'];
-    to_check.forEach(function (name) {
+    for (let name of to_check) {
       if (expect[name] != undefined) {
         if (inpinfo[name] != expect[name]) {
           print('test failed: ', name, '=', inpinfo[name], ', expected: ',
@@ -40,7 +40,7 @@ function simulate(inst, inpinfo, input, result, expects) {
           ok = false;
         }
       }
-    });
+    };
     if (expect.ret != undefined && ret != expect.ret) {
       print("test failed: ret=", ret, ", expected: ", expect.ret);
       ok = false;
@@ -72,7 +72,7 @@ function loadTableFromFile(filename) {
   return name;
 }
 
-function main() {
+async function main() {
   let test_list = [
     {
       table: "test_ar30_gcin.cin",
@@ -133,23 +133,23 @@ function main() {
 
   let total_failure = 0;
   let total_tested = 0;
-  test_list.forEach(function (test) {
+  for (let test of test_list) {
     let failure = 0;
     let name = loadTableFromFile(test.table);
     jscin.reload_configuration();
     let inpinfo = {};
     let inst = jscin.create_input_method(name, inpinfo);
-    test.test.forEach(function (entry) {
+    for (let entry of test.test) {
       total_tested++;
       if (!simulate(inst, inpinfo, entry.input, entry.result, entry))
         failure++;
-    });
+    };
     if (failure) {
-      print("test " + name + " failed: " + failure + " times.");
+      print(`test ${name} failed: ${failure} times.`);
       total_failure += failure;
     }
-  });
+  };
   print("Total failures: ", total_failure, " / " , total_tested);
 }
 
-main();
+await main();

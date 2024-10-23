@@ -45,7 +45,7 @@ export class BaseInputMethod
     };
 
     let keys = conf.ACCEPTED_KEYS || {};
-    Object.keys(keys).forEach(function (k) {
+    for (let k of Object.keys(keys)) {
       // syntax: key or 'key,'
       let val = keys[k];
       if (k.indexOf(',') > 0) {
@@ -57,7 +57,7 @@ export class BaseInputMethod
       if (k in accepted_keys)
         val = accepted_keys[k].concat(val);
       accepted_keys[k] = val;
-    });
+    }
     this.accepted_keys = accepted_keys;
   }
 

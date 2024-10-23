@@ -44,7 +44,7 @@ function test_setCandidates(candidate_string) {
     items.push({
       candidate: candidate_string[i],
       id: parseInt(i),
-      label: "" + (parseInt(i) + 1)});
+      label: `${parseInt(i) + 1}`});
   }
   chrome.input.ime.setCandidates({
     contextID: testContextID,
@@ -55,13 +55,13 @@ function test_setCandidates(candidate_string) {
 function test_setMenuItems(labels_array) {
   let i;
   let items = [];
-  labels_array.forEach(function(label) {
+  for (let label of labels_array) {
     items.push({
       id: 'id_' + label,
       label: label,
       style: 'radio',
     });
-  });
+  }
   chrome.input.ime.setMenuItems({
     engineID: chrome.input.ime.engineID,
     items: items});
@@ -75,7 +75,7 @@ $(function() {
   chrome.input.ime.onUiMenu.addListener(function (engine) {
     let ui = $('#imePanel #menu');
     ui.empty();
-    engine.menuitems.forEach(function (item) {
+    for (let item of engine.menuitems) {
       let label = item.label || item.id;
       ui.append(
           $('<li/>', {text: label}).click(function () {
@@ -83,7 +83,7 @@ $(function() {
                 'MenuItemActivated', engine.engineID,
                 engine.menuitems[$(this).index()].id);
           }));
-    });
+    }
   });
 
   chrome.input.ime.onUiCandidateWindow.addListener(function (engine) {
@@ -98,7 +98,7 @@ $(function() {
     let ui = $('#imePanel #candidates');
     let nbsp = '\xa0';
     ui.empty().append(nbsp);
-    context.candidates.forEach(function (item) {
+    for (let item of context.candidates) {
       let label = item.label || item.id;
       ui.append(
           $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
@@ -107,7 +107,7 @@ $(function() {
             ime_api.dispatchEvent('CandidateClicked',
               ime_api.engineID, item.id, 'left'); }).
           prepend($('<span/>', {text: label, "class": "candidate_label"})));
-    });
+    }
   });
 
   chrome.input.ime.onUiComposition.addListener(function (context) {

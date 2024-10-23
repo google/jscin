@@ -16,7 +16,7 @@ $(function() {
   ime_api.onUiMenu.addListener(function (engine) {
     let ui = $('#menu');
     ui.empty();
-    engine.menuitems.forEach(function (item) {
+    for (let item of engine.menuitems) {
       const label = item.label || item.id;
       ui.append(
           $('<div/>',  {text: label, 'class': item.checked ? "active" : ""})
@@ -25,7 +25,7 @@ $(function() {
                 'MenuItemActivated', engine.engineID,
                 engine.menuitems[$(this).index()].id);
           }));
-    });
+    }
   });
 
   ime_api.dispatchEvent('Activate', 'reload-menu');

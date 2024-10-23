@@ -15,7 +15,9 @@ import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
 
 let table_loading = {};
-let config = new Config();
+// Use var for variables that we want to explore and change in the browser
+// debugging tool.
+var config = new Config();
 await config.Load();
 
 // this is dirty hack
@@ -24,8 +26,8 @@ let jscin = bgPage.jscin;
 let instance = bgPage.croscin.instance;
 
 if (config.Debug()) {
-  logger.enable();
   window.bgPage = bgPage;
+  logger.enableAllLoggers();
   window.config = config;
   window.logger = logger;
 }
@@ -58,7 +60,7 @@ function ___(ename, cname) {
 
 function SetElementsText(...args) {
   for (let name of args) {
-    $("." + name).text(_(name));
+    $(`.${name}`).text(_(name));
   }
 }
 
@@ -204,10 +206,10 @@ async function init() {
 
       openDesktop.load(reload).then((data) => {
         list.empty();
-        data.forEach((v) => {
+        for (let v of data) {
           list.append($('<option></option>').val(v.cin).text(
             `${v.cname} (${v.ename}) - ${___(v.edesc, v.cdesc)}`));
-        });
+        }
       });
     }
     loadOD();
@@ -284,7 +286,7 @@ async function init() {
     if (name == def_module)
       opt.attr("selected", "selected");
     selectMod.append(opt);
-  };
+  }
   selectMod.selectmenu({change: () => {
     instance.setDefaultModule(selectMod.val());
     alert(_("optionReloadExtensionOrRestart"));
@@ -525,81 +527,86 @@ function getSettingOption(cin) {
 }
 
 function addTableToList(name, metadata, list_id, do_insert) {
-  let ename = metadata.ename;
-  let cname = metadata.cname;
-  let module = metadata.module;
-  let url = metadata.url || '';
+  let info = metadata;
+  const ename = info.ename;
+  const cname = info.cname;
+  const module = info.module;
+  const url = info.url || '';
   // TODO(hungte) ename or name?
-  let ext_url = chrome.runtime.getURL("tables/");
-  let builtin = (metadata.builtin || url.startsWith(ext_url)) && (metadata.ename in BuiltinIMs);
-  let setting = metadata.setting;
+  const ext_url = chrome.runtime.getURL("");
+  const builtin = (info.builtin || url.startsWith(ext_url)) && (info.ename in BuiltinIMs);
+  const setting = info.setting || {};
   // id must be safe for jQuery expressions.
-  let id = `ime_${encodeId(name)}`;
-  let icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
+  const id = `ime_${encodeId(name)}`;
+  const icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
 
-  let display_name = `${cname} (${ename})`;
-  let builtin_desc = builtin ? `[${_("optionBuiltin")}]` : "";
+  const display_name = `${cname} (${ename})`;
+  const builtin_desc = builtin ? `[${_("optionBuiltin")}]` : "";
 
-  let item = $('<li class="ui-state-default"></li>').attr('id', id).text(
+  const item = $('<li class="ui-state-default"></li>').attr('id', id).text(
                `${display_name} ${builtin_desc}`);
   if (do_insert)
     $(list_id).prepend(item);
   else
     $(list_id).append(item);
 
-  let setting_display_name = (
-      setting ? (setting.cname || "") + " (" + (setting.ename || "") + ")" +
-                (setting.by_auto_detect ? " " + _("optionTypeAuto") : ""):
-      _("optionBuiltin"));
-
   // TODO(hungte) Show details and dialog to edit this table.
-  $('#' + id).prepend(icon).click(
-      function() {
-        $('.optionTableDetailName').text(display_name);
-        $('.optionTableDetailSource').val(url);
-        $('.optionTableDetailType').text(setting_display_name);
-        $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
+  $(`#${id}`).prepend(icon).click(function() {
+    debug(info);
+      let setting_label = [];
+      if (setting.cname)
+        setting_label.push(`${setting.cname} (${setting.ename})`);
+      if (setting.by_auto_detect)
+        setting_label.push(_("optionTypeAuto"));
+      if (builtin)
+        setting_label.push(_("optionBuiltin"));
 
-        let buttons = [{
-          text: ' OK ',
+      $('.optionTableDetailName').text(display_name);
+      $('.optionTableDetailSource').val(url);
+      $('.optionTableDetailType').text(setting_label.join(' '));
+      $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
+
+      let buttons = [{
+        text: ' OK ',
+        click: function () {
+          config.Set("AddonCrossQuery",
+            $('#query_keystrokes').is(':checked') ? name : "");
+          $(this).dialog("close");
+        } }];
+
+      /* Currently we expect at least one IM is enabled. */
+      if (!builtin && config.InputMethods().length > 1) {
+        // TODO(hungte) We should not allow removing active IME.
+        buttons.push( { text: _('optionRemove'),
           click: function () {
-            config.Set("AddonCrossQuery",
-              $('#query_keystrokes').is(':checked') ? name : "");
+            if (confirm(_("optionAreYouSure"))) {
+              removeTable(name);
+              $(`#${id}`).remove();
+            }
             $(this).dialog("close");
-          } }];
 
-        /* Currently we expect at least one IM is enabled. */
-        if (!builtin && config.InputMethods().length > 1) {
-          // TODO(hungte) We should not allow removing active IME.
-          buttons.push( { text: _('optionRemove'),
-            click: function () {
-              if (confirm(_("optionAreYouSure"))) {
-                removeTable(name);
-                $('#' + id).remove();
-              }
-              $(this).dialog("close");
+          } });
+      }
 
-            } });
-        }
+      if (url && url.includes('://')) {
+        buttons.push({
+          text: _('optionReload'),
+          click: function() {
+            debug("optionReload:", metadata);
+            if (confirm(_("optionAreYouSure"))) {
+              addTableUrl(url, metadata.setting);
+            }
+            $(this).dialog("close");
+          }});
+      }
 
-        if (url && url.includes('://')) {
-          buttons.push({
-            text: _('optionReload'),
-            click: function() {
-              debug("optionReload:", metadata);
-              if (confirm(_("optionAreYouSure"))) {
-                addTableUrl(url, metadata.setting);
-              }
-              $(this).dialog("close");
-            }});
-        }
-        $('#table_detail_dialog').dialog({
-          title: _("optionTableDetail"),
-          minWidth: 600,
-          buttons: buttons,
-          modal: true
-        });
+      $('#table_detail_dialog').dialog({
+        title: _("optionTableDetail"),
+        minWidth: 600,
+        buttons: buttons,
+        modal: true
       });
+  });
 }
 
 function loadTables() {
