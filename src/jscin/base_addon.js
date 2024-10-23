@@ -12,7 +12,7 @@ export class BaseInputAddon {
   }
   // Called when the IM is first initialized.
   init(ctx) {
-    return this.im.reset_context(ctx);
+    return this.im.init(ctx);
   }
   // Called when IM or system wants to reset input context.
   reset_context(ctx) {

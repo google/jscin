@@ -13,8 +13,8 @@ import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin");
 
 /* Key names in the storage. */
-const KEY_INFO_LIST = "info_list";
-const KEY_TABLE_PREFIX = "table-";
+export const KEY_INFO_LIST = "info_list";
+export const KEY_TABLE_PREFIX = "table-";
 
 /*
  * The environment to manage all (table-based) input methods.
@@ -102,11 +102,55 @@ export class InputMethodsEnvironment {
     this.tables = {}
     this.modules = {};
     this.addons = []; // Tables must be chained in order so this is an array.
+    this.callbacks = {
+      [KEY_INFO_LIST]: [],
+      [KEY_TABLE_PREFIX]: [],
+    };
   }
 
   async initialize() {
     await this.loadTableInfoList();
+    this.storage.listen((changes) => {this.onChanged(changes);});
     return true;
+  }
+
+  // ----- Callbacks -----
+
+  onChanged(changes) {
+    for (let k in changes) {
+      if (k == KEY_INFO_LIST) {
+        debug("onChanged - TableInfoList", changes[k]);
+        this.info_list = changes[k]?.newValue;
+        for (let c of this.callbacks[KEY_INFO_LIST]) {
+          c(this.info_list);
+        }
+        continue;
+      }
+      if (k.startsWith(KEY_TABLE_PREFIX)) {
+        debug("onChanged - Table", changes[k]);
+        let name = this.tableName(k);
+        if (name in this.tables)
+          delete this.tables[name];
+        let v = changes[k]?.newValue;
+        if (v)
+          this.tables[name] = v;
+        debug('onChanged', k, name, this.callbacks);
+        // TableInfoList should be updated on its own.
+        for (let c of this.callbacks[KEY_TABLE_PREFIX]) {
+          c(name, v);
+        }
+        continue;
+      }
+    }
+  }
+
+  // Callback prototype: (info_list)=>{}
+  addTableInfoListListener(callback) {
+    this.callbacks[KEY_INFO_LIST].push(callback);
+  }
+  // Callback prototype: (name, table)=>{}
+  addTableChangeListener(callback) {
+    this.callbacks[KEY_TABLE_PREFIX].push(callback);
   }
 
   // ----- Modules -----
@@ -153,6 +197,9 @@ export class InputMethodsEnvironment {
   /* The key name of the table. */
   tableKey(name) {
     return `${KEY_TABLE_PREFIX}${name}`;
+  }
+  tableName(key) {
+    return key.substring(KEY_TABLE_PREFIX.length);
   }
 
   isValidCIN(cin) {
@@ -299,6 +346,13 @@ export class InputMethodsEnvironment {
   getTableInfoList() {
     return this.info_list;
   }
+  getLabel(name) {
+    assert(name in this.info_list, "Does not exist in info_list:", name, this.info_list);
+    return this.info_list[name]?.cname;
+  }
+  getInfo(name) {
+    return this.getTableInfo(name);
+  }
   getTableNames() {
     return Object.keys(this.info_list);
   }
@@ -358,7 +412,7 @@ export class InputMethodsEnvironment {
     applyInputMethodTableQuirks(table.cin);
 
     let instance = new module(name, table.cin);
-    debug("activateInputMethod: Created inpue mthod:", name, instance);
+    debug("activateInputMethod: Created input method:", name, instance);
 
     this.addons.forEach((addon) => {
       instance = new addon('addon', instance);
