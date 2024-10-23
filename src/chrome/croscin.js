@@ -121,47 +121,16 @@ export class IME {
       debug("croscin.Commit: WARNING: input text is not a simple string.");
     }
 
-    if (text) {
-      let arg = this.GetContextArg();
-      arg.text = text;
-      this.ime_api.commitText(arg);
-      debug("croscin.Commit: value:", text);
-      this.CrossQueryKeystrokes(text);
-    } else {
+    if (!text) {
       debug("croscin.Commit: warning: called with empty string.");
+      return false;
     }
-  }
 
-  CrossQueryKeystrokes(ch) {
-    let crossQuery = jscin.getCrossQuery();
-    if (!crossQuery) {
-      return;
-    }
-    if (!this.cross_query[crossQuery]) {
-      // TODO(hungte) cache this in better way....
-      let metadata = jscin.getTableMetadatas();
-      this.cross_query[crossQuery] = [
-          (metadata && metadata[crossQuery]) ? metadata[crossQuery].cname : "",
-          this.BuildCharToKeyMap(jscin.getTableData(crossQuery))];
-    }
-    let cname = this.cross_query[crossQuery][0];
-    let char_map = this.cross_query[crossQuery][1];
-    let list = char_map ? char_map[ch] : undefined;
-    if(list === undefined) {
-      return;
-    }
-    assert(typeof(list) == typeof([]), "list must be arrray");
-    let candidates = list.map(
-      (v, i) => ({candidate: v, id: i}));
     let arg = this.GetContextArg();
-    arg.candidates = candidates;
-    this.ime_api.setCandidates(arg);
-    this.SetCandidatesWindowProperty({
-      auxiliaryTextVisible: true,
-      auxiliaryText: chrome.i18n.getMessage('crossQueryAuxText') + cname,
-      visible: true,
-      pageSize: list.length,
-    });
+    arg.text = text;
+    this.ime_api.commitText(arg);
+    debug("croscin.Commit: value:", text);
+    return true;
   }
 
   ProcessKeyEvent(keyData) {
@@ -350,9 +319,13 @@ export class IME {
     has_candidates = this.UpdateCandidates(mcch, selkey);
     // show_keystroke(cch_publish) can be displayed in auxiliary text.
 
+    // The IM, or the addon, wants to say something
+    let aux_text = this.imctx.override_aux;
+    let aux_show = (aux_text || has_composition || has_candidates) ? true : false
+
     this.SetCandidatesWindowProperty({
-      auxiliaryText: this.im_label,
-      auxiliaryTextVisible: (has_composition || has_candidates) ? true:false});
+      auxiliaryText: aux_text || this.im_label,
+      auxiliaryTextVisible: aux_show});
 
     // Hint for IME to get key expections.
     // TODO(hungte) Change this from function to context.
@@ -431,28 +404,6 @@ export class IME {
     let arg = this.GetEngineArg();
     arg['items'] = menu_items;
     this.ime_api.setMenuItems(arg);
-  }
-
-  BuildCharToKeyMap(data) {
-    let map = {};
-    for(let key in data.chardef) {
-      let chs = data.chardef[key];
-      for(let i in chs) {
-        let ch = chs[i];
-        let keyname = '';
-        for(let j in key) {
-          if(key[j] in data.keyname) {
-            keyname += data.keyname[key[j]];
-          }
-        }
-        if(ch in map) {
-          map[ch] = map[ch].concat(keyname);
-        } else {
-          map[ch] = [keyname];
-        }
-      }
-    }
-    return map;
   }
 
   async LoadBuiltinTables(reload) {

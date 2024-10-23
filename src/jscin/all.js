@@ -15,3 +15,4 @@ import "./gen_inp2.js";
 import "./gen_inp.js";
 import "./addon_punctuations.js";
 import "./addon_related.js";
+import "./addon_query.js";

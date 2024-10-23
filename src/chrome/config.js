@@ -60,6 +60,7 @@ export class Config {
       Emulation: false,
       AddonRelatedText: false,
       AddonPunctuations: true,
+      AddonCrossQuery: "",
       InputMethods: [],
     };
   }
@@ -176,6 +177,7 @@ export class Config {
   Emulation()           { return this.Get("Emulation"); }
   AddonRelatedText()    { return this.Get("AddonRelatedText"); }
   AddonPunctuations()   { return this.Get("AddonPunctuations"); }
+  AddonCrossQuery()     { return this.Get("AddonCrossQuery"); }
   InputMethods()        { return this.Get("InputMethods"); }
   DefaultInputMethod()  {
     let ims = this.InputMethods();

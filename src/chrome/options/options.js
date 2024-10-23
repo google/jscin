@@ -548,18 +548,13 @@ function addTableToList(name, metadata, list_id, do_insert) {
         $('.optionTableDetailName').text(display_name);
         $('.optionTableDetailSource').val(url);
         $('.optionTableDetailType').text(setting_display_name);
-        $('#query_keystrokes').prop('checked', jscin.getCrossQuery() == name);
+        $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
 
         let buttons = [{
           text: ' OK ',
           click: function () {
-            if($('#query_keystrokes').is(':checked')) {
-              jscin.setCrossQuery(name);
-            } else {
-              if(jscin.getCrossQuery() == name) {
-                jscin.setCrossQuery('');
-              }
-            }
+            config.Set("AddonCrossQuery",
+              $('#query_keystrokes').is(':checked') ? name : "");
             $(this).dialog("close");
           } }];
 
@@ -617,9 +612,9 @@ function loadTables() {
 
 function removeTable(name) {
   debug('removeTable:', name);
-  if(jscin.getCrossQuery() == name) {
-    jscin.setCrossQuery('');
-  }
+  if (config.AddonCrossQuery() == name)
+    config.Set("AddonCrossQuery", "");
+
   config.RemoveInputMethod(name);
   jscin.deleteTable(name);
 }

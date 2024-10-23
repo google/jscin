@@ -32,7 +32,6 @@ export class JavaScriptInputMethod
     this.kTableMetadataKey = "table_metadata";
     this.kTableDataKeyPrefix = "table_data-";
     this.kVersionKey = "version";
-    this.kCrossQueryKey = "cross_query";
     this.kModuleNameKey = 'default_module_name';
     this.kDefaultModuleName = 'GenInp2';
 
@@ -162,14 +161,6 @@ export class JavaScriptInputMethod
 
   // -------------------------------------------------------------------
   // Tables and local storage management
-
-  getCrossQuery() {
-    return this.readLocalStorage(this.kCrossQueryKey);
-  }
-
-  setCrossQuery(ime) {
-    return this.writeLocalStorage(this.kCrossQueryKey, ime);
-  }
 
   getLocalStorageVersion() {
     return this.readLocalStorage(this.kVersionKey, 0);
