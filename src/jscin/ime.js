@@ -222,13 +222,13 @@ export class InputMethodsEnvironment {
   parseCinFromString(cin) {
     debug("parseCinFromString:", cin.substring(0, 40), '...');
     // TODO(hungte) Dyanmic load cin_parser
-    let [result, parsed] = parseCin(cin);
+    let [success, result] = parseCin(cin);
 
-    if (!result || !parsed.data) {
+    if (!success || !result.data) {
       debug("Failed parsing:", cin);
       return false;
     }
-    return parsed.data;
+    return result.data;
   }
 
   createTable(cin, url, setting) {

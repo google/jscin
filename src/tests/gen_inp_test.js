@@ -60,13 +60,13 @@ function simulate(inst, inpinfo, input, result, expects) {
 
 function loadTableFromFile(filename) {
   const content = fs.readFileSync(filename, 'utf8');
-  let results = parseCin(content);
-  if (!results[0]) {
-    jscin.log('failed to load:', filename, 'msg:', results[1]);
+  let [success, result] = parseCin(content);
+  if (!success) {
+    jscin.log('failed to load:', filename, 'msg:', result);
     return;
   }
-  let table_metadata = results[1].metadata;
-  let table_data = results[1].data;
+  let table_metadata = result.metadata;
+  let table_data = result.data;
   let name = table_metadata.ename;
   jscin.addTable(name, table_metadata, table_data);
   return name;

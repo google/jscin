@@ -24,12 +24,12 @@ const write = console.log;
 function LoadTable(table_url) {
   let table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
   print("table_url:", table_url);
-  let [result, parsed]  = parseCin(fs.readFileSync(table_url, 'utf8'));
-  if (!result) {
-    print("ERROR: Invalid table:", table_url);
+  let [success, result]  = parseCin(fs.readFileSync(table_url, 'utf8'));
+  if (!success) {
+    print("ERROR: Invalid table:", table_url, "REASON:", result);
     return;
   }
-  let {metadata, data: table_content} = parsed;
+  let {metadata, data: table_content} = result;
   let ename = table_content['ename'];
   table_metadata[ename] = table_content;
   jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + ename, table_content);

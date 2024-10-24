@@ -104,24 +104,23 @@ export class JavaScriptInputMethod
 
   install_input_method(name, table_source, metadata) {
     // TODO(hungte) Move parseCin to jscin namespace.
-    let result = parseCin(table_source);
-    if (!result[0]) {
-      debug("install_input_method: invalid table", result[1]);
+    let [success, result] = parseCin(table_source);
+    if (!success) {
+      debug("install_input_method: invalid table", result);
       return result;
     }
-    let data = result[1];
-    name = name || data.metadata.ename;
+    name = name || result.metadata.ename;
     for (let key in metadata) {
-      data.metadata[key] = metadata[key];
+      result.metadata[key] = metadata[key];
     }
     if (metadata.setting && metadata.setting.options) {
       for (let option in metadata.setting.options) {
-        data.data[option] = metadata.setting.options[option];
+        result.data[option] = metadata.setting.options[option];
       }
     }
-    debug("install_input_method:", name, data.metadata);
-    this.addTable(name, data.metadata, data.data, table_source);
-    return result;
+    debug("install_input_method:", name, result.metadata);
+    this.addTable(name, result.metadata, result.data, table_source);
+    return [success, result];
   }
 
   get_input_method_label(name) {
