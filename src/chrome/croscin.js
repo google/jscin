@@ -351,7 +351,7 @@ export class IME {
     }
 
     this.imctx = {};
-    this.im = jscin.create_input_method(name, this.imctx);
+    this.im = jscin.activateInputMethod(name, this.imctx);
     // For delayed response (ex, external IM modules, see IMKEY_DELAY).
     this.im.set_notifier(() => {
       if (!this.context) {
@@ -370,7 +370,7 @@ export class IME {
       this.imctx.commit_on_blur = true;
     }
     this.im_name = name;
-    this.im_label = jscin.get_input_method_label(name);
+    this.im_label = jscin.getLabel(name);
 
     // Apply Addon configuration.
     this.config.forEach((key, value) => {
@@ -387,7 +387,7 @@ export class IME {
     let menu_items = [];
 
     for (let name of this.config.InputMethods()) {
-      let label = jscin.get_input_method_label(name) || name;
+      let label = jscin.getLabel(name) || name;
       menu_items.push({
         "id": `ime:${name}`,
         "label": label,
@@ -412,9 +412,9 @@ export class IME {
       debug("croscin.LoadBuiltinTables: No built-in tables.");
       return;
     }
-    let table_metadata = jscin.getTableMetadatas();
+    let available = jscin.getTableNames();
     for (let table_name in list) {
-      if (table_name in table_metadata && !reload) {
+      if (available.includes(table_name) && !reload) {
         debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
@@ -424,7 +424,7 @@ export class IME {
         debug("croscin.LoadBuiltinTables: Failed to load:", url);
         continue;
       }
-      jscin.install_input_method(null, content, {builtin: true, url: url});
+      jscin.saveTable(null, content, {builtin: true, url: url});
     }
 
   }
@@ -432,25 +432,21 @@ export class IME {
   LoadPreferences() {
 
     // Normalize preferences.
-    let metadatas = jscin.getTableMetadatas();
+    let available = jscin.getTableNames();
     let k = null;
-    let enabled_list = [];
+    let enabled = this.config.InputMethods().filter(
+      (v) => available.includes(v) );
 
-    this.config.InputMethods().forEach((key) => {
-      if (key in metadatas && enabled_list.indexOf(key) < 0)
-        enabled_list.push(key);
-    });
-    if (enabled_list.length < 1) {
-      for (k in metadatas) {
-        if (enabled_list.indexOf(k) < 0)
-          enabled_list.push(k);
-      }
+    // If the enabled list is broken, let's enable all.
+    if (enabled.length < 1) {
+      enabled = available;
     }
+
     // To compare arrays, hack with string compare.
-    if (this.config.InputMethods().toString() != enabled_list.toString()) {
+    if (this.config.InputMethods().toString() != enabled.toString()) {
       warn("LoadPreferences: need to update config.InputMethods:",
-        this.config.InputMethods(), enabled_list);
-      this.config.Set("InputMethods", enabled_list);
+        this.config.InputMethods(), enabled);
+      this.config.Set("InputMethods", enabled);
     }
     debug("croscin.config", this.config.config);
   }
@@ -464,7 +460,7 @@ export class IME {
   }
 
   getAvailableModules() {
-    return jscin.get_registered_modules();
+    return jscin.getModuleNames();
   }
 
   // IME API Handler

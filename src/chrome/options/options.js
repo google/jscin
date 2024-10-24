@@ -443,7 +443,7 @@ function addTable(content, url) {
 
   let cin = result.data;
   let name = cin.ename;
-  let info = jscin.getTableMetadatas()[name];
+  let info = jscin.getTableInfo(name);
   if (info) {
     if (!confirm(`Do you wish to overwrite ${info.cname} / ${info.ename} ?`)) {
       setAddTableStatus(_("tableStatusNotAdded"), true);
@@ -453,8 +453,8 @@ function addTable(content, url) {
     }
   }
 
-  // install_input_method will parse raw content again...
-  [success, result] = jscin.install_input_method(name, content,
+  // saveTable will parse raw content again...
+  [success, result] = jscin.saveTable(name, content,
       { setting: getSettingOption(cin), url: url });
   let msg = result;
   if (!success) {
@@ -462,19 +462,13 @@ function addTable(content, url) {
     return false;
   }
 
-  assert(success, "install_input_method should not fail");
-  // New table format
-  let table = {
-    cin: result.data,
-    info: result.metadata,
-    setting: result.metadata.setting
-  }
-  let new_name = table.info.ename;
+  assert(success, "saveTable should not fail");
+  name = result.metadata.ename;
 
   // Update the UI
   // We must reload metadata, since it may be modified in
-  // jscin.install_input_method.
-  addTableToList(name, table.info, '#enabled_im_list', true);
+  // jscin.saveTable.
+  addTableToList(name, '#enabled_im_list', true);
   setAddTableStatus(_("tableStatusAddedName", name), false);
   config.InsertInputMethod(name);
   updateBytesInUse(); // no need to wait.
@@ -526,8 +520,8 @@ function getSettingOption(cin) {
   return setting;
 }
 
-function addTableToList(name, metadata, list_id, do_insert) {
-  let info = metadata;
+function addTableToList(name, list_id, do_insert) {
+  let info = jscin.getTableInfo(name);
   const ename = info.ename;
   const cname = info.cname;
   const module = info.module;
@@ -592,9 +586,9 @@ function addTableToList(name, metadata, list_id, do_insert) {
         buttons.push({
           text: _('optionReload'),
           click: function() {
-            debug("optionReload:", metadata);
+            debug("optionReload:", info);
             if (confirm(_("optionAreYouSure"))) {
-              addTableUrl(url, metadata.setting);
+              addTableUrl(url, setting);
             }
             $(this).dialog("close");
           }});
@@ -610,20 +604,17 @@ function addTableToList(name, metadata, list_id, do_insert) {
 }
 
 function loadTables() {
-  let available = jscin.getTableMetadatas();
+  let available = jscin.getTableNames();
   let enabled = config.InputMethods();
 
   // First make sure we've visited all in the 'enabled', so we have more chance
   // to see the available input methods even if table info list is out of sync.
-  for (let name of enabled) {
-    addTableToList(name, available[name], '#enabled_im_list');
+  for (let name of enabled.filter((n) => available.includes(n))) {
+    addTableToList(name, '#enabled_im_list');
   }
-
   // Next add anything available but not in the enabled.
-  for (let name in available) {
-    if (enabled.includes(name))
-      continue;
-    addTableToList(name, available[name], '#available_im_list');
+  for (let name of available.filter((n) => !enabled.includes(n))) {
+    addTableToList(name, '#available_im_list');
   }
 }
 
@@ -633,7 +624,7 @@ function removeTable(name) {
     config.Set("AddonCrossQuery", "");
   if (config.InputMethods().includes(name))
     config.RemoveInputMethod(name);
-  jscin.deleteTable(name);
+  jscin.removeTable(name);
   updateBytesInUse(); // no need to wait.
 }
 

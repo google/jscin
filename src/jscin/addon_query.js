@@ -61,7 +61,7 @@ export class AddonCrossQuery extends BaseInputAddon
     if (!name)
       return;
 
-    let table = jscin.getTableData(name);
+    let table = jscin.loadTable(name);
     if (!table) {
       error("buildCharToKeyMap: fail to load:", name);
       return;
@@ -89,4 +89,4 @@ export class AddonCrossQuery extends BaseInputAddon
     this.buildCharToKeyMap(this.cross_name);
   }
 }
-jscin.register_addon(AddonCrossQuery);
+jscin.registerAddon(AddonCrossQuery);

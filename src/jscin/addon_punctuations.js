@@ -74,4 +74,4 @@ export class AddonPunctuations extends BaseInputAddon
   }
 }
 
-jscin.register_addon(AddonPunctuations);
+jscin.registerAddon(AddonPunctuations);

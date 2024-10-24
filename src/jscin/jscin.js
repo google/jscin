@@ -44,16 +44,16 @@ export class JavaScriptInputMethod
   // -------------------------------------------------------------------
   // Modules, input methods and addons
 
-  register_module(constructor, name=constructor.name) {
+  registerModule(constructor, name=constructor.name) {
     this.modules[name] = constructor;
     debug("Registered module:", name);
   }
 
-  get_registered_modules() {
+  getModuleNames() {
     return Object.keys(this.modules);
   }
 
-  register_addon(constructor, name=constructor.name) {
+  registerAddon(constructor, name=constructor.name) {
     this.addons.push(constructor);
     debug("Registered addon:", name);
   }
@@ -80,7 +80,7 @@ export class JavaScriptInputMethod
   }
 
   // Create input method instance
-  create_input_method(name, context, data) {
+  activateInputMethod(name, context, data) {
     if (!(name in this.input_methods)) {
       debug("Unknown input method:", name);
       return false;
@@ -88,7 +88,7 @@ export class JavaScriptInputMethod
     debug("Created input method instance:", name);
     let module = this.input_methods[name]["module"];
     if (!data)
-      data = this.getTableData(name);
+      data = this.loadTable(name);
     if (!data) {
       debug("Invalid table:", name);
       return false;
@@ -102,11 +102,11 @@ export class JavaScriptInputMethod
     return instance;
   }
 
-  install_input_method(name, table_source, metadata) {
+  saveTable(name, table_source, metadata) {
     // TODO(hungte) Move parseCin to jscin namespace.
     let [success, result] = parseCin(table_source);
     if (!success) {
-      debug("install_input_method: invalid table", result);
+      debug("saveTable: invalid table", result);
       return result;
     }
     name = name || result.metadata.ename;
@@ -118,17 +118,25 @@ export class JavaScriptInputMethod
         result.data[option] = metadata.setting.options[option];
       }
     }
-    debug("install_input_method:", name, result.metadata);
+    debug("saveTable:", name, result.metadata);
     this.addTable(name, result.metadata, result.data, table_source);
     return [success, result];
   }
 
-  get_input_method_label(name) {
+  getTableInfo(name) {
+    return this.getTableMetadatas()[name];
+  }
+
+  getLabel(name) {
     if (!(name in this.input_methods)) {
       debug("Unknown input method:", name);
       return null;
     }
     return this.input_methods[name].label;
+  }
+
+  getTableNames() {
+    return Object.keys(this.getTableMetadatas());
   }
 
   // -------------------------------------------------------------------
@@ -182,7 +190,7 @@ export class JavaScriptInputMethod
     if (!name)
       name = this.kDefaultModuleName;
 
-    let modules = this.get_registered_modules();
+    let modules = this.getModuleNames();
     if (!modules.includes(name)) {
       let first = modules[0];
       debug("Default module not avaialble and fallback to the 1st registered:",
@@ -196,11 +204,11 @@ export class JavaScriptInputMethod
     this.writeLocalStorage(this.kModuleNameKey, new_value);
   }
 
-  getTableData(name) {
+  loadTable(name) {
     return this.readLocalStorage(this.kTableDataKeyPrefix + name);
   }
 
-  deleteTable(name) {
+  removeTable(name) {
     let table_metadata = this.readLocalStorage(this.kTableMetadataKey, {});
     delete table_metadata[name];
     this.deleteLocalStorage(this.kTableDataKeyPrefix + name);

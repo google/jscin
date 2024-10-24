@@ -138,7 +138,7 @@ async function main() {
     let name = loadTableFromFile(test.table);
     jscin.reload_configuration();
     let inpinfo = {};
-    let inst = jscin.create_input_method(name, inpinfo);
+    let inst = jscin.activateInputMethod(name, inpinfo);
     for (let entry of test.test) {
       total_tested++;
       if (!simulate(inst, inpinfo, entry.input, entry.result, entry))

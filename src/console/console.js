@@ -41,7 +41,7 @@ function LoadTable(table_url) {
 function ActivateInputMethod(name) {
   if (name in jscin.input_methods) {
     imctx = {};
-    im = jscin.create_input_method(name, imctx);
+    im = jscin.activateInputMethod(name, imctx);
   } else {
     print("ActivateInputMethod: Invalid item:", name);
   }

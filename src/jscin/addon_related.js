@@ -141,4 +141,4 @@ export class AddonRelatedText extends BaseInputAddon
   }
 }
 
-jscin.register_addon(AddonRelatedText);
+jscin.registerAddon(AddonRelatedText);

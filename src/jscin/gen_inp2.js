@@ -588,4 +588,4 @@ export class GenInp2 extends BaseInputMethod
   };
 }
 
-jscin.register_module(GenInp2);
+jscin.registerModule(GenInp2);
