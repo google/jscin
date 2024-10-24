@@ -55,7 +55,14 @@ export class Config {
   }
   Reset() {
     // Keep configs a simple structure for shallow copy.
+    let version = "unknown";
+    try {
+      version = chrome.runtime.getManifest().version;
+    } catch (error) {
+      warn("Failed to get manifest version.");
+    }
     this.config = {
+      Version: version,
       Debug: false,
       Emulation: false,
       AddonRelatedText: false,
@@ -175,6 +182,7 @@ export class Config {
   // Easy Getters (do not allow setting).
   Debug()               { return this.Get("Debug"); }
   Emulation()           { return this.Get("Emulation"); }
+  Version()             { return this.Get("Version"); }
   AddonRelatedText()    { return this.Get("AddonRelatedText"); }
   AddonPunctuations()   { return this.Get("AddonPunctuations"); }
   AddonCrossQuery()     { return this.Get("AddonCrossQuery"); }

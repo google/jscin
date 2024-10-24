@@ -70,10 +70,11 @@ export class IME {
   async Initialize() {
     debug("Start to Initialize");
     let version = chrome.runtime.getManifest().version;
-    let reload = (version !== jscin.getLocalStorageVersion());
+    let reload = (version !== this.config.Version());
+
     await this.LoadBuiltinTables(reload);
     if (reload) {
-      jscin.setLocalStorageVersion(version);
+      this.config.Set("Version", version);
     }
     jscin.reload_configuration();
     this.detect_ime_api();

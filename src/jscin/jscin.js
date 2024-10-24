@@ -31,7 +31,6 @@ export class JavaScriptInputMethod
     // Configuration key names.
     this.kTableMetadataKey = "table_metadata";
     this.kTableDataKeyPrefix = "table_data-";
-    this.kVersionKey = "version";
     this.kModuleNameKey = 'default_module_name';
     this.kDefaultModuleName = 'GenInp2';
 
@@ -165,14 +164,6 @@ export class JavaScriptInputMethod
 
   // -------------------------------------------------------------------
   // Tables and local storage management
-
-  getLocalStorageVersion() {
-    return this.readLocalStorage(this.kVersionKey, 0);
-  }
-
-  setLocalStorageVersion(version) {
-    return this.writeLocalStorage(this.kVersionKey, version);
-  }
 
   addTable(name, metadata, data, raw_data) {
     let table_metadata = this.readLocalStorage(this.kTableMetadataKey, {});
