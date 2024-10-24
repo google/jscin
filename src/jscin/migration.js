@@ -64,13 +64,20 @@ export class Migration {
     return table;
   }
 
-  async migrateAllTables() {
+  async migrateAllTables(force) {
 
+    let start = performance.now();
+    // Note we are not deleting the old table so users may switch between,
+    // however that means we have to delete both the old and new tables
+    // when removing a table in the Options.
+    let delete_old = true;
+    let parallel = true;
     let old_meta = await this.old_storage.get(kTableOldMetadataKey);
     let infos = await this.storage.get(KEY_INFO_LIST) || {};
     debug("migrateAllTables: start to check...", old_meta, infos);
+    let waits = [];
     // In case old_meta was corrupted, we want to keep migrating even if the
-    // metadata does not have the
+    // metadata does not have the right info, as long as the table is valid.
     for (let k of await this.old_storage.getKeys()) {
       if (!k.startsWith(kTableOldDataKeyPrefix))
         continue;
@@ -80,25 +87,39 @@ export class Migration {
       let meta = old_meta[name] ||{};
       if (meta.builtin) {
         debug("Ignore built-in table:", name);
+        if (delete_old)
+          this.old_storage.remove(k);
         continue;
       }
       debug("Checking if we need to migarte the old table:", name, k);
       let new_k = this.ime.tableKey(name);
       assert(new_k != k, "The key must be different for migration", k, new_k);
-      if (await this.storage.has(new_k)) {
+      if (await this.storage.has(new_k) && !force) {
         debug("New table is already there, skip:", name, new_k);
-        // Note we are not deleting the old table so users may switch between,
-        // however that means we have to delete both the old and new tables
-        // when removing a table in the Options.
+        if (delete_old)
+          this.old_storage.remove(k);
         continue;
       }
       // Now we have a new table.
       let table = this.migrateTable(await this.old_storage.get(k), meta);
       infos[name] = table.info;
-      await this.storage.set(new_k, table);
+      let w = this.storage.set(new_k, table);
+      if (delete_old)
+        this.old_storage.remove(k);
+      if (parallel)
+        waits.push(parallel);
+      else
+        await w;
     }
     await this.storage.set(KEY_INFO_LIST, infos);
-    debug("migrateTable: All tables migrated.", infos);
+    if (delete_old)
+      this.old_storage.remove(kTableOldMetadataKey);
+    /* Wait for all storage.set to finish. */
+    for (let w of waits)
+      await w;
+    let exec = Math.round(performance.now() - start);
+    debug("migrateTable: All tables migrated.", infos, exec, "ms");
+    console.log(`Migration/${parallel ? "parallel" : "single-thread"} ${exec} ms.`);
   }
 
   async removeLegacyBackupTables() {
@@ -123,9 +144,9 @@ export class Migration {
     }
   }
 
-  async migrateAll() {
+  async migrateAll(force) {
     this.removeLocalStorageData();
     this.removeLegacyBackupTables();
-    return this.migrateAllTables();
+    return this.migrateAllTables(force);
   }
 }
