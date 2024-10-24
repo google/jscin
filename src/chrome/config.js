@@ -64,6 +64,7 @@ export class Config {
     this.config = {
       Version: version,
       Debug: false,
+      DefaultModule: '',
       Emulation: false,
       AddonRelatedText: false,
       AddonPunctuations: true,
@@ -181,6 +182,7 @@ export class Config {
 
   // Easy Getters (do not allow setting).
   Debug()               { return this.Get("Debug"); }
+  DefaultModule()       { return this.Get("DefaultModule"); }
   Emulation()           { return this.Get("Emulation"); }
   Version()             { return this.Get("Version"); }
   AddonRelatedText()    { return this.Get("AddonRelatedText"); }

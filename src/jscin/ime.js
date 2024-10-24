@@ -101,6 +101,7 @@ export class InputMethodsEnvironment {
     this.info_list = {};
     this.tables = {}
     this.modules = {};
+    this.fallback_module = null;
     this.addons = []; // Tables must be chained in order so this is an array.
     this.callbacks = {
       [KEY_INFO_LIST]: [],
@@ -156,33 +157,32 @@ export class InputMethodsEnvironment {
   // ----- Modules -----
 
   registerModule(constructor, name=constructor.name) {
-    if (!this.getModuleNames().length)
-      this.modules[undefined] = constructor;
+    if (!this.fallback_module)
+      this.fallback_module = constructor;
 
     assert(!(name in this.modules), "Already registered:", name);
     this.modules[name] = constructor;
     debug("Registered module:", name);
   }
 
+  // To get the fallback module: getModule()
+  // Toe get the name of the fallback moduel: getModule()?.name
   getModule(name) {
-    if (name in this.modules)
-      return this.modules[name];
-
-    const m = this.modules[undefined];
-    if (name && m) {
-      warn("Warning: module does not exist, will fallback to default",
-        name, m.name);
+    if (typeof(name) == 'function')
+      return name;
+    if (name) {
+      const m = this.modules[name];
+      if (m)
+        return m;
+      warn("Warning: module does not exist, will use the fallback module:",
+        name, "=>", this.fallback_module?.name);
     }
-    return m;
+    assert(this.fallback_module, "No modules available yet.");
+    return this.fallback_module;
   }
 
   getModuleNames() {
     return Object.keys(this.modules);
-  }
-
-  getDefaultModuleName() {
-    assert(this.getModuleNames().length, "No modules registered");
-    return this.modules[undefined].name;
   }
 
   // ----- Addons -----
@@ -389,17 +389,8 @@ export class InputMethodsEnvironment {
     }
 
     // module: from param (string or constructor),
-    // from table, or default.
-    if (!module) {
-      module = table.cin.MODULE;
-    }
-    if (typeof(module) == typeof('')) {
-      module = this.modules[module];
-    }
-    if (!module) {
-      module = this.modules[undefined];
-      debug("activateInputMethod: Fallback the module to the default", module.name);
-    }
+    // from table, or the fallback.
+    module = this.getModule(module || table.cin.MODULE);
     assert(module, "activateInputMethod: No any modules available:", name);
 
     // Apply options not in the original CIN (for example added by jscin
@@ -412,7 +403,7 @@ export class InputMethodsEnvironment {
     applyInputMethodTableQuirks(table.cin);
 
     let instance = new module(name, table.cin);
-    debug("activateInputMethod: Created input method:", name, instance);
+    debug("activateInputMethod: Created input method:", name, instance, module.name);
 
     this.addons.forEach((addon) => {
       instance = new addon('addon', instance);
