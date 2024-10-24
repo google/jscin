@@ -274,22 +274,21 @@ async function init() {
     config.Debug()).click(function () {
       config.Set("Debug", $(this).prop("checked"));
   });
-  let module_form = $('#formSelectModule');
-  let def_module = instance.getDefaultModule();
-  module_form.empty();
   let im_modules = instance.getAvailableModules();
-  im_modules.forEach(function (name) {
-    if (!name.startsWith("Gen"))
-      return;
-    module_form.append(
-        $('<input type=radio class=radio name=moduleRadio/>').attr("id", name).
-        click(function () {
-          instance.setDefaultModule(name);
-          alert(_("optionReloadExtensionOrRestart"));
-        }));
-    module_form.append($('<label/>').attr("for", name).text(name));
-  });
-  $('#' + def_module).prop("checked", true);
+  let def_module = instance.getDefaultModule();
+  assert(def_module, "Cannot find the default module.");
+  let selectMod = $('#formSelectModule');
+  selectMod.empty();
+  for (let name of im_modules.filter((v)=>v.startsWith("Gen"))) {
+    let opt = $('<option></option>').val(name).text(name);
+    if (name == def_module)
+      opt.attr("selected", "selected");
+    selectMod.append(opt);
+  };
+  selectMod.selectmenu({change: () => {
+    instance.setDefaultModule(selectMod.val());
+    alert(_("optionReloadExtensionOrRestart"));
+  }});
   $('#formSelectModule').controlgroup();
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
