@@ -48,7 +48,9 @@ export const KEY_TABLE_PREFIX = "table-";
  *   = ename, cname, chardef
  * - info
  *   = ename, cname, url(optional)
- * - setting (optional)
+ * - type (types.json, type of the input method) (or should we call this 'extra'?)
+ *   = cin (the extra options to be applied to the cin data)
+ *   = cname, ename (the name of the type)
  *
  * `ename` and `cname` are in info because that's always required for display.
  * `url` is in info because for any reason we can't find the table, we may
@@ -71,7 +73,7 @@ export const KEY_TABLE_PREFIX = "table-";
  *  ime.getTableInfoList();
  *
  *  // Install a new table
- *  ime.saveTable(cin, url, setting);
+ *  ime.saveTable(cin, url, type);
  *
  * // Start a new input method:
  * let ctx = {};
@@ -231,14 +233,14 @@ export class InputMethodsEnvironment {
     return result.data;
   }
 
-  createTable(cin, url, setting) {
+  createTable(cin, url, type) {
     if (typeof(cin) == typeof(''))
       cin = this.parseCinFromString(cin);
     if (!cin || !this.isValidCIN(cin)) {
       debug("createTable: Invalid CIN:", cin);
       return false;
     }
-    debug("createTable:", "cin=>", cin, "url=>", url, "setting=>", setting);
+    debug("createTable:", "cin=>", cin, "url=>", url, "type=>", type);
     // Now, create the table.
     let table = {
       cin: cin,
@@ -247,7 +249,7 @@ export class InputMethodsEnvironment {
         cname: cin.cname,
         url: url,
       },
-      setting: setting,
+      type: type,
     };
 
     if (!this.isValidTable(table)) {
@@ -258,8 +260,8 @@ export class InputMethodsEnvironment {
     return table;
   }
 
-  async saveTable(cin, url, setting) {
-    let table = this.createTable(cin, url, setting);
+  async saveTable(cin, url, type) {
+    let table = this.createTable(cin, url, type);
     if (!table)
       return false;
 
@@ -393,13 +395,13 @@ export class InputMethodsEnvironment {
     module = this.getModule(module || table.cin.MODULE);
     assert(module, "activateInputMethod: No any modules available:", name);
 
-    // Apply options not in the original CIN (for example added by jscin
-    // auto-detected rules)
-    let opt = table?.setting?.options || {};
-    Object.assign(table.cin, opt);
+    // Apply extra CIN commands not in the original CIN (for example added by
+    // jscin auto detected rules)
+    let cin = table?.type?.cin || {};
+    Object.assign(table.cin, cin);
 
-    // Apply final quirks. This must be done after the table.setting because
-    // some quirks may be triggered only after the table.settings is applied.
+    // Apply final quirks. This must be done after the table.type because
+    // some quirks may be triggered only after the table.type is applied.
     applyInputMethodTableQuirks(table.cin);
 
     let instance = new module(name, table.cin);

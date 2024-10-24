@@ -12,6 +12,7 @@ This folder contains source to JavaScript Chinese Input Method.
 - `tables/builtin.json`: List of built-in tables.
 - `tables/*.cin`: Built-in tables.
 - `tables/tsi.json`: Database for phrases.
+- `tables/types.json`: The known types of input methods.
 
 ## Documents
 - `docs/cin.txt`: Document for the `*.cin` file format.

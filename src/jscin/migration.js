@@ -5,10 +5,11 @@
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
-import {ChromeStorage, CompressedStorage, Storage} from "./storage.js";
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("migrate");
 
+import {ChromeStorage, CompressedStorage, Storage} from "./storage.js";
+import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
 const kTableOldMetadataKey = "table_metadata";
 const kTableOldDataKeyPrefix = "table_data-";
@@ -47,8 +48,18 @@ export class Migration {
       return data;
     }
 
-    let info = meta[data.ename] || {};
-    let table = this.ime.createTable(data, meta.url, meta.setting);
+    function renameProperty(obj, old_name, new_name) {
+      if (!obj || !(old_name in obj))
+        return;
+      obj[new_name] = obj[old_name]
+      delete obj[old_name];
+    }
+
+    let type = structuredClone(meta.setting);
+    renameProperty(type, 'options', 'cin');
+    renameProperty(type, 'by_auto_detect', 'auto_detect');
+
+    let table = this.ime.createTable(data, meta.url, type);
     debug("Migrated the table to new format:", table.cin.ename, data, "=>", table);
     return table;
   }
