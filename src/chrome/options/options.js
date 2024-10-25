@@ -468,8 +468,7 @@ function addTable(content, url) {
 }
 
 async function updateBytesInUse() {
-  // TODO(hungte) Change this to ime.storage when we moved to the ime.js.
-  let storage = new CompressedStorage();
+  let storage = jscin.storage;
   const bytes_in_use = await storage.getBytesInUse();
   $('.optionBytesInUse').text(_("optionBytesInUse", `${bytes_in_use}`));
 }
