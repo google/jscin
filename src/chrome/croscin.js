@@ -345,17 +345,24 @@ export class IME {
 
     if (!(name in jscin.input_methods)) {
       debug("ActivateInputMethod: ERROR: Invalid name:", name);
+    let imctx = {};
+    let im = await jscin.activateInputMethod(
+      name, imctx, null, this.config.DefaultModule());
+
+    if (!im) {
+      debug("croscin.ActivateInputMethod: Cannot start Input Method:", name);
       return;
     }
 
-    this.imctx = {};
-    this.im = jscin.activateInputMethod(name, this.imctx);
+    this.imctx = imctx;
+    this.im = im;
+    this.im_name = name;
+    this.im_label = jscin.getLabel(name);
+
     // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
     if (!this.ime_api.isEmulation) {
       this.imctx.commit_on_blur = true;
     }
-    this.im_name = name;
-    this.im_label = jscin.getLabel(name);
 
     // Apply Addon configuration.
     this.config.forEach((key, value) => {
@@ -434,18 +441,6 @@ export class IME {
       this.config.Set("InputMethods", enabled);
     }
     debug("croscin.config", this.config.config);
-  }
-
-  getDefaultModule() {
-    return jscin.getDefaultModuleName();
-  }
-
-  setDefaultModule(new_value) {
-    return jscin.setDefaultModuleName(new_value);
-  }
-
-  getAvailableModules() {
-    return jscin.getModuleNames();
   }
 
   // IME API Handler

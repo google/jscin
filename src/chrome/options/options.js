@@ -276,11 +276,16 @@ async function init() {
     config.Debug()).click(function () {
       config.Set("Debug", $(this).prop("checked"));
   });
-  let im_modules = instance.getAvailableModules();
-  let def_module = instance.getDefaultModule();
+
+  let im_modules = jscin.getModuleNames();
+  let def_module = config.DefaultModule();
+  if (!im_modules.includes(def_module))
+    def_module = jscin.getModule()?.name;
   assert(def_module, "Cannot find the default module.");
+
   let selectMod = $('#formSelectModule');
   selectMod.empty();
+
   for (let name of im_modules.filter((v)=>v.startsWith("Gen"))) {
     let opt = $('<option></option>').val(name).text(name);
     if (name == def_module)
@@ -288,7 +293,7 @@ async function init() {
     selectMod.append(opt);
   }
   selectMod.selectmenu({change: () => {
-    instance.setDefaultModule(selectMod.val());
+    config.Set("DefaultModule", name);
     alert(_("optionReloadExtensionOrRestart"));
   }});
   $('#formSelectModule').controlgroup();
