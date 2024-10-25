@@ -437,7 +437,7 @@ async function addTabFile(files) {
   }
 }
 
-function addTable(content, url) {
+async function addTable(content, url) {
   // Parse the content
   let [success, result] = parseCin(content);
 
