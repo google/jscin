@@ -158,7 +158,7 @@ export class JavaScriptInputMethod
     if (count_ims < 1) {
       error("reload_configuration: No input methods available.");
     }
-    if (localStorage)
+    if (globalThis.localStorage)
       debug("localStorage:", Object.keys(localStorage));
   }
 

@@ -65,10 +65,8 @@ function loadTableFromFile(filename) {
     jscin.log('failed to load:', filename, 'msg:', result);
     return;
   }
-  let table_metadata = result.metadata;
-  let table_data = result.data;
-  let name = table_metadata.ename;
-  jscin.addTable(name, table_metadata, table_data);
+  let name = result.data.ename;
+  jscin.saveTable(name, content, {});
   return name;
 }
 
