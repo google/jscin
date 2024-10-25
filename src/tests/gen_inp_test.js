@@ -3,10 +3,8 @@
 
 import {parseCin} from '../jscin/cin_parser.js';
 import {jscin} from '../jscin/jscin.js';
-import {KeyEvent} from '../jscin/key_event.js';
-
-import '../jscin/base_inp.js';
 import '../jscin/gen_inp2.js';
+import {KeyEvent} from '../jscin/key_event.js';
 
 import fs from 'node:fs';
 
@@ -58,15 +56,14 @@ function simulate(inst, inpinfo, input, result, expects) {
   return false;
 }
 
-function loadTableFromFile(filename) {
+async function loadTableFromFile(filename) {
   const content = fs.readFileSync(filename, 'utf8');
   let [success, result] = parseCin(content);
   if (!success) {
     jscin.log('failed to load:', filename, 'msg:', result);
     return;
   }
-  let name = result.data.ename;
-  jscin.saveTable(name, content, {});
+  let name = await jscin.saveTable(result.data.ename, content, filename, {});
   return name;
 }
 
@@ -133,10 +130,9 @@ async function main() {
   let total_tested = 0;
   for (let test of test_list) {
     let failure = 0;
-    let name = loadTableFromFile(test.table);
-    jscin.reload_configuration();
+    let name = await loadTableFromFile(test.table);
     let inpinfo = {};
-    let inst = jscin.activateInputMethod(name, inpinfo);
+    let inst = await jscin.activateInputMethod(name, inpinfo);
     for (let entry of test.test) {
       total_tested++;
       if (!simulate(inst, inpinfo, entry.input, entry.result, entry))

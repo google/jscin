@@ -86,17 +86,22 @@ export class InputMethodsEnvironment
     return instance;
   }
 
-  saveTable(name, table_source, metadata) {
+  tableKey(name) {
+    return `${this.kTableDataKeyPrefix}${name}`;
+  }
+
+  saveTable(name, table_source, url, setting) {
     // TODO(hungte) Move parseCin to jscin namespace.
     let [success, result] = parseCin(table_source);
     if (!success) {
       debug("saveTable: invalid table", result);
-      return result;
+      return false;
     }
-    name = name || result.metadata.ename;
-    for (let key in metadata) {
-      result.metadata[key] = metadata[key];
-    }
+    let metadata = result.metadata;
+    name = name || metadata.ename;
+    metadata.setting = setting;
+    metadata.url = url;
+    metadata.name = name;
     if (metadata.setting && metadata.setting.options) {
       for (let option in metadata.setting.options) {
         result.data[option] = metadata.setting.options[option];
@@ -104,7 +109,8 @@ export class InputMethodsEnvironment
     }
     debug("saveTable:", name, result.metadata);
     this.addTable(name, result.metadata, result.data, table_source);
-    return [success, result];
+    this.reload_configuration();
+    return name;
   }
 
   getTableInfo(name) {

@@ -454,16 +454,8 @@ function addTable(content, url) {
   }
 
   // saveTable will parse raw content again...
-  [success, result] = jscin.saveTable(name, content,
-      { setting: getSettingOption(cin), url: url });
-  let msg = result;
-  if (!success) {
-    setAddTableStatus(_("tableStatusFailedParsingMsg", result), true);
-    return false;
-  }
-
-  assert(success, "saveTable should not fail");
-  name = result.metadata.ename;
+  name = jscin.saveTable(name, content, { setting: getSettingOption(cin), url: url });
+  assert(name, "saveTable should not fail");
 
   // Update the UI
   // We must reload metadata, since it may be modified in

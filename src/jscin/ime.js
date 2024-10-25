@@ -73,7 +73,7 @@ export const KEY_TABLE_PREFIX = "table-";
  *  ime.getTableInfoList();
  *
  *  // Install a new table
- *  ime.saveTable(cin, url, type);
+ *  ime.saveTable(name, cin, url, type);
  *
  * // Start a new input method:
  * let ctx = {};
@@ -267,12 +267,13 @@ export class InputMethodsEnvironment {
     return table;
   }
 
-  async saveTable(cin, url, type, save_in_storage=true) {
+  async saveTable(name, cin, url, type, save_in_storage=true) {
     let table = this.createTable(cin, url, type);
     if (!table)
       return false;
 
-    let name = table.info.ename;
+    name = name || table.info.ename;
+    table.info.name = name;
     const key = this.tableKey(name);
     debug("saveTable:", name, key, table);
     this.cache[name] = table;
@@ -389,7 +390,13 @@ export class InputMethodsEnvironment {
       let table = await this.storage.get(key);
       if (!this.isValidTable(table))
         warn("Warning: found invalid table:", table);
-      list[table.info.ename] = table.info;
+      let name = key.substring(KEY_TABLE_PREFIX);
+      let info_name = table.info.name || table.info.ename;
+      if (name != info_name) {
+        warn("Warning: info name is different from table key name:", info_name, "!=", name);
+        table.info.name = name;
+      }
+      list[name] = table.info;
     }
     debug("Rebuild finished.", list);
     return this.saveTableInfoList(list);
