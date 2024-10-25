@@ -411,20 +411,22 @@ export class IME {
       return;
     }
     let available = jscin.getTableNames();
+    const saveBuiltin = false;
+
     for (let table_name in list) {
       if (available.includes(table_name) && !reload) {
         debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
+
+      // Clear any existing records - both the table contents and info.
+      await jscin.removeTable(table_name);
+
       let url = chrome.runtime.getURL(`tables/${list[table_name]}`);
       let content = await LoadText(url);
-      if (!content) {
-        debug("croscin.LoadBuiltinTables: Failed to load:", url);
-        continue;
-      }
-      jscin.saveTable(null, content, {builtin: true, url: url});
+      assert(content, "Can't load built-in table:", url);
+      await jscin.saveTable(table_name, content, url, {}, saveBuiltin);
     }
-
   }
 
   LoadPreferences() {
