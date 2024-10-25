@@ -11,11 +11,12 @@ import { ImeExtensionIPC } from "./ipc.js";
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("emulation/ui");
 
+// http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
+const NBSP = '\xa0';
+
 $(function() {
   debug("ui.js started:", window.location.href);
 
-  // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
-  let nbsp = '\xa0';
 
   let ipc = new ImeExtensionIPC('iframe');
   ipc.attach();
@@ -43,9 +44,9 @@ $(function() {
       let _ = chrome.i18n.getMessage;
       // TODO(hungte) Remove the hard-coded prefix.
       // The auxiliaryText looks better if we always keep it.
-      ui.text(`|${nbps}${engine.candidate_window.auxiliaryText}${nbsp}`).
+      ui.text(`|${NBSP}${engine.candidate_window.auxiliaryText}${NBSP}`).
           prepend($('<span/>').css({color: '#444'}).
-          text(`${_("imeToggleHint")}${nbsp}`));
+          text(`${_("imeToggleHint")}${NBSP}`));
 
       if (false) {
         // The correct way (for debug)
@@ -83,7 +84,7 @@ $(function() {
       let cursor = get('cursor', text.length);
       let segments = get('segments', []);
       let data = text.split('').map((c) => ({text: c}));
-      data.push({text: nbsp});
+      data.push({text: NBSP});
       data[cursor].cursor = true;
       for (let i = selectionStart; i < selectionEnd; i++) {
         data[i].selected = true;
@@ -122,7 +123,7 @@ $(function() {
     // TODO(hungte) Fire CandidateClicked event.
     UiCandidates: function (context) {
       let ui = $('#imePanel #candidates');
-      ui.empty().append(nbsp);
+      ui.empty().append(NBSP);
       for (let item of context.candidates) {
         let label = item.label || item.id;
         ui.append(
