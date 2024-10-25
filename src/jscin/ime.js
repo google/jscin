@@ -356,9 +356,9 @@ export class InputMethodsEnvironment {
     return this.info_list;
   }
 
-  async saveTableInfoList(info) {
-    if (info)
-      this.info_list = info;
+  async saveTableInfoList(info_list) {
+    if (info_list)
+      this.info_list = info_list;
     return this.storage.set(KEY_INFO_LIST, this.info_list);
   }
 

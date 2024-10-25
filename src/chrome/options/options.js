@@ -6,31 +6,32 @@
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
+
+// Here we must import the same set that the engine (e.g., croscin) is using,
+// because that is the only way to get the list of registered modules.
+import { jscin } from "../jscin/all.js";
+
 import { parseGtab, IsGTabBlob } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
 import { Config } from "../config.js";
-import { ChromeStorage, CompressedStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
+import { ChromeStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
 
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
 
-let table_loading = {};
 // Use var for variables that we want to explore and change in the browser
 // debugging tool.
 var config = new Config();
 await config.Load();
 
-// this is dirty hack
-let bgPage = chrome.extension.getBackgroundPage();
-let jscin = bgPage.jscin;
-let instance = bgPage.croscin.instance;
-
+// Always register jscin for debugging.
+globalThis.jscin = jscin;
 if (config.Debug()) {
-  window.bgPage = bgPage;
   logger.enableAllLoggers();
-  window.config = config;
-  window.logger = logger;
 }
+
+// A list for managing loading messages in UI.
+let table_loading = {};
 
 // _: Let Chrome decide (_locales)
 let _ = chrome.i18n.getMessage;
