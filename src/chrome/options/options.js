@@ -77,6 +77,10 @@ function decodeId(id) {
   return id.match(/.{2}/g).map((v)=>String.fromCharCode(parseInt(v, 16))).join('');
 }
 
+function getSelectedTypeFromUI() {
+  return KnownTypes[$('#add_table_setting').prop('selectedIndex')];
+}
+
 async function init() {
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
@@ -147,7 +151,7 @@ async function init() {
         text: _("optionAddTable"),
         click: function() {
           let url = $("#cin_table_url_input").val();
-          addTableUrl(url);
+          addTableFromUrl(url, getSelectedTypeFromUI());
           $(this).dialog("close");
         }
       },
@@ -174,7 +178,7 @@ async function init() {
         text: _("optionAddTable"),
         click: function() {
           let files = document.getElementById("cin_table_file_input").files;
-          addTabFile(files);
+          addTableFromFile(files, getSelectedTypeFromUI());
           $(this).dialog("close");
         }
       },
@@ -222,7 +226,7 @@ async function init() {
         click: function() {
           let val = $('#odlist_select').val();
           $(this).dialog("close");
-          addTableUrl(openDesktop.getURL(val));
+          addTableFromUrl(openDesktop.getURL(val), getSelectedTypeFromUI());
         }
       },
       {
@@ -311,8 +315,8 @@ function GuessNameFromURL(url) {
   return guess || '<Unknown>';
 }
 
-async function addTableFromBlob(blob, source) {
-  debug("addTableFromBlob", source, blob);
+async function addTableFromBlob(blob, source, type) {
+  debug("addTableFromBlob", source, blob, type);
 
   if (source instanceof File) {
     source = source.name;
@@ -327,7 +331,7 @@ async function addTableFromBlob(blob, source) {
       debug("Parsing GTAB into CIN:", source, ename);
       let cin = `%ename ${ename}\n` + parseGtab(blob);
       debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
-      if (addTable(cin)) {
+      if (addTable(cin, source, type)) {
         debug("addTableFromBlob: success.", source);
         return true;
       } else {
@@ -355,9 +359,9 @@ async function addTableFromBlob(blob, source) {
   }
 }
 
-async function addTableUrl(url, progress=true) {
+async function addTableFromUrl(url, type, progress=true) {
   let name = GuessNameFromURL(url);
-  debug("addTableUrl:", name, url);
+  debug("addTableFromUrl:", name, url);
   try {
     if (url.replace(/^\s+|s+$/g, "") == "") {
       setAddTableStatus(_("tableStatusURLisEmpty"), true);
@@ -390,7 +394,7 @@ async function addTableUrl(url, progress=true) {
       xhr.addEventListener("load", (e)=> {
         setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
         blob = e.currentTarget.response;
-        addTableFromBlob(blob, url);
+        addTableFromBlob(blob, url, type);
         delete table_loading[url];
       });
       xhr.onreadystatechange = (e) => {
@@ -410,23 +414,23 @@ async function addTableUrl(url, progress=true) {
     } else {
       blob = await LoadArrayBuffer(url, true);
       setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
-      addTableFromBlob(blob, url);
+      addTableFromBlob(blob, url, type);
       delete table_loading[url];
     }
   } catch (err) {
     delete table_loading[url];
-    error("addTableUrl: error", url, err);
+    error("addTableFromUrl: error", url, err);
     setAddTableStatus(_("tableStatusDownloadFailNameStatus", [name, this.status]), true);
     return;
   }
 }
 
-async function addTabFile(files) {
+async function addTableFromFile(files, type) {
   for (let f of files) {
-    debug("addTabFile", f);
+    debug("addTableFromFile", f);
     let fr = new FileReader();
     fr.addEventListener("load", (event) => {
-      addTableFromBlob(fr.result, f);
+      addTableFromBlob(fr.result, f, type);
     });
     fr.addEventListener("error", (event) => {
       error("Failed loading file:", f);
@@ -437,7 +441,7 @@ async function addTabFile(files) {
   }
 }
 
-async function addTable(content, url) {
+async function addTable(content, url, type) {
   // Parse the content
   let [success, result] = parseCin(content);
 
@@ -459,11 +463,11 @@ async function addTable(content, url) {
     }
   }
 
-  if (!type)
-    type = getTypeOption(cin);
+  let real_type = solveFileType(cin, type);
+  debug("addTable: table type:", type, "=>", real_type);
 
   // Update the UI
-  let new_name = await jscin.saveTable(null, cin, url, type);
+  let new_name = await jscin.saveTable(null, cin, url, real_type);
   if (!new_name) {
     setAddTableStatus(_("tableStatusFailedParsingMsg", "Cannot save"), true);
     return false;
@@ -476,8 +480,7 @@ async function addTable(content, url) {
   return true;
 }
 
-async function updateBytesInUse() {
-  let storage = jscin.storage;
+async function updateBytesInUse(storage=jscin.storage) {
   const bytes_in_use = await storage.getBytesInUse();
   $('.optionBytesInUse').text(_("optionBytesInUse", `${bytes_in_use}`));
 }
@@ -485,39 +488,38 @@ async function updateBytesInUse() {
 function setAddTableStatus(status, err) {
   let status_field = document.getElementById("add_table_status");
   status_field.innerText = status;
-  if (err) {
-    status_field.className = "status_error";
-  } else {
-    status_field.className = "status_ok";
-  }
+  status_field.className = err ? "status_error" : "status_ok";
 }
 
-function getTypeOption(cin) {
-  let type = KnownTypes[document.getElementById(
-    "add_table_setting").selectedIndex];
+function solveFileType(cin, type) {
+  assert(type, "The type description must be provided.");
   if (!type.auto_detect)
     return type;
+
   let matched = undefined;
   let from_table = undefined;
+
   for (let opt of KnownTypes) {
     if (opt.from_table)
       from_table = opt;
     if (!opt.detect)
       continue;
-    let mismatch = false;
-    for (let key in opt.detect) {
-      if (!cin.chardef[key] || !cin.chardef[key].includes(opt.detect[key])) {
-        mismatch = true;
+
+    matched = opt;
+    for (let [key, expected] of Object.entries(opt.detect)) {
+      if (!(cin.chardef[key] &&
+            cin.chardef[key].includes(expected))) {
+        matched = null;
         break;
       }
     }
-    if (mismatch)
-      continue;
-    debug("getTypeOption: matched:", opt);
-    matched = opt;
-    break;
+    if (matched) {
+      debug("solveFileType: matched:", opt);
+      break;
+    }
   }
   let result = matched || from_table || type;
+  assert(result, "There must be at least one type to match.");
   // Make a record so we can re-parse its type next time.
   result.auto_detect = true;
   return result;
@@ -592,7 +594,7 @@ function addTableToList(name, list_id, do_insert) {
           click: function() {
             debug("optionReload:", table.type);
             if (confirm(_("optionAreYouSure"))) {
-              addTableUrl(url, table.type);
+              addTableFromUrl(url, table.type);
             }
             $(this).dialog("close");
           }});
