@@ -22,20 +22,19 @@ const print = console.log;
 const write = console.log;
 
 function LoadTable(table_url) {
-  let table_metadata = jscin.readLocalStorage(jscin.kTableMetadataKey, {});
   print("table_url:", table_url);
-  let [success, result]  = parseCin(fs.readFileSync(table_url, 'utf8'));
+  let content = fs.readFileSync(table_url, 'utf8');
+  let [success, result]  = parseCin(content);
   if (!success) {
     print("ERROR: Invalid table:", table_url, "REASON:", result);
     return;
   }
-  let {metadata, data: table_content} = result;
-  let ename = table_content['ename'];
-  table_metadata[ename] = table_content;
-  jscin.writeLocalStorage(jscin.kTableDataKeyPrefix + ename, table_content);
-  jscin.writeLocalStorage(jscin.kTableMetadataKey, table_metadata);
+  let {metadata, data: cin} = result;
+  let name = cin.ename;
+
+  jscin.saveTable(name, content, {});
   jscin.reload_configuration();
-  return ename;
+  return name;
 }
 
 function ActivateInputMethod(name) {

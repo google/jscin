@@ -248,13 +248,6 @@ export class JavaScriptInputMethod
     localStorage[key] = val;
   }
 
-  isInLocalStorage(key) {
-    if (typeof(localStorage) == typeof(undefined)) {
-      localStorage = {};
-    }
-    return (key in localStorage);
-  }
-
   deleteLocalStorage(key) {
     delete localStorage[key];
   }
