@@ -343,8 +343,14 @@ export class IME {
       return;
     }
 
-    if (!(name in jscin.input_methods)) {
-      debug("ActivateInputMethod: ERROR: Invalid name:", name);
+    let info = jscin.getTableInfo(name);
+    debug("ActivateInputMethod:", name, info);
+    if (info && info.url && info.url.startsWith(chrome.runtime.getURL(""))) {
+      // Preload the builtin table.
+      debug("Preload", name, info.url);
+      await jscin.loadTable(name, info.url);
+    }
+
     let imctx = {};
     let im = await jscin.activateInputMethod(
       name, imctx, null, this.config.DefaultModule());
