@@ -90,6 +90,7 @@ export const KEY_TABLE_PREFIX = "table-";
 
 export class InputMethodsEnvironment {
   constructor(storage) {
+
     if (!storage) {
       if (globalThis.chrome?.storage.local) {
         storage = new ChromeStorage();
@@ -111,6 +112,10 @@ export class InputMethodsEnvironment {
     };
 
     this.MIGRATION = true;
+  }
+
+  reload_configuration() {
+    // not really needed, just for a place holder.
   }
 
   async initialize() {
