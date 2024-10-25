@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("migrate");
+const {log, debug, info, warn, error, assert, trace} = AddLogger("migration");
 
 import {ChromeStorage, CompressedStorage, Storage} from "./storage.js";
 import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";

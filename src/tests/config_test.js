@@ -3,7 +3,7 @@
 
 import { Config } from "../chrome/config.js";
 import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("module");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("config_test");
 
 ////// Tests and emulation
 

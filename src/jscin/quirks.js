@@ -6,10 +6,10 @@
  */
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp2");
+const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
 
 function BoshiamyQuirks(data) {
-  // Check options/builtin_options.json for Boshiamy detection. Use ?. because
+  // Check tables/types.json for Boshiamy detection. Use `?.` because
   // not all tables have 'ca'.
   if (!data.chardef['ca']?.includes('\u5915'))
     return false;

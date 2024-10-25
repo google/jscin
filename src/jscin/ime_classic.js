@@ -10,7 +10,7 @@ import { CompressedSyncStorage } from "./storage.js";
 import { applyInputMethodTableQuirks } from './quirks.js';
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin.ime_classic");
 
 export class InputMethodsEnvironment
 {
