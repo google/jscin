@@ -66,11 +66,12 @@ export class AddonCrossQuery extends BaseInputAddon
       error("buildCharToKeyMap: fail to load:", name);
       return;
     }
-    this.keyname = table.keyname || {};
+    let cin = table.cin;
+    this.keyname = cin.keyname || {};
     debug("buildCharToKeyMap: table=", table, this.keyname);
 
-    for(let key in table.chardef) {
-      for (let c of table.chardef[key]) {
+    for(let key in cin.chardef) {
+      for (let c of cin.chardef[key]) {
         if (c.length > 1)
           continue;
         if (c in map)
@@ -79,7 +80,7 @@ export class AddonCrossQuery extends BaseInputAddon
       }
     }
     this.map = map;
-    this.label = table.cname;
+    this.label = cin.cname;
     return map;
   }
   async updateMap(cross_name) {
