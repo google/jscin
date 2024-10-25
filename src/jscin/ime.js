@@ -7,7 +7,7 @@
 
 import { parseCin } from "./cin_parser.js";
 import { applyInputMethodTableQuirks } from './quirks.js';
-import { CompressedStorage, ChromeStorage, Storage } from "./storage.js";
+import { CompressedStorage, ChromeStorage, Storage, LoadText } from "./storage.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin");
@@ -101,7 +101,7 @@ export class InputMethodsEnvironment {
     this.storage = storage;
 
     this.info_list = {};
-    this.tables = {}
+    this.cache = {}
     this.modules = {};
     this.fallback_module = null;
     this.addons = []; // Tables must be chained in order so this is an array.
@@ -132,11 +132,11 @@ export class InputMethodsEnvironment {
       if (k.startsWith(KEY_TABLE_PREFIX)) {
         debug("onChanged - Table", changes[k]);
         let name = this.tableName(k);
-        if (name in this.tables)
-          delete this.tables[name];
+        if (name in this.cache)
+          delete this.cache[name];
         let v = changes[k]?.newValue;
         if (v)
-          this.tables[name] = v;
+          this.cache[name] = v;
         debug('onChanged', k, name, this.callbacks);
         // TableInfoList should be updated on its own.
         for (let c of this.callbacks[KEY_TABLE_PREFIX]) {
@@ -260,7 +260,7 @@ export class InputMethodsEnvironment {
     return table;
   }
 
-  async saveTable(cin, url, type) {
+  async saveTable(cin, url, type, save_in_storage=true) {
     let table = this.createTable(cin, url, type);
     if (!table)
       return false;
@@ -268,9 +268,12 @@ export class InputMethodsEnvironment {
     let name = table.info.ename;
     const key = this.tableKey(name);
     debug("saveTable:", name, key, table);
-    this.tables[name] = table;
+    this.cache[name] = table;
     this.info_list[name] = structuredClone(table.info);
-    await this.storage.set(key, table);
+    // For built-in tables, we may want to skip saving the whole table in the
+    // storage.
+    if (save_in_storage)
+      await this.storage.set(key, table);
     debug("saveTable: new info_list=", this.info_list);
     await this.saveTableInfoList();
     return name;
@@ -280,7 +283,7 @@ export class InputMethodsEnvironment {
     const key = this.tableKey(name);
     debug("Removing the table for:", name, key);
     delete this.info_list[name];
-    delete this.tables[name];
+    delete this.cache[name];
 
     // we must also delete the old tables otherwise it will return in next
     // migration.
@@ -297,8 +300,8 @@ export class InputMethodsEnvironment {
     return true;
   }
 
-  async loadTable(name) {
-    let table = this.tables[name]
+  async loadTable(name, url) {
+    let table = this.cache[name]
     if (table)
       return table;
 
@@ -306,12 +309,21 @@ export class InputMethodsEnvironment {
     debug("Loading the table for:", name, key);
     table = await this.storage.get(key);
 
+    // Although we may find the URL from this.getTableInfo,
+    // we want an explicit confirmation "allow to load from URL".
+    if (!table && url) {
+      debug("Getting remote table:", url);
+      let contents = await LoadText(url);
+      if  (contents)
+        table = this.createTable(contents, url);
+    }
+
     if (!table) {
       warn("Missing data for:", name, key);
       return undefined;
     }
     assert(this.isValidTable(table), "Saved tables should be valid", table);
-    this.tables[name] = table;
+    this.cache[name] = table;
 
     if (!this.info_list[name]) {
       assert(this.info_list[name], "Missing info for loaded table", name);
