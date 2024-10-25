@@ -1,5 +1,11 @@
 [
   {
+    "ename": "From Table",
+    "cname": "由表格指定",
+    "from_table": true,
+    "cin": {}
+  },
+  {
     "ename": "Phonetic",
     "cname": "注音",
     "cin": {
@@ -57,12 +63,6 @@
     },
     "detect_comment": "AR 40 has / as 貝 instead , AR 26 does not have",
     "detect": { "a": "一", "/": "虫" }
-  },
-  {
-    "ename": "From Table",
-    "cname": "由表格指定",
-    "from_table": true,
-    "cin": {}
   },
   {
     "ename": "Auto detect",

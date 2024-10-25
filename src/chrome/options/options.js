@@ -66,7 +66,7 @@ function SetElementsText(...args) {
 }
 
 let BuiltinIMs = await LoadJSON("tables/builtin.json");
-let BuiltinOptions = await LoadJSON("options/builtin_options.json");
+let KnownTypes = await LoadJSON("tables/types.json");
 
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
@@ -118,7 +118,7 @@ async function init() {
   let select = $("#add_table_setting");
   select.empty();
 
-  BuiltinOptions.forEach((entry, i) => {
+  KnownTypes.forEach((entry, i) => {
     let option = $("<option>", {id: `option${i}`});
     option.text(`${entry.ename} ${entry.cname}`);
     if (entry.default)
@@ -459,16 +459,19 @@ function addTable(content, url) {
     }
   }
 
-  // saveTable will parse raw content again...
-  name = jscin.saveTable(name, content, { setting: getSettingOption(cin), url: url });
-  assert(name, "saveTable should not fail");
+  if (!type)
+    type = getTypeOption(cin);
 
   // Update the UI
-  // We must reload metadata, since it may be modified in
-  // jscin.saveTable.
-  addTableToList(name, '#enabled_im_list', true);
-  setAddTableStatus(_("tableStatusAddedName", name), false);
-  config.InsertInputMethod(name);
+  let new_name = await jscin.saveTable(null, cin, url, type);
+  if (!new_name) {
+    setAddTableStatus(_("tableStatusFailedParsingMsg", "Cannot save"), true);
+    return false;
+  }
+
+  addTableToList(new_name, '#enabled_im_list', true);
+  setAddTableStatus(_("tableStatusAddedName", new_name), false);
+  config.InsertInputMethod(new_name);
   updateBytesInUse(); // no need to wait.
   return true;
 }
@@ -489,32 +492,35 @@ function setAddTableStatus(status, err) {
   }
 }
 
-function getSettingOption(cin) {
-  let setting = BuiltinOptions[
-      document.getElementById("add_table_setting").selectedIndex];
-  if (setting.auto_detect) {
-    let matched = undefined;
-    let from_table = undefined;
-    BuiltinOptions.forEach(function (opt) {
-      if (opt.from_table)
-        from_table = opt;
-      if (!opt.detect || matched)
-        return;
-
-      for (let key in opt.detect) {
-        if (!cin.chardef[key] ||
-            !cin.chardef[key].includes(opt.detect[key]))
-          return;
+function getTypeOption(cin) {
+  let type = KnownTypes[document.getElementById(
+    "add_table_setting").selectedIndex];
+  if (!type.auto_detect)
+    return type;
+  let matched = undefined;
+  let from_table = undefined;
+  for (let opt of KnownTypes) {
+    if (opt.from_table)
+      from_table = opt;
+    if (!opt.detect)
+      continue;
+    let mismatch = false;
+    for (let key in opt.detect) {
+      if (!cin.chardef[key] || !cin.chardef[key].includes(opt.detect[key])) {
+        mismatch = true;
+        break;
       }
-      debug("getSettingOption: matched:", opt);
-      matched = opt;
-    });
-    let result = matched || from_table || setting;
-    // Make a record so we can re-parse its setting next time.
-    result.by_auto_detect = true;
-    return result;
+    }
+    if (mismatch)
+      continue;
+    debug("getTypeOption: matched:", opt);
+    matched = opt;
+    break;
   }
-  return setting;
+  let result = matched || from_table || type;
+  // Make a record so we can re-parse its type next time.
+  result.auto_detect = true;
+  return result;
 }
 
 function addTableToList(name, list_id, do_insert) {
@@ -525,8 +531,7 @@ function addTableToList(name, list_id, do_insert) {
   const url = info.url || '';
   // TODO(hungte) ename or name?
   const ext_url = chrome.runtime.getURL("");
-  const builtin = (info.builtin || url.startsWith(ext_url)) && (info.ename in BuiltinIMs);
-  const setting = info.setting || {};
+  const builtin = url.startsWith(ext_url) && (name in BuiltinIMs);
   // id must be safe for jQuery expressions.
   const id = `ime_${encodeId(name)}`;
   const icon= '<span class="ui-icon ui-icon-arrowthick-2-n-s">';
@@ -583,9 +588,9 @@ function addTableToList(name, list_id, do_insert) {
         buttons.push({
           text: _('optionReload'),
           click: function() {
-            debug("optionReload:", info);
+            debug("optionReload:", table.type);
             if (confirm(_("optionAreYouSure"))) {
-              addTableUrl(url, setting);
+              addTableUrl(url, table.type);
             }
             $(this).dialog("close");
           }});
