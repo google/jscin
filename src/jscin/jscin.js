@@ -5,7 +5,7 @@
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
-import { InputMethodsEnvironment } from "./ime_classic.js";
+import { InputMethodsEnvironment } from "./ime.js";
 import { AddLogger } from "./logger.js";
 const {logger} = AddLogger("jscin");
 
