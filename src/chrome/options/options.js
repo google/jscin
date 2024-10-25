@@ -110,7 +110,7 @@ async function init() {
   }).disableSelection();
   $("#accordion").accordion({heightStyle: "content"});
 
-  loadTables();
+  await loadTables();
   updateBytesInUse(); // no need to wait.
 
   // TODO(hungte) we should autodetect again after source is specified.
@@ -305,7 +305,7 @@ function GuessNameFromURL(url) {
   return guess || '<Unknown>';
 }
 
-function addTableFromBlob(blob, source) {
+async function addTableFromBlob(blob, source) {
   debug("addTableFromBlob", source, blob);
 
   if (source instanceof File) {
@@ -341,7 +341,7 @@ function addTableFromBlob(blob, source) {
       debug("Failed to decode CIN file:", source, locale);
     }
   }
-  if (t && addTable(t, source)) {
+  if (t && await addTable(t, source, type)) {
     debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
     return;
   } else {

@@ -6,9 +6,7 @@
  */
 
 import {jscin} from "../jscin/jscin.js";
-import {parseCin} from "../jscin/cin_parser.js";
 import {KeyEvent} from "../jscin/key_event.js";
-import "../jscin/base_inp.js";
 import "../jscin/gen_inp2.js";
 
 import fs from 'node:fs';
@@ -21,29 +19,9 @@ var im = null;
 const print = console.log;
 const write = console.log;
 
-function LoadTable(table_url) {
-  print("table_url:", table_url);
-  let content = fs.readFileSync(table_url, 'utf8');
-  let [success, result]  = parseCin(content);
-  if (!success) {
-    print("ERROR: Invalid table:", table_url, "REASON:", result);
-    return;
-  }
-  let {metadata, data: cin} = result;
-  let name = cin.ename;
-
-  jscin.saveTable(name, content, {});
-  jscin.reload_configuration();
-  return name;
-}
-
-function ActivateInputMethod(name) {
-  if (name in jscin.input_methods) {
-    imctx = {};
-    im = jscin.activateInputMethod(name, imctx);
-  } else {
-    print("ActivateInputMethod: Invalid item:", name);
-  }
+async function loadTable(url) {
+  let name = url.split('/').pop().split('.')[0];
+  return jscin.saveTable(name, fs.readFileSync(url, 'utf8'), url, {});
 }
 
 function Simulate(ev) {
@@ -74,19 +52,20 @@ async function console_main(argv) {
   if (argv.length > 0) {
     for (let fn of argv) {
       print("Loading:", fn);
-      im_name = LoadTable(fn);
+      im_name = await loadTable(fn);
     }
   } else {
-    print("No input table file assigned. \n",
+    print("No input table file assigned. Try '../tables/ar30.cin'.\n",
           "You can specify that in command line (d8 console.js -- FILE).\n");
     const answer = await rl.question("Input table file to load: ");
-    im_name = LoadTable(answer);
+    im_name = await loadTable(answer);
   }
   if (!im_name) {
     print("Failed to load table. Abort.");
     return;
   }
-  ActivateInputMethod(im_name);
+  imctx = {}
+  im = await jscin.activateInputMethod(im_name, imctx);
 
   print("To simulate simple keystrokes, type them all and then ENTER.");
   print("To simulate special keys, press Tab first and type a key code.");

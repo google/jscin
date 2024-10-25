@@ -86,8 +86,8 @@ export class IME {
     this.detect_ime_api();
     this.registerEventHandlers();
 
-    this.LoadPreferences();
-    this.ActivateInputMethod();
+    await this.LoadPreferences();
+    await this.ActivateInputMethod();
 
     this.config.Bind("InputMethods", (value)=> {
       debug("Changed InputMethods(), need to reload UI.");
@@ -334,7 +334,7 @@ export class IME {
     }
   }
 
-  ActivateInputMethod(name) {
+  async ActivateInputMethod(name) {
     if (name === undefined)
       name = this.config.DefaultInputMethod();
     if (name && name == this.im_name) {

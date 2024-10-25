@@ -52,7 +52,7 @@ export class AddonCrossQuery extends BaseInputAddon
     }
     return ret;
   }
-  buildCharToKeyMap(name)
+  async buildCharToKeyMap(name)
   {
     let map = {};
     this.map = map;
@@ -61,7 +61,7 @@ export class AddonCrossQuery extends BaseInputAddon
     if (!name)
       return;
 
-    let table = jscin.loadTable(name);
+    let table = await jscin.loadTable(name);
     if (!table) {
       error("buildCharToKeyMap: fail to load:", name);
       return;
