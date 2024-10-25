@@ -9,6 +9,7 @@ import { Config  } from "./config.js";
 import { jscin } from "./jscin/all.js";
 import { getKeyDescription } from "./jscin/key_event.js";
 import { LoadJSON, LoadText } from "./jscin/storage.js";
+import { Migration } from "./jscin/migration.js";
 
 import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
 import { BackgroundIPCHost } from "./emulation/ipc_background.js";
@@ -72,6 +73,11 @@ export class IME {
     let version = chrome.runtime.getManifest().version;
     let reload = (version !== this.config.Version());
 
+    if (jscin.MIGRATION) {
+      let migration = new Migration(jscin);
+      await migration.migrateAll();
+    }
+
     await this.LoadBuiltinTables(reload);
     if (reload) {
       this.config.Set("Version", version);
@@ -93,14 +99,6 @@ export class IME {
     if (this.ime_api.isEmulation) {
       new BackgroundIPCHost(this.ime_api);
     }
-
-    // Clear oath secrets, prepare for migration.
-    for (let k in localStorage) {
-      if (k.startsWith("oauth"))
-        delete localStorage[k];
-    }
-    // Backup IM tables for future MV3, and further cleanups.
-    jscin.deleteRawData();
   }
 
   // Standard utilities

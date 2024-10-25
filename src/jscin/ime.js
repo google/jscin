@@ -109,6 +109,8 @@ export class InputMethodsEnvironment {
       [KEY_INFO_LIST]: [],
       [KEY_TABLE_PREFIX]: [],
     };
+
+    this.MIGRATION = true;
   }
 
   async initialize() {
