@@ -350,19 +350,6 @@ export class IME {
 
     this.imctx = {};
     this.im = jscin.activateInputMethod(name, this.imctx);
-    // For delayed response (ex, external IM modules, see IMKEY_DELAY).
-    this.im.set_notifier(() => {
-      if (!this.context) {
-        debug("IM notified after context destroyed.");
-        return;
-      }
-      this.UpdateUI();
-      if (this.imctx.cch) {
-        this.Commit(this.imctx.cch);
-        this.imctx.cch_publish = this.imctx.cch;
-        this.imctx.cch = '';
-      }
-    });
     // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
     if (!this.ime_api.isEmulation) {
       this.imctx.commit_on_blur = true;
