@@ -11,6 +11,7 @@
 
 import { parseCin } from "./cin_parser.js";
 import { LZString } from "./lz-string.js";
+import { CompressedSyncStorage } from "./storage.js";
 import { applyInputMethodTableQuirks } from './quirks.js';
 
 import { AddLogger } from "./logger.js";
@@ -39,6 +40,8 @@ export class JavaScriptInputMethod
     this.modules = {};
     this.addons = [];
     this.input_methods = {};
+
+    this.storage = new CompressedSyncStorage();
   }
 
   // -------------------------------------------------------------------
@@ -67,16 +70,6 @@ export class JavaScriptInputMethod
       'label': cname,
       'module': this.modules[module_name] };
     debug("Registered input method:", name);
-  }
-
-  unregister_input_method(name) {
-    if (!(name in this.input_methods)) {
-      debug("Unknown input method:", name);
-      return false;
-    }
-    delete this.input_methods[name]
-    debug("Un-registered input method:", name);
-    // TODO(hungte) Remove active instances?
   }
 
   // Create input method instance
@@ -173,20 +166,19 @@ export class JavaScriptInputMethod
   // Tables and local storage management
 
   addTable(name, metadata, data, raw_data) {
-    let table_metadata = this.readLocalStorage(this.kTableMetadataKey, {});
+    let table_metadata = this.storage.get(this.kTableMetadataKey, {});
     metadata.ename = metadata.ename || name;
     table_metadata[name] = metadata;
-    this.writeLocalStorage(this.kTableMetadataKey, table_metadata);
-    this.writeLocalStorage(this.kTableDataKeyPrefix + name, data);
+    this.storage.set(this.kTableMetadataKey, table_metadata);
+    this.storage.set(this.kTableDataKeyPrefix + name, data);
   }
 
   getTableMetadatas() {
-    return this.readLocalStorage(this.kTableMetadataKey, {});
+    return this.storage.get(this.kTableMetadataKey, {});
   }
 
   getDefaultModuleName() {
-    let name = this.readLocalStorage(this.kModuleNameKey,
-                                      this.kDefaultModuleName);
+    let name = this.storage.get(this.kModuleNameKey, this.kDefaultModuleName);
     if (!name)
       name = this.kDefaultModuleName;
 
@@ -201,18 +193,18 @@ export class JavaScriptInputMethod
   }
 
   setDefaultModuleName(new_value) {
-    this.writeLocalStorage(this.kModuleNameKey, new_value);
+    this.storage.set(this.kModuleNameKey, new_value);
   }
 
   loadTable(name) {
-    return this.readLocalStorage(this.kTableDataKeyPrefix + name);
+    return this.storage.get(this.kTableDataKeyPrefix + name);
   }
 
   removeTable(name) {
-    let table_metadata = this.readLocalStorage(this.kTableMetadataKey, {});
+    let table_metadata = this.storage.get(this.kTableMetadataKey, {});
     delete table_metadata[name];
-    this.deleteLocalStorage(this.kTableDataKeyPrefix + name);
-    this.writeLocalStorage(this.kTableMetadataKey, table_metadata);
+    this.storage.remove(this.kTableDataKeyPrefix + name);
+    this.storage.set(this.kTableMetadataKey, table_metadata);
   }
 
   async deleteRawData() {
@@ -223,33 +215,6 @@ export class JavaScriptInputMethod
       delete localStorage[k];
       log("Removed raw table", k);
     }
-  }
-
-  // Platform-dependent utilities
-
-  readLocalStorage(key, default_value) {
-    if (typeof(localStorage) == typeof(undefined))
-      globalThis.localStorage = {};
-    let data = localStorage[key];
-    if (!data)
-      return default_value;
-    if (data[0] == '!')
-      data = LZString.decompress(data.substring(1));
-    return JSON.parse(data);
-  }
-
-  writeLocalStorage(key, data) {
-    if (typeof(localStorage) == typeof(undefined)) {
-      localStorage = {};
-    }
-    let val = JSON.stringify(data);
-    if (val.length > 100)
-      val = '!' + LZString.compress(val);
-    localStorage[key] = val;
-  }
-
-  deleteLocalStorage(key) {
-    delete localStorage[key];
   }
 }
 
