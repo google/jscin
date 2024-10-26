@@ -17,8 +17,6 @@ import { BackgroundIPCHost } from "./emulation/ipc_background.js";
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
 
-export { jscin };
-
 /* The main class for an Input Method Environment. */
 export class IME {
 
@@ -619,15 +617,7 @@ export class IME {
     if (ime_api.onImplCommit) {
       ime_api.onImplCommit.addListener((...args)   => { this.Commit(args); });
     }
-    /* Export again. */
-    window.jscin = jscin;
   }
 }
 
-export var croscin = {IME: IME, logger: logger};
-console.log("ChromeOS Extension for JavaScript Chinese Input Method.\n\n",
-            "To turn on/off debug messages of each component,",
-            "change the `verbose` property from command:\n\n",
-            "  croscin.logger.getAllLoggers() \n\n",
-            "To turn on all components, do:\n\n",
-            "  croscin.logger.enableAllLoggers() \n\n");
+export var croscin = {IME: IME, jscin: jscin, logger: logger};
