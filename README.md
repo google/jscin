@@ -1,4 +1,4 @@
-# JavaScript based Chinese Input Method
+# JavaScript based Customizable-table Input Methods
 
 For how to install or run JsCIN, please check the [user guide
 document](docs/USER_GUIDE.md).
@@ -18,6 +18,7 @@ Chrome browser now supports an [extension API
 ](http://dev.chromium.org/developers/design-documents/extensions/input-method-editor),
 Although it's only available for ChromeOS.
 
-This project is a JavaScript implementation of Chinese Input Method that is
-compatible with XCIN 2.5 to serve ChromeOS and other platforms allowing IMEs
-implemented in JavaScript.
+This project is a JavaScript implementation of input methods environment
+and engine(s) to support customizable table based input methods. It is
+compatible with [XCIN](https://zh.wikipedia.org/zh-tw/Xcin) 2.5 to serve
+ChromeOS and other platforms allowing IMEs implemented in JavaScript.
