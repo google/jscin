@@ -228,6 +228,15 @@ export class InputMethodsEnvironment {
     return false;
   }
 
+  /* An FNV-1A implementation */
+  getHash(s, h=0x811c9dc5) {
+    for (let c of s) {
+      h ^= c.charCodeAt(0);
+      h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+    }
+    return h >>> 0;
+  }
+
   parseCinFromString(cin) {
     debug("parseCinFromString:", cin.substring(0, 40), '...');
     // TODO(hungte) Dyanmic load cin_parser
@@ -247,6 +256,7 @@ export class InputMethodsEnvironment {
       debug("createTable: Invalid CIN:", cin);
       return false;
     }
+    let hash = this.getHash(url || cin.ename);
     debug("createTable:", "cin=>", cin, "url=>", url, "type=>", type);
     // Now, create the table.
     let table = {
@@ -254,6 +264,7 @@ export class InputMethodsEnvironment {
       info: {
         ename: cin.ename,
         cname: cin.cname,
+        name: `${cin.ename}#${hash}`,
         url: url,
       },
       type: type,

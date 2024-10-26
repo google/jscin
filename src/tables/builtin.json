@@ -1,7 +1,7 @@
 {
-  "en-US": "en-us.cin",
-  "array30": "ar30.cin",
-  "changjei": "cj.cin",
-  "phone": "phone.cin",
-  "simplex": "simplex.cin"
+  "jscin.en-US": "en-us.cin",
+  "jscin.array30": "ar30.cin",
+  "jscin.changjei": "cj.cin",
+  "jscin.phone": "phone.cin",
+  "jscin.simplex": "simplex.cin"
 }
