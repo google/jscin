@@ -135,6 +135,9 @@ export class Migration {
   }
 
   removeLocalStorageData() {
+    if (!globalThis.localStorage)
+      return;
+
     // Raw tables
     const kRawdataKeyPrefix = "raw_data-";
     // Oauth credentials

@@ -139,7 +139,8 @@ export class Config {
         /* Migration check from pre-chrome.storage */
         let new_key = 'InputMethods';
         let old_key = 'croscinPrefEnabledInputMethodList';
-        if (props.includes(new_key) && !(new_key in data)) {
+        if (globalThis.localStorage &&
+            props.includes(new_key) && !(new_key in data)) {
           // Probably the first time to migrate.
           // Let's look at localStorage.
           let ims = localStorage[old_key];

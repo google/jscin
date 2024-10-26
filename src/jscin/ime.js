@@ -298,7 +298,8 @@ export class InputMethodsEnvironment {
     const legacy_key = `table_data-${name}`;
     try {
       this.storage.remove(legacy_key);
-      delete localStorage[legacy_key];
+      if (globalThis.localStorage)
+        delete localStorage[legacy_key];
     } catch (err) {
       error("Failed removing old table:", legacy_key);
     }
