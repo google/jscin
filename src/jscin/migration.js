@@ -13,6 +13,7 @@ import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
 const kTableOldMetadataKey = "table_metadata";
 const kTableOldDataKeyPrefix = "table_data-";
+const kOldVersion = 'version';
 
 export class Migration {
   constructor(ime, storage, old_storage) {
@@ -112,8 +113,10 @@ export class Migration {
         await w;
     }
     await this.storage.set(KEY_INFO_LIST, infos);
-    if (delete_old)
+    if (delete_old) {
       this.old_storage.remove(kTableOldMetadataKey);
+      this.old_storage.remove(kOldVersion);
+    }
     /* Wait for all storage.set to finish. */
     for (let w of waits)
       await w;
