@@ -476,15 +476,20 @@ export class IME {
 
     if (!this.ime_api) {
       // provided by emulation/chrome_input_ime.js
-      if (ChromeInputIME) {
-        debug("Switched to Javascript Emulation IME API...");
+      try {
+        debug("Try to enable the Emulation API...");
         this.set_ime_api(new ChromeInputIME, "emulation");
         if (chrome.input) {
           chrome.input.ime = this.ime_api;
         } else {
           chrome.input = { ime: this.ime_api };
         }
-      } else {
+      } catch (error) {
+        debug("Failed to start emulation:", error);
+      }
+
+      if (!this.ime_api)
+      {
         debug("Switched to dummy IME API...");
         this.set_ime_api(this.create_dummy_ime_api(), "dummy");
       }

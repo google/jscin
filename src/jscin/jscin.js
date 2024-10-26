@@ -22,7 +22,9 @@ jscin.IMKEY_IGNORE = IMKEY_IGNORE;
 jscin.IMKEY_DELAY  = IMKEY_DELAY;
 jscin.IMKEY_UNKNOWN= IMKEY_UNKNOWN;
 
-await jscin.initialize();
+// top level await is not always supported for example Chrome service works so
+// let's init and expect things to finish on time...
+jscin.initialize();
 
 //////////////////////////////////////////////////////////////////////////////
 // Global debugging

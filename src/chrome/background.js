@@ -25,5 +25,5 @@ async function welcome_chromeos() {
 }
 
 croscin.instance = new croscin.IME();
-if (window.navigator.userAgent.includes(' CrOS '))
+if (globalThis.window && window.navigator.userAgent.includes(' CrOS '))
   welcome_chromeos();

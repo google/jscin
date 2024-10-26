@@ -22,7 +22,6 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option
 // Use var for variables that we want to explore and change in the browser
 // debugging tool.
 var config = new Config();
-await config.Load();
 
 // Always register jscin for debugging.
 globalThis.jscin = jscin;
@@ -82,6 +81,7 @@ function getSelectedTypeFromUI() {
 }
 
 async function init() {
+  await config.Load();
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddOpenDesktop",

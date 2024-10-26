@@ -137,6 +137,10 @@ export class Migration {
     // Oauth credentials
     const kOauthPrefix = "oauth";
 
+    // Maybe in a service worker
+    if (!globalThis.localStorage)
+      return;
+
     for (let k in localStorage) {
       if (k.startsWith(kRawdataKeyPrefix) ||
           k.startsWith(kOauthPrefix))
