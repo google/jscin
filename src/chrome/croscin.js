@@ -59,15 +59,13 @@ export class IME {
 
     // UI related changes (InputMethod)
     // must be bound only after first time
-    // UI initialization is done.
-
-    this.config.Load().then(() => {
-      this.Initialize();
-    });
+    // UI initialization is done. See Initialize.
   }
 
   async Initialize() {
-    debug("Start to Initialize");
+    debug("Start to Initialize.");
+    await this.config.Load();
+
     let version = chrome.runtime.getManifest().version;
     let reload = (version !== this.config.Version());
 

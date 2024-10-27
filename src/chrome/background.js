@@ -9,6 +9,8 @@
 import { croscin } from "./croscin.js";
 
 async function welcome_chromeos() {
+  if (!globalThis.window || !window.navigator.userAgent.includes(' CrOS '))
+    return;
   chrome.runtime.onInstalled.addListener((event) => {
     if (event.reason != chrome.runtime.OnInstalledReason.INSTALL)
       return;
@@ -21,8 +23,9 @@ async function welcome_chromeos() {
 }
 
 croscin.instance = new croscin.IME();
-if (globalThis.window && window.navigator.userAgent.includes(' CrOS '))
-  welcome_chromeos();
+croscin.instance.Initialize().then(() => {
+    welcome_chromeos();
+});
 
 /* Export jscin and croscin for debugging.  */
 globalThis.croscin = croscin
