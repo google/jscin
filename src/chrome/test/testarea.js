@@ -1,10 +1,16 @@
 /**
- * @fileoverview Description of this file.
+ * @fileoverview Test Area. A playground for input.ime implementation.
+ *
+ * The Test Area uses the pure software implementation
+ * (emulation/chrome.input.ime.js) and the webpage provider,
+ * with a hard-coded UI (so we don't need to worry about creating the imePanel
+ * on our own with injecting code into the web pages) to verify the croscin &
+ * jscin behavior.
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
-import { ChromeInputIME } from "../emulation/chrome_input_ime.js";
-import { ChromeInputImeImplPage } from "../emulation/impl_page.js";
+import { WebPageIme } from "../emulation/webpage.js";
+import { croscin } from "../croscin.js";
 
 // Testing functions
 const testContextID = '1';
@@ -67,77 +73,22 @@ function test_setMenuItems(labels_array) {
     items: items});
 }
 
-$(function() {
-  let ime_api = new ChromeInputIME();
-  chrome.input = { ime: ime_api };
-  let impl = new ChromeInputImeImplPage(ime_api);
+async function Init() {
+  // Show all logs.
+  let jscin = croscin.jscin;
+  jscin.loggers.jscin.enableAllLoggers();
 
-  chrome.input.ime.onUiMenu.addListener(function (engine) {
-    let ui = $('#imePanel #menu');
-    ui.empty();
-    for (let item of engine.menuitems) {
-      let label = item.label || item.id;
-      ui.append(
-          $('<li/>', {text: label}).click(function () {
-            ime_api.dispatchEvent(
-                'MenuItemActivated', engine.engineID,
-                engine.menuitems[$(this).index()].id);
-          }));
-    }
-  });
-
-  chrome.input.ime.onUiCandidateWindow.addListener(function (engine) {
-    let cui = $('#imePanel #candidates');
-    cui.toggle(engine.candidate_window.visible);
-    let aui = $('#imePanel #auxiliary');
-    aui.empty().append(engine.candidate_window.auxiliaryText);
-    aui.toggle(engine.candidate_window.auxiliaryTextVisible);
-  });
-
-  chrome.input.ime.onUiCandidates.addListener(function (context) {
-    let ui = $('#imePanel #candidates');
-    let nbsp = '\xa0';
-    ui.empty().append(nbsp);
-    for (let item of context.candidates) {
-      let label = item.label || item.id;
-      ui.append(
-          $('<span/>', {text: item.candidate + ' ', "class": "candidate"}).
-          click(function () {
-            console.log("CandidateClicked", item);
-            ime_api.dispatchEvent('CandidateClicked',
-              ime_api.engineID, item.id, 'left'); }).
-          prepend($('<span/>', {text: label, "class": "candidate_label"})));
-    }
-  });
-
-  chrome.input.ime.onUiComposition.addListener(function (context) {
-    // composition area
-    let ui = $('#imePanel #composition');
-    // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
-    let nbsp = '\xa0';
-    ui.text((context ? context.composition.text : "" )+ nbsp);
-  });
+  let ime = new WebPageIme();
+  croscin.instance = new croscin.IME(ime);
+  await croscin.instance.Initialize();
 
   let node = document.getElementById('input');
-  node.blur();
-  impl.init();
-  impl.attach(node);
+  ime.attach(node);
+  ime.dispatch("Activate", ime.engineID);
 
-  if (chrome && chrome.extension) {
-    let croscin = chrome.extension.getBackgroundPage().croscin.instance;
-    let jscin = chrome.extension.getBackgroundPage().jscin;
+  $('#TestItems').hide();
 
-    // Get all logs on my console.
-    for (let l in jscin.loggers) {
-      jscin.loggers[l].enable(true).addConsole(console);
-    }
-
-    croscin.set_ime_api(chrome.input.ime, 'emulation');
-    croscin.registerEventHandlers();
-    // croscin has already started, so we need to activate again.
-    chrome.input.ime.dispatchEvent('Activate', 'input_ime');
-    $('#TestItems').hide();
-  } else {
+  if (false) {
     // Running in simple web page, let's enable all testing buttons.
     $('#TestItems button').attr("onClick",
         function () { return "test_" + $(this).text(); });
@@ -157,6 +108,8 @@ $(function() {
       debug("menu item activated: id=", menu_id);
     });
   }
-
   node.focus();
-});
+}
+
+globalThis.croscin = croscin;
+Init();
