@@ -1,16 +1,19 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview Description of this file.
+ * @fileoverview An even simpler IME test page
  * @author kcwu@google.com (Kuang-che Wu)
+ *
+ * The `dumbime` does not use the standard emulation (chrome.input.ime)
+ * and its derived classes; instead the DumbIME has its own simple
+ * implementation so we can check if the croscin behavior is the same across IME
+ * API providers, also to debug without the webpage implementation.
  */
 
-let page = chrome.extension.getBackgroundPage();
-var croscin = page.croscin.instance;
-var jscin = page.jscin;
+import { croscin } from "../croscin.js";
 
 function log(...args) {
-  console.log(...args);
+  console.log("[dumbime]", ...args);
 }
 
 function DumbIME() {
@@ -84,18 +87,16 @@ function DumbIME() {
   };
 };
 
-function init() {
-  let engineID = croscin.kEngineId;
+async function init() {
   let dumb_ime = new DumbIME();
+  croscin.instance = new croscin.IME(dumb_ime);
+  const engineID = croscin.instance.kEngineId;
 
-  // Get all logs on my console.
-  for (let l in jscin.loggers) {
-    jscin.loggers[l].enable(true).addConsole(console);
-  }
+  // betted Debugging
+  globalThis.croscin = croscin;
+  croscin.jscin.loggers['jscin'].enableAllLoggers();
 
-  // Hook IME API.
-  croscin.set_ime_api(dumb_ime, 'dumb');
-  croscin.registerEventHandlers();
+  await croscin.instance.Initialize();
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {
