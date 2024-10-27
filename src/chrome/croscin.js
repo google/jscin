@@ -10,9 +10,7 @@ import { jscin } from "./jscin/all.js";
 import { getKeyDescription } from "./jscin/key_event.js";
 import { LoadJSON, LoadText } from "./jscin/storage.js";
 import { Migration } from "./jscin/migration.js";
-
-import { ChromeInputIME } from "./emulation/chrome_input_ime.js";
-import { BackgroundIPCHost } from "./emulation/ipc_background.js";
+import { ChromeInputIme } from "./emulation/chrome_input_ime.js";
 
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
@@ -20,7 +18,7 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crosci
 /* The main class for an Input Method Environment. */
 export class IME {
 
-  constructor() {
+  constructor(ime_api) {
     // The engine ID must match input_components.id in manifest file.
     this.kEngineId = 'cros_cin';
 
@@ -35,10 +33,8 @@ export class IME {
     this.im_name = '';
     this.im_label = '';
 
-    this.ime_api = null
-    this.ime_api_type = 'Not available';
-
-    this.cross_query = {};
+    this.ime_api = ime_api || globalThis.chrome?.input?.ime || new ChromeInputIme();
+    debug("ime_api set to:", this.ime_api);
     this.config = new Config();
 
     this.config.Bind("Debug", (value)=> {
@@ -79,7 +75,6 @@ export class IME {
       this.config.Set("Version", version);
     }
     jscin.reload_configuration();
-    this.detect_ime_api();
     this.registerEventHandlers();
 
     await this.LoadPreferences();
@@ -91,10 +86,6 @@ export class IME {
       this.InitializeUI();
       this.ActivateInputMethod();
     });
-
-    if (this.ime_api.isEmulation) {
-      new BackgroundIPCHost(this.ime_api);
-    }
   }
 
   // Standard utilities
@@ -445,72 +436,6 @@ export class IME {
       this.config.Set("InputMethods", enabled);
     }
     debug("croscin.config", this.config.config);
-  }
-
-  // IME API Handler
-
-  set_ime_api(ime_api, name) {
-    this.ime_api = ime_api;
-    this.ime_api_type = name;
-    debug("IME API set to:", name);
-  }
-
-  detect_ime_api() {
-    /* find out proper ime_api: chrome.input.ime or chrome.experimental.input */
-    try {
-      /**
-       * Modern Chrome supports partial IME API so we need to check some CrOS
-       * specific method.
-       */
-      if (chrome.input.ime.onMenuItemActivated) {
-        this.set_ime_api(chrome.input.ime, "chromeos");
-      }
-    } catch (err) {
-      // Binding failure can't really be caught - it'll simply escape current
-      // syntax scope.
-    }
-
-    if (!this.ime_api) {
-      // provided by emulation/chrome_input_ime.js
-      try {
-        debug("Try to enable the Emulation API...");
-        this.set_ime_api(new ChromeInputIME, "emulation");
-        if (chrome.input) {
-          chrome.input.ime = this.ime_api;
-        } else {
-          chrome.input = { ime: this.ime_api };
-        }
-      } catch (error) {
-        debug("Failed to start emulation:", error);
-      }
-
-      if (!this.ime_api)
-      {
-        debug("Switched to dummy IME API...");
-        this.set_ime_api(this.create_dummy_ime_api(), "dummy");
-      }
-    }
-  }
-
-  create_dummy_ime_api() {
-    let dummy_function = () => {};
-    let dummy_listener = { addListener: () => {} };
-    return {
-      clearComposition: dummy_function,
-      commitText: dummy_function,
-      setCandidates: dummy_function,
-      setCandidateWindowProperties: dummy_function,
-      setComposition: dummy_function,
-      setMenuItems: dummy_function,
-      onActivate: dummy_listener,
-      onDeactivated: dummy_listener,
-      onFocus: dummy_listener,
-      onBlur: dummy_listener,
-      onKeyEvent: dummy_listener,
-      onInputContextUpdate: dummy_listener,
-      onCandidateClicked: dummy_listener,
-      onMenuItemActivated: dummy_listener,
-    };
   }
 
   // Registers event handlers to the browser.
