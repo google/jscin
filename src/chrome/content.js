@@ -12,9 +12,7 @@
 const kEmulation = "Emulation";
 
 async function LoadModule(url) {
-  const src = chrome.runtime.getURL(url);
-  const mod = await import(src);
-  return mod;
+  return import(chrome.runtime.getURL(url));
 }
 
 async function LoadDefaultConfig() {
@@ -23,9 +21,27 @@ async function LoadDefaultConfig() {
 }
 
 async function StartEmulation() {
-  const src = chrome.runtime.getURL("emulation/ipc_content.js");
-  const mod = await import(src);
-  return new mod.ContentIPCHost(window);
+  const mod_webpage = await LoadModule("./emulation/webpage.js");
+  const mod_croscin = await LoadModule("./croscin.js");
+  let ime = new mod_webpage.WebPageIme();
+  let croscin = mod_croscin.croscin;
+  let instance = new croscin.IME(ime);
+  croscin.instance = instance;
+  await instance.Initialize();
+
+  // Now, bind the input elements.
+  let nodes = document.getElementsByTagName("input");
+  for (let i = 0; i < nodes.length; i++) {
+    ime.attach(nodes[i]);
+  }
+  nodes = document.getElementsByTagName("textarea");
+  for (let i = 0; i < nodes.length; i++) {
+    ime.attach(nodes[i]);
+  }
+  if (document.activeElement)
+    document.activeElement.focus();
+
+  // TODO(hungte) show/hide the frame
 }
 
 async function CheckEmulation(items) {
@@ -40,7 +56,6 @@ async function CheckEmulation(items) {
 
   if (result)
     StartEmulation();
-  // console.log("Execution time:", performance.now() - start);
 }
 
 async function Initialize () {
@@ -51,10 +66,15 @@ async function Initialize () {
   if (window.navigator.userAgent.includes(' CrOS '))
     return;
 
+  // Currently we inject the content scripts to every frames so it is important
+  // to early-exit if the page does not have input elements (for emulation).
+  if (document.getElementsByTagName("input").length == 0 &&
+      document.getElementsByTagName("textarea").length == 0)
+    return;
+
   // Now let's see if we need to start the emulation.
   // This should be the same as config.js, except simpler.
   chrome.storage.local.get(kEmulation, CheckEmulation);
 }
 
-const start = performance.now();
 Initialize();

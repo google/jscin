@@ -8,7 +8,7 @@
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("ime.webpage");
 
-import { $, jQuery } from "../jquery/jquery-ui.js";
+import { $, jQuery } from "../jquery/jquery.js";
 import { ChromeInputIme } from "./chrome_input_ime.js";
 
 // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp
@@ -68,7 +68,7 @@ export class WebPageIme extends ChromeInputIme {
 
   clearComposition(parameters, callback) {
     let node = this.getNode('composition');
-    node.empty();
+    node.empty().append(NBSP);
     return true;
   };
 
