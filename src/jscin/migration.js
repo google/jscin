@@ -11,8 +11,9 @@ const {log, debug, info, warn, error, assert, trace} = AddLogger("migration");
 import {ChromeStorage, CompressedStorage, Storage} from "./storage.js";
 import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
-const kTableOldMetadataKey = "table_metadata";
-const kTableOldDataKeyPrefix = "table_data-";
+const kOldTableMetadataKey = "table_metadata";
+const kOldTableDataKeyPrefix = "table_data-";
+const kOldPhrasesDatabaseKey = 'croscinPhrasesDatabase';
 const kOldVersion = 'version';
 
 export class Migration {
@@ -60,6 +61,9 @@ export class Migration {
     renameProperty(type, 'options', 'cin');
     renameProperty(type, 'by_auto_detect', 'auto_detect');
 
+    if (!meta.url)
+      meta.url = meta.ename + ".cin";
+
     let table = this.ime.createTable(data, meta.url, type);
     debug("Migrated the table to new format:", table.cin.ename, data, "=>", table);
     return table;
@@ -73,20 +77,21 @@ export class Migration {
     // when removing a table in the Options.
     let delete_old = true;
     let parallel = true;
-    let old_meta = await this.old_storage.get(kTableOldMetadataKey);
+    let old_meta = await this.old_storage.get(kOldTableMetadataKey);
     let infos = await this.storage.get(KEY_INFO_LIST) || {};
     debug("migrateAllTables: start to check...", old_meta, infos);
     let waits = [];
+    let url_base = chrome.runtime.getURL("");
     // In case old_meta was corrupted, we want to keep migrating even if the
     // metadata does not have the right info, as long as the table is valid.
     for (let k of await this.old_storage.getKeys()) {
-      if (!k.startsWith(kTableOldDataKeyPrefix))
+      if (!k.startsWith(kOldTableDataKeyPrefix))
         continue;
-      assert(kTableOldDataKeyPrefix.endsWith('-'),
+      assert(kOldTableDataKeyPrefix.endsWith('-'),
              "The old table data key must end with '-'");
-      let name = k.substring(kTableOldDataKeyPrefix.length);
+      let name = k.substring(kOldTableDataKeyPrefix.length);
       let meta = old_meta[name] ||{};
-      if (meta.builtin) {
+      if (meta.builtin || meta.url?.startsWith(url_base)) {
         debug("Ignore built-in table:", name);
         if (delete_old)
           this.old_storage.remove(k);
@@ -114,7 +119,8 @@ export class Migration {
     }
     await this.storage.set(KEY_INFO_LIST, infos);
     if (delete_old) {
-      this.old_storage.remove(kTableOldMetadataKey);
+      this.old_storage.remove(kOldTableMetadataKey);
+      this.old_storage.remove(kOldPhrasesDatabaseKey);
       this.old_storage.remove(kOldVersion);
     }
     /* Wait for all storage.set to finish. */
@@ -128,7 +134,7 @@ export class Migration {
   async removeLegacyBackupTables() {
     // These backups won't be really used. Instead we do the migration.
     let keys = await this.storage.getKeys();
-    let to_remove = keys.filter((v)=>v.startsWith(kTableOldDataKeyPrefix));
+    let to_remove = keys.filter((v)=>v.startsWith(kOldTableDataKeyPrefix));
     debug("removeLegacyBackupTables:", to_remove);
     for (let k of to_remove)
       this.storage.remove(k);
