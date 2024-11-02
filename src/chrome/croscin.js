@@ -126,18 +126,6 @@ export class IME {
       return false;
     }
 
-    /* Currently no one sets the imctx.check_accepted_keys
-     * so this is only for debugging (for local to test
-     * IPC behavior).
-     */
-    if (this.imctx.check_accepted_keys &&
-        !this.ime_api.onImplAcceptedKeys &&
-        !this.im.get_accepted_keys(this.imctx).includes(
-          getKeyDescription(keyData))) {
-      debug("Key not accepted", keyData);
-      return false;
-    }
-
     let ret = this.im.keystroke(this.imctx, keyData);
 
     switch (ret) {
@@ -311,14 +299,6 @@ export class IME {
     this.SetCandidatesWindowProperty({
       auxiliaryText: aux_text || this.im_label,
       auxiliaryTextVisible: aux_show});
-
-    // Hint for IME to get key expections.
-    // TODO(hungte) Change this from function to context.
-    if (this.ime_api.onImplAcceptedKeys) {
-      debug("update accepted keys");
-      this.ime_api.dispatchEvent("ImplAcceptedKeys",
-          this.im.get_accepted_keys(this.imctx));
-    }
   }
 
   async ActivateInputMethod(name) {
@@ -532,14 +512,6 @@ export class IME {
         this.ActivateInputMethod(name.replace(/^ime:/, ''));
       }
     });
-
-    // Implementation events (by emulation).
-    if (ime_api.onImplUpdateUI) {
-      ime_api.onImplUpdateUI.addListener((...args) => { this.UpdateUI(args); });
-    }
-    if (ime_api.onImplCommit) {
-      ime_api.onImplCommit.addListener((...args)   => { this.Commit(args); });
-    }
   }
 }
 
