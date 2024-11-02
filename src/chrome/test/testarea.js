@@ -140,4 +140,7 @@ async function Init() {
 }
 
 globalThis.croscin = croscin;
+console.log(
+  "Welcome to testarea! To debug, you can explore:\n",
+  "- croscin [.jscin, .instance [.ime_api]]\n\n");
 Init();

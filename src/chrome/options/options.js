@@ -21,13 +21,7 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option
 
 // Use var for variables that we want to explore and change in the browser
 // debugging tool.
-var config = new Config();
-
-// Always register jscin for debugging.
-globalThis.jscin = jscin;
-if (config.Debug()) {
-  logger.enableAllLoggers();
-}
+let config = new Config();
 
 // A list for managing loading messages in UI.
 let table_loading = {};
@@ -64,9 +58,6 @@ function SetElementsText(...args) {
   }
 }
 
-let BuiltinIMs = await LoadJSON("tables/builtin.json");
-let KnownTypes = await LoadJSON("tables/types.json");
-
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
   return v;
@@ -82,6 +73,10 @@ function getSelectedTypeFromUI() {
 
 async function init() {
   await config.Load();
+  if (config.Debug()) {
+    logger.enableAllLoggers();
+  }
+
   SetElementsText("optionCaption", "optionInputMethodTables",
       "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
       "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddOpenDesktop",
@@ -678,6 +673,27 @@ class ChineseOpenDesktop {
   }
 }
 
-let openDesktop = new ChineseOpenDesktop();
+/* Global variables. */
+const openDesktop = new ChineseOpenDesktop();
+const BuiltinIMs = await LoadJSON("tables/builtin.json");
+const KnownTypes = await LoadJSON("tables/types.json");
 
+/* Export name for debugging. */
+globalThis.jscin = jscin;
+globalThis.options = {
+  BuiltinIMs,
+  KnownTypes,
+  openDesktop,
+  jscin,
+  config,
+  logger,
+  table_loading,
+}
+
+console.log("Welcome to croscin options!\n\n",
+            "To debug, type and explore these name spaces:\n",
+            "- options [.config]\n",
+            "- jscin\n",
+            "To reset all the configs, do:\n",
+            "- chrome.storage.local.clear(); chrome.runtime.reload();\n");
 $(init);
