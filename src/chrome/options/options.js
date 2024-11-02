@@ -542,65 +542,63 @@ function addTableToList(name, list_id, do_insert) {
   else
     $(list_id).append(item);
 
-  $(`#${id}`).prepend(icon).click(function() {
-    jscin.loadTable(ename).then(function (table) {
+  $(`#${id}`).prepend(icon).click(async function() {
+    let table = {};
+    if (!builtin)
+      table = await jscin.loadTable(ename);
 
-      if (!table && builtin)
-        table = {};
+    let type = table.type || {};
+    let type_label = [];
+    if (type.cname)
+      type_label.push(`${type.cname} (${type.ename})`);
+    if (type.auto_detect)
+      type_label.push(_("optionTypeAuto"));
+    if (builtin)
+      type_label.push(_("optionBuiltin"));
 
-      let type = table.type || {};
-      let type_label = [];
-      if (type.cname)
-        type_label.push(`${type.cname} (${type.ename})`);
-      if (type.auto_detect)
-        type_label.push(_("optionTypeAuto"));
-      if (builtin)
-        type_label.push(_("optionBuiltin"));
+    $('.optionTableDetailName').text(display_name);
+    $('.optionTableDetailSource').val(url);
+    $('.optionTableDetailType').text(type_label.join(' '));
+    $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
 
-      $('.optionTableDetailName').text(display_name);
-      $('.optionTableDetailSource').val(url);
-      $('.optionTableDetailType').text(type_label.join(' '));
-      $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
+    let buttons = [{
+      text: ' OK ',
+      click: function () {
+        config.Set("AddonCrossQuery",
+          $('#query_keystrokes').is(':checked') ? name : "");
+        $(this).dialog("close");
+      } }];
 
-      let buttons = [{
-        text: ' OK ',
+    /* Currently we expect at least one table is enabled. */
+    if (!builtin && config.InputMethods().length > 1) {
+      buttons.push( { text: _('optionRemove'),
         click: function () {
-          config.Set("AddonCrossQuery",
-            $('#query_keystrokes').is(':checked') ? name : "");
+          if (confirm(_("optionAreYouSure"))) {
+            removeTable(name);
+            $(`#${id}`).remove();
+          }
           $(this).dialog("close");
-        } }];
 
-      /* Currently we expect at least one table is enabled. */
-      if (!builtin && config.InputMethods().length > 1) {
-        buttons.push( { text: _('optionRemove'),
-          click: function () {
-            if (confirm(_("optionAreYouSure"))) {
-              removeTable(name);
-              $(`#${id}`).remove();
-            }
-            $(this).dialog("close");
+        } });
+    }
 
-          } });
-      }
+    if (url && url.includes('://')) {
+      buttons.push({
+        text: _('optionReload'),
+        click: function() {
+          debug("optionReload:", table.type);
+          if (confirm(_("optionAreYouSure"))) {
+            addTableFromUrl(url, table.type);
+          }
+          $(this).dialog("close");
+        }});
+    }
 
-      if (url && url.includes('://')) {
-        buttons.push({
-          text: _('optionReload'),
-          click: function() {
-            debug("optionReload:", table.type);
-            if (confirm(_("optionAreYouSure"))) {
-              addTableFromUrl(url, table.type);
-            }
-            $(this).dialog("close");
-          }});
-      }
-
-      $('#table_detail_dialog').dialog({
-        title: _("optionTableDetail"),
-        minWidth: 600,
-        buttons: buttons,
-        modal: true
-      });
+    $('#table_detail_dialog').dialog({
+      title: _("optionTableDetail"),
+      minWidth: 600,
+      buttons: buttons,
+      modal: true
     });
   });
 }
