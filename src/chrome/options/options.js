@@ -547,12 +547,16 @@ function addTableToList(name, list_id, do_insert) {
     if (!builtin)
       table = await jscin.loadTable(ename);
 
-    let type = table.type || {};
+    // `type` from table.type should remain the same (even if it's undefined) so
+    // the behavior will be the same when being reloaded.
+    let type = table.type;
     let type_label = [];
-    if (type.cname)
-      type_label.push(`${type.cname} (${type.ename})`);
-    if (type.auto_detect)
-      type_label.push(_("optionTypeAuto"));
+    if (type) {
+      if (type.cname)
+        type_label.push(`${type.cname} (${type.ename})`);
+      if (type.auto_detect)
+        type_label.push(_("optionTypeAuto"));
+    }
     if (builtin)
       type_label.push(_("optionBuiltin"));
 
@@ -582,13 +586,13 @@ function addTableToList(name, list_id, do_insert) {
         } });
     }
 
-    if (url && url.includes('://')) {
+    if (url && url.includes('://') && !builtin) {
       buttons.push({
         text: _('optionReload'),
         click: function() {
-          debug("optionReload:", table.type);
+          debug("optionReload:", type);
           if (confirm(_("optionAreYouSure"))) {
-            addTableFromUrl(url, table.type);
+            addTableFromUrl(url, type);
           }
           $(this).dialog("close");
         }});
