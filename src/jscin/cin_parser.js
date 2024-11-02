@@ -67,12 +67,20 @@ export function parseCin(cin_input) {
       m = line.match(/^\s*(\S+)\s+(\S+)/);
       if (m) {
         let key = m[1];
-        // TODO(hungte) Don't convert if %keep_key_case is found.
-        key = key.toLowerCase();
-        if (cmd == 'chardef' && data['PHRASE_CHARDEF']) {
+
+        if (cmd == 'chardef' && data.keep_key_case) {
+          // do not process the key.
+        } else {
+          key = key.toLowerCase();
+        }
+
+        // Always process chardef as phrases, and merge later.
+        if (cmd == 'chardef') {
           if (data[cmd][key] == undefined)
             data[cmd][key] = [];
           data[cmd][key].push(m[2]);
+          if (m[2].length > 1 && !data.PHRASE_CHARDEF)
+            data.PHRASE_CHARDEF = true;
         } else {
           // Truncate all.
           if (data[cmd][key] == undefined)
@@ -87,6 +95,13 @@ export function parseCin(cin_input) {
 
   if (runningcmd && runningcmd != 'chardef') // iBus tables has no "%chardef end"
     return failed(lineno, 'previous section has no end');
+
+  // merge data[chardef] entries.
+  if (!data.PHRASE_CHARDEF) {
+    for (let key in data.chardef) {
+      data.chardef[key] = data.chardef[key].join('');
+    }
+  }
 
   // verify mandatory fields
   if (data['prompt']) {  // gcin format
