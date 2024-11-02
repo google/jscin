@@ -64,14 +64,6 @@ export class AddonPunctuations extends BaseInputAddon
     }
     return this.im.keystroke(ctx, ev);
   }
-
-  get_accepted_keys(ctx)
-  {
-    let keys = this.im.get_accepted_keys(ctx);
-    if (ctx.AddonPunctuations)
-      keys = keys.concat(this.expected_keys);
-    return keys;
-  }
 }
 
 jscin.registerAddon(AddonPunctuations);

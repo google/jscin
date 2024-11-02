@@ -146,14 +146,6 @@ export class GenInp2 extends BaseInputMethod
     return this.ProcessKeystroke(ctx, ev);
   }
 
-  get_accepted_keys(ctx)
-  {
-    let keys = super.get_accepted_keys(ctx);
-    if (ctx.state == this.STATE_COMPOSITION)
-      keys = keys.concat(this.GLOB_KEYS.split(''));
-    return keys;
-  }
-
   init(ctx)
   {
     super.init(ctx);

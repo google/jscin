@@ -160,25 +160,6 @@ export class KeyEvent {
   }
 }
 
-// Gets the combination of keys in one KeyboardEvent.
-// This is the format that IM.get_accepted_keys should follow.
-// In general it is list of lower-case keys, or [Ctrl-][Alt-][Meta-]<key>.
-//
-// Note Shift state already changed the 'key' value, so for addons and IMs
-// that expect to behave differently, they have to either list using the
-// shifted key values (e.g., addon_punctuations), or use the
-// getUnshiftedKey() below to find the original key input (addon_related).
-export function getKeyDescription(ev) {
-  let k = ev.key;
-  if (ev.metaKey && k != 'Meta')
-    k = 'Meta-' + k;
-  if (ev.altKey && k != 'Alt')
-    k = 'Alt-' + k;
-  if (ev.ctrlKey && k != 'Ctrl')
-    k = 'Ctrl-' + k;
-  return k;
-}
-
 // Returns the KeyboardEvent.key regardless of ev.shiftKey state.
 export function getUnshiftedKey(ev) {
   return UNSHIFT_MAP[ev.code] || ev.key;

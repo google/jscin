@@ -12,11 +12,12 @@ export function parseCin(cin_input) {
   let data = {};
   let runningcmd = null;
   let cmd;
-  let table_command = {keyname: 1, chardef: 1,
-                       quick: 1, quickkey: 1,
-                       sel1st: 1, // re-order mappings, deprecated.
-                       KEYSTROKE_REMAP: 1, KEYGROUPS: 1,
-                       ACCEPTED_KEYS: 1};
+  let table_command = {
+    keyname: 1, chardef: 1,
+    quick: 1, quickkey: 1,
+    sel1st: 1, // re-order mappings, deprecated.
+    KEYSTROKE_REMAP: 1, KEYGROUPS: 1,
+  };
 
   // TODO for very old XCIN table (1.x~2.1b), there's no %chardef -- anything
   // not inside commands are chardefs.

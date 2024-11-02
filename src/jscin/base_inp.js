@@ -29,36 +29,6 @@ export class BaseInputMethod
     // Any one line params must be normalized to lower case.
     this.selkey = (conf.selkey || '').toLowerCase();
     this.endkey = (conf.endkey || '').toLowerCase();
-
-    // Standard rules.
-    let setArrow = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'],
-      setPage = ['PageUp', 'PageDown'],
-      setLineEdit = ['Enter', 'Home', 'End'],
-      setEdit = ['Backspace'],
-      setConvert = [' ', 'Escape'];
-
-    let accepted_keys = {
-      '*': Object.keys(this.keyname).concat(this.endkey.split('')),
-      'keystroke': setConvert.concat(setEdit),
-      'lcch': setConvert.concat(setEdit).concat(setArrow).concat(setLineEdit),
-      'mcch': setConvert.concat(setPage).concat(setArrow).concat(this.selkey.split(''))
-    };
-
-    let keys = conf.ACCEPTED_KEYS || {};
-    for (let k of Object.keys(keys)) {
-      // syntax: key or 'key,'
-      let val = keys[k];
-      if (k.indexOf(',') > 0) {
-        val = val.split(',');
-        k = k.replace(',', '');
-      } else {
-        val = val.split('');
-      }
-      if (k in accepted_keys)
-        val = accepted_keys[k].concat(val);
-      accepted_keys[k] = val;
-    }
-    this.accepted_keys = accepted_keys;
   }
 
   // Called when the IM is first initialized.
@@ -94,27 +64,6 @@ export class BaseInputMethod
   // Called when system wants to query corresponding key strokes for given text.
   show_keystroke(ctx, text) {
     return 'NOT IMPLEMENTED';
-  }
-
-  // TODO(hungte) See if we can move this into context.
-  // Called when system wants to get a list of allowed key strokes.
-  // Note each value must follow key_event.getKeyDescription.
-  get_accepted_keys(ctx)
-  {
-    let has_keystroke = (ctx.keystroke || '').length;
-    let has_lcch = (ctx.lcch || []).length;
-    let has_mcch = (ctx.mcch || []).length;
-
-    let keys = this.accepted_keys['*'];
-    if (has_keystroke)
-      keys = keys.concat(this.accepted_keys['keystroke']);
-    if (has_lcch)
-      keys = keys.concat(this.accepted_keys['lcch']);
-    if (has_mcch)
-      keys = keys.concat(this.accepted_keys['mcch']);
-
-    debug("get_accepted_keys", has_keystroke, has_lcch, has_mcch, keys);
-    return keys;
   }
 
   // Utility function to generate a key event.

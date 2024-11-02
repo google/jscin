@@ -29,11 +29,6 @@ export class BaseInputAddon {
     return this.im.show_keystroke(ctx, text);
   }
 
-  // Called when system wants to get a list of allowed key strokes.
-  get_accepted_keys(ctx) {
-    return this.im.get_accepted_keys(ctx);
-  }
-
   // Called when terminates ongoing text input session without sending focus/blur
   // events, ex creating new tab / instance.
   reset(ctx) {

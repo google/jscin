@@ -116,14 +116,5 @@ JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
   分類按鍵成幾個群組。主要應用是注音的聲母、韻母等，讓按鍵在不按順序輸入時
   能依分類自動重新組合。
 
-%ACCEPTED_KEYS begin
-<CONDITION> <KEYS>
-%ACCEPTED_KEYS end
-  用來指定輸入法是否會處理各按鍵 (不處理的會丟回上層系統)。
-  CONDITION 可指定 * (全部), lcch, mcch, keystroke。
-  KEYS 指定在該 CONDITION 時此輸入法會處理哪些按鍵。
-  若要指定特別按鍵如 "Tab" 則 CONDITION 後要加逗號且每個 KEYS 要同樣用逗號隔開，
-  如 lcch, Tab,Esc,a,b
-
 %PHRASE_CHARDEF
   改變 %chardef 的預設行為，允許詞類輸入。

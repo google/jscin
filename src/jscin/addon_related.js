@@ -102,16 +102,6 @@ export class AddonRelatedText extends BaseInputAddon
     return result;
   }
 
-  get_accepted_keys(ctx)
-  {
-    let keys = this.im.get_accepted_keys(ctx);
-    if (!ctx.AddonRelatedText)
-      return keys;
-
-    this.RefreshShiftMap(ctx);
-    return keys.concat(this.expected_keys);
-  }
-
   InSelectionKey(ctx, key) {
     return ctx.selkey.includes(key);
   }
