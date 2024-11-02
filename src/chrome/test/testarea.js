@@ -12,65 +12,113 @@ import { $, jQuery } from "../jquery/jquery-ui.js";
 import { WebPageIme } from "../emulation/webpage.js";
 import { croscin } from "../croscin.js";
 
-// Testing functions
-const testContextID = '1';
-
 function debug(...args) {
   console.log("[testarea]", ...args);
 }
 
-function test_setCandidateWindowProperties(flag) {
-  chrome.input.ime.setCandidateWindowProperties({
-    contextID: testContextID,
-    properties: {visible: flag}});
-}
+// Testing functions
+const testContextID = '0';
 
-function test_clearComposition() {
-  chrome.input.ime.clearComposition({
-    contextID: testContextID});
-}
-
-function test_setComposition(text) {
-  chrome.input.ime.setComposition({
-    contextID: testContextID,
-    text: text});
-}
-
-function test_commitText(text) {
-  chrome.input.ime.commitText({
-    contextID: testContextID,
-    text: text});
-}
-
-function test_setCandidates(candidate_string) {
-  let i;
-  let items = [];
-
-  for (i in candidate_string) {
-    items.push({
-      candidate: candidate_string[i],
-      id: parseInt(i),
-      label: `${parseInt(i) + 1}`});
+class testInputIme {
+  constructor(ime) {
+    this.ime = ime;
   }
-  chrome.input.ime.setCandidates({
-    contextID: testContextID,
-    candidates: items});
-}
 
-// jquery-based test init
-function test_setMenuItems(labels_array) {
-  let i;
-  let items = [];
-  for (let label of labels_array) {
-    items.push({
-      id: 'id_' + label,
-      label: label,
-      style: 'radio',
+  items() {
+    return [
+      (ev) => { this.test_setCandidateWindowProperties(true); },
+      (ev) => { this.test_setCandidateWindowProperties(false); },
+      (ev) => { this.test_setComposition("hello"); },
+      (ev) => { this.test_clearComposition(); },
+      (ev) => { this.test_commitText("hello world"); },
+      (ev) => { this.test_setCandidates("abcdefghi"); },
+      (ev) => { this.test_setCandidates("ab"); },
+      (ev) => { this.test_setCandidates(""); },
+      (ev) => { this.test_setMenuItems(["Item 1", "Item 2", "Blah"]); },
+      (ev) => { this.test_setMenuItems(["Activated"]); },
+      (ev) => { this.test_setMenuItems([]); },
+    ];
+  }
+
+  bind() {
+    let btns = document.getElementsByTagName('button');
+    let items = this.items();
+    console.assert(btns.length == items.length);
+    for (let i = 0; i < btns.length; i++) {
+      $(btns[i]).text(`${items[i]}`.match(/{ this\.test_(.*); }/)[1]);
+      $(btns[i]).click(items[i]);
+    }
+    this.ime.onKeyEvent.addListener(function(engineID, ev) {
+      let val = $('#chkKeyEvent').prop('checked');
+      debug("onKeyEvent:", ev, engineID);
+      return !val;
+    });
+    this.ime.onBlur.addListener(function(contextID) {
+      debug("onBlur:", contextID);
+    });
+    this.ime.onFocus.addListener(function(context) {
+      debug("onFocus:", context.contextID, context.type);
+    });
+    this.ime.onMenuItemActivated.addListener(function(engineID, menu_id) {
+      debug("menu item activated: id=", menu_id);
     });
   }
-  chrome.input.ime.setMenuItems({
-    engineID: chrome.input.ime.engineID,
-    items: items});
+
+  test_setCandidateWindowProperties(flag) {
+    this.ime.setCandidateWindowProperties({
+      contextID: testContextID,
+      properties: {visible: flag}});
+  }
+
+  test_clearComposition() {
+    this.ime.clearComposition({
+      contextID: testContextID});
+  }
+
+  test_setComposition(text) {
+    this.ime.setComposition({
+      contextID: testContextID,
+      text: text});
+  }
+
+  test_commitText(text) {
+    let node = document.getElementById('input');
+    node.focus();
+    this.ime.commitText({
+      contextID: testContextID,
+      text: text});
+  }
+
+  test_setCandidates(candidate_string) {
+    let i;
+    let items = [];
+
+    for (i in candidate_string) {
+      items.push({
+        candidate: candidate_string[i],
+        id: parseInt(i),
+        label: `${parseInt(i) + 1}`});
+    }
+    this.ime.setCandidates({
+      contextID: testContextID,
+      candidates: items});
+  }
+
+  // jquery-based test init
+  test_setMenuItems(labels_array) {
+    let i;
+    let items = [];
+    for (let label of labels_array) {
+      items.push({
+        id: 'id_' + label,
+        label: label,
+        style: 'radio',
+      });
+    }
+    this.ime.setMenuItems({
+      engineID: this.ime.engineID,
+      items: items});
+  }
 }
 
 async function Init() {
@@ -86,28 +134,8 @@ async function Init() {
   ime.attach(node);
   ime.dispatch("Activate", ime.engineID);
 
-  $('#TestItems').hide();
-
-  if (false) {
-    // Running in simple web page, let's enable all testing buttons.
-    $('#TestItems button').attr("onClick",
-        function () { return "test_" + $(this).text(); });
-    chrome.input.ime.onKeyEvent.addListener(function(engineID, ev) {
-      let val = $('#chkKeyEvent').prop('checked');
-      debug("onKeyEvent:", ev, engineID);
-      return !val;
-    });
-    chrome.input.ime.onBlur.addListener(function(contextID) {
-      debug("onBlur:", contextID);
-    });
-    chrome.input.ime.onFocus.addListener(function(context) {
-      debug(context);
-      debug("onFocus:", context.contextID, context.type);
-    });
-    chrome.input.ime.onMenuItemActivated.addListener(function(engineID, menu_id) {
-      debug("menu item activated: id=", menu_id);
-    });
-  }
+  let test = new testInputIme(ime);
+  test.bind();
   node.focus();
 }
 
