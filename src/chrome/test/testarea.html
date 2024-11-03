@@ -3,6 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>chrome.input.ime playground</title>
 <link rel="stylesheet" type="text/css" href="../jquery/jquery-ui.css"/>
+<link rel="stylesheet" type="text/css" href="../emulation/ime_panel.css"/>
 <script type="module" src="./testarea.js"></script>
 <style type="text/css">
 body {
@@ -14,53 +15,6 @@ input, textarea, button {
   font-size: 1.5em;
   font-family: sans-serif;
   padding: 10px;
-}
-
-#imePanel {
-  padding: 1em;
-  min-width: 100px;
-  min-height: 50px;
-  background: #eee;
-  border: 2px solid #aaa;
-  float: left;
-  margin: 10px;
-  font-family: courier;
-  box-shadow: 5px 5px 10px #ccc;
-}
-
-#menu {
-  background: #ee0;
-}
-
-#menu li:hover {
-  background: #ccf;
-  cursor: pointer;
-}
-
-#candidates {
-  background: #fff;
-  padding: 2px;
-  margin: 5px;
-}
-
-#composition {
-  font-weight: bold;
-  text-decoration: underline;
-  color: #777;
-  padding: 2px;
-  margin: 5px;
-  background: #ddd;
-}
-
-.candidate:hover {
-  background: #888;
-  color: #fff;
-  cursor: pointer;
-}
-
-.candidate_label {
-  font-size: 80%;
-  color: #f00;
 }
 
 #TestItems label {
@@ -75,10 +29,6 @@ input, textarea, button {
 <h3>Input box</h3>
 <input type="text" name="input" id="input" value="Sample Text"
        size="50"></input><br/>
-<!--
-<h3>Text Area<h3/>
-<textarea name="textarea" id="input2">Sample Text</textarea><br/>
--->
 
 <h3>IME Panel</h3>
 <div id="imePanel">
