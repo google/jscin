@@ -64,7 +64,7 @@ export class IME {
     let version = chrome.runtime.getManifest().version;
     let reload = (version !== this.config.Version());
 
-    if (jscin.MIGRATION) {
+    if (reload && jscin.MIGRATION) {
       let migration = new Migration(jscin);
       await migration.migrateAll();
     }
