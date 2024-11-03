@@ -292,8 +292,8 @@ async function init() {
       opt.attr("selected", "selected");
     selectMod.append(opt);
   }
-  selectMod.selectmenu({change: () => {
-    config.Set("DefaultModule", name);
+  selectMod.selectmenu({change: (val) => {
+    config.Set("DefaultModule", selectMod.val());
     alert(_("optionReloadExtensionOrRestart"));
   }});
   $('#formSelectModule').controlgroup();
