@@ -14,6 +14,13 @@ export class ImePanel extends WebPageIme {
   constructor(panel='imePanel') {
     super(panel);
     window.addEventListener("message", this.messageHandler.bind(this));
+
+    this.onMenuItemActivated.addListener((...args) => {
+      window.top.postMessage({ime_ev: "MenuItemActivated", args}, "*");
+    });
+    this.onCandidateClicked.addListener((...args) => {
+      window.top.postMessage({ime_ev: "CandidateClicked", args}, "*");
+    });
   }
 
   messageHandler(e) {

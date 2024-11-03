@@ -19,6 +19,18 @@ export class IFrameIme extends WebPageIme {
     this.show = false;
     this.enabled = false;
     this.panel = this.createPanel(panel);
+
+    window.addEventListener("message", this.messageHandler.bind(this));
+  }
+
+  messageHandler(e) {
+    let data = e.data;
+    if (!data.ime_ev)
+      return;
+
+    debug("messageHandler:", this.callbacks);
+    // data.ime_ev is the event to dispatch, and data.parameters is the arg.
+    this.dispatch(data.ime_ev, ...data.args);
   }
 
   createPanel(url) {
@@ -119,7 +131,6 @@ export class IFrameIme extends WebPageIme {
   }
 
   toIFrame(api, parameters) {
-    console.log("toIFrame:", api, parameters);
     this.getNode().postMessage({
       ime: api,
       parameters
