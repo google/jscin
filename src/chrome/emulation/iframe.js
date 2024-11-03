@@ -32,10 +32,10 @@ export class IFrameIme extends WebPageIme {
     frame.style.backgroundColor = "transparent";
     frame.style.border = 0;
     frame.style.display = "none";
-    frame.style.height = "11em";
     frame.style.padding = 0;
     frame.style.position = "absolute";
     frame.style.width = "32em";
+    frame.style.height = "100%";
     frame.style.zIndex = 999999;
     let ref = document.getElementsByTagName('body')[0] || document.children[0];
     ref.appendChild(frame);

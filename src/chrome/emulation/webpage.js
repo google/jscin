@@ -189,9 +189,11 @@ export class WebPageIme extends ChromeInputIme {
     for (let i of parameters.items) {
       let label = i.label || i.id;
       if (i.checked)
-        label = `> ${label}`;
+        label = `>${NBSP}${label}`;
+      else
+        label = `${NBSP}${NBSP}${label}`;
       node.append(
-        $('<li/>', {text: label}).click(() => {
+        $('<div/>', {text: label, class: i.checked ? "active":""}).click(() => {
           this.dispatch(
             'MenuItemActivated', this.engineID, i.id);
         }));
