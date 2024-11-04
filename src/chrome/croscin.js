@@ -85,12 +85,12 @@ export class IME {
     this.registerEventHandlers();
 
     await this.LoadPreferences();
-    await this.ActivateInputMethod();
 
-    this.config.Bind("InputMethods", (value)=> {
-      debug("Changed InputMethods(), need to reload UI.");
+    this.config.Bind("InputMethods", (value) => {
+      if (!this.im)
+        return;
+      debug("Changed InputMethods(), need to reload activated IM.");
       jscin.reload_configuration();
-      this.InitializeUI();
       this.ActivateInputMethod();
     });
   }
@@ -444,10 +444,7 @@ export class IME {
     ime_api.onActivate.addListener((engineID) => {
       debug('onActivate: croscin started.', engineID);
       this.engineID = engineID;
-      this.InitializeUI();
-      // We should activate IME here, but in order to speed up we did
-      // ActivateInputMethod in Initialize, and use hard-coded engine ID before it
-      // is assigned.
+      this.ActivateInputMethod();
     });
 
     ime_api.onDeactivated.addListener((engineID) => {
