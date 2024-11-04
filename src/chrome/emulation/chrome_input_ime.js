@@ -100,17 +100,21 @@ export class ChromeInputIme {
           this.callbacks[event] = []
         }
         this.callbacks[event].push(c)
+      },
+      dispatch: (...args) => {
+        let cbs = this.callbacks[event] || [];
+        let r;
+        for (let c of cbs) {
+          r = c(...args);
+        }
+        return r;
       }
     };
   }
 
-  dispatch(name, ...args) {
-    let cbs = this.callbacks[name] || [];
-    let r;
-    for (let c of cbs) {
-      r = c(...args);
-    }
-    return r;
+  dispatchEvent(name, ...args) {
+    let dispatcher = this[`on${name}`].dispatch;
+    return dispatcher(...args);
   }
 
   onActivate = this.createEventHandler("Activate");

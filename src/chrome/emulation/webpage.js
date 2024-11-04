@@ -45,7 +45,7 @@ export class WebPageIme extends ChromeInputIme {
     this.contexts.push(node);
     assert(node, "Attach needs a valid target DOM node.");
     node.addEventListener('keydown', (evt) => {
-      let r = this.dispatch("KeyEvent", this.engineID, evt);
+      let r = this.onKeyEvent.dispatch(this.engineID, evt);
       debug("keydown:", node, evt, r);
 
       if (r)
@@ -54,15 +54,15 @@ export class WebPageIme extends ChromeInputIme {
     });
     node.addEventListener('keyup', (evt) => {
       debug("keyup:", node, evt);
-      this.dispatch("KeyEvent", this.engineID, evt);
+      this.onKeyEvent.dispatch(this.engineID, evt);
     });
     node.addEventListener('focus', (evt) => {
       debug("focus:", node, evt);
-      return this.dispatch("Focus", {contextID: this.getContextID(node)});
+      return this.onFocus.dispatch({contextID: this.getContextID(node)});
     });
     node.addEventListener('blur', (evt) => {
       debug("blur:", node, evt);
-      return this.dispatch('Blur', this.getContextID(node));
+      return this.onBlur.dispatch(this.getContextID(node));
     });
   }
 
@@ -194,8 +194,7 @@ export class WebPageIme extends ChromeInputIme {
         label = `${NBSP}${NBSP}${label}`;
       node.append(
         $('<div></div>', {text: label, class: i.checked ? "active":""}).click(() => {
-          this.dispatch(
-            'MenuItemActivated', this.engineID, i.id);
+          this.onMenuItemActivated.dispatch(this.engineID, i.id);
         }));
     }
     return false;

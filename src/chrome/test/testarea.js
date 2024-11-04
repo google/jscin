@@ -131,8 +131,8 @@ async function Init() {
   await croscin.instance.Initialize();
 
   let node = document.getElementById('input');
+  ime.onActivate.dispatch(ime.engineID);
   ime.attach(node);
-  ime.dispatch("Activate", ime.engineID);
 
   let test = new testInputIme(ime);
   test.bind();
