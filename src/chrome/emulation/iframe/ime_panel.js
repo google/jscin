@@ -28,6 +28,10 @@ export class ImePanel extends WebPageIme {
     // Forward these events to the content script.
     this.onMenuItemActivated.addListener(sendToContent("MenuItemActivated"));
     this.onCandidateClicked.addListener(sendToContent("CandidateClicked"));
+    this.onActivate.addListener(sendToContent("Activate"));
+
+    // Notify the IME to update the panel.
+    this.onActivate.dispatch(this.engineID);
   }
 
   messageHandler(m) {
