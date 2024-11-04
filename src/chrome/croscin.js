@@ -81,7 +81,6 @@ export class IME {
     if (reload) {
       this.config.Set("Version", version);
     }
-    jscin.reload_configuration();
     this.registerEventHandlers();
 
     await this.LoadPreferences();
@@ -90,7 +89,6 @@ export class IME {
       if (!this.im)
         return;
       debug("Changed InputMethods(), need to reload activated IM.");
-      jscin.reload_configuration();
       this.ActivateInputMethod();
     });
   }

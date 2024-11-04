@@ -114,10 +114,6 @@ export class InputMethodsEnvironment {
     this.MIGRATION = true;
   }
 
-  reload_configuration() {
-    // not really needed, just for a place holder.
-  }
-
   async initialize() {
     await this.loadTableInfoList();
     this.storage.listen((changes) => {this.onChanged(changes);});
