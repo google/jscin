@@ -5,10 +5,10 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("emulation/ime_panel");
+import { AddLogger } from "../../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("iframe/ime_panel");
 
-import { WebPageIme } from "./webpage.js";
+import { WebPageIme } from "../webpage.js";
 
 export class ImePanel extends WebPageIme {
   constructor(panel='imePanel') {

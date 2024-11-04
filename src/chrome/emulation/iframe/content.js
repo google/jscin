@@ -5,15 +5,15 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("ime.iframe");
+import { AddLogger } from "../../jscin/logger.js";
+const {log, debug, info, warn, error, assert, trace} = AddLogger("iframe/content");
 
-import { $, jQuery } from "../jquery/jquery.js";
-import { WebPageIme } from "./webpage.js";
+import { $, jQuery } from "../../jquery/jquery.js";
+import { WebPageIme } from "../webpage.js";
 
 export class IFrameIme extends WebPageIme {
 
-  constructor(panel='emulation/ime_panel.html') {
+  constructor(panel='emulation/iframe/ime_panel.html') {
     super();
     this.engineID = "jscin.chrome.input.ime.iframe";
     this.show = false;
@@ -119,7 +119,7 @@ export class IFrameIme extends WebPageIme {
   }
 
   attachPanel(node) {
-    warn("attachPanel:", node);
+    debug("attachPanel:", node);
     let offset = $(node).offset();
     let node_height = $(node).height();
     offset.node_height = node_height;
