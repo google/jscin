@@ -59,6 +59,14 @@ export class IME {
 
   async Initialize() {
     debug("Start to Initialize.");
+
+    chrome.runtime.onMessage.addListener((ev) => {
+      // Message here will occur only in the background page.
+      debug("onMessage", ev);
+      if (ev == this.kMenuOptions) {
+        chrome.runtime.openOptionsPage();
+      }
+    });
     await this.config.Load();
 
     let version = chrome.runtime.getManifest().version;
@@ -417,6 +425,18 @@ export class IME {
     debug("croscin.config", this.config.config);
   }
 
+  openOptionsPage() {
+    if (chrome.runtime?.openOptionsPage) {
+      debug("using chrome.runtime.openOptionsPage()");
+      return chrome.runtime.openOptionsPage();
+    }
+
+    // If croscin runs inside the content script, then we don't have the
+    // permission to call chrome.tabs nor chrome.runtime.
+    debug("No chrome.runtime.openOptionsPage; broadcast for help.");
+    chrome.runtime.sendMessage(this.kMenuOptions);
+  }
+
   // Registers event handlers to the browser.
   registerEventHandlers() {
     let ime_api = this.ime_api;
@@ -488,27 +508,14 @@ export class IME {
 
     ime_api.onMenuItemActivated.addListener((engineID, name) =>{
       debug("croscin.onMenuItemActivated: name=", name);
+      const imePrefix = 'ime:'
 
       if (name == this.kMenuOptions) {
-        let options_url = chrome.runtime.getURL("options/options.html");
-        // Tabs are better, but if there are no active windows (which is common in
-        // ChromeOS if you put everything behind and activate by menu) then
-        // chrome.window.create must be used.
-        chrome.tabs.getSelected(null, (tab) => {
-          if (tab) {
-            chrome.tabs.create({"url": options_url});
-          } else {
-            chrome.windows.create({
-              url: options_url,
-              type: "popup",
-              width: screen.width * 0.8,
-              height: screen.height * 0.8,
-              focused: true
-            });
-          }
-        });
-      } else if (name.match(/^ime:/)) {
-        this.ActivateInputMethod(name.replace(/^ime:/, ''));
+        this.openOptionsPage();
+      } else if (name.startsWith(imePrefix)) {
+        this.ActivateInputMethod(name.substring(imePrefix.length));
+      } else {
+        assert(false, "Invalid menu item", name);
       }
     });
   }
