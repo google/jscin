@@ -1,8 +1,14 @@
 // Copyright 2024 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview An ifarme based provider for chrome.input.ime.
+ * @fileoverview An iframe based provider for chrome.input.ime.
  * @author hungte@google.com (Hung-Te Lin)
+ *
+ * Note this is for content script to create a new iframe element, but the
+ * IFrameIme itself runs in the content script context, not the iframe.
+ *
+ * content script -> iframe:  DOM(iframe).postMessage
+ * iframe -> content script:  window.top.postMessage (chrome.runtime.sendMessage doesn't work)
  */
 
 import { AddLogger } from "../../jscin/logger.js";
@@ -10,6 +16,7 @@ const {log, debug, info, warn, error, assert, trace} = AddLogger("iframe/content
 
 import { $, jQuery } from "../../jquery/jquery.js";
 import { WebPageIme } from "../webpage.js";
+import { ImeEventMessage, ImeCommandMessage } from "./ipc.js";
 
 export class IFrameIme extends WebPageIme {
 
@@ -23,14 +30,13 @@ export class IFrameIme extends WebPageIme {
     window.addEventListener("message", this.messageHandler.bind(this));
   }
 
-  messageHandler(e) {
-    let data = e.data;
-    if (!data.ime_ev)
+  messageHandler(msg, sender) {
+    let event = ImeEventMessage.fromObject(msg.data);
+    if (!event) {
+      debug("messageHandler: not a valid IME event message:", msg);
       return;
-
-    debug("messageHandler:", this.callbacks);
-    // data.ime_ev is the event to dispatch, and data.parameters is the arg.
-    this.dispatch(data.ime_ev, ...data.args);
+    }
+    event.dispatch(this);
   }
 
   createPanel(url) {
@@ -130,11 +136,10 @@ export class IFrameIme extends WebPageIme {
     this.togglePanel(false);
   }
 
-  toIFrame(api, parameters) {
-    this.getNode().postMessage({
-      ime: api,
-      parameters
-    }, '*');
+  toIFrame(command, parameters) {
+    this.getNode().postMessage(
+      new ImeCommandMessage(command, parameters),
+      '*');
   }
 
   // Bridge calls to the iframe
