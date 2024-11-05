@@ -20,6 +20,11 @@ async function LoadDefaultConfig() {
   return new mod.Config();
 }
 
+function GetAllTextInputNodes() {
+  return document.querySelectorAll(
+    'input[type=text], input[type=search], input:not([type]), textarea');
+}
+
 async function StartEmulation() {
   const mod_page = await LoadModule("./emulation/crext/content.js");
   const mod_croscin = await LoadModule("./croscin.js");
@@ -33,12 +38,8 @@ async function StartEmulation() {
   globalThis.croscin = croscin;
   globalThis.ime = ime;
 
-  // Now, bind the input elements.
-  let nodes = document.getElementsByTagName("input");
-  for (let i = 0; i < nodes.length; i++) {
-    ime.attach(nodes[i]);
-  }
-  nodes = document.getElementsByTagName("textarea");
+  // Now, bind the text input elements.
+  let nodes = GetAllTextInputNodes();
   for (let i = 0; i < nodes.length; i++) {
     ime.attach(nodes[i]);
   }
@@ -72,8 +73,7 @@ async function Initialize () {
 
   // Currently we inject the content scripts to every frames so it is important
   // to early-exit if the page does not have input elements (for emulation).
-  if (document.getElementsByTagName("input").length == 0 &&
-      document.getElementsByTagName("textarea").length == 0)
+  if (!GetAllTextInputNodes().length)
     return;
 
   // Now let's see if we need to start the emulation.
