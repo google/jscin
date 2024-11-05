@@ -3,13 +3,49 @@
 /**
  * @fileoverview IPC between iframe based components
  * @author hungte@google.com (Hung-Te Lin)
+ *
+ * The 'extension' is defined by URL, including: iframe/ime_panel, background, menu.
+ * The 'content' is the content script running in a tab.
+ * content script -> extension: chrome.runtime.sendMessage(msg)
+ * extension -> content script: chrome.tabs.sendMessage(tab_id, msg)
+ * Note: ime_panel and the content script are in the same tab so it knows which
+ * tab_id to send)
  */
 
 const IME_EVENT_MESSAGE_TYPE = 'jscin.ime_event';
 
-export class ImeEventMessage {
-  constructor(event, ...args) {
-    this.type = IME_EVENT_MESSAGE_TYPE;
+class ImeBaseMessage {
+  constructor(type, tab_id) {
+    this.type = type;
+    this.tab_id = tab_id;
+  }
+  dispatch(ime) {
+    throw "Unimplemented message for dispatching.";
+  }
+
+  sendToExtension() {
+    chrome.runtime.sendMessage(this);
+  }
+  sendToTab(tab_id) {
+    tab_id |= this.tab_id;
+    chrome.tabs.sendMessage(tab_id, this);
+  }
+
+  // Context-aware shortcuts.
+  sendToMenu() {
+    return this.sendToExtension();
+  }
+  sendToPanel() {
+    return this.sendToExtension();
+  }
+  sendToContent(tab_id) {
+    return this.sendToTab(tab_id);
+  }
+}
+
+class ImeEventMessage extends ImeBaseMessage {
+  constructor(tab_id, event, ...args) {
+    super(IME_EVENT_MESSAGE_TYPE, tab_id);
     this.event = event;
     this.args = args;
   }
@@ -20,22 +56,16 @@ export class ImeEventMessage {
     return this.args;
   }
   dispatch(ime) {
-    // TODO(hungte) change to ime[`on${this.getEvent()}`].dispatch
-    return ime.dispatchEvent(this.getEvent(), ...this.getArgs());
+    let target = `on${this.getEvent()}`;
+    return ime[target].dispatch(...this.getArgs());
   }
-}
-
-ImeEventMessage.fromObject = (obj) => {
-  if (obj.type != IME_EVENT_MESSAGE_TYPE)
-    return;
-  return new ImeEventMessage(obj.event, ...obj.args);
 }
 
 const IME_COMMAND_MESSAGE_TYPE = 'jscin.ime_command';
 
-export class ImeCommandMessage {
-  constructor(command, parameters) {
-    this.type = IME_COMMAND_MESSAGE_TYPE;
+class ImeCommandMessage extends ImeBaseMessage {
+  constructor(tab_id, command, parameters) {
+    super(IME_COMMAND_MESSAGE_TYPE, tab_id);
     this.command = command;
     this.parameters = parameters;
   }
@@ -50,9 +80,82 @@ export class ImeCommandMessage {
   }
 }
 
-ImeCommandMessage.fromObject = (obj) => {
-  if (obj.type != IME_COMMAND_MESSAGE_TYPE) {
-    return;
+export class ImeMessage {
+  constructor(ime) {
+    this.tab_id = undefined;
+    this.ime = ime;
   }
-  return new ImeCommandMessage(obj.command, obj.parameters);
+  async initialize(check_sender) {
+    this.tab_id = await this.findTabId();
+
+    chrome.runtime.onMessage.addListener((msg, sender) => {
+      // Filter out messages from content scripts in different tabs.
+      if (check_sender && sender.tab &&
+          sender.tab.id != this.tab_id)
+        return;
+
+      let m = this.fromObject(msg);
+      if (!m)
+        return;
+      m.dispatch(this.ime);
+    });
+  }
+  async getCurrentTab() {
+    if (!chrome.tabs.getCurrent)
+      return;
+    return new Promise((resolve) => {
+      chrome.tabs.getCurrent((tab) => {
+        resolve(tab?.id);
+      })
+    });
+  }
+  async getActiveTab() {
+    if (!chrome.tabs.query)
+      return;
+    return new Promise((resolve) => {
+      chrome.tabs.query({active: true, lastFocusedWindow: true},
+        ([tab]) => {
+          resolve(tab?.id);
+        });
+    });
+  }
+  async findTabId() {
+    if (!chrome.tabs)
+      return;
+    let id = await this.getCurrentTab();
+    if (!id)
+      id = await this.getActiveTab();
+    return id;
+  }
+  getTabId() {
+    return this.tab_id;
+  }
+
+  fromObject(obj) {
+    if (obj.type == IME_EVENT_MESSAGE_TYPE)
+      return new ImeEventMessage(this.tab_id, obj.event, ...obj.args);
+    if (obj.type == IME_COMMAND_MESSAGE_TYPE)
+      return new ImeCommandMessage(this.tab_id, obj.command, obj.parameters);
+    return null;
+  }
+
+  Command(...args) {
+    return new ImeCommandMessage(this.tab_id, ...args);
+  }
+  Event(...args) {
+    return new ImeEventMessage(this.tab_id, ...args);
+  }
+
+  forwardEventToContent(event) {
+    this.ime[`on${event}`].addListener((...args) => {
+      let msg = this.Event(event, ...args);
+      msg.sendToContent();
+    });
+  }
+  forwardEventToPanel(event) {
+    this.ime[`on${event}`].addListener((...args) => {
+      let msg = this.Event(event, ...args);
+      msg.sendToPanel();
+    });
+  }
 }

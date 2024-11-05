@@ -9,60 +9,34 @@ import { AddLogger } from "../../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("iframe/ime_panel");
 
 import { WebPageIme } from "../webpage.js";
-import { ImeEventMessage, ImeCommandMessage } from "./ipc.js";
+import { ImeMessage } from "./ipc.js";
 
 export class ImePanel extends WebPageIme {
   constructor(panel='imePanel') {
     super(panel);
-    this.tab_id = undefined;
+    this.ipc = new ImeMessage(this);
 
-    // Get current tab ID.
-    chrome.tabs.getCurrent((tab) => {
-      debug("current tab:", tab);
-      this.tab_id = tab.id;
-      this.initialize();
-    });
+    this.initialize();
   }
 
-  initialize() {
-    let sendEventToContent = (event) => {
-      return (...args) => {
-        let msg = new ImeEventMessage(event, ...args);
-        chrome.tabs.sendMessage(this.tab_id, msg);
-      };
-    }
-
-    // Listen to events
-    chrome.runtime.onMessage.addListener(this.messageHandler.bind(this));
+  async initialize() {
+    await this.ipc.initialize(true);
 
     // Forward these events to the content script.
-    this.onActivate.addListener(sendEventToContent("Activate"));
-    this.onCandidateClicked.addListener(sendEventToContent("CandidateClicked"));
+    this.ipc.forwardEventToContent('Activate');
+    this.ipc.forwardEventToContent('CandidateClicked');
 
     // Notify the IME it's ready to update the panel (or, re-do in onFocus).
     this.onActivate.dispatch(this.engineID);
 
-    if (chrome.pageAction)
-      chrome.pageAction.show(this.tab_id);
-    else if (chrome.action)
-      chrome.action.enable(this.tab_id);
+    this.enableActionPopup();
   }
 
-  messageHandler(m, sender) {
-    // Filter out messages from content scripts in different tabs.
-    if (sender.tab && sender.tab.id != this.tab_id)
-      return;
-
-    let msg;
-
-    msg = ImeCommandMessage.fromObject(m);
-    if (!msg)
-      msg = ImeEventMessage.fromObject(m);
-    if (!msg) {
-      debug("messageHandler: not a valid IME command/event message:", m);
-      return;
-    }
-    msg.dispatch(this);
+  enableActionPopup() {
+    if (chrome.pageAction)
+      chrome.pageAction.show(this.ipc.getTabId());
+    else if (chrome.action)
+      chrome.action.enable(this.ipc.getTabId());
   }
 }
 
