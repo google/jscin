@@ -178,7 +178,7 @@ export class IME {
     let arg = this.GetEngineArg();
     if (arguments.length == 2) {
       // Legacy support.
-      let name = arguments[0], value = arguments[1];
+      let [name, value] = arguments;
       properties = {};
       properties[name] = value;
       debug('SetCandidatesWindowProperty:', name, '=', value);

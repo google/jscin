@@ -20,7 +20,7 @@ const print = console.log;
 const write = console.log;
 
 async function loadTable(url) {
-  let name = url.split('/').pop().split('.')[0];
+  let [name] = url.split('/').pop().split('.');
   return jscin.saveTable(name, fs.readFileSync(url, 'utf8'), url, {});
 }
 

@@ -65,7 +65,7 @@ export class IFrameIme extends WebPageIme {
     frame.style.width = "32em";
     frame.style.height = "100%";
     frame.style.zIndex = 999999;
-    let ref = document.getElementsByTagName('body')[0] || document.children[0];
+    let [ref] = document.getElementsByTagName('body') || document.children;
     ref.appendChild(frame);
     return frame;
   }
