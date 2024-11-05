@@ -36,7 +36,6 @@
         "content.js"
     ],
     "run_at": "document_idle",
-    "all_frames": true,
     "matches": ["http://*/*", "https://*/*"]
   } ],
   "web_accessible_resources": [
