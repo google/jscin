@@ -38,22 +38,27 @@ export class ImePanel extends WebPageIme {
     // Forward these events to the content script.
     this.onActivate.addListener(sendEventToContent("Activate"));
     this.onCandidateClicked.addListener(sendEventToContent("CandidateClicked"));
-    this.onMenuItemActivated.addListener(sendEventToContent("MenuItemActivated"));
 
     // Notify the IME it's ready to update the panel (or, re-do in onFocus).
     this.onActivate.dispatch(this.engineID);
+    chrome.pageAction.show(this.tab_id);
   }
 
   messageHandler(m, sender) {
-    if (sender.tab.id != this.tab_id)
+    // Filter out messages from content scripts in different tabs.
+    if (sender.tab && sender.tab.id != this.tab_id)
       return;
 
-    let cmd = ImeCommandMessage.fromObject(m);
-    if (!cmd) {
-      debug("messageHandler: not a valid IME command message:", m);
+    let msg;
+
+    msg = ImeCommandMessage.fromObject(m);
+    if (!msg)
+      msg = ImeEventMessage.fromObject(m);
+    if (!msg) {
+      debug("messageHandler: not a valid IME command/event message:", m);
       return;
     }
-    cmd.dispatch(this);
+    msg.dispatch(this);
   }
 }
 

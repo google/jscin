@@ -80,4 +80,6 @@ body {
      allow wrapping. */
   /* white-space: nowrap; */
 }
-
+.hidden {
+  display: none;
+}

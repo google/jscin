@@ -62,7 +62,6 @@ export class IME {
 
     chrome.runtime.onMessage.addListener((ev) => {
       // Message here will occur only in the background page.
-      debug("onMessage", ev);
       if (ev == this.kMenuOptions) {
         chrome.runtime.openOptionsPage();
       }
