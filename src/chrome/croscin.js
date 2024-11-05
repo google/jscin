@@ -178,15 +178,8 @@ export class IME {
   }
 
   SetCandidatesWindowProperty(properties) {
-    // debug("SetCandidatesWindowProperty: ", properties);
     let arg = this.GetEngineArg();
-    if (arguments.length == 2) {
-      // Legacy support.
-      let [name, value] = arguments;
-      properties = {};
-      properties[name] = value;
-      debug('SetCandidatesWindowProperty:', name, '=', value);
-    }
+    debug("SetCandidatesWindowProperty: ", properties);
     arg.properties = properties;
     this.ime_api.setCandidateWindowProperties(arg);
   }
@@ -199,7 +192,7 @@ export class IME {
       cursorVisible: false,
       visible: false,
       auxiliaryText: this.im_label,
-      auxiliaryTextVisible: false});
+      auxiliaryTextVisible: true});
 
     // Setup menu
     this.UpdateMenu();
@@ -301,11 +294,11 @@ export class IME {
     // show_keystroke(cch_publish) can be displayed in auxiliary text.
 
     // The IM, or the addon, wants to say something
-    let aux_text = this.imctx.override_aux;
+    let aux_text = this.imctx.override_aux || this.im_label;
     let aux_show = (aux_text || has_composition || has_candidates) ? true : false
 
     this.SetCandidatesWindowProperty({
-      auxiliaryText: aux_text || this.im_label,
+      auxiliaryText: aux_text,
       auxiliaryTextVisible: aux_show});
   }
 
