@@ -60,6 +60,10 @@ export class IME {
   async Initialize() {
     debug("Start to Initialize.");
 
+    // Simulate pageAction in Manifest V2.
+    if(chrome.action)
+      chrome.action.disable();
+
     chrome.runtime.onMessage.addListener((ev) => {
       // Message here will occur only in the background page.
       if (ev == this.kMenuOptions) {

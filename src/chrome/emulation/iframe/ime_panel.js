@@ -41,7 +41,11 @@ export class ImePanel extends WebPageIme {
 
     // Notify the IME it's ready to update the panel (or, re-do in onFocus).
     this.onActivate.dispatch(this.engineID);
-    chrome.pageAction.show(this.tab_id);
+
+    if (chrome.pageAction)
+      chrome.pageAction.show(this.tab_id);
+    else if (chrome.action)
+      chrome.action.enable(this.tab_id);
   }
 
   messageHandler(m, sender) {

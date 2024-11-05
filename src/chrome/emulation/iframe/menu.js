@@ -15,12 +15,22 @@ export class ImeMenu extends WebPageIme {
     super(panel);
     this.tab_id = undefined;
 
-    // Get current tab ID.
-    chrome.tabs.getSelected((tab) => {
-      debug("current tab:", tab);
-      this.tab_id = tab.id;
-      this.initialize();
-    });
+    // Get current tab ID, in Manifest v2 and v3.
+    if (chrome.tabs.getSelected) {
+      chrome.tabs.getSelected((tab) => {
+        this.setTabId(tab);
+      });
+    } else {
+      chrome.tabs.query({active: true, lastFocusedWindow: true}, ([tab]) => {
+        this.setTabId(tab);
+      });
+    }
+  }
+
+  setTabId(tab) {
+    debug("current tab:", tab);
+    this.tab_id = tab.id;
+    this.initialize();
   }
 
   initialize() {

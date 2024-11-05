@@ -24,6 +24,13 @@
       "language": ["zh-TW", "zh-HK", "zh"],
       "layouts": ["us"]
   } ],
+  "action": {
+    "default_icon": {
+        "19": "icons/page_icon19.png"
+    },
+    "default_title": "__MSG_manifestName__",
+    "default_popup": "emulation/iframe/menu.html"
+  },
   "content_scripts": [ {
     "js": [
         "content.js"
