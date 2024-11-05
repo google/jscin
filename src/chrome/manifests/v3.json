@@ -29,7 +29,7 @@
         "19": "icons/page_icon19.png"
     },
     "default_title": "__MSG_manifestName__",
-    "default_popup": "emulation/iframe/menu.html"
+    "default_popup": "emulation/crext/menu.html"
   },
   "content_scripts": [ {
     "js": [

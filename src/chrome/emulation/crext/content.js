@@ -1,26 +1,22 @@
 // Copyright 2024 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview An iframe based provider for chrome.input.ime.
+ * @fileoverview A Chrome extension based provider for chrome.input.ime.
  * @author hungte@google.com (Hung-Te Lin)
- *
- * Note this is for content script to create a new iframe element, but the
- * IFrameIme itself runs in the content script context, not the iframe.
- *
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("iframe/content");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/content");
 
 import { $, jQuery } from "../../jquery/jquery.js";
 import { WebPageIme } from "../webpage.js";
 import { ImeMessage } from "./ipc.js";
 
-export class IFrameIme extends WebPageIme {
+export class CrExtIme extends WebPageIme {
 
-  constructor(panel='emulation/iframe/ime_panel.html') {
+  constructor(panel='emulation/crext/ime_panel.html') {
     super();
-    this.engineID = "jscin.chrome.input.ime.iframe";
+    this.engineID = "jscin.chrome.input.ime.extension";
     this.show = false;
     this.enabled = false;
     this.panel = this.createPanel(panel);
@@ -134,7 +130,7 @@ export class IFrameIme extends WebPageIme {
     this.ipc.Command(command, parameters).sendToPanel();
   }
 
-  // Bridge calls to the iframe
+  // Bridge calls to the IME panel
   setCandidates(parameters, callback) {
     this.toPanel("setCandidates", parameters);
   }

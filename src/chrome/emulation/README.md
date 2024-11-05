@@ -14,22 +14,21 @@ implementation that binds to the page.
 
 The `webpage.js` is an implementation using the web page technology as the
 backend.  Any web pages with a 'imePanel' DOM element with sub elements
-'composition', 'candidates', 'auxilirary' can use this implementation.
+'composition', 'candidates', 'auxiliary' can use this implementation.
 
 This is currently directly used by the test pages like `/test/testarea.html`.
 
-## IFRAME based implementation
+## Chrome extension based implementation
 
-The `iframe` folder contains multiple files for emulating the IME interfaces
-by injecting a `<IFRAME>` HTML tag to existing pages. This is used by Chrome
-extension content script to provide a full UI experience.
+The `crext` folder contains multiple files for fully emulating the
+`chrome.input.ime` experience in any pages inside a browser, using the Chrome
+extension technology.
 
-The `content.js` is the core implementation runs in the content script context.
-By default it will inject the iframe using `ime_panel.html` as the UI. The IME
-itself is loaded in the main page (e.g., where the INPUT lives) and it will
-only pass the UI commands to the iframe using `window.postMessage` API.
-
-The `ime_panel.{html,js,css}` can render the composition, candidates, auxiliary
-text, even the options to switch between input methods (menu). For commands
-like MenuItemActivated or CandidateClicked, it has to forward the event back to
-`content.js` context using `chrome.runtime.sendMessage`.
+- `content.js`: The core input method module runs in the content script
+  context, based on web page implementation. Will bind input events to the
+  `<INPUT>` and `<TEXTAREA>` HTML tags.
+- `ime_panel.{html,js,css}`: The user interface, that will be injected into the
+  web page inside a `<IFRAME>` HTML tag. The `ime_panel` will render the
+  composition, candidates, auxiliary text.
+- `menu.{html,js}`: The quick list of enabled input methods to choose from,
+  a replacement for the system input methods menu on ChromeOS.

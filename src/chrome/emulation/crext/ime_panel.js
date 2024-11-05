@@ -1,12 +1,12 @@
 // Copyright 2024 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview IME UI panel for iframe based implementation.
+ * @fileoverview IME UI panel for extension based implementation.
  * @author hungte@google.com (Hung-Te Lin)
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("iframe/ime_panel");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/ime_panel");
 
 import { WebPageIme } from "../webpage.js";
 import { ImeMessage } from "./ipc.js";

@@ -5,7 +5,7 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("iframe/menu");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/menu");
 
 import { WebPageIme } from "../webpage.js";
 import { ImeMessage } from "./ipc.js";

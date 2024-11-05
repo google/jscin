@@ -21,9 +21,9 @@ async function LoadDefaultConfig() {
 }
 
 async function StartEmulation() {
-  const mod_page = await LoadModule("./emulation/iframe/content.js");
+  const mod_page = await LoadModule("./emulation/crext/content.js");
   const mod_croscin = await LoadModule("./croscin.js");
-  let ime = new mod_page.IFrameIme();
+  let ime = new mod_page.CrExtIme();
   let croscin = mod_croscin.croscin;
   let instance = new croscin.IME(ime);
   croscin.instance = instance;
