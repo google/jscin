@@ -14,28 +14,41 @@ import { ImeEventMessage, ImeCommandMessage } from "./ipc.js";
 export class ImePanel extends WebPageIme {
   constructor(panel='imePanel') {
     super(panel);
+    this.tab_id = undefined;
 
-    window.addEventListener("message", this.messageHandler.bind(this));
+    // Get current tab ID.
+    chrome.tabs.getCurrent((tab) => {
+      debug("current tab:", tab);
+      this.tab_id = tab.id;
+      this.initialize();
+    });
+  }
 
-    function sendToContent(event) {
+  initialize() {
+    let sendEventToContent = (event) => {
       return (...args) => {
         let msg = new ImeEventMessage(event, ...args);
-        debug("Send ImeEventMessage to the content script:", msg);
-        window.parent.postMessage(msg, '*');
+        chrome.tabs.sendMessage(this.tab_id, msg);
       };
     }
 
-    // Forward these events to the content script.
-    this.onMenuItemActivated.addListener(sendToContent("MenuItemActivated"));
-    this.onCandidateClicked.addListener(sendToContent("CandidateClicked"));
-    this.onActivate.addListener(sendToContent("Activate"));
+    // Listen to events
+    chrome.runtime.onMessage.addListener(this.messageHandler.bind(this));
 
-    // Notify the IME to update the panel.
+    // Forward these events to the content script.
+    this.onActivate.addListener(sendEventToContent("Activate"));
+    this.onCandidateClicked.addListener(sendEventToContent("CandidateClicked"));
+    this.onMenuItemActivated.addListener(sendEventToContent("MenuItemActivated"));
+
+    // Notify the IME it's ready to update the panel (or, re-do in onFocus).
     this.onActivate.dispatch(this.engineID);
   }
 
-  messageHandler(m) {
-    let cmd = ImeCommandMessage.fromObject(m.data);
+  messageHandler(m, sender) {
+    if (sender.tab.id != this.tab_id)
+      return;
+
+    let cmd = ImeCommandMessage.fromObject(m);
     if (!cmd) {
       debug("messageHandler: not a valid IME command message:", m);
       return;

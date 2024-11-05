@@ -7,12 +7,15 @@
  * Note this is for content script to create a new iframe element, but the
  * IFrameIme itself runs in the content script context, not the iframe.
  *
- * content script -> iframe:  DOM(iframe).postMessage
- * iframe -> content script:  window.top.postMessage (chrome.runtime.sendMessage doesn't work)
+ * The 'extension' is defined by URL, including: iframe/ime_panel, background, menu.
+ * content script -> extension: chrome.runtime.sendMessage(msg)
+ * extension -> content script: chrome.tabs.sendMessage(tab_id, msg)
+ * Note: ime_panel and the content script are in the same tab so it knows which
+ * tab_id to send)
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("iframe/content");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("iframe/content");
 
 import { $, jQuery } from "../../jquery/jquery.js";
 import { WebPageIme } from "../webpage.js";
@@ -27,15 +30,22 @@ export class IFrameIme extends WebPageIme {
     this.enabled = false;
     this.panel = this.createPanel(panel);
 
-    window.addEventListener("message", this.messageHandler.bind(this));
+    this.initialize();
+  }
+
+  initialize() {
+    chrome.runtime.onMessage.addListener(this.messageHandler.bind(this));
   }
 
   messageHandler(msg, sender) {
-    let event = ImeEventMessage.fromObject(msg.data);
+    debug("received msg:", msg, sender);
+
+    let event = ImeEventMessage.fromObject(msg);
     if (!event) {
       debug("messageHandler: not a valid IME event message:", msg);
       return;
     }
+
     event.dispatch(this);
   }
 
@@ -137,9 +147,7 @@ export class IFrameIme extends WebPageIme {
   }
 
   toIFrame(command, parameters) {
-    this.getNode().postMessage(
-      new ImeCommandMessage(command, parameters),
-      '*');
+    chrome.runtime.sendMessage(new ImeCommandMessage(command, parameters));
   }
 
   // Bridge calls to the iframe
