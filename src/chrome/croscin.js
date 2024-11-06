@@ -58,7 +58,7 @@ export class IME {
   }
 
   async Initialize() {
-    debug("Start to Initialize.");
+    debug("Initialize: start.");
 
     // Simulate pageAction in Manifest V2.
     if(chrome.action)
@@ -110,19 +110,19 @@ export class IME {
   Commit(text) {
     // TODO(hungte) fixme when gen_inp has fixed this.
     if (text && typeof(text) != typeof('')) {
+      debug("Commit: WARNING: input text was not a simple string (pick only [0]):", text);
       text = text[0];
-      debug("croscin.Commit: WARNING: input text is not a simple string.");
     }
 
     if (!text) {
-      debug("croscin.Commit: warning: called with empty string.");
+      debug("Commit: warning: called with empty string.", text);
       return false;
     }
 
     let arg = this.GetContextArg();
     arg.text = text;
     this.ime_api.commitText(arg);
-    debug("croscin.Commit: value:", text);
+    debug("Commit: value:", text);
     return true;
   }
 
@@ -161,7 +161,7 @@ export class IME {
     }
 
     // default: Unknown return value.
-    debug("croscin.ProcessKeyEvent: Unknown return value:", ret);
+    debug("ProcessKeyEvent: Unknown return value:", ret);
     return false;
   }
 
@@ -177,9 +177,9 @@ export class IME {
     return this.ProcessKeyEvent(keyEvent);
   }
 
-  SetCandidatesWindowProperty(properties) {
+  SetCandidateWindowProperties(properties) {
     let arg = this.GetEngineArg();
-    debug("SetCandidatesWindowProperty: ", properties);
+    debug("SetCandidateWindowProperties: ", properties);
     arg.properties = properties;
     this.ime_api.setCandidateWindowProperties(arg);
   }
@@ -187,7 +187,7 @@ export class IME {
   InitializeUI() {
     // Vertical candidates window looks better on ChromeOS.
     // CIN tables don't expect cursor in candidates window.
-    this.SetCandidatesWindowProperty({
+    this.SetCandidateWindowProperties({
       vertical: true,
       cursorVisible: false,
       visible: false,
@@ -205,7 +205,7 @@ export class IME {
     buffer = buffer || [];
     let buffer_text = buffer.join('');
     let all_text = buffer_text + keystroke;
-    debug("croscin.UpdateComposition:", all_text);
+    debug("UpdateComposition:", all_text);
     if (typeof cursor === 'undefined'){
       cursor = all_text.length;
     }
@@ -254,26 +254,25 @@ export class IME {
       assert('candidate_list (mcch) should be an array!', candidate_list);
       candidate_list = candidate_list.split('');
     }
-    debug("croscin.UpdateCandidates: candidate_list:", candidate_list,
-          "labels:", labels);
-    let candidates = candidate_list.map((c, i) => ({
+    const candidates = candidate_list.map((c, i) => ({
       candidate: c,
       id: i,
       label: labels.charAt(i)})
     );
-    let len = candidates.length;
-    debug('candidates:', candidates);
+    debug("UpdateCandidates: candidate_list:", candidate_list,
+          "labels:", labels, 'candidates:', candidates);
 
-    if (len) {
-      let arg = this.GetContextArg();
-      arg.candidates = candidates;
-      this.ime_api.setCandidates(arg);
-      this.SetCandidatesWindowProperty({
-        pageSize: len, visible: true});
-    } else {
-      this.SetCandidatesWindowProperty({visible: false});
-    }
-    return len > 0;
+    // UpdateComposition will only update the candidate list if it's not empty.
+    // The caller must be responsible for calling setCandidateWindowProperties.
+
+    const len = candidates.length;
+    if (!len)
+      return len;
+
+    let arg = this.GetContextArg();
+    arg.candidates = candidates;
+    this.ime_api.setCandidates(arg);
+    return len;
   }
 
   UpdateUI(keystroke, mcch, selkey, lcch, cursor) {
@@ -285,21 +284,27 @@ export class IME {
       cursor = this.imctx.edit_pos;
     }
 
-    let has_composition, has_candidates;
     // process:
     //  - keystroke
-    has_composition = this.UpdateComposition(keystroke, lcch, cursor);
+    const has_composition = this.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
-    has_candidates = this.UpdateCandidates(mcch, selkey);
+    let num_candidates = this.UpdateCandidates(mcch, selkey);
     // show_keystroke(cch_publish) can be displayed in auxiliary text.
 
-    // The IM, or the addon, wants to say something
-    let aux_text = this.imctx.override_aux || this.im_label;
-    let aux_show = (aux_text || has_composition || has_candidates) ? true : false
+    let visible = num_candidates > 0;
+    let props = { visible };
 
-    this.SetCandidatesWindowProperty({
-      auxiliaryText: aux_text,
-      auxiliaryTextVisible: aux_show});
+    if (num_candidates)
+      props.pageSize = num_candidates;
+
+    // The IM, or the addon, wants to say something
+    let aux = this.imctx.override_aux || this.im_label;
+    if (aux != this.imctx.last_aux) {
+      this.imctx.last_aux = aux;
+      props.auxiliaryText = aux;
+    }
+
+    this.SetCandidateWindowProperties(props);
   }
 
   async ActivateInputMethod(name) {
@@ -315,7 +320,7 @@ export class IME {
     debug("ActivateInputMethod:", name, info);
     if (info && info.url && info.url.startsWith(chrome.runtime.getURL(""))) {
       // Preload the builtin table.
-      debug("Preload", name, info.url);
+      debug("Preload:", name, info.url);
       await jscin.loadTable(name, info.url);
     }
 
@@ -324,7 +329,7 @@ export class IME {
       name, imctx, null, this.config.DefaultModule());
 
     if (!im) {
-      debug("croscin.ActivateInputMethod: Cannot start Input Method:", name);
+      debug("ActivateInputMethod: Cannot start Input Method:", name);
       return;
     }
 
@@ -346,7 +351,7 @@ export class IME {
     });
 
     this.InitializeUI();
-    debug("activateInputMethod: Started:", name, this.im);
+    debug("ActivateInputMethod: Started:", name, this.im);
   }
 
   UpdateMenu() {
@@ -361,7 +366,7 @@ export class IME {
         "checked": name == this.im_name,
       });
     }
-    debug("croscin.UpdateMenu:", menu_items);
+    debug("UpdateMenu:", menu_items);
     // Separator is broken on R28, and may not appear after R29.
     // It depends on ChromeOS UI design so let's not use it.
     // menu_items.push({"id": "", "style": "separator"});
@@ -375,7 +380,7 @@ export class IME {
   async LoadBuiltinTables(reload) {
     let list = await LoadJSON("tables/builtin.json");
     if (!list) {
-      debug("croscin.LoadBuiltinTables: No built-in tables.");
+      debug("LoadBuiltinTables: No built-in tables.");
       return;
     }
     let available = jscin.getTableNames();
@@ -383,7 +388,7 @@ export class IME {
 
     for (let table_name in list) {
       if (available.includes(table_name) && !reload) {
-        debug("croscin.LoadBuiltinTables: skip loaded table:", table_name);
+        debug("LoadBuiltinTables: skip loaded table:", table_name);
         continue;
       }
 
@@ -416,18 +421,18 @@ export class IME {
         this.config.InputMethods(), enabled);
       this.config.Set("InputMethods", enabled);
     }
-    debug("croscin.config", this.config.config);
+    debug("LoadPreferences: config:", this.config.config);
   }
 
   openOptionsPage() {
     if (chrome.runtime?.openOptionsPage) {
-      debug("using chrome.runtime.openOptionsPage()");
+      debug("openOptionsPage: using chrome.runtime.openOptionsPage()");
       return chrome.runtime.openOptionsPage();
     }
 
     // If croscin runs inside the content script, then we don't have the
     // permission to call chrome.tabs nor chrome.runtime.
-    debug("No chrome.runtime.openOptionsPage; broadcast for help.");
+    debug("openOptionsPage: No chrome.runtime.openOptionsPage; broadcast for help.");
     chrome.runtime.sendMessage(this.kMenuOptions);
   }
 
@@ -454,13 +459,13 @@ export class IME {
     });
 
     ime_api.onBlur.addListener((contextID) => {
-      debug("croscin: onBlur", contextID);
       if (!this.context) {
-        debug("croscin.onBlur: WARNING: no existing context.");
+        debug("onBlur: WARNING: no existing context.");
         return;
       }
+      debug("onBlur", contextID);
       if (this.context.contextID != contextID) {
-        debug("croscin.onBlur: WARNING: incompatible context.",
+        debug("onBlur: WARNING: incompatible context.",
                  this.context.contextID, contextID);
         return;
       }
@@ -473,12 +478,12 @@ export class IME {
     });
 
     ime_api.onKeyEvent.addListener((engine, keyData) => {
-      debug("croscin.onKeyEvent", engine, keyData);
+      debug("onKeyEvent", engine, keyData);
       return this.ProcessKeyEvent(keyData);
     });
 
     ime_api.onReset.addListener((engineID) => {
-      debug("croscin.onReset", engineID);
+      debug("onReset", engineID);
       if (this.im) {
         this.im.reset(this.imctx);
         this.UpdateUI();
@@ -486,7 +491,7 @@ export class IME {
     });
 
     ime_api.onInputContextUpdate.addListener((context) => {
-      debug("croscin.onInputContextUpdate", context);
+      debug("onInputContextUpdate", context);
     });
 
     ime_api.onCandidateClicked.addListener(
@@ -498,7 +503,7 @@ export class IME {
     });
 
     ime_api.onMenuItemActivated.addListener((engineID, name) =>{
-      debug("croscin.onMenuItemActivated: name=", name);
+      debug("onMenuItemActivated: name=", name);
       const imePrefix = 'ime:'
 
       if (name == this.kMenuOptions) {
