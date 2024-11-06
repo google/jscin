@@ -81,8 +81,9 @@ class ImeCommandMessage extends ImeBaseMessage {
 }
 
 export class ImeMessage {
-  constructor(ime) {
+  constructor(ime, seed) {
     this.tab_id = undefined;
+    this.seed = seed;
     this.ime = ime;
   }
   async initialize(check_sender) {
@@ -93,6 +94,9 @@ export class ImeMessage {
       if (check_sender && sender.tab &&
           sender.tab.id != this.tab_id)
         return;
+      if (this.seed && msg.seed && this.seed != msg.seed) {
+        return;
+      }
 
       let m = this.fromObject(msg);
       if (!m)
@@ -140,10 +144,16 @@ export class ImeMessage {
   }
 
   Command(...args) {
-    return new ImeCommandMessage(this.tab_id, ...args);
+    let obj = new ImeCommandMessage(this.tab_id, ...args);
+    if (this.seed)
+      obj.seed = this.seed;
+    return obj;
   }
   Event(...args) {
-    return new ImeEventMessage(this.tab_id, ...args);
+    let obj = new ImeEventMessage(this.tab_id, ...args);
+    if (this.seed)
+      obj.seed = this.seed;
+    return obj;
   }
 
   forwardEventToContent(event) {

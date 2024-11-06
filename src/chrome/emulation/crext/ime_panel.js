@@ -14,9 +14,14 @@ import { ImeMessage } from "./ipc.js";
 export class ImePanel extends WebPageIme {
   constructor(panel='imePanel') {
     super(panel);
-    this.ipc = new ImeMessage(this);
-
+    this.seed = this.getSeed();
+    this.ipc = new ImeMessage(this, this.seed);
     this.initialize();
+  }
+
+  getSeed() {
+    let url = document.location.href;
+    return url.match(/\?seed=(.+)/)[1] || undefined;
   }
 
   async initialize() {

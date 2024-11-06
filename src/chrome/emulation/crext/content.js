@@ -20,8 +20,9 @@ export class CrExtIme extends WebPageIme {
     this.engineID = "jscin.chrome.input.ime.extension";
     this.enabled = false;
     this.waitForHotkeyUp = false;
-    this.panel = this.createPanel(panel);
-    this.ipc = new ImeMessage(this);
+    this.seed = Math.round(Math.random() * 65530);
+    this.panel = this.createPanel(`${panel}?seed=${this.seed}`);
+    this.ipc = new ImeMessage(this, this.seed);
 
     this.initialize();
   }
