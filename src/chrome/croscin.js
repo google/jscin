@@ -309,7 +309,7 @@ export class IME {
 
   async ActivateInputMethod(name) {
     if (name === undefined)
-      name = this.config.DefaultInputMethod();
+      name = this.im_name || this.config.DefaultInputMethod();
     if (name && name == this.im_name) {
       debug("ActivateInputMethod: already activated:", name);
       this.UpdateMenu();
