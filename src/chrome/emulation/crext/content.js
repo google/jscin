@@ -10,25 +10,24 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/
 
 import { hasCtrlAltMeta } from "../../jscin/key_event.js";
 import { $, jQuery } from "../../jquery/jquery.js";
-import { WebPageIme } from "../webpage.js";
-import { ImeMessage } from "./ipc.js";
+import { IpcIme } from "./ipc.js";
 
-export class CrExtIme extends WebPageIme {
+export class CrExtIme extends IpcIme {
 
   constructor(panel='emulation/crext/ime_panel.html') {
-    super();
+
+    const seed = Math.round(Math.random() * 65530);
+    const seeded_panel = `${panel}?seed=${seed}`;
+    super(seeded_panel, seed);
+
     this.engineID = "jscin.chrome.input.ime.extension";
     this.enabled = false;
     this.waitForHotkeyUp = false;
-    this.seed = Math.round(Math.random() * 65530);
-    this.panel = this.createPanel(`${panel}?seed=${this.seed}`);
-    this.ipc = new ImeMessage(this, this.seed);
+
+    // Change panel to a real created DOM node.
+    this.panel_node = this.createPanel(this.panel);
 
     this.initialize();
-  }
-
-  async initialize() {
-    await this.ipc.initialize();
   }
 
   createPanel(url) {
@@ -52,14 +51,10 @@ export class CrExtIme extends WebPageIme {
     return frame;
   }
 
-  getNode() {
-    return this.panel.contentWindow;
-  }
-
   showPanel(show) {
     if (show === undefined)
       show = true;
-    let panel = $(this.panel);
+    let panel = $(this.panel_node);
     if (show) {
       panel.finish();
       panel.fadeIn(100);
@@ -104,7 +99,7 @@ export class CrExtIme extends WebPageIme {
     debug("movePanel, page WxH:", this.getPageWidth(), this.getPageHeight(),
           ", final:", offset);
 
-    $(this.panel).css(offset);
+    $(this.panel_node).css(offset);
   }
 
   attachPanel(node) {
@@ -117,10 +112,6 @@ export class CrExtIme extends WebPageIme {
 
   detachPanel() {
     this.hidePanel();
-  }
-
-  toPanel(command, parameters) {
-    this.ipc.Command(command, parameters).sendToPanel();
   }
 
   setEnabled(enabled) {
@@ -189,18 +180,18 @@ export class CrExtIme extends WebPageIme {
 
   // Bridge calls to the IME panel
   setCandidates(parameters, callback) {
-    this.toPanel("setCandidates", parameters);
+    this.sendCommandToPanel("setCandidates", parameters);
   }
   setCandidateWindowProperties(parameters, callback) {
-    this.toPanel("setCandidateWindowProperties", parameters);
+    this.sendCommandToPanel("setCandidateWindowProperties", parameters);
   }
   setComposition(parameters, callback) {
-    this.toPanel("setComposition", parameters);
+    this.sendCommandToPanel("setComposition", parameters);
   }
   clearComposition(parameters, callback) {
-    this.toPanel("clearComposition", parameters);
+    this.sendCommandToPanel("clearComposition", parameters);
   }
   setMenuItems(parameters, callback) {
-    this.toPanel("setMenuItems", parameters);
+    this.sendCommandToPanel("setMenuItems", parameters);
   }
 }

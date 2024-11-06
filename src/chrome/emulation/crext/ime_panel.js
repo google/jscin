@@ -8,28 +8,23 @@
 import { AddLogger } from "../../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/ime_panel");
 
-import { WebPageIme } from "../webpage.js";
-import { ImeMessage } from "./ipc.js";
+import { IpcIme } from "./ipc.js";
 
-export class ImePanel extends WebPageIme {
+export class ImePanel extends IpcIme {
   constructor(panel='imePanel') {
-    super(panel);
-    this.seed = this.getSeed();
-    this.ipc = new ImeMessage(this, this.seed);
+    // The seed was provided by content.js#CrExtIme
+    const seed = document.location.href.match(/\?seed=(.+)/)[1] || undefined;
+    super(panel, seed);
+
     this.initialize();
   }
 
-  getSeed() {
-    let url = document.location.href;
-    return url.match(/\?seed=(.+)/)[1] || undefined;
-  }
-
   async initialize() {
-    await this.ipc.initialize(true);
+    await super.initialize()
 
     // Forward these events to the content script.
-    this.ipc.forwardEventToContent('Activate');
-    this.ipc.forwardEventToContent('CandidateClicked');
+    this.forwardEventToContent('Activate');
+    this.forwardEventToContent('CandidateClicked');
 
     // Notify the IME it's ready to update the panel (or, re-do in onFocus).
     this.onActivate.dispatch(this.engineID);
@@ -39,9 +34,9 @@ export class ImePanel extends WebPageIme {
 
   enableActionPopup() {
     if (chrome.pageAction)
-      chrome.pageAction.show(this.ipc.getTabId());
+      chrome.pageAction.show(this.getTabId());
     else if (chrome.action)
-      chrome.action.enable(this.ipc.getTabId());
+      chrome.action.enable(this.getTabId());
   }
 }
 

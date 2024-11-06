@@ -169,3 +169,34 @@ export class ImeMessage {
     });
   }
 }
+
+import { WebPageIme } from "../webpage.js";
+
+export class IpcIme extends WebPageIme {
+  constructor(panel, seed) {
+    super(panel);
+    this.seed = seed;
+    this.panel = panel;
+    this.ipc = new ImeMessage(this, seed);
+
+    // Derived classes should call initialize to make sure it will happen in
+    // the last step.
+  }
+
+  async initialize(...args) {
+    return this.ipc.initialize(...args);
+  }
+
+  sendCommandToPanel(command, parameters) {
+    this.ipc.Command(command, parameters).sendToPanel();
+  }
+  forwardEventToContent(...args) {
+    return this.ipc.forwardEventToContent(...args);
+  }
+  forwardEventToPanel(...args) {
+    return this.ipc.forwardEventToPanel(...args);
+  }
+  getTabId() {
+    return this.ipc.getTabId();
+  }
+}
