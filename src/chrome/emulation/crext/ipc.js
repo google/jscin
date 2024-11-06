@@ -27,7 +27,7 @@ class ImeBaseMessage {
     chrome.runtime.sendMessage(this);
   }
   sendToTab(tab_id) {
-    tab_id |= this.tab_id;
+    tab_id ||= this.tab_id;
     chrome.tabs.sendMessage(tab_id, this);
   }
 
