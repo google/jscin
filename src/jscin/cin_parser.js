@@ -121,6 +121,7 @@ export function parseCin(cin_input) {
     data.selkey = '';
   }
 
+  // TODO (hungte) export this for migration.
   // Some CIN tables (https://github.com/chinese-opendesktop/cin-tables) have
   // ename in multi-locales format as `label:locale;label:local;...`.
   // One reference is https://vchewing.github.io/CIN_EVOLUTION.html but it was

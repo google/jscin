@@ -50,6 +50,8 @@ export class Migration {
       return data;
     }
 
+    // TODO(hungte) Normalize ename, in case if it's intlname...
+
     function renameProperty(obj, old_name, new_name) {
       if (!obj || !(old_name in obj))
         return;
@@ -65,7 +67,7 @@ export class Migration {
       meta.url = meta.ename + ".cin";
 
     let table = this.ime.createTable(data, meta.url, type);
-    debug("Migrated the table to new format:", table.cin.ename, data, "=>", table);
+    debug("Migrated the table to new format:", table.info.name, data, "=>", table);
     return table;
   }
 
@@ -97,6 +99,9 @@ export class Migration {
           this.old_storage.remove(k);
         continue;
       }
+      let table = this.migrateTable(await this.old_storage.get(k), meta);
+      // Now we have a new table, and the name may have changed.
+      name = table.info.name;
       debug("Checking if we need to migarte the old table:", name, k);
       let new_k = this.ime.tableKey(name);
       assert(new_k != k, "The key must be different for migration", k, new_k);
@@ -106,8 +111,6 @@ export class Migration {
           this.old_storage.remove(k);
         continue;
       }
-      // Now we have a new table.
-      let table = this.migrateTable(await this.old_storage.get(k), meta);
       infos[name] = table.info;
       let w = this.storage.set(new_k, table);
       if (delete_old)

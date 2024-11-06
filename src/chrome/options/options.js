@@ -545,7 +545,7 @@ function addTableToList(name, list_id, do_insert) {
   $(`#${id}`).prepend(icon).click(async function() {
     let table = {};
     if (!builtin)
-      table = await jscin.loadTable(ename);
+      table = await jscin.loadTable(name);
 
     // `type` from table.type should remain the same (even if it's undefined) so
     // the behavior will be the same when being reloaded.

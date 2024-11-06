@@ -386,19 +386,21 @@ export class IME {
     let available = jscin.getTableNames();
     const saveBuiltin = false;
 
-    for (let table_name in list) {
-      if (available.includes(table_name) && !reload) {
-        debug("LoadBuiltinTables: skip loaded table:", table_name);
+    for (let name in list) {
+      if (available.includes(name) && !reload) {
+        debug("LoadBuiltinTables: skip loaded table:", name);
         continue;
       }
 
       // Clear any existing records - both the table contents and info.
-      await jscin.removeTable(table_name);
+      await jscin.removeTable(name);
 
-      let url = chrome.runtime.getURL(`tables/${list[table_name]}`);
+      let url = chrome.runtime.getURL(`tables/${list[name]}`);
       let content = await LoadText(url);
       assert(content, "Can't load built-in table:", url);
-      await jscin.saveTable(table_name, content, url, {}, saveBuiltin);
+      // Built-in tables may have a special name so they won't overwrite user
+      // installed tables and we should use the name from `builtin.son`.
+      await jscin.saveTable(name, content, url, {}, saveBuiltin);
     }
   }
 

@@ -230,7 +230,7 @@ export class InputMethodsEnvironment {
       h ^= c.charCodeAt(0);
       h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
     }
-    return h >>> 0;
+    return (h >>> 0).toString(16);
   }
 
   parseCinFromString(cin) {
@@ -245,25 +245,29 @@ export class InputMethodsEnvironment {
     return result.data;
   }
 
-  createTable(cin, url, type) {
+  createTable(cin, url, type, name) {
     if (typeof(cin) == typeof(''))
       cin = this.parseCinFromString(cin);
     if (!cin || !this.isValidCIN(cin)) {
       debug("createTable: Invalid CIN:", cin);
       return false;
     }
-    let hash = this.getHash(url || cin.ename);
-    debug("createTable:", "cin=>", cin, "url=>", url, "type=>", type);
+    if (!name) {
+      const sname = cin.sname || cin.ename;
+      const hash = this.getHash(url || `${sname}.cin`);
+      name = `${sname}#${hash}`;
+    }
+    debug("createTable:", "name=>", name, "url=>", url, "cin=>", cin, "type=>", type);
     // Now, create the table.
     let table = {
-      cin: cin,
+      cin,
       info: {
         ename: cin.ename,
         cname: cin.cname,
-        name: `${cin.ename}#${hash}`,
-        url: url,
+        name,
+        url,
       },
-      type: type,
+      type,
     };
 
     if (!this.isValidTable(table)) {
@@ -275,12 +279,11 @@ export class InputMethodsEnvironment {
   }
 
   async saveTable(name, cin, url, type, save_in_storage=true) {
-    let table = this.createTable(cin, url, type);
+    let table = this.createTable(cin, url, type, name);
     if (!table)
       return false;
 
-    name = name || table.info.ename;
-    table.info.name = name;
+    name = table.info.name;
     const key = this.tableKey(name);
     debug("saveTable:", name, key, table);
     this.cache[name] = table;
