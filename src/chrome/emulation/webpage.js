@@ -24,8 +24,6 @@ export class WebPageIme extends ChromeInputIme {
     this.contexts = [];
   }
 
-  // chrome.input.ime API
-
   getNode(id) {
     let node = $(`#${this.panel} #${id}`);
     assert(node, "Failed to find IME panel node by id:", id);
@@ -44,27 +42,37 @@ export class WebPageIme extends ChromeInputIme {
 
     this.contexts.push(node);
     assert(node, "Attach needs a valid target DOM node.");
-    node.addEventListener('keydown', (evt) => {
-      let r = this.onKeyEvent.dispatch(this.engineID, evt);
-      debug("keydown:", node, evt, r);
-
-      if (r)
-        evt.preventDefault();
-      return !r;
-    });
-    node.addEventListener('keyup', (evt) => {
-      debug("keyup:", node, evt);
-      this.onKeyEvent.dispatch(this.engineID, evt);
-    });
-    node.addEventListener('focus', (evt) => {
-      debug("focus:", node, evt);
-      return this.onFocus.dispatch({contextID: this.getContextID(node)});
-    });
-    node.addEventListener('blur', (evt) => {
-      debug("blur:", node, evt);
-      return this.onBlur.dispatch(this.getContextID(node));
-    });
+    /* for keydown and keyup, capture=true so we can do preventDefault. */
+    node.addEventListener('keydown', this.domKeyDown.bind(this), true);
+    node.addEventListener('keyup', this.domKeyUp.bind(this), true);
+    node.addEventListener('focus', this.domFocus.bind(this));
+    node.addEventListener('blur', this.domBlur.bind(this));
   }
+
+  // DOM event listeners that can be overridden.
+
+  domKeyDown(evt) {
+    const r = this.onKeyEvent.dispatch(this.engineID, evt);
+    debug("DOM keydown:", evt.code, evt, r, r ? "preventDefault" : "doDefault");
+
+    if (r)
+      evt.preventDefault();
+    return !r;
+  }
+  domKeyUp(evt) {
+    debug("DOM keyup:", evt);
+    this.onKeyEvent.dispatch(this.engineID, evt);
+  }
+  domFocus(evt) {
+    debug("DOM focus:", evt.target, evt);
+    return this.onFocus.dispatch({contextID: this.getContextID(evt.target)});
+  }
+  domBlur(evt) {
+    debug("DOM blur:", evt.target, evt);
+    return this.onBlur.dispatch(this.getContextID(evt.target));
+  }
+
+  // chrome.input.ime APIs
 
   clearComposition(parameters, callback) {
     let node = this.getNode('composition');

@@ -8,6 +8,7 @@
 import { AddLogger } from "../../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/content");
 
+import { hasCtrlAltMeta } from "../../jscin/key_event.js";
 import { $, jQuery } from "../../jquery/jquery.js";
 import { WebPageIme } from "../webpage.js";
 import { ImeMessage } from "./ipc.js";
@@ -17,8 +18,8 @@ export class CrExtIme extends WebPageIme {
   constructor(panel='emulation/crext/ime_panel.html') {
     super();
     this.engineID = "jscin.chrome.input.ime.extension";
-    this.show = false;
     this.enabled = false;
+    this.waitForHotkeyUp = false;
     this.panel = this.createPanel(panel);
     this.ipc = new ImeMessage(this);
 
@@ -54,20 +55,9 @@ export class CrExtIme extends WebPageIme {
     return this.panel.contentWindow;
   }
 
-  attach(node) {
-    super.attach(node);
-    node.addEventListener('focus', (evt) => {
-      this.togglePanel(true);
-      this.attachPanel(node);
-    });
-    node.addEventListener('blur', (evt) => {
-      this.togglePanel(false);
-    });
-  }
-
-  togglePanel(show) {
-    if (typeof(show) == 'undefined')
-      show = !this.show;
+  showPanel(show) {
+    if (show === undefined)
+      show = true;
     let panel = $(this.panel);
     if (show) {
       panel.finish();
@@ -76,7 +66,9 @@ export class CrExtIme extends WebPageIme {
       panel.finish();
       panel.fadeOut(100);
     }
-    this.show = show;
+  }
+  hidePanel() {
+    return this.showPanel(false);
   }
 
   getPageHeight() {
@@ -123,11 +115,75 @@ export class CrExtIme extends WebPageIme {
   }
 
   detachPanel() {
-    this.togglePanel(false);
+    this.hidePanel();
   }
 
   toPanel(command, parameters) {
     this.ipc.Command(command, parameters).sendToPanel();
+  }
+
+  setEnabled(enabled) {
+    this.enabled = enabled;
+    if (enabled) {
+      debug("setEnabled: showFrame");
+      this.showPanel();
+    } else {
+      debug("setEnabled: hideFrame");
+      this.hidePanel();
+    }
+  }
+
+  isHotKey(evt) {
+    // Currently we want to use Shift (single click) as the hot key, so it
+    // is either evt.code as ['ShiftLeft', 'ShiftRight'] or evt.key as 'Shift'.
+    // https://www.w3.org/TR/uievents-key/, https://www.w3.org/TR/uievents-code/
+    // Also, we can't check evt.shiftKey because that will be false when the key
+    // is released (KeyUp).
+    return evt.key == 'Shift' && !hasCtrlAltMeta(evt);
+  }
+
+  // DOM event listeners that can be overridden.
+
+  domKeyDown(evt) {
+    if (this.waitForHotkeyUp) {
+      this.waitForHotkeyUp = false;
+    } else if (this.isHotKey(evt)) {
+      debug("Waiting for HotKey to release (keyup) as single-click...");
+      this.waitForHotkeyUp = true;
+      // Assume our IME doesn't need to handle single shift key.
+    }
+
+    if (!this.enabled)
+      return true;
+    return super.domKeyDown(evt);
+  }
+  domKeyUp(evt) {
+    // Assume our IME won't do anything on key up, let's only check hotkeys.
+    if (!this.waitForHotkeyUp)
+      return;
+    this.waitForHotkeyUp = false;
+
+    if (this.isHotKey(evt)) {
+      debug("Got HotKey single-click:", evt.code, evt.key, this.enabled);
+      this.setEnabled(!this.enabled);
+    }
+
+    if (!this.enabled)
+      return true;
+    return super.domKeyUp(evt);
+  }
+  domFocus(evt) {
+    this.attachPanel(evt.target);
+    super.domFocus(evt);
+    if (!this.enabled)
+      return;
+    this.showPanel();
+  }
+  domBlur(evt) {
+    if (!this.enabled)
+      return;
+    this.hidePanel();
+    return super.domBlur(evt);
   }
 
   // Bridge calls to the IME panel

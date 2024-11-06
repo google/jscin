@@ -93,7 +93,7 @@ export class ChromeInputIme {
   }
 
   // events
-  createEventHandler(event) {
+  createEventHandler(event, check_result) {
     return {
       addListener: (c) => {
         if (!(event in this.callbacks)) {
@@ -106,6 +106,8 @@ export class ChromeInputIme {
         let r;
         for (let c of cbs) {
           r = c(...args);
+          if (check_result && r)
+            break;
         }
         return r;
       }
@@ -123,7 +125,8 @@ export class ChromeInputIme {
   onDeactivated = this.createEventHandler("Deactivated");
   onFocus = this.createEventHandler("Focus");
   onInputContextUpdate = this.createEventHandler("InputContextUpdate");
-  onKeyEvent = this.createEventHandler("KeyEvent");
+  // For onKeyEvent, the callback should return true if the event was handled; false if it was not.
+  onKeyEvent = this.createEventHandler("KeyEvent", true);
   onMenuItemActivated = this.createEventHandler("MenuItemActivated");
   onReset = this.createEventHandler("Reset");
 }
