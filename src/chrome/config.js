@@ -55,14 +55,9 @@ export class Config {
   }
   Reset() {
     // Keep configs a simple structure for shallow copy.
-    let version = "unknown";
-    try {
-      version = chrome.runtime.getManifest().version;
-    } catch (error) {
-      warn("Failed to get manifest version.");
-    }
     this.config = {
-      Version: version,
+      // Version should be load and set explicitly.
+      Version: 'unknown',
       Debug: false,
       DefaultModule: '',
       Emulation: false,
@@ -137,16 +132,23 @@ export class Config {
       this.storage.get(props, (data) => {
 
         /* Migration check from pre-chrome.storage */
-        let new_key = 'InputMethods';
-        let old_key = 'croscinPrefEnabledInputMethodList';
-        if (globalThis.localStorage &&
-            props.includes(new_key) && !(new_key in data)) {
-          // Probably the first time to migrate.
-          // Let's look at localStorage.
-          let ims = localStorage[old_key];
-          if (ims && ims.length < 100) {
-            data.InputMethods = JSON.parse(ims);
+        let migrateProp = (new_key, old_key) => {
+          if (props.includes(new_key) && !(new_key in data)) {
+            // Probably the first time to migrate.
+            // Let's look at localStorage.
+            let old_value = localStorage[old_key];
+            // > 100 we'll need lz-string, and that's not worthy.
+            if (old_value && old_value.length < 100) {
+              data[new_key] = JSON.parse(old_value);
+            }
           }
+        }
+
+        // In manifest V3, we can't migrate this.
+        if (globalThis.localStorage) {
+          migrateProp('InputMethods', 'croscinPrefEnabledInputMethodList');
+          /* Migrate from < 2.90 where Version lives only in localStorage */
+          migrateProp('Version', 'version');
         }
 
         Object.assign(this.config, data);

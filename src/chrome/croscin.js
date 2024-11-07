@@ -76,8 +76,11 @@ export class IME {
     let reload = (version !== this.config.Version());
 
     if (reload && jscin.MIGRATION) {
+      warn("Start migration from version", this.config.Version(), "to", version);
       let migration = new Migration(jscin);
       await migration.migrateAll();
+    } else {
+      debug("No migration:", version, this.config.Version());
     }
 
     await this.LoadBuiltinTables(reload);
