@@ -310,7 +310,7 @@ function GuessNameFromURL(url) {
   return guess || '<Unknown>';
 }
 
-async function addTableFromBlob(blob, source, type) {
+async function addTableFromBlob(blob, source, type, save_name) {
   debug("addTableFromBlob", source, blob, type);
 
   if (source instanceof File) {
@@ -322,11 +322,11 @@ async function addTableFromBlob(blob, source, type) {
     try {
       // No %ename from blob so let's "guess" from the URL name or the file
       // name.
-      let ename = GuessNameFromURL(source);
+      let ename = save_name || GuessNameFromURL(source);
       debug("Parsing GTAB into CIN:", source, ename);
       let cin = `%ename ${ename}\n` + parseGtab(blob);
       debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
-      if (addTable(cin, source, type)) {
+      if (addTable(cin, source, type, save_name)) {
         debug("addTableFromBlob: success.", source);
         return true;
       } else {
@@ -346,7 +346,7 @@ async function addTableFromBlob(blob, source, type) {
       debug("Failed to decode CIN file:", source, locale);
     }
   }
-  if (t && await addTable(t, source, type)) {
+  if (t && await addTable(t, source, type, save_name)) {
     debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
     return;
   } else {
@@ -354,8 +354,8 @@ async function addTableFromBlob(blob, source, type) {
   }
 }
 
-async function addTableFromUrl(url, type, progress=true) {
-  let name = GuessNameFromURL(url);
+async function addTableFromUrl(url, type, save_name, progress=true) {
+  let name = save_name || GuessNameFromURL(url);
   debug("addTableFromUrl:", name, url);
   try {
     if (url.replace(/^\s+|s+$/g, "") == "") {
@@ -389,7 +389,7 @@ async function addTableFromUrl(url, type, progress=true) {
       xhr.addEventListener("load", (e)=> {
         setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
         blob = e.currentTarget.response;
-        addTableFromBlob(blob, url, type);
+        addTableFromBlob(blob, url, type, save_name);
         delete table_loading[url];
       });
       xhr.onreadystatechange = (e) => {
@@ -409,7 +409,7 @@ async function addTableFromUrl(url, type, progress=true) {
     } else {
       blob = await LoadArrayBuffer(url, true);
       setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
-      addTableFromBlob(blob, url, type);
+      addTableFromBlob(blob, url, type, save_name);
       delete table_loading[url];
     }
   } catch (err) {
@@ -436,7 +436,10 @@ async function addTableFromFile(files, type) {
   }
 }
 
-async function addTable(content, url, type) {
+async function addTable(content, url, type, save_name) {
+
+  // TODO(hungte) Parse using jscin.createTable
+  // so we can better figure out the right name.
   // Parse the content
   let [success, result] = parseCin(content);
 
@@ -447,14 +450,15 @@ async function addTable(content, url, type) {
   }
 
   let cin = result.data;
-  let name = cin.ename;
+  let name = save_name || cin.ename;
   let info = jscin.getTableInfo(name);
   if (info) {
+    // TODO(hungte) Localize this.
     if (!confirm(`Do you wish to overwrite ${info.cname} / ${info.ename} ?`)) {
       setAddTableStatus(_("tableStatusNotAdded"), true);
       return false;
     } else {
-      $('#ime_' + encodeId(name)).remove();
+      $(`#ime_${encodeId(name)}`).remove();
     }
   }
 
@@ -462,7 +466,7 @@ async function addTable(content, url, type) {
   debug("addTable: table type:", type, "=>", real_type);
 
   // Update the UI
-  let new_name = await jscin.saveTable(null, cin, url, real_type);
+  const new_name = await jscin.saveTable(save_name, cin, url, real_type);
   if (!new_name) {
     setAddTableStatus(_("tableStatusFailedParsingMsg", "Cannot save"), true);
     return false;
@@ -592,7 +596,8 @@ function addTableToList(name, list_id, do_insert) {
         click: function() {
           debug("optionReload:", type);
           if (confirm(_("optionAreYouSure"))) {
-            addTableFromUrl(url, type);
+            // Reload is the only case we want to preserve the 'name'.
+            addTableFromUrl(url, type, name);
           }
           $(this).dialog("close");
         }});
