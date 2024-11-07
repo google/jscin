@@ -16,6 +16,32 @@ const kOldTableDataKeyPrefix = "table_data-";
 const kOldPhrasesDatabaseKey = 'croscinPhrasesDatabase';
 const kOldVersion = 'version';
 
+// Snippet from cin_parser.js
+function normalizeEName(data) {
+
+  function parseLocales(intlname) {
+    const re = /(?<label>[^:;]+):(?<locale>[^:;]+);?/g;
+    let result = {}
+    for (let m of intlname.matchAll(re)) {
+      result[[m.groups.locale]] = m.groups.label;
+    }
+    if (!Object.keys(result).length)
+      return null;
+    return result;
+  }
+
+  const ename = data.ename;
+  if (!ename.includes(':') || !ename.includes(';'))
+    return;
+
+  let r = parseLocales(ename);
+  if (!r || !r.en)
+    return;
+
+  data.intlname = data.intlname || ename;
+  data.ename = r.en;
+}
+
 export class Migration {
   constructor(ime, storage, old_storage) {
     if (!storage) {
@@ -50,7 +76,8 @@ export class Migration {
       return data;
     }
 
-    // TODO(hungte) Normalize ename, in case if it's intlname...
+    // Fix broken table ename
+    normalizeEName(data);
 
     function renameProperty(obj, old_name, new_name) {
       if (!obj || !(old_name in obj))
@@ -63,8 +90,9 @@ export class Migration {
     renameProperty(type, 'options', 'cin');
     renameProperty(type, 'by_auto_detect', 'auto_detect');
 
+    // meta.ename may be broken; table.ename was fixed.
     if (!meta.url)
-      meta.url = meta.ename + ".cin";
+      meta.url = data.ename + ".cin";
 
     let table = this.ime.createTable(data, meta.url, type);
     debug("Migrated the table to new format:", table.info.name, data, "=>", table);
