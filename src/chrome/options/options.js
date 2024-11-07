@@ -577,8 +577,11 @@ function addTableToList(name, list_id, do_insert) {
         $(this).dialog("close");
       } }];
 
+    let ims = config.InputMethods();
+    let keep = builtin || (ims.length == 1 && ims[0] == name);
+
     /* Currently we expect at least one table is enabled. */
-    if (!builtin && config.InputMethods().length > 1) {
+    if (!keep) {
       buttons.push( { text: _('optionRemove'),
         click: function () {
           if (confirm(_("optionAreYouSure"))) {
