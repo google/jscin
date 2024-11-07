@@ -308,8 +308,12 @@ export class IME {
   }
 
   async ActivateInputMethod(name) {
-    if (name === undefined)
-      name = this.im_name || this.config.DefaultInputMethod();
+    if (name === undefined) {
+      if (this.config.InputMethods().includes(this.im_name))
+        name = this.im_name;
+      else
+        name = this.config.DefaultInputMethod();
+    }
     if (name && name == this.im_name) {
       debug("ActivateInputMethod: already activated:", name);
       this.UpdateMenu();
