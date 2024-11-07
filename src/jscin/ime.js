@@ -116,7 +116,10 @@ export class InputMethodsEnvironment {
 
   async initialize() {
     await this.loadTableInfoList();
+
     this.storage.listen((changes) => {this.onChanged(changes);});
+    this.addTableChangeListener(this.cbTableChangeUpdateCache.bind(this));
+
     return true;
   }
 
@@ -133,15 +136,9 @@ export class InputMethodsEnvironment {
         continue;
       }
       if (k.startsWith(KEY_TABLE_PREFIX)) {
-        debug("onChanged - Table", changes[k]);
-        let name = this.tableName(k);
-        if (name in this.cache)
-          delete this.cache[name];
-        let v = changes[k]?.newValue;
-        if (v)
-          this.cache[name] = v;
-        debug('onChanged', k, name, this.callbacks);
-        // TableInfoList should be updated on its own.
+        const name = this.tableName(k);
+        const v = changes[k]?.newValue;
+        debug('onChanged - Table', k, name, v, this.callbacks);
         for (let c of this.callbacks[KEY_TABLE_PREFIX]) {
           c(name, v);
         }
@@ -157,6 +154,14 @@ export class InputMethodsEnvironment {
   // Callback prototype: (name, table)=>{}
   addTableChangeListener(callback) {
     this.callbacks[KEY_TABLE_PREFIX].push(callback);
+  }
+
+  // Table callback: update cache
+  cbTableChangeUpdateCache(name, table) {
+    if (table)
+      this.cache[name] = table;
+    else
+      delete this.cache[name];
   }
 
   // ----- Modules -----
