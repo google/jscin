@@ -79,6 +79,9 @@ export class IME {
       warn("Start migration from version", this.config.Version(), "to", version);
       let migration = new Migration(jscin);
       await migration.migrateAll();
+      // Reload the config in case it was changed in migration and the
+      // onChanged events couldn't happen before loading built-in tables.
+      await this.config.Load();
     } else {
       debug("No migration:", version, this.config.Version());
     }

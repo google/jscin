@@ -11,6 +11,8 @@ const {log, debug, info, warn, error, assert, trace} = AddLogger("migration");
 import {ChromeStorage, CompressedStorage, Storage} from "./storage.js";
 import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
+const kConfigInputMethods = "InputMethods";
+const kOldConfigInputMethods = 'croscinPrefEnabledInputMethodList';
 const kOldTableMetadataKey = "table_metadata";
 const kOldTableDataKeyPrefix = "table_data-";
 const kOldPhrasesDatabaseKey = 'croscinPhrasesDatabase';
@@ -107,9 +109,13 @@ export class Migration {
     // when removing a table in the Options.
     let delete_old = true;
     let parallel = true;
+    // The 'enabled' is actually a croscin config but we have to migrate it
+    // here as well, assuming the storage backend is the same.
+    let enabled = (await this.storage.get(kConfigInputMethods)) ||
+      (await this.old_storage.get(kOldConfigInputMethods)) || [];
     let old_meta = await this.old_storage.get(kOldTableMetadataKey);
     let infos = await this.storage.get(KEY_INFO_LIST) || {};
-    debug("migrateAllTables: start to check...", old_meta, infos);
+    debug("migrateAllTables: start to check...", old_meta, infos, enabled);
     let waits = [];
     let url_base = chrome.runtime.getURL("");
     // In case old_meta was corrupted, we want to keep migrating even if the
@@ -119,27 +125,34 @@ export class Migration {
         continue;
       assert(kOldTableDataKeyPrefix.endsWith('-'),
              "The old table data key must end with '-'");
-      let name = k.substring(kOldTableDataKeyPrefix.length);
-      let meta = old_meta[name] ||{};
+      let old_name = k.substring(kOldTableDataKeyPrefix.length);
+      let meta = old_meta[old_name] ||{};
       if (meta.builtin || meta.url?.startsWith(url_base)) {
-        debug("Ignore built-in table:", name);
+        debug("Ignore built-in table:", old_name);
+        const new_prefix = 'jscin.'; // See tables/builtin.json
+        if (enabled.includes(old_name) && !old_name.startsWith(new_prefix))
+          enabled[enabled.indexOf(old_name)] = `${new_prefix}${old_name}`;
         if (delete_old)
           this.old_storage.remove(k);
         continue;
       }
       let table = this.migrateTable(await this.old_storage.get(k), meta);
       // Now we have a new table, and the name may have changed.
-      name = table.info.name;
-      debug("Checking if we need to migarte the old table:", name, k);
-      let new_k = this.ime.tableKey(name);
+      let new_name = table.info.name;
+      debug("Checking if we need to migarte the old table:", new_name, k);
+      let new_k = this.ime.tableKey(new_name);
       assert(new_k != k, "The key must be different for migration", k, new_k);
+      if (enabled.includes(old_name) && !enabled.includes(new_name)) {
+        enabled[enabled.indexOf(old_name)] = new_name;
+        debug("Changing enabled IMs:", old_name, new_name, enabled);
+      }
       if (await this.storage.has(new_k) && !force) {
-        debug("New table is already there, skip:", name, new_k);
+        debug("New table is already there, skip:", new_name, new_k);
         if (delete_old)
           this.old_storage.remove(k);
         continue;
       }
-      infos[name] = table.info;
+      infos[new_name] = table.info;
       let w = this.storage.set(new_k, table);
       if (delete_old)
         this.old_storage.remove(k);
@@ -149,8 +162,10 @@ export class Migration {
         await w;
     }
     await this.storage.set(KEY_INFO_LIST, infos);
+    await this.storage.set(kConfigInputMethods, enabled);
     if (delete_old) {
       this.old_storage.remove(kOldTableMetadataKey);
+      this.old_storage.remove(kOldConfigInputMethods);
       this.old_storage.remove(kOldPhrasesDatabaseKey);
       this.old_storage.remove(kOldVersion);
     }
