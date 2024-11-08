@@ -200,6 +200,8 @@ export class WebPageIme extends ChromeInputIme {
         label = `>${NBSP}${label}`;
       else
         label = `${NBSP}${NBSP}${label}`;
+      if (!i.id.startsWith('ime:'))
+        node.append($('<hr/>'));
       node.append(
         $('<div></div>', {text: label, class: i.checked ? "active":""}).click(() => {
           this.onMenuItemActivated.dispatch(this.engineID, i.id);
