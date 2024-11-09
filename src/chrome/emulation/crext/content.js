@@ -30,6 +30,12 @@ export class CrExtIme extends IpcIme {
     this.initialize();
   }
 
+  initialize() {
+    super.initialize();
+
+    this.forwardEventToPanel("OpenOptionsPage");
+  }
+
   createPanel(url) {
     let frame = document.createElement("iframe");
     const frameURL = chrome.runtime.getURL(url);

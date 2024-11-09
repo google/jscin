@@ -26,6 +26,10 @@ export class ImePanel extends IpcIme {
     this.forwardEventToContent('Activate');
     this.forwardEventToContent('CandidateClicked');
 
+    this.onOpenOptionsPage.addListener(() => {
+      chrome.runtime.openOptionsPage();
+    });
+
     // Notify the IME it's ready to update the panel (or, re-do in onFocus).
     this.onActivate.dispatch(this.engineID);
 

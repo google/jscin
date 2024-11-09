@@ -65,10 +65,6 @@ export class IME {
       chrome.action.disable();
 
     chrome.runtime.onMessage.addListener((ev) => {
-      // Message here will occur only in the background page.
-      if (ev == this.kMenuOptions) {
-        chrome.runtime.openOptionsPage();
-      }
     });
     await this.config.Load();
 
@@ -442,10 +438,14 @@ export class IME {
       return chrome.runtime.openOptionsPage();
     }
 
-    // If croscin runs inside the content script, then we don't have the
-    // permission to call chrome.tabs nor chrome.runtime.
+    // If croscin runs inside the content script (e.g., emulation mode), then
+    // we don't have the permission to call chrome.tabs nor chrome.runtime. The
+    // ime_api must provide a special event `OpenOptionsPage` for that.
     debug("openOptionsPage: No chrome.runtime.openOptionsPage; broadcast for help.");
-    chrome.runtime.sendMessage(this.kMenuOptions);
+    if (this.ime_api.onOpenOptionsPage)
+      this.ime_api.onOpenOptionsPage.dispatch();
+    else
+      error("Sorry, no way to open the options page.");
   }
 
   // Registers event handlers to the browser.

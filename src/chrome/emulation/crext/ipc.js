@@ -202,4 +202,5 @@ export class IpcIme extends WebPageIme {
 
   // Extra APIs
   onMenuPopup = this.createEventHandler("MenuPopup");
+  onOpenOptionsPage = this.createEventHandler("OpenOptionsPage");
 }
