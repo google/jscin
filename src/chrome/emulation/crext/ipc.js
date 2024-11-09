@@ -199,4 +199,7 @@ export class IpcIme extends WebPageIme {
   getTabId() {
     return this.ipc.getTabId();
   }
+
+  // Extra APIs
+  onMenuPopup = this.createEventHandler("MenuPopup");
 }

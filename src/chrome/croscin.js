@@ -526,6 +526,14 @@ export class IME {
         assert(false, "Invalid menu item", name);
       }
     });
+
+    // Non-standard APIs
+    if (ime_api.onMenuPopup) {
+      ime_api.onMenuPopup.addListener(() => {
+        debug("onMenuPopup");
+        this.UpdateMenu();
+      });
+    }
   }
 }
 

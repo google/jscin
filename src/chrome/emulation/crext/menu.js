@@ -24,13 +24,10 @@ export class ImeMenu extends IpcIme {
     // background page).
     this.forwardEventToContent('MenuItemActivated');
 
-    // Technically, sending Activate is not correct because this will also
-    // trigger selecting the default input method. We may change croscin
-    // behavior to not switch IM when target is not specified and IM already
-    // started. Also, here we send to panel instead of content because the menu
-    // does not have a way to figure out current tab id (for the content).
-    this.forwardEventToPanel("Activate");
-    this.onActivate.dispatch(this.engineID);
+    // MenuPopup is a special event only implemented by crext, and will be
+    // provided by croscin inside content.js.
+    this.forwardEventToContent("MenuPopup");
+    this.onMenuPopup.dispatch();
   }
 }
 
