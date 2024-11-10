@@ -318,7 +318,10 @@ export class IME {
     }
     if (name && name == this.im_name) {
       debug("ActivateInputMethod: already activated:", name);
-      this.UpdateMenu();
+      // This may happen when the user has pressed Ctrl-space (Activate,
+      // Deactivate) multiple times. We can either always reset the context and
+      // remove the IM, or keep the IM and only re-initialize UI.
+      this.InitializeUI();
       return;
     }
 
