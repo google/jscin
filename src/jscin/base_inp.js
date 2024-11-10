@@ -80,7 +80,7 @@ export class BaseInputMethod
   }
 
   // Called when terminates ongoing text input session without sending focus/blur
-  // events, ex creating new tab / instance.
+  // events, for example creating new tab / instance.
   reset(ctx)
   {
     let has_keystroke = (ctx.keystroke || '').length;
@@ -88,12 +88,8 @@ export class BaseInputMethod
     let has_mcch = (ctx.mcch || []).length;
 
     if (has_lcch) {
-      // TODO(hungte) Directly commit lcch in future. A problem here is:
-      //  - If we send Enter, Chrome will lose lcch.
-      //  - If we don't send Enter, ChromeOS will send and keep lcch.
-      //  As a workaround, temporary allow behavior difference.
-      if (ctx.commit_on_blur)
-        this.keystroke(ctx, this.GenKeyDownEvent('Enter', 'Enter'));
+      // Note: Chrome (emulation) will lose lcch.
+      this.keystroke(ctx, this.GenKeyDownEvent('Enter', 'Enter'));
     } else if (has_keystroke || has_mcch) {
       this.keystroke(ctx, this.GenKeyDownEvent('Escape', 'Escape'));
     }

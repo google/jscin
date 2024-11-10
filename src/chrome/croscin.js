@@ -344,11 +344,6 @@ export class IME {
     this.im_name = name;
     this.im_label = jscin.getLabel(name);
 
-    // TODO(hungte) Remove this dirty workaround when we can do cmmit-on-blur.
-    if (!this.ime_api.isEmulation) {
-      this.imctx.commit_on_blur = true;
-    }
-
     // Apply Addon configuration.
     this.config.forEach((key, value) => {
       if (!key.startsWith('Addon'))
