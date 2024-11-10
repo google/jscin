@@ -93,8 +93,8 @@ export class IME {
     this.config.Bind("InputMethods", (value) => {
       if (!this.im)
         return;
-      debug("Changed InputMethods(), need to reload activated IM.");
-      this.ActivateInputMethod();
+      debug("Changed InputMethods(), activate the new default IM.");
+      this.ActivateInputMethod(this.config.DefaultInputMethod());
     });
   }
 
