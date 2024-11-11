@@ -9,16 +9,13 @@
 import { croscin } from "./croscin.js";
 
 async function welcome_chromeos() {
-  if (!globalThis.window || !window.navigator.userAgent.includes(' CrOS '))
+  if (!chrome?.input?.ime)
     return;
+
   chrome.runtime.onInstalled.addListener((event) => {
     if (event.reason != chrome.runtime.OnInstalledReason.INSTALL)
       return;
-
-    let option_url = chrome.runtime.getURL(chrome.runtime.getManifest().options_page);
-    chrome.tabs.create({ url: option_url }, function (tab) {
-      console.warn("First time install - welcome!");
-    });
+    chrome.runtime.openOptionsPage();
   });
 }
 
