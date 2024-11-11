@@ -249,6 +249,9 @@ async function init() {
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
+  if (chrome?.input?.ime)
+    $('#divSupportNonCrOS').display = 'none';
+
   $('#checkSupportNonChromeOS').prop("checked",
     config.Emulation()).click(function ()
   {
