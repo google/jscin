@@ -14,6 +14,40 @@ import { ChromeInputIme } from "./emulation/chrome_input_ime.js";
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
 
+class Heartbeat {
+  constructor() {
+    this.interval = null;
+    this.storage = chrome.storage.session;
+  }
+  async start() {
+    // This is only required by extension Manifest V3.
+    if (!this.storage)
+      return;
+    // Today only the CrOS implementation will put croscin instance in the
+    // background service worker (that will need heartbeat). The webpage
+    // implementation or iframe based implementations do not need it.
+    if (!chrome?.input?.ime)
+      return;
+    if (this.interval) {
+      assert(false, "Heartbeat.start: should not run again with stop().");
+      return;
+    }
+    debug("Heartbeat.start");
+    this.run();
+    this.interval = setInterval(this.run.bind(this), 20 * 1000);
+  }
+  async run() {
+    const heartbeat = new Date().getTime();
+    debug("Heartbeat.run", heartbeat);
+    await this.storage.set({heartbeat});
+  }
+  async stop() {
+    debug("Heartbeat.stop");
+    if (this.interval)
+      clearInterval(this.interval);
+  }
+}
+
 /* The main class for an Input Method Environment. */
 export class IME {
 
@@ -34,6 +68,8 @@ export class IME {
 
     this.ime_api = ime_api || globalThis.chrome?.input?.ime || new ChromeInputIme();
     debug("ime_api set to:", this.ime_api);
+
+    this.heartbeat = new Heartbeat();
     this.config = new Config();
 
     this.config.Bind("Debug", (value)=> {
@@ -453,11 +489,13 @@ export class IME {
     ime_api.onActivate.addListener((engineID) => {
       debug('onActivate: croscin started.', engineID);
       this.engineID = engineID;
+      this.heartbeat.start()
       this.ActivateInputMethod();
     });
 
     ime_api.onDeactivated.addListener((engineID) => {
       debug('onDeactivated: croscin stopped.');
+      this.heartbeat.stop()
       this.context = null;
     });
 
