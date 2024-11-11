@@ -53,7 +53,7 @@
   ],
   "permissions": [
     "input",
-    "tabs", "storage", "unlimitedStorage"
+    "storage", "unlimitedStorage"
   ],
   "host_permissions": [
     "http://*/", "https://*/"

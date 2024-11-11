@@ -46,7 +46,6 @@
   "permissions": [
     "http://*/", "https://*/",
     "input",
-    "tabs",
     "storage", "unlimitedStorage"
   ]
 }
