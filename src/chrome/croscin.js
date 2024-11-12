@@ -31,7 +31,7 @@ class Heartbeat {
     if (!chrome?.input?.ime)
       return;
     if (this.interval) {
-      assert(false, "Heartbeat.start: should not run again with stop().");
+      assert(false, "Heartbeat.start: should not run again without stop().");
       return;
     }
     debug("Heartbeat.start");
@@ -45,8 +45,8 @@ class Heartbeat {
   }
   async stop() {
     debug("Heartbeat.stop");
-    if (this.interval)
-      clearInterval(this.interval);
+    clearInterval(this.interval);
+    this.interval = null;
   }
 }
 
