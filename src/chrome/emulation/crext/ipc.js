@@ -190,6 +190,9 @@ export class IpcIme extends WebPageIme {
   sendCommandToPanel(command, parameters) {
     this.ipc.Command(command, parameters).sendToPanel();
   }
+  sendCommandToMenu(command, parameters) {
+    this.ipc.Command(command, parameters).sendToMenu();
+  }
   forwardEventToContent(...args) {
     return this.ipc.forwardEventToContent(...args);
   }

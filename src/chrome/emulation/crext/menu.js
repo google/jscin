@@ -20,8 +20,9 @@ export class ImeMenu extends IpcIme {
     await super.initialize();
 
     // It is possible to do chrome.runtime.openOptionsPage() in the menu, but
-    // for now we let the content script do it (implies broadcast to the
-    // background page).
+    // then we have to either duplicate the whole menu ID parsing logic, or
+    // create a dedicated new event for that. So we let the content script
+    // (where croscin lives) do that.
     this.forwardEventToContent('MenuItemActivated');
 
     // MenuPopup is a special event only implemented by crext, and will be

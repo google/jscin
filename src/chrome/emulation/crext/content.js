@@ -198,6 +198,6 @@ export class CrExtIme extends IpcIme {
     this.sendCommandToPanel("clearComposition", parameters);
   }
   setMenuItems(parameters, callback) {
-    this.sendCommandToPanel("setMenuItems", parameters);
+    this.sendCommandToMenu("setMenuItems", parameters);
   }
 }
