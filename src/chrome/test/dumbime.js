@@ -10,7 +10,7 @@
  * API providers, also to debug without the webpage implementation.
  */
 
-import { croscin } from "../croscin.js";
+import { CrOS_CIN, jscin } from "../croscin.js";
 
 function log(...args) {
   console.log("[dumbime]", ...args);
@@ -88,15 +88,14 @@ function DumbIME() {
 };
 
 async function init() {
-  let dumb_ime = new DumbIME();
-  croscin.instance = new croscin.IME(dumb_ime);
-  const engineID = croscin.instance.kEngineId;
-
   // betted Debugging
-  globalThis.croscin = croscin;
-  croscin.jscin.loggers['jscin'].enableAllLoggers();
+  jscin.logger.enableAllLoggers();
 
-  await croscin.instance.Initialize();
+  let dumb_ime = new DumbIME();
+  globalThis.croscin = new CrOS_CIN(dumb_ime);
+  const engineID = croscin.kEngineId;
+
+  await croscin.Initialize();
 
   // key events
   document.getElementById('input').onkeydown = function (evt) {

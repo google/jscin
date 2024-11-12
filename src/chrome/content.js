@@ -28,20 +28,14 @@ function GetAllTextInputNodes() {
 async function StartEmulation() {
   const mod_page = await LoadModule("./ime_api/ipc/ipc_content.js");
   const mod_croscin = await LoadModule("./croscin.js");
-  let ime = new mod_page.IpcContentIme();
-  let croscin = mod_croscin.croscin;
-  let instance = new croscin.IME(ime);
-  croscin.instance = instance;
-  await instance.Initialize();
-
-  // Register for debugging in the console.
-  globalThis.croscin = croscin;
-  globalThis.ime = ime;
+  let ime_api = new mod_page.IpcContentIme();
+  globalThis.croscin = new mod_croscin.CrOS_CIN(ime_api);
+  await croscin.Initialize();
 
   // Now, bind the text input elements.
   let nodes = GetAllTextInputNodes();
   for (let i = 0; i < nodes.length; i++) {
-    ime.attach(nodes[i]);
+    ime_api.attach(nodes[i]);
   }
   if (document.activeElement)
     document.activeElement.focus();

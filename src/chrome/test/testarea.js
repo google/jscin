@@ -10,7 +10,7 @@
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
 import { WebPageIme } from "../ime_api/webpage.js";
-import { croscin } from "../croscin.js";
+import { CrOS_CIN, jscin } from "../croscin.js";
 
 function debug(...args) {
   console.log("[testarea]", ...args);
@@ -123,12 +123,12 @@ class testInputIme {
 
 async function Init() {
   // Show all logs.
-  let jscin = croscin.jscin;
-  jscin.loggers.jscin.enableAllLoggers();
+  jscin.logger.enableAllLoggers();
 
   let ime = new WebPageIme();
-  croscin.instance = new croscin.IME(ime);
-  await croscin.instance.Initialize();
+  globalThis.croscin = new CrOS_CIN(ime);
+
+  await croscin.Initialize();
 
   let node = document.getElementById('input');
   ime.onActivate.dispatch(ime.engineID);
@@ -139,8 +139,7 @@ async function Init() {
   node.focus();
 }
 
-globalThis.croscin = croscin;
 console.log(
   "Welcome to testarea! To debug, you can explore:\n",
-  "- croscin [.jscin, .instance [.ime_api]]\n\n");
+  "- croscin [.jscin, .ime_api, ...]\n\n");
 Init();

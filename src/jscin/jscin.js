@@ -7,7 +7,7 @@
 
 import { InputMethodsEnvironment } from "./ime.js";
 import { AddLogger } from "./logger.js";
-const {logger} = AddLogger("jscin");
+const { logger } = AddLogger("jscin");
 
 export const IMKEY_ABSORB = 0x0;
 export const IMKEY_COMMIT = 0x1;
@@ -29,5 +29,5 @@ jscin.initialize();
 //////////////////////////////////////////////////////////////////////////////
 // Global debugging
 
-// In JavaScript debug console, type "jscin.loggers" to change loggers' states.
-jscin.loggers = logger.getAllLoggers();
+// In JavaScript debug console, type "jscin.logger" to change logger's state.
+jscin.logger = logger;

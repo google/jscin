@@ -45,5 +45,5 @@ export class ImePanel extends IpcIme {
 }
 
 // register in the global name space.
-globalThis.panel = new ImePanel();
+globalThis.croscin = globalThis.panel = new ImePanel();
 globalThis.logger = logger;

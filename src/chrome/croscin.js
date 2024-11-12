@@ -11,6 +11,8 @@ import { LoadJSON, LoadText } from "./jscin/storage.js";
 import { Migration } from "./jscin/migration.js";
 import { ChromeInputIme } from "./ime_api/chrome_input_ime.js";
 
+export { jscin };
+
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
 
@@ -49,7 +51,7 @@ class Heartbeat {
 }
 
 /* The main class for an Input Method Environment. */
-export class IME {
+export class CrOS_CIN {
 
   constructor(ime_api) {
     // The engine ID must match input_components.id in manifest file.
@@ -71,6 +73,9 @@ export class IME {
 
     this.heartbeat = new Heartbeat();
     this.config = new Config();
+
+    this.jscin = jscin;
+    this.logger = logger;
 
     this.config.Bind("Debug", (value)=> {
       logger.enableAllLoggers(value);
@@ -572,5 +577,3 @@ export class IME {
     }
   }
 }
-
-export var croscin = {IME: IME, jscin: jscin, logger: logger};
