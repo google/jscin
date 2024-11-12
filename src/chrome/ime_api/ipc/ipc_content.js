@@ -92,16 +92,16 @@ export class IpcContentIme extends IpcIme {
   movePanel(offset) {
     // Calculate where is the best place to show IME frame, to prevent moving
     // that outside top level DOM (ex, chat windows).
-    let min_width = 300, min_height = 150;
+    let min_width = 250, min_height = 100;
     if (offset.top + offset.node_height + min_height > this.getPageHeight())
       offset.top -= min_height;
     else
-      offset.top += offset.node_height + 5;
+      offset.top += offset.node_height;
 
     if (offset.left + min_width > this.getPageWidth())
       offset.left = this.getPageWidth() - min_width;
     else
-      offset.left += 5;
+      offset.left += 1;
     debug("movePanel, page WxH:", this.getPageWidth(), this.getPageHeight(),
           ", final:", offset);
 
