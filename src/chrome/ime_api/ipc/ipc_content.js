@@ -6,15 +6,15 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/content");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc/ipc_content");
 
 import { hasCtrlAltMeta } from "../../jscin/key_event.js";
 import { $, jQuery } from "../../jquery/jquery.js";
 import { IpcIme } from "./ipc.js";
 
-export class CrExtIme extends IpcIme {
+export class IpcContentIme extends IpcIme {
 
-  constructor(panel='emulation/crext/ime_panel.html') {
+  constructor(panel='ime_api/ipc/ime_panel.html') {
 
     const seed = Math.round(Math.random() * 65530);
     const seeded_panel = `${panel}?seed=${seed}`;

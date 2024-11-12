@@ -5,7 +5,7 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/menu");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc/menu");
 
 import { IpcIme } from "./ipc.js";
 
@@ -25,8 +25,8 @@ export class ImeMenu extends IpcIme {
     // (where croscin lives) do that.
     this.forwardEventToContent('MenuItemActivated');
 
-    // MenuPopup is a special event only implemented by crext, and will be
-    // provided by croscin inside content.js.
+    // MenuPopup is a special event only implemented by ipc based (emulation)
+    // IME API, and will be provided by croscin inside ipc_content.js.
     this.forwardEventToContent("MenuPopup");
     this.onMenuPopup.dispatch();
   }

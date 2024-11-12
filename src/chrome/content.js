@@ -26,9 +26,9 @@ function GetAllTextInputNodes() {
 }
 
 async function StartEmulation() {
-  const mod_page = await LoadModule("./emulation/crext/content.js");
+  const mod_page = await LoadModule("./ime_api/ipc/ipc_content.js");
   const mod_croscin = await LoadModule("./croscin.js");
-  let ime = new mod_page.CrExtIme();
+  let ime = new mod_page.IpcContentIme();
   let croscin = mod_croscin.croscin;
   let instance = new croscin.IME(ime);
   croscin.instance = instance;
@@ -45,8 +45,6 @@ async function StartEmulation() {
   }
   if (document.activeElement)
     document.activeElement.focus();
-
-  // TODO(hungte) show/hide the frame
 }
 
 async function CheckEmulation(items) {
@@ -64,21 +62,16 @@ async function CheckEmulation(items) {
 }
 
 async function Initialize () {
-  // Check chrome.input.ime availability.  The correct way is to check
-  // chrome.input.ime binding but that would spew error message in console for
-  // every page; so let's check userAgent instead because for right now only
-  // ChromeOS supports that.
-  if (window.navigator.userAgent.includes(' CrOS '))
-    return;
-
   // Currently we inject the content scripts to every frames so it is important
   // to early-exit if the page does not have input elements (for emulation).
   if (!GetAllTextInputNodes().length)
     return;
 
-  // Now let's see if we need to start the emulation.
+  // Now let's see if we need to start the emulation of IME API.
   // This should be the same as config.js, except simpler.
   chrome.storage.local.get(kEmulation, CheckEmulation);
 }
 
-Initialize();
+// Check chrome.input.ime availability.
+if (!globalThis?.chrome?.input?.ime)
+  Initialize();

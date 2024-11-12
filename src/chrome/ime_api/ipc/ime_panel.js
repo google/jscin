@@ -6,13 +6,13 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("crext/ime_panel");
+const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc/ime_panel");
 
 import { IpcIme } from "./ipc.js";
 
 export class ImePanel extends IpcIme {
   constructor(panel='imePanel') {
-    // The seed was provided by content.js#CrExtIme
+    // The seed was provided by ipc_content.js#IpcContentIme
     const seed = document.location.href.match(/\?seed=(.+)/)[1] || undefined;
     super(panel, seed);
 

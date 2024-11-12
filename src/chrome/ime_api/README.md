@@ -18,13 +18,13 @@ backend.  Any web pages with a 'imePanel' DOM element with sub elements
 
 This is currently directly used by the test pages like `/test/testarea.html`.
 
-## Chrome extension based implementation
+## Inter process communication components based implementation
 
-The `crext` folder contains multiple files for fully emulating the
+The `ipc` folder contains multiple files for fully emulating the
 `chrome.input.ime` experience in any pages inside a browser, using the Chrome
-extension technology.
+extension technology via inter process communication (IPC).
 
-- `content.js`: The core input method module runs in the content script
+- `ipc_content.js`: The core input method module runs in the content script
   context, based on web page implementation. Will bind input events to the
   `<INPUT>` and `<TEXTAREA>` HTML tags.
 - `ime_panel.{html,js,css}`: The user interface, that will be injected into the

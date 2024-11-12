@@ -9,7 +9,7 @@ import { Config  } from "./config.js";
 import { jscin } from "./jscin/all.js";
 import { LoadJSON, LoadText } from "./jscin/storage.js";
 import { Migration } from "./jscin/migration.js";
-import { ChromeInputIme } from "./emulation/chrome_input_ime.js";
+import { ChromeInputIme } from "./ime_api/chrome_input_ime.js";
 
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");

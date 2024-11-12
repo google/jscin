@@ -29,7 +29,7 @@
         "19": "icons/page_icon19.png"
     },
     "default_title": "__MSG_manifestName__",
-    "default_popup": "emulation/crext/menu.html"
+    "default_popup": "ime_api/ipc/menu.html"
   },
   "content_scripts": [ {
     "js": [
@@ -42,7 +42,7 @@
   "web_accessible_resources": [
     { "resources": [
       "*.js",
-      "emulation/*",
+      "ime_api/*",
       "jquery/*",
       "jscin/*",
       "tables/*"

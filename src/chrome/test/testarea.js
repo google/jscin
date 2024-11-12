@@ -2,14 +2,14 @@
  * @fileoverview Test Area. A playground for input.ime implementation.
  *
  * The Test Area uses the pure software implementation
- * (emulation/chrome.input.ime.js) and the webpage provider,
+ * (ime_api/chrome.input.ime.js) and the webpage provider,
  * with a hard-coded UI (so we don't need to worry about creating the imePanel
  * on our own with injecting code into the web pages) to verify the croscin &
  * jscin behavior.
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
-import { WebPageIme } from "../emulation/webpage.js";
+import { WebPageIme } from "../ime_api/webpage.js";
 import { croscin } from "../croscin.js";
 
 function debug(...args) {
