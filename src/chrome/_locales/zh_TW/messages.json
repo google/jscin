@@ -1,12 +1,12 @@
 {
   "manifestName": { "message":
-    "JsCIN 中文輸入法" },
+    "JsCIN 通用輸入法" },
   "manifestDesc": { "message":
-    "可用於 Google ChromeOS 的中文輸入法（與 XCIN/GCIN 表格相容）" },
+    "可用於 Google ChromeOS 的自訂表格輸入法（與 XCIN/GCIN 表格相容）" },
   "manifestImeName": { "message":
-    "JsCIN 中文輸入法" },
+    "JsCIN 輸入法" },
   "manifestImeDesc": { "message":
-    "可用於 Google ChromeOS 的中文輸入法（與 XCIN/GCIN 表格相容）" },
+    "使用自訂表格的輸入法（與 XCIN/GCIN 表格相容）" },
   "menuOptions": { "message":
     "選項" },
 

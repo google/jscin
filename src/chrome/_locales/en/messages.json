@@ -1,12 +1,12 @@
 {
   "manifestName": { "message":
-    "JsCIN: JavaScript based Chinese Input Methods" },
+    "JsCIN: JavaScript Common INput" },
   "manifestDesc": { "message":
-    "Chinese Input Methods (XCIN/GCIN compatible) for Google ChromeOS™" },
+    "An input method editor supporting customizable table based input methods (XCIN/GCIN compatible) for Google ChromeOS™" },
   "manifestImeName": { "message":
-    "JsCIN Chinese Input Methods" },
+    "JsCIN Input Methods" },
   "manifestImeDesc": { "message":
-    "Chinese Input Methods (XCIN/GCIN compatible) for Google ChromeOS™" },
+    "Table based input methods (XCIN/GCIN compatible)" },
   "menuOptions": { "message":
     "Options" },
 
