@@ -1,4 +1,4 @@
-# JsCIN: JavaScript based Common Input Method Editor (IME)
+# JsCIN: JavaScript Common INput
 
 For how to install or run JsCIN, please check the [user guide
 document](docs/USER_GUIDE.md).
@@ -14,9 +14,10 @@ extensions since it will be easy to sync and use your favorite input methods
 whenever needed. Moreover, some OSes like Google ChromeOS does not allow
 installing the native programs by the user themselves.
 
-Chrome browser now supports an [extension API
-](http://dev.chromium.org/developers/design-documents/extensions/input-method-editor),
-Although it's only available for ChromeOS.
+To support 3rd party input methods, the ChromeOS introduced a new [extension API
+](http://dev.chromium.org/developers/design-documents/extensions/input-method-editor)
+to the Chrome browser in JavaScript bindings. As a result, an IME implemented
+in pure JavaScript is needed.
 
 This project is a JavaScript implementation of input methods editor to
 support customizable table based input methods. It is
