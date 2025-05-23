@@ -5,8 +5,8 @@ Tables from XCIN 2.5.3-pre2:
   phone.cin
   simplex.cin
 
-Tables from GCIN 2.8.0:
-  ar30.cin
+Tables from https://github.com/gontera/array30 :
+  ar30.cin -> gcin/ar30-regular-v2023-1.0-20230211.cin
 
 Tables from libchewing:
   tsi.json (minimized and dropped frequency)
