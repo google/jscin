@@ -7,6 +7,7 @@
 
 import { Config  } from "./config.js";
 import { jscin } from "./jscin/all.js";
+import { hasCtrlAltMeta } from "./jscin/key_event.js";
 import { LoadJSON, LoadText } from "./jscin/storage.js";
 import { Migration } from "./jscin/migration.js";
 import { ChromeInputIme } from "./ime_api/chrome_input_ime.js";
@@ -169,8 +170,52 @@ export class CrOS_CIN {
     return true;
   }
 
+  // TODO(hungte): Add an configurable option for this.
+  CheckSingleShiftPress(ev, ctx) {
+    let last_seen = ctx.shift_pressed;
+    if (ev.type == 'keyup') {
+      if (ev.key == 'Shift' && (ev.code || ev.key) == last_seen) {
+        debug("CheckSingleShiftPress: Shift Single Pressed!", ev);
+        ctx.shift_pressed = undefined;
+        return true;
+      }
+      // No matter what it is, we're not in the single-press mode.
+      if (last_seen)
+        ctx.shift_pressed = undefined;
+      return false;
+    } else if (ev.type == 'keydown') {
+      if (ev.key != 'Shift' || last_seen || hasCtrlAltMeta(ev)) {
+        if (last_seen)
+          ctx.shift_pressed = undefined;
+        return false;
+      }
+      ctx.shift_pressed = ev.code || ev.key;
+      return false;
+    } else {
+      debug("CheckSingleShift, unknown ev type", ev);
+    }
+    return false;
+  }
+
   ProcessKeyEvent(keyData) {
     debug("ProcessKeyEvent:", keyData.key, keyData);
+
+    // Special case single-shift press
+    if (this.CheckSingleShiftPress(keyData, this.imctx)) {
+      this.imctx.raw_mode = !this.imctx.raw_mode;
+      let msg = this.imctx.raw_mode ? 'English (Raw)' : this.im_label;
+      if (this.imctx.raw_mode)
+        this.im.reset(this.imctx);
+      this.ShowOnlyAuxiliaryText(msg); // Prompt for IM mode.
+      return false;
+    }
+
+    if (this.imctx.raw_mode) {
+      debug("Typing in raw mode");
+      if (this.imctx.last_aux)
+        this.ShowOnlyAuxiliaryText(undefined); // clar all UIs.
+      return false;
+    }
 
     // Currently all of the modules uses key down.
     if (keyData.type != 'keydown') {
@@ -239,6 +284,21 @@ export class CrOS_CIN {
 
     // Setup menu
     this.UpdateMenu();
+  }
+
+  ShowOnlyAuxiliaryText(message) {
+    let arg = this.GetContextArg();
+    this.ime_api.clearComposition(arg);
+    arg.candidates = [];
+    this.ime_api.setCandidates(arg);
+    let visible = !!message;
+    this.SetCandidateWindowProperties({
+      pageSize: 1,
+      cursorVisible: false,
+      visible: visible,
+      auxiliaryText: message,
+      auxiliaryTextVisible: visible});
+    this.imctx.last_aux = message;
   }
 
   UpdateComposition(keystroke, buffer, cursor) {

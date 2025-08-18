@@ -164,6 +164,7 @@ export class IpcContentIme extends IpcIme {
     if (this.isHotKey(evt)) {
       debug("Got HotKey single-click:", evt.code, evt.key, this.enabled);
       this.setEnabled(!this.enabled);
+      return true; // Don't pass to DOM (croscin has conflicted 'raw mode').
     }
 
     if (!this.enabled)
