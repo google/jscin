@@ -85,7 +85,7 @@ async function init() {
       "optionSettingChoices",
       "optionGeneral", "optionSupportNonChromeOS",
       "optionAlertChangeSupportNonChromeOS",
-      "optionRelatedText", "optionPunctuations",
+      "optionRawMode", "optionRelatedText", "optionPunctuations",
       "optionSelectDefaultInputModule", "optionSandbox",
       "optionDebug", "optionDebugMessage");
 
@@ -265,6 +265,10 @@ async function init() {
       modal: true,
       buttons: buttons});
   });
+  $('#checkRawMode').prop("checked",
+    config.RawMode()).click(function () {
+      config.Set("RawMode", $(this).prop("checked"));
+    });
   $('#checkPunctuations').prop("checked",
     config.AddonPunctuations()).click(function () {
       config.Set("AddonPunctuations", $(this).prop("checked"));

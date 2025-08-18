@@ -61,6 +61,7 @@ export class Config {
       Debug: false,
       DefaultModule: '',
       Emulation: false,
+      RawMode: true,
       AddonRelatedText: false,
       AddonPunctuations: true,
       AddonCrossQuery: "",
@@ -187,6 +188,7 @@ export class Config {
   Debug()               { return this.Get("Debug"); }
   DefaultModule()       { return this.Get("DefaultModule"); }
   Emulation()           { return this.Get("Emulation"); }
+  RawMode()             { return this.Get("RawMode"); }
   Version()             { return this.Get("Version"); }
   AddonRelatedText()    { return this.Get("AddonRelatedText"); }
   AddonPunctuations()   { return this.Get("AddonPunctuations"); }

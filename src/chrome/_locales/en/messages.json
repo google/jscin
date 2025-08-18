@@ -74,6 +74,8 @@
     "General Settings" },
   "optionSupportNonChromeOS": {"message":
     "Support Non-ChromeOS environments" },
+  "optionRawMode": {"message":
+    "Quick switch raw input mode by single-press Shift" },
   "optionPunctuations": {"message":
     "Support quick Chinese punctuations (Ctrl+.,';[]...)" },
   "optionAlertChangeSupportNonChromeOS": {"message":

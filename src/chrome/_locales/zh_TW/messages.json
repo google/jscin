@@ -72,6 +72,8 @@
     "一般性設定" },
   "optionSupportNonChromeOS": {"message":
     "支援非 ChromeOS 的環境" },
+  "optionRawMode": {"message":
+    "單按 Shift 以快速切換原始(英數)輸入" },
   "optionPunctuations": {"message":
     "支援快速輸入中文標點符號 (Ctrl + ,.';[]...) " },
   "optionRelatedText": {"message":

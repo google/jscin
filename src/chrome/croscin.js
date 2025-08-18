@@ -201,7 +201,7 @@ export class CrOS_CIN {
     debug("ProcessKeyEvent:", keyData.key, keyData);
 
     // Special case single-shift press
-    if (this.CheckSingleShiftPress(keyData, this.imctx)) {
+    if (this.CheckSingleShiftPress(keyData, this.imctx) && this.config.RawMode()) {
       this.imctx.raw_mode = !this.imctx.raw_mode;
       let msg = this.imctx.raw_mode ? 'English (Raw)' : this.im_label;
       if (this.imctx.raw_mode)
