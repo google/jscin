@@ -7,7 +7,7 @@
 
 import {jscin} from "./jscin.js";
 import {BaseInputMethod} from "./base_inp.js";
-import {hasCtrlAltMeta} from "./key_event.js";
+import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp");
@@ -438,11 +438,12 @@ export class GenInp extends BaseInputMethod
         key_by_group[g] = self.keystroke[i];
       }
 
-      let g = determine_group(keyinfo.key);
+      let key = normalizeKey(keyinfo.key);
+      let g = determine_group(k);
       if (!g)
         return false;
 
-      key_by_group[g] = keyinfo.key;
+      key_by_group[g] = key;
 
       // reconstruct keystroke sequence
       let groups_in_order = Object.keys(key_by_group).sort();
@@ -479,7 +480,9 @@ export class GenInp extends BaseInputMethod
         self.mode.INPINFO_MODE_WRONG = false;
       }
 
-      if ((keyinfo.key == 'Backspace' || keyinfo.key == 'Delete') && len) {
+      let key = normalizeKey(keyinfo.key);
+
+      if ((key == 'Backspace' || key == 'Delete') && len) {
         self.keystroke = self.keystroke.substring(0, len-1);
         self.display_keystroke = self.display_keystroke.slice(0, len-1);
         inpinfo.keystroke = self.display_keystroke.join('');
@@ -494,12 +497,12 @@ export class GenInp extends BaseInputMethod
           match_keystroke(inpinfo);
         }
         return jscin.IMKEY_ABSORB;
-      } else if (keyinfo.key == 'Escape' && len) {
+      } else if (key == 'Escape' && len) {
         reset_keystroke(inpinfo);
         inpinfo.cch_publish = '';
         inpinfo.mcch_pgstate = ime.MCCH_ONEPG;
         return jscin.IMKEY_ABSORB;
-      } else if (keyinfo.key == ' ') {
+      } else if (key == ' ') {
         inpinfo.cch_publish = '';
         if (conf.mode.INP_MODE_SPACEAUTOUP &&
             (!self.mode.INPINFO_MODE_INWILD || self.mode.INPINFO_MODE_MCCH) &&
@@ -526,18 +529,18 @@ export class GenInp extends BaseInputMethod
         } else if (self.keystroke) {
           return commit_keystroke(inpinfo);
         }
-      } else if (keyinfo.key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
+      } else if (key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
         // ...
         trace('NotImplemented');
       } else if (0 /* keypad */) {
         return jscin.IMKEY_IGNORE;
-      } else if (keyinfo.key.length == 1) {
+      } else if (key.length == 1) {
         let ret = jscin.IMKEY_ABSORB;
         let endkey_pressed = false;
 
         inpinfo.cch_publish = '';
-        let wch = ime.header.keyname[keyinfo.key];
-        let selkey_idx = ime.header.selkey.indexOf(keyinfo.key);
+        let wch = ime.header.keyname[key];
+        let selkey_idx = ime.header.selkey.indexOf(key);
         if (ime.header.endkey.includes(
             self.keystroke[self.keystroke.length-1])) {
           endkey_pressed = true;
@@ -547,14 +550,14 @@ export class GenInp extends BaseInputMethod
           if (len == 1 && conf.disable_sel_list &&
               conf.disable_sel_list.includes(
                   self.keystroke[self.keystroke.length-1])) {
-            wch = keyinfo.key;
+            wch = key;
           } else {
             return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
                                                          return_wrong());
           }
-        } else if (keyinfo.key.match(/[<>]/) &&
+        } else if (key.match(/[<>]/) &&
                    1 /* GUIMOD_SELKEYSPOT ? */) {
-          return mcch_nextpage(inpinfo, keyinfo.key);
+          return mcch_nextpage(inpinfo, key);
         } else if (self.mode.INPINFO_MODE_MCCH) {
           if (selkey_idx != -1) {
             return (mcch_choosech(inpinfo, selkey_idx) ? jscin.IMKEY_COMMIT :
@@ -573,7 +576,7 @@ export class GenInp extends BaseInputMethod
         if (hasCtrlAltMeta(keyinfo)) { // don't support qphrase
           return jscin.IMKEY_IGNORE;
         } else if (keyinfo.shiftKey) {
-          if (conf.mode.INP_MODE_WILDON && keyinfo.key.match(/^[*?]$/)) {
+          if (conf.mode.INP_MODE_WILDON && key.match(/^[*?]$/)) {
             self.mode.INPINFO_MODE_INWILD = true;
           } else {
             return jscin.IMKEY_IGNORE;  // don't support qphrase
@@ -590,10 +593,10 @@ export class GenInp extends BaseInputMethod
           return return_wrong();
         }
 
-        self.keystroke += keyinfo.key;
+        self.keystroke += key;
 
-        if (keyinfo.key.match(/^[*?]$/)) {
-          self.display_keystroke.push(keyinfo.key);
+        if (key.match(/^[*?]$/)) {
+          self.display_keystroke.push(key);
         } else {
           self.display_keystroke.push(wch);
         }
@@ -604,7 +607,7 @@ export class GenInp extends BaseInputMethod
           self.mode.INPINFO_MODE_SPACE = false;
         }
         if (conf.mode.INP_MODE_ENDKEY && len>1 &&
-            ime.header.endkey.includes(keyinfo.key)) {
+            ime.header.endkey.includes(key)) {
           return commit_keystroke(inpinfo);
         } else if (conf.mode.INP_MODE_AUTOFULLUP && len == max_len) {
           return commit_keystroke(inpinfo);

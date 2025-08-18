@@ -12,7 +12,7 @@
 // TODO(hungte) Change mcch (candidates) to array instead of a string.
 
 import {jscin} from "./jscin.js";
-import {hasCtrlAltMeta} from "./key_event.js";
+import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 import {BaseInputMethod} from "./base_inp.js";
 
 import { AddLogger } from "./logger.js";
@@ -451,7 +451,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ProcessCompositionStateKey(ctx, ev) {
-    let key = ev.key;
+    let key = normalizeKey(ev.key);
 
     switch (key) {
       case 'Backspace':
@@ -519,7 +519,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ProcessCandidatesStateKey(ctx, ev) {
-    let key = ev.key;
+    let key = normalizeKey(ev.key);
 
     switch (key) {
       case 'Escape':

@@ -4,6 +4,10 @@
 // To create KeyboardEvent-like events.
 // http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent
 
+// Warning: The chrome.input.ime on CrOS is using a different mapping that
+// code: 'Escape' => key: 'Esc',
+// code: 'Array{Left,Up,Right,Down}' => key: '{Left,Up,Right,Down}'.
+
 /* A mapping table to find KeyboardEvent.code from KeyboardEvent.key. */
 export const KEY_TO_CODE = {
   "Backspace":		"Backspace",
@@ -16,6 +20,7 @@ export const KEY_TO_CODE = {
   "Pause":		"Pause",
   "CapsLock":		"CapsLock",
   "Escape":		"Escape",
+  "Esc":		"Escape",       // chrome.input.ime.
   " ":		        "Space",
   "PageUp":		"PageUp",
   "PageDown":		"PageDown",
@@ -25,6 +30,10 @@ export const KEY_TO_CODE = {
   "ArrowUp":		"ArrowUp",
   "ArrowRight":		"ArrowRight",
   "ArrowDown":		"ArrowDown",
+  "Left":		"ArrowLeft",    // chrome.input.ime.
+  "Up":	        	"ArrowUp",      // chrome.input.ime.
+  "Right":		"ArrowRight",   // chrome.input.ime.
+  "Down":		"ArrowDown",    // chrome.input.ime.
   "Insert":		"Insert",
   "Delete":		"Delete",
   "0":		        "Digit0",
@@ -76,18 +85,18 @@ export const KEY_TO_CODE = {
   "F11":		"F11",
   "F12":		"F12",
   "NumLock":		"NumLock",
-  "ScrollLock":	       "ScrollLock",
-  ";":		       "Semicolon",
-  "=":		       "Equal",
-  ",":		       "Comma",
-  "-":		       "Minus",
-  ".":		       "Period",
-  "/":		       "Slash",
-  "`":		       "BackQuote",
-  "[":		       "BracketLeft",
-  "/":		       "Backslash",
-  "]":		       "BracketRight",
-  "'":		       "Quote",
+  "ScrollLock":         "ScrollLock",
+  ";":                  "Semicolon",
+  "=":                  "Equal",
+  ",":                  "Comma",
+  "-":                  "Minus",
+  ".":                  "Period",
+  "/":                  "Slash",
+  "`":                  "BackQuote",
+  "[":                  "BracketLeft",
+  "/":                  "Backslash",
+  "]":                  "BracketRight",
+  "'":                  "Quote",
 };
 
 // Converts KeyboardEvent.code to KeyboardEvent.key, regardless of shift
@@ -147,7 +156,7 @@ export const UNSHIFT_MAP = {
 export class KeyEvent {
   constructor(key, code, type='keydown') {
     if (!code)
-      code = (key in KEY_TO_CODE) ? KEY_TO_CODE[key] : key;
+      code = KEY_TO_CODE[key] || key;
 
     this.type = type;
     this.key = key;
@@ -163,6 +172,19 @@ export class KeyEvent {
 // Returns the KeyboardEvent.key regardless of ev.shiftKey state.
 export function getUnshiftedKey(ev) {
   return UNSHIFT_MAP[ev.code] || ev.key;
+}
+
+export function normalizeKey(key) {
+  // Normalize between CrOS KeyEvent.key and W3C KeyboardEvent.key
+  const mapping = {
+    'Esc':   'Escape',
+    'Up':    'ArrowUp',
+    'Down':  'ArrowDown',
+    'Left':  'ArrowLeft',
+    'Right': 'ArrowRight',
+  };
+
+  return mapping[key] || key;
 }
 
 // A short cut to check Ctrl/Alt/Meta modifiers (no Shift).
