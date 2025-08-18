@@ -65,8 +65,6 @@
     "Type: " },
   "optionQueryKeystrokes": {"message":
     "Display corresponding keystrokes of this input method."},
-  "optionRelatedText": {"message":
-    "Use Related Text input (Shift + selection keys)."},
   "optionAreYouSure": {"message":
     "Are you sure?" },
 
@@ -75,9 +73,11 @@
   "optionSupportNonChromeOS": {"message":
     "Support Non-ChromeOS environments" },
   "optionRawMode": {"message":
-    "Quick switch raw input mode by single-press Shift" },
+    "Press Shift to switch between the input methods and the raw mode." },
   "optionPunctuations": {"message":
-    "Support quick Chinese punctuations (Ctrl+.,';[]...)" },
+    "Ctrl+PunctuationKeys (.,';[]...) to enter DBCS wide punctuations." },
+  "optionRelatedText": {"message":
+    "Shift+SelectionKeys (123456789) to enter Related Text."},
   "optionAlertChangeSupportNonChromeOS": {"message":
     "This setting will take effect next time Chrome restarted." },
   "optionAlert": {"message":

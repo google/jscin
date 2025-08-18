@@ -75,9 +75,9 @@
   "optionRawMode": {"message":
     "單按 Shift 以快速切換原始(英數)輸入" },
   "optionPunctuations": {"message":
-    "支援快速輸入中文標點符號 (Ctrl + ,.';[]...) " },
+    "按 Ctrl+符號鍵(,.';[]...) 以輸入中文標點符號" },
   "optionRelatedText": {"message":
-    "支援聯想字 (按 Shift + 選擇鍵)"},
+    "按 Shift+選擇鍵(123456789) 以輸入聯想字"},
   "optionAlertChangeSupportNonChromeOS": {"message":
     "更改此設定要到下次重新開啟 Chrome 瀏覽器才會完全生效。" },
   "optionAlert": {"message":
