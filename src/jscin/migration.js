@@ -11,12 +11,7 @@ const {log, debug, info, warn, error, assert, trace} = AddLogger("migration");
 import {ChromeStorage, Storage} from "./storage.js";
 import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
-const kConfigInputMethods = "InputMethods";
-const kOldConfigInputMethods = 'croscinPrefEnabledInputMethodList';
-const kOldTableMetadataKey = "table_metadata";
 const kOldTableDataKeyPrefix = "table_data-";
-const kOldPhrasesDatabaseKey = 'croscinPhrasesDatabase';
-const kOldVersion = 'version';
 
 // Snippet from cin_parser.js
 function normalizeEName(data) {
@@ -45,7 +40,7 @@ function normalizeEName(data) {
 }
 
 export class Migration {
-  constructor(ime, storage, old_storage) {
+  constructor(ime, storage) {
     if (!storage) {
       if (globalThis.chrome?.storage.local) {
         storage = new ChromeStorage();
@@ -54,12 +49,7 @@ export class Migration {
         debug("Migration: Selected Storage for new storage debugging.");
       }
     }
-    if (!old_storage) {
-        old_storage = new Storage();
-        debug("Migration: Selected Storage for old storage for debugging.");
-    }
     this.storage = storage;
-    this.old_storage = old_storage;
     this.ime = ime;
   }
 
@@ -100,76 +90,35 @@ export class Migration {
   async migrateAllTables(force) {
 
     let start = performance.now();
-    // Note we are not deleting the old table so users may switch between,
-    // however that means we have to delete both the old and new tables
-    // when removing a table in the Options.
-    let delete_old = true;
     let parallel = true;
-    // The 'enabled' is actually a croscin config but we have to migrate it
-    // here as well, assuming the storage backend is the same.
-    let enabled = (await this.storage.get(kConfigInputMethods)) ||
-      (await this.old_storage.get(kOldConfigInputMethods)) || [];
-    let old_meta = await this.old_storage.get(kOldTableMetadataKey);
-    let infos = await this.storage.get(KEY_INFO_LIST) || {};
-    debug("migrateAllTables: start to check...", old_meta, infos, enabled);
-    let waits = [];
     let url_base = chrome.runtime.getURL("");
-    // In case old_meta was corrupted, we want to keep migrating even if the
-    // metadata does not have the right info, as long as the table is valid.
-    for (let k of await this.old_storage.getKeys()) {
-      if (!k.startsWith(kOldTableDataKeyPrefix))
+    debug("migrateAllTables: start to check...");
+    let waits = [];
+
+    for (let k of await this.storage.getKeys()) {
+      if (!k.startsWith(KEY_TABLE_PREFIX))
         continue;
-      assert(kOldTableDataKeyPrefix.endsWith('-'),
-             "The old table data key must end with '-'");
-      let old_name = k.substring(kOldTableDataKeyPrefix.length);
-      let meta = old_meta[old_name] ||{};
-      if (meta.builtin || meta.url?.startsWith(url_base)) {
-        debug("Ignore built-in table:", old_name);
-        const new_prefix = 'jscin.'; // See tables/builtin.json
-        if (enabled.includes(old_name) && !old_name.startsWith(new_prefix))
-          enabled[enabled.indexOf(old_name)] = `${new_prefix}${old_name}`;
-        if (delete_old)
-          this.old_storage.remove(k);
+
+      // Migrate table k if needed.
+      let need_migrate = false;
+      if (!need_migrate)
         continue;
-      }
-      let table = this.migrateTable(await this.old_storage.get(k), meta);
-      // Now we have a new table, and the name may have changed.
-      let new_name = table.info.name;
-      debug("Checking if we need to migarte the old table:", new_name, k);
-      let new_k = this.ime.tableKey(new_name);
-      assert(new_k != k, "The key must be different for migration", k, new_k);
-      if (enabled.includes(old_name) && !enabled.includes(new_name)) {
-        enabled[enabled.indexOf(old_name)] = new_name;
-        debug("Changing enabled IMs:", old_name, new_name, enabled);
-      }
-      if (await this.storage.has(new_k) && !force) {
-        debug("New table is already there, skip:", new_name, new_k);
-        if (delete_old)
-          this.old_storage.remove(k);
-        continue;
-      }
-      infos[new_name] = table.info;
-      let w = this.storage.set(new_k, table);
-      if (delete_old)
-        this.old_storage.remove(k);
+
+      // Update table here
+      let table = this.migrateTable(await this.storage.get(k));
+
+      let w = this.storage.set(k, table);
       if (parallel)
-        waits.push(parallel);
+        waits.push(w);
       else
         await w;
     }
-    await this.storage.set(KEY_INFO_LIST, infos);
-    await this.storage.set(kConfigInputMethods, enabled);
-    if (delete_old) {
-      this.old_storage.remove(kOldTableMetadataKey);
-      this.old_storage.remove(kOldConfigInputMethods);
-      this.old_storage.remove(kOldPhrasesDatabaseKey);
-      this.old_storage.remove(kOldVersion);
-    }
-    /* Wait for all storage.set to finish. */
+
+    /* Wait for all waits (e.g., storage.set) to finish. */
     for (let w of waits)
       await w;
     let exec = Math.round(performance.now() - start);
-    debug("migrateTable: All tables migrated.", infos, exec, "ms");
+    debug("migrateTable: All tables migrated.", exec, "ms");
     console.log(`Migration/${parallel ? "parallel" : "single-thread"} ${exec} ms.`);
   }
 
@@ -182,28 +131,7 @@ export class Migration {
       this.storage.remove(k);
   }
 
-  removeLocalStorageData() {
-    if (!globalThis.localStorage)
-      return;
-
-    // Raw tables
-    const kRawdataKeyPrefix = "raw_data-";
-    // Oauth credentials
-    const kOauthPrefix = "oauth";
-
-    // Maybe in a service worker
-    if (!globalThis.localStorage)
-      return;
-
-    for (let k in localStorage) {
-      if (k.startsWith(kRawdataKeyPrefix) ||
-          k.startsWith(kOauthPrefix))
-        delete localStorage[k];
-    }
-  }
-
   async migrateAll(force) {
-    this.removeLocalStorageData();
     this.removeLegacyBackupTables();
     return this.migrateAllTables(force);
   }
