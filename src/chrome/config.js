@@ -131,27 +131,6 @@ export class Config {
     // Manifest v3 provides a Promise but v2 does not.
     return new Promise((resolve, reject) => {
       this.storage.get(props, (data) => {
-
-        /* Migration check from pre-chrome.storage */
-        let migrateProp = (new_key, old_key) => {
-          if (props.includes(new_key) && !(new_key in data)) {
-            // Probably the first time to migrate.
-            // Let's look at localStorage.
-            let old_value = localStorage[old_key];
-            // > 100 we'll need lz-string, and that's not worthy.
-            if (old_value && old_value.length < 100) {
-              data[new_key] = JSON.parse(old_value);
-            }
-          }
-        }
-
-        // In manifest V3, we can't migrate this.
-        if (globalThis.localStorage) {
-          migrateProp('InputMethods', 'croscinPrefEnabledInputMethodList');
-          /* Migrate from < 2.90 where Version lives only in localStorage */
-          migrateProp('Version', 'version');
-        }
-
         Object.assign(this.config, data);
         debug("Load: query:", props, "storage:", data, "live:", this.config);
         this.Apply(data);
