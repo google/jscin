@@ -68,44 +68,27 @@ export class ChromeStorage extends Storage {
     super(backend);
   }
   async get(key, def_val) {
-    // TODO Rewrite to directly return after MV3.
-    return new Promise((resolve) => {
-      this.storage.get(key, (items) => {
-        if (key in items)
-          resolve(items[key]);
-        else
-          resolve(def_val);
-      });
-  });
+    let items = await this.storage.get(key);
+    return (key in items) ? items[key] : def_val;
   }
   async set(key, value) {
-    // TODO Rewrite to directly return after MV3.
-    return new Promise((resolve) => {
-      return this.storage.set({[key]: value}, () =>{
-        resolve();
-      });
-    });
+    return this.storage.set({[key]: value});
   }
   async remove(key) {
-    return this.storage.remove(key, ()=>{});
+    return this.storage.remove(key);
   }
   async has(key) {
     return (await this.getKeys()).includes(key);
   }
   async getKeys() {
-    // TODO switch to getKeys after Chrome 130 is widely available.
-    return new Promise((resolve) => {
-      this.storage.get(null, (items) => {
-        resolve(Object.keys(items));
-      });
-    });
+    // getKeys is available since Chrome 130.
+    if (this.storage.getKeys)
+      return this.storage.getKeys();
+    let items = await this.storage.get(null);
+    return Object.keys(items);
   }
   async getBytesInUse() {
-    return new Promise((resolve) => {
-      this.storage.getBytesInUse((num) => {
-        resolve(num);
-      });
-    });
+    return this.storage.getBytesInUse();
   }
   listen(callback) {
     if (!this.callbacks.length && this.storage.onChanged) {

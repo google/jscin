@@ -15,13 +15,13 @@ class FakeStorage {
   clone(obj) {
       return JSON.parse(JSON.stringify(obj));
   }
-  async get(items, callback) {
-    log("FakeStorage.get:", items, callback);
+  async get(items) {
+    log("FakeStorage.get:", items);
     let data = Object.fromEntries(
       items.map((key, index) => [key, this.data[key]]));
-    callback(data);
+    return data;
   }
-  async set(data, callback) {
+  async set(data) {
     log("FakeStorage.set:", data);
     log("FakeStorage.set, before:", this.data);
     Object.assign(this.data, data);
@@ -30,7 +30,7 @@ class FakeStorage {
       this.onChanged(
         Object.fromEntries(Object.keys(data).map(
           (k)=>[k, {newValue: this.data[k]}])));
-    callback(data);
+    return data;
   }
 }
 

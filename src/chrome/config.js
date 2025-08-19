@@ -110,16 +110,13 @@ export class Config {
     if (typeof(props) === typeof('string'))
       props = [props];
     this.CheckProperties(props);
+    let data = props ?
+      Object.fromEntries(
+        props.map((key, index) => [key, this.config[key]])) :
+      this.config;
+    debug("Save:", data);
     // This would trigger the onChanged event to happen.
-    // Manifest v3 provides a Promise but v2 does not.
-    return new Promise((resolve, reject) => {
-      let data = props ?
-        Object.fromEntries(
-          props.map((key, index) => [key, this.config[key]])) :
-        this.config;
-      debug("Save:", data);
-      this.storage.set(data, ()=>{resolve();});
-    });
+    return this.storage.set(data);
   }
   async Load(props=null) {
     if (typeof(props) === typeof('string'))
@@ -128,14 +125,10 @@ export class Config {
     if (props === null)
       props = Object.keys(this.config);
     this.CheckProperties(props);
-    // Manifest v3 provides a Promise but v2 does not.
-    return new Promise((resolve, reject) => {
-      this.storage.get(props, (data) => {
-        Object.assign(this.config, data);
-        debug("Load: query:", props, "storage:", data, "live:", this.config);
-        this.Apply(data);
-        resolve(data);
-      })});
+    let data = await this.storage.get(props);
+    Object.assign(this.config, data);
+    debug("Load: query:", props, "storage:", data, "live:", this.config);
+    this.Apply(data);
   }
   Apply(changes) {
     for (let prop in changes) {

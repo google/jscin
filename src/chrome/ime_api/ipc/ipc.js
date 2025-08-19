@@ -107,21 +107,14 @@ export class ImeMessage {
   async getCurrentTab() {
     if (!chrome.tabs.getCurrent)
       return;
-    return new Promise((resolve) => {
-      chrome.tabs.getCurrent((tab) => {
-        resolve(tab?.id);
-      })
-    });
+    let tab = await chrome.tabs.getCurrent();
+    return tab?.id;
   }
   async getActiveTab() {
     if (!chrome.tabs.query)
       return;
-    return new Promise((resolve) => {
-      chrome.tabs.query({active: true, lastFocusedWindow: true},
-        ([tab]) => {
-          resolve(tab?.id);
-        });
-    });
+    let [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+    return tab?.id;
   }
   async findTabId() {
     if (!chrome.tabs)
