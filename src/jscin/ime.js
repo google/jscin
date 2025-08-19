@@ -7,7 +7,7 @@
 
 import { parseCin } from "./cin_parser.js";
 import { applyInputMethodTableQuirks } from './quirks.js';
-import { CompressedStorage, ChromeStorage, Storage, LoadText } from "./storage.js";
+import { ChromeStorage, Storage, LoadText } from "./storage.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin.ime");

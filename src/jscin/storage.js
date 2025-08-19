@@ -5,7 +5,6 @@
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
-import { LZString } from "./lz-string.js";
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("storage");
 
@@ -57,82 +56,6 @@ export class Storage {
       return;
     for (let c of this.callbacks)
       c(changes);
-  }
-}
-
-// A storage provider based on localStorage with compression
-export class CompressedStorage extends Storage {
-  constructor(backend=undefined) {
-    super(backend);
-    this.prefix = '!';
-  }
-  isCompressed(value) {
-    return value.startsWith(this.prefix);
-  }
-  needCompress(value) {
-    return value.startsWith(this.prefix) || value.length >= 100;
-  }
-  getReturnValue(value) {
-    if (!value)
-      return value;
-    if (this.isCompressed(value))
-      value = LZString.decompress(value.substring(1));
-    return JSON.parse(value);
-  }
-  async get(key, def_val) {
-    // def_val can't be decompressed so we have to handle it first.
-    if (def_val && !(await this.has(key)))
-      return def_val;
-
-    return this.getReturnValue(await super.get(key));
-  }
-  async set(key, value) {
-    let v = JSON.stringify(value);
-    if (this.needCompress(v))
-      v = this.prefix + LZString.compress(v);
-    return super.set(key, v);
-  }
-  onChanged(changes, namespace) {
-    for (let k in changes) {
-      for (let t of ["newValue", "oldValue"]) {
-        if (t in changes[k]) {
-          changes[k][t] = this.getReturnValue(changes[k][t]);
-        }
-      }
-    }
-    debug("CompressedStorage: changes are:", changes);
-    super.onChanged(changes, namespace);
-  }
-}
-
-// Similar to CompressedStorage except it's using sync venison AIPs.
-export class CompressedSyncStorage extends CompressedStorage {
-  get(key, def_val) {
-    // def_val can't be decompressed so we have to handle it first.
-    if (def_val && !(this.has(key)))
-      return def_val;
-
-    return this.getReturnValue(this.storage[key]);
-  }
-  set(key, value) {
-    let v = JSON.stringify(value);
-    if (this.needCompress(v))
-      v = this.prefix + LZString.compress(v);
-    this.storage[key] = v;
-  }
-  remove(key) {
-    let v = this.storage[key];
-    delete this.storage[key];
-    this.onChanged({[key]: {oldValue: v}});
-  }
-  has(key) {
-    return key in this.storage;
-  }
-  getKeys() {
-    return Object.keys(this.storage);
-  }
-  getBytesInUse() {
-    return JSON.stringify(this.storage).length;
   }
 }
 

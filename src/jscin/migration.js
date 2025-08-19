@@ -8,7 +8,7 @@
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("migration");
 
-import {ChromeStorage, CompressedStorage, Storage} from "./storage.js";
+import {ChromeStorage, Storage} from "./storage.js";
 import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
 const kConfigInputMethods = "InputMethods";
@@ -55,12 +55,8 @@ export class Migration {
       }
     }
     if (!old_storage) {
-      if (globalThis.localStorage) {
-        old_storage = new CompressedStorage();
-      } else {
         old_storage = new Storage();
         debug("Migration: Selected Storage for old storage for debugging.");
-      }
     }
     this.storage = storage;
     this.old_storage = old_storage;
