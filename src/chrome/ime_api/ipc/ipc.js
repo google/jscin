@@ -23,22 +23,26 @@ class ImeBaseMessage {
     throw "Unimplemented message for dispatching.";
   }
 
-  sendToExtension() {
-    chrome.runtime.sendMessage(this);
+  async sendToExtension() {
+    return chrome.runtime.sendMessage(this);
   }
-  sendToTab(tab_id) {
+  async sendToTab(tab_id) {
     tab_id ||= this.tab_id;
-    chrome.tabs.sendMessage(tab_id, this);
+    if (!tab_id) {
+      console.log("sendToTab: no tab_id, probably in menu init?");
+      return;
+    }
+    return chrome.tabs.sendMessage(tab_id, this);
   }
 
   // Context-aware shortcuts.
-  sendToMenu() {
+  async sendToMenu() {
     return this.sendToExtension();
   }
-  sendToPanel() {
+  async sendToPanel() {
     return this.sendToExtension();
   }
-  sendToContent(tab_id) {
+  async sendToContent(tab_id) {
     return this.sendToTab(tab_id);
   }
 }
@@ -180,16 +184,16 @@ export class IpcIme extends WebPageIme {
     return this.ipc.initialize(...args);
   }
 
-  sendCommandToPanel(command, parameters) {
-    this.ipc.Command(command, parameters).sendToPanel();
+  async sendCommandToPanel(command, parameters) {
+    return this.ipc.Command(command, parameters).sendToPanel();
   }
-  sendCommandToMenu(command, parameters) {
-    this.ipc.Command(command, parameters).sendToMenu();
+  async sendCommandToMenu(command, parameters) {
+    return this.ipc.Command(command, parameters).sendToMenu();
   }
-  forwardEventToContent(...args) {
+  async forwardEventToContent(...args) {
     return this.ipc.forwardEventToContent(...args);
   }
-  forwardEventToPanel(...args) {
+  async forwardEventToPanel(...args) {
     return this.ipc.forwardEventToPanel(...args);
   }
   getTabId() {
