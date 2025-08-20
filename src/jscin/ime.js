@@ -238,16 +238,16 @@ export class InputMethodsEnvironment {
     return (h >>> 0).toString(16);
   }
 
-  parseCinFromString(cin) {
-    debug("parseCinFromString:", cin.substring(0, 40), '...');
+  parseCinFromString(str) {
+    debug("parseCinFromString:", str.substring(0, 40), '...');
     // TODO(hungte) Dyanmic load cin_parser
-    let [success, result] = parseCin(cin);
+    let [success, cin, msg] = parseCin(str);
 
-    if (!success || !result.data) {
-      debug("Failed parsing:", cin);
+    if (!success || !cin) {
+      debug("Failed parsing: ", msg, str);
       return false;
     }
-    return result.data;
+    return cin;
   }
 
   createTable(cin, url, type, name) {

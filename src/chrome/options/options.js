@@ -357,6 +357,8 @@ async function addTableFromBlob(blob, source, type, save_name) {
     debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
     return;
   } else {
+    // TODO(hungte): If text decode failed, we actually won't show error message
+    // because no one reached addTable...
     debug("Failed to decode the table:", source);
   }
 }
@@ -448,15 +450,14 @@ async function addTable(content, url, type, save_name) {
   // TODO(hungte) Parse using jscin.createTable
   // so we can better figure out the right name.
   // Parse the content
-  let [success, result] = parseCin(content);
+  let [success, cin, msg] = parseCin(content);
 
   if (!success) {
     // result is now the error message.
-    setAddTableStatus(_("tableStatusFailedParsingMsg", result), true);
+    setAddTableStatus(_("tableStatusFailedParsingMsg", msg), true);
     return false;
   }
 
-  let cin = result.data;
   let name = save_name || cin.ename;
   let info = jscin.getTableInfo(name);
   if (info) {

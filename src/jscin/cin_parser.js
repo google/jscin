@@ -5,8 +5,9 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
-// Returns an array, which is [true, parsed_data] on success, or [false, error
-// message] on failure. parsed_data is an object, containing metadata and data.
+// Returns an array, which is [success, cin, message].
+// If success=true, cin is the valid parsed data. Otherwise, message contains
+// the error message.
 export function parseCin(cin_input) {
   let lines = cin_input.split('\n');
   let data = {};
@@ -24,7 +25,7 @@ export function parseCin(cin_input) {
   // not inside commands are chardefs.
 
   function failed(lineno, msg) {
-    return [false, 'line ' + (lineno+1) + ': ' + msg];
+    return [false, undefined, 'line ' + (lineno+1) + ': ' + msg];
   }
 
   for (let lineno in lines) {
@@ -155,14 +156,5 @@ export function parseCin(cin_input) {
 
   normalizeEName(data, data.ename);
 
-  let parsed_data = {
-    metadata: {
-      ename: data.ename,
-      cname: data.cname,
-      module: data.MODULE
-    },
-    data: data,
-  };
-
-  return [true, parsed_data];
+  return [true, data, ''];
 }
