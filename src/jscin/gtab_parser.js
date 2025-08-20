@@ -129,22 +129,40 @@ export function parseGtab(arraybuffer) {
   th.M_DUP_SEL = myView.getUint32();
   th.DefC = myView.getUint32();
 
+  // Indication of invalid composition in Array quick keys.
+  const INVALID_QUICK_KEY = '\u25a1';
+
   th.qkeys = {};
   th.qkeys.quick1 = [];
   for(let j = 0; j < MAX_GTAB_QUICK_KEYS; j++) {
     th.qkeys.quick1[j] = [];
+    let found = false;
     for(let k = 0; k < 10; k++) {
-      th.qkeys.quick1[j][k] = myView.getString(CH_SZ);
+      let s = myView.getString(CH_SZ);
+      if (s)
+        found = true;
+      // TODO(hungte): Decide INVALID_QUICK_KEY after scanning the whole qkeys.
+      th.qkeys.quick1[j][k] = s|| INVALID_QUICK_KEY;
     }
+    // Filter out all-invalid entries
+    if (!found)
+      th.qkeys.quick1[j] = [];
   }
   th.qkeys.quick2 = [];
   for(let j = 0; j < MAX_GTAB_QUICK_KEYS; j++) {
     th.qkeys.quick2[j] = [];
     for(let k = 0; k < MAX_GTAB_QUICK_KEYS; k++) {
       th.qkeys.quick2[j][k] = [];
+      let found = false;
       for(let l = 0; l < 10; l++) {
-        th.qkeys.quick2[j][k][l] = myView.getString(CH_SZ);
+        let s = myView.getString(CH_SZ);
+        if (s)
+          found = true;
+        th.qkeys.quick2[j][k][l] = s || INVALID_QUICK_KEY;
       }
+      // Filter out all-invalid entries
+      if (!found)
+        th.qkeys.quick2[j][k] = [];
     }
   }
 
@@ -174,6 +192,29 @@ export function parseGtab(arraybuffer) {
   cin += '%keyname end\n';
 
   myView.offset += 4 * (th.KeyS + 1); // skip parsing idx since it's unused
+
+  let qs = '';
+
+  th.qkeys.quick1.forEach((v, j) => {
+    if (!v.length)
+      return;
+    let s = checkAndConcat(keymap[j + 1], v.join(''));
+    qs += s;
+  });
+
+  th.qkeys.quick2.forEach((w, j) => {
+    w.forEach((v, k) => {
+      if (!v.length)
+        return;
+      let s = checkAndConcat(keymap[j + 1] + keymap[k + 1], v.join(''));
+      qs += s;
+    });
+  });
+
+  if (qs) {
+    cin += `%nullcandidate ${INVALID_QUICK_KEY}\n`; // CIN2 v2.1
+    cin += `%quick begin\n${qs}%quick end\n`;
+  }
 
   cin += '%chardef begin\n';
   let LAST_K_bitN = (Math.floor((key64 ? 64:32) / th.keybits) - 1) * th.keybits;
