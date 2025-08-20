@@ -23,12 +23,11 @@ export class BaseInputMethod
     // Read and parse from conf (a standard parsed CIN).
     this.cname = conf.cname || name;
     this.ename = conf.ename || name;
-    this.keyname = conf.keyname || {};
 
-    // Only table-commands (keyname, chardef) will be lowercased.
-    // Any one line params must be normalized to lower case.
-    this.selkey = (conf.selkey || '').toLowerCase();
-    this.endkey = (conf.endkey || '').toLowerCase();
+    // TODO(hungte) use conf directly.
+    this.keyname = conf.keyname;
+    this.selkey = conf.selkey;
+    this.endkey = conf.endkey;
   }
 
   // Called when the IM is first initialized.

@@ -1,35 +1,42 @@
 // Copyright 2024 Google Inc. All Rights Reserved.
 
 /**
- * @fileoverview Quirks for various tables
+ * @fileoverview Quirks for various CIN tables
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
 
-function Array30Quirks(data) {
+function GeneralQuirks(cin) {
+  // Only table-commands (keyname, chardef) will be lowercased in cin_parser.
+  // Any known one line params must be normalized to lower case.
+  cin.selkey = (cin.selkey || '').toLowerCase();
+  cin.endkey = (cin.endkey || '').toLowerCase();
+}
+
+function Array30Quirks(cin) {
   // quickkey (xcin2.3, openvanilla) and quick (gcin) are equivalent.
-  if (data.quickkey && !data.quick) {
-    data.quick = data.quickkey;
-    delete data.quickkey;
+  if (cin.quickkey && !cin.quick) {
+    cin.quick = cin.quickkey;
+    delete cin.quickkey;
   }
 }
 
-function BoshiamyQuirks(data) {
+function BoshiamyQuirks(cin) {
   // Check tables/types.json for Boshiamy detection. Use `?.` because
   // not all tables have 'ca'.
-  if (!data.chardef['ca']?.includes('\u5915'))
+  if (!cin.chardef['ca']?.includes('\u5915'))
     return false;
 
   // The Boshiamy tables may either set %space_style=1, or detected and then
-  // set data.{SELKEY_SHIFT,SPACE_AUTOUP}.
+  // set cin.{SELKEY_SHIFT,SPACE_AUTOUP}.
 
-  if ('space_style' in data) {
-    if (data.space_style != '1')
+  if ('space_style' in cin) {
+    if (cin.space_style != '1')
       return false;
   } else {
-    if (!(data.SELKEY_SHIFT && data.SPACE_AUTOUP))
+    if (!(cin.SELKEY_SHIFT && cin.SPACE_AUTOUP))
       return false;
   }
 
@@ -58,22 +65,22 @@ function BoshiamyQuirks(data) {
   ];
   // Not sure if there will be other IMs really expecting to do
   // SELKEY_SHIFT + SPACE_AUTOUP, so let's modify only specific keys.
-  if (!known_list.includes(data.selkey))
+  if (!known_list.includes(cin.selkey))
     return false;
 
   const newkey = '0123456789';
-  debug("BoshiamyQuirks: changed selkey:", data.selkey, newkey);
-  data.selkey = newkey;
+  debug("BoshiamyQuirks: changed selkey:", cin.selkey, newkey);
+  cin.selkey = newkey;
   // Already shifted.
-  delete data.SELKEY_SHIFT;
-  delete data.space_style;
+  delete cin.SELKEY_SHIFT;
+  delete cin.space_style;
   return true;
 }
 
 /* Check and apply various fixes or workarounds to make the input table
  * better. */
-export function applyInputMethodTableQuirks(data) {
-  // Adjust any context data.
-  BoshiamyQuirks(data);
-  Array30Quirks(data);
+export function applyInputMethodTableQuirks(cin) {
+  GeneralQuirks(cin);
+  Array30Quirks(cin);
+  BoshiamyQuirks(cin);
 }
