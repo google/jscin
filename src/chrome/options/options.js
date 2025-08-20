@@ -333,7 +333,7 @@ async function addTableFromBlob(blob, source, type, save_name) {
       debug("Parsing GTAB into CIN:", source, ename);
       let cin = `%ename ${ename}\n` + parseGtab(blob);
       debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
-      if (addTable(cin, source, type, save_name)) {
+      if (await addTable(cin, source, type, save_name)) {
         debug("addTableFromBlob: success.", source);
         return true;
       } else {
@@ -350,16 +350,18 @@ async function addTableFromBlob(blob, source, type, save_name) {
       t = new TextDecoder(locale, {fatal: true}).decode(blob);
       break;
     } catch (err) {
-      debug("Failed to decode CIN file:", source, locale);
+      debug("Failed to decode CIN table:", source, locale);
     }
   }
-  if (t && await addTable(t, source, type, save_name)) {
+  if (!t) {
+    setAddTableStatus(_("tableStatusFailedParsingMsg", `Unknown format: ${source}`), true);
+    debug("Failed to decode the table:", source);
+  } else if (await addTable(t, source, type, save_name)) {
     debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
     return;
   } else {
-    // TODO(hungte): If text decode failed, we actually won't show error message
-    // because no one reached addTable...
-    debug("Failed to decode the table:", source);
+    // addTable should already gave the error message.
+    debug("Failed to parse and add the table:", source);
   }
 }
 
