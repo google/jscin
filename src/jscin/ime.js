@@ -32,18 +32,8 @@ export const KEY_TABLE_PREFIX = "table-";
  * The input method is named by the table.
  *
  * Reading the tables may take a long time, so we also maintain an 'info_list'
- * (previously 'table metadata', basically the same) for the quick access to
- * the info of the table. The info can always be restored from the table.
- *
- * In jscin v2, the table data doesn't include the metadata. The metadata
- * - ename (same as ename in the table)
- * - cname (same as cname in the table)
- * - module (same as %MODULE in the table)
- * - builtin (optional, not in table)
- * - url (optional, not in table)
- * - setting (builtin_options.json, not in table but some options merged into table)
- *
- * In v3 we want to unify so the table always have everything:
+ * for quick accessing the info (to show to the user). The info can always be
+ * restored from the table, which has everything:
  * - cin (The raw parsed results from the *.cin table)
  *   = ename, cname, chardef
  * - info
@@ -55,9 +45,6 @@ export const KEY_TABLE_PREFIX = "table-";
  * `ename` and `cname` are in info because that's always required for display.
  * `url` is in info because for any reason we can't find the table, we may
  * always re-download the table by the URL.
- *
- * To allow switching between versions, the key names in the storage are also
- * different.
  *
  * USAGE
  *

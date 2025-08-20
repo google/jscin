@@ -13,32 +13,6 @@ import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
 
 const kOldTableDataKeyPrefix = "table_data-";
 
-// Snippet from cin_parser.js
-function normalizeEName(data) {
-
-  function parseLocales(intlname) {
-    const re = /(?<label>[^:;]+):(?<locale>[^:;]+);?/g;
-    let result = {}
-    for (let m of intlname.matchAll(re)) {
-      result[[m.groups.locale]] = m.groups.label;
-    }
-    if (!Object.keys(result).length)
-      return null;
-    return result;
-  }
-
-  const ename = data.ename;
-  if (!ename.includes(':') || !ename.includes(';'))
-    return;
-
-  let r = parseLocales(ename);
-  if (!r || !r.en)
-    return;
-
-  data.intlname = data.intlname || ename;
-  data.ename = r.en;
-}
-
 export class Migration {
   constructor(ime, storage) {
     if (!storage) {
@@ -63,9 +37,6 @@ export class Migration {
       error("migrateTable: Unkown format:",  data.ename, data);
       return data;
     }
-
-    // Fix broken table ename
-    normalizeEName(data);
 
     function renameProperty(obj, old_name, new_name) {
       if (!obj || !(old_name in obj))
