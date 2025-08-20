@@ -39,7 +39,7 @@ export class GenInp2 extends BaseInputMethod
     // The table to override when converting composition to candidates.
     this.override_conversion = undefined;
     // The table to override when composition is not explicitly converted.
-    this.override_autocompose = undefined;
+    this.override_autocompose = conf.quick;
 
     // Adjust options (implicitly) by table content.
 
@@ -63,11 +63,6 @@ export class GenInp2 extends BaseInputMethod
     let conf_remap = {
       KEYGROUPS: 'keygroups',
       KEYSTROKE_REMAP: 'override_conversion',
-
-      // quickkey is found on XCIN2.3 (and deprecated in XCIN 2.5).
-      quickkey: 'override_autocompose',
-      // quick is supported by GCIN.
-      quick: 'override_autocompose',
     };
 
     for (key in opts_remap) {

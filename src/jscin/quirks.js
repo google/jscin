@@ -8,6 +8,14 @@
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
 
+function Array30Quirks(data) {
+  // quickkey (xcin2.3, openvanilla) and quick (gcin) are equivalent.
+  if (data.quickkey && !data.quick) {
+    data.quick = data.quickkey;
+    delete data.quickkey;
+  }
+}
+
 function BoshiamyQuirks(data) {
   // Check tables/types.json for Boshiamy detection. Use `?.` because
   // not all tables have 'ca'.
@@ -67,4 +75,5 @@ function BoshiamyQuirks(data) {
 export function applyInputMethodTableQuirks(data) {
   // Adjust any context data.
   BoshiamyQuirks(data);
+  Array30Quirks(data);
 }
