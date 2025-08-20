@@ -16,7 +16,8 @@ export function parseCin(cin_input) {
     keyname: 1, chardef: 1,
     quick: 1, quickkey: 1,
     sel1st: 1, // re-order mappings, deprecated.
-    KEYSTROKE_REMAP: 1, KEYGROUPS: 1,
+    octagram: 1, symboldef: 1, // CIN2 new commands
+    KEYSTROKE_REMAP: 1, KEYGROUPS: 1, // XCINRC
   };
 
   // TODO for very old XCIN table (1.x~2.1b), there's no %chardef -- anything
