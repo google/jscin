@@ -73,6 +73,8 @@ export class GenInp extends BaseInputMethod
 
     if (this.header.endkey) {
       this.conf.mode.INP_MODE_ENDKEY = true;
+    } else {
+      this.header.endkey = '';
     }
 
     this.MCCH_ONEPG = 0;
@@ -418,7 +420,7 @@ export class GenInp extends BaseInputMethod
       }
 
       let key = normalizeKey(keyinfo.key);
-      let g = determine_group(k);
+      let g = determine_group(key);
       if (!g)
         return false;
 
