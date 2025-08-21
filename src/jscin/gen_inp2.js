@@ -33,6 +33,7 @@ export class GenInp2 extends BaseInputMethod
     this.max_composition = parseInt(conf.max_keystroke || "0");
     this.opts = {
       OPT_AUTO_COMPOSE: true,
+      OPT_SPACE_RESET: true,
       OPT_WILD_ENABLE: true,
     };
     // The table to override when converting composition to candidates.
