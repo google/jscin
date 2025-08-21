@@ -24,7 +24,6 @@ export class GenInp extends BaseInputMethod
       AUTO_UPCHAR: true,
       AUTO_FULLUP: false,
       SPACE_AUTOUP: false,
-      SELKEY_SHIFT: false,
       SPACE_RESET: true,
       AUTO_RESET: false,
       WILD_ENABLE: true,
@@ -41,7 +40,6 @@ export class GenInp extends BaseInputMethod
       AUTO_COMPOSE: 'INP_MODE_AUTOCOMPOSE',
       AUTO_UPCHAR: 'INP_MODE_AUTOUPCHAR',
       SPACE_AUTOUP: 'INP_MODE_SPACEAUTOUP',
-      SELKEY_SHIFT: 'INP_MODE_SELKEYSHIFT',
       AUTO_FULLUP: 'INP_MODE_AUTOFULLUP',
       SPACE_IGNORE: 'INP_MODE_SPACEIGNOR',
       AUTO_RESET: 'INP_MODE_AUTORESET',
@@ -88,11 +86,7 @@ export class GenInp extends BaseInputMethod
     super.reset_context(inpinfo);
 
     let ime = this;
-    if (!this.conf.mode.INP_MODE_SELKEYSHIFT) {
-      inpinfo.selkey = ime.header.selkey;
-    } else {
-      inpinfo.selkey = ' ' + ime.header.selkey;
-    }
+    inpinfo.selkey = ime.header.selkey;
 
     inpinfo.suggest_skeystroke = '';
     inpinfo.mcch_pgstate = ime.MCCH_ONEPG;

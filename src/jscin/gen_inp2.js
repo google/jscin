@@ -44,8 +44,6 @@ export class GenInp2 extends BaseInputMethod
 
     // Adjust options (implicitly) by table content.
 
-    let key;
-
     for (let k of this.selkey) {
       if (k in this.keyname || this.endkey.includes(k))
         this.opts.OPT_AUTO_COMPOSE = false;
@@ -54,7 +52,6 @@ export class GenInp2 extends BaseInputMethod
     // Adjust options (explicitly) by table commands.
 
     let opts_remap = {
-      SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
       SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
@@ -68,20 +65,14 @@ export class GenInp2 extends BaseInputMethod
       KEYSTROKE_REMAP: 'override_conversion',
     };
 
-    for (key in opts_remap) {
-      if (key in conf) {
+    for (let key in opts_remap) {
+      if (key in conf)
         this.opts[opts_remap[key]] = conf[key];
-      }
     }
 
-    for (key in conf_remap) {
-      if (key in conf) {
+    for (let key in conf_remap) {
+      if (key in conf)
         this[conf_remap[key]] = conf[key];
-      }
-    }
-
-    if (this.opts.OPT_SELKEY_SHIFT) {
-      this.selkey = ' ' + this.selkey;
     }
   }
 

@@ -93,7 +93,7 @@ async function main() {
     }, {
       table: "test_boshiamy.cin",
       test: [
-        { input: "a ", result: "對", 0: {selkey: ' 1234567890'} },
+        { input: "a ", result: "對", 0: {selkey: '0123456789'} },
         { input: "o ", result: "○", 0: {mcch: '○〇'} },
         { input: "o1", result: "〇" },
       ]

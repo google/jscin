@@ -36,60 +36,6 @@ function Array30Quirks(cin) {
   }
 }
 
-function BoshiamyQuirks(cin) {
-  // Check tables/types.json for Boshiamy detection. Use `?.` because
-  // not all tables have 'ca'.
-  if (!cin.chardef['ca']?.includes('\u5915'))
-    return false;
-
-  // The Boshiamy tables may either set %space_style=1, or detected and then
-  // set cin.{SELKEY_SHIFT,SPACE_AUTOUP}.
-
-  if ('space_style' in cin) {
-    if (cin.space_style != '1')
-      return false;
-  } else {
-    if (!(cin.SELKEY_SHIFT && cin.SPACE_AUTOUP))
-      return false;
-  }
-
-  // Space (' ') cannot be set in CIN selkey, so input methods like Dayi
-  // and Boshiamy that expecting to select the first candidate by Space,
-  // they need SELKEY_SHIFT. However when SPACE_AUTOUP is also set (like
-  // Boshiamy), SPACE = commit the first candidate so with RelatedText
-  // turned on, SPACE will keep committing unexpected words so '0' may a
-  // better choice - and implementations like Boshiamy on Mac does use 0.
-  //
-  // Some tables already took that into consideration and some don't.
-  // Unfortunately we have to 'guess' here for a better user experience.
-  //
-  // - Official gcin (boshiamy-*.gtab):           123456789
-  // - Official cin  (boshiamy-c.cin, liu57.cin): 0123456789
-  // - Github cin-tables (boshiamy.cin):          1234567890
-  // - liu5.cin:                                  1234567890
-  // - liu7.cin:                                  0123456789
-  // - noseeing.cin (LuneIME):                    1234567890, %space_style=1
-  // - noseeing-12.gtb:                           1234567890
-
-  const known_list = [
-    '123456789',
-    '1234567890',
-    '0123456789',
-  ];
-  // Not sure if there will be other IMs really expecting to do
-  // SELKEY_SHIFT + SPACE_AUTOUP, so let's modify only specific keys.
-  if (!known_list.includes(cin.selkey))
-    return false;
-
-  const newkey = '0123456789';
-  debug("BoshiamyQuirks: changed selkey:", cin.selkey, newkey);
-  cin.selkey = newkey;
-  // Already shifted.
-  delete cin.SELKEY_SHIFT;
-  delete cin.space_style;
-  return true;
-}
-
 function GcinQuirks(cin) {
 
   switch (parseInt(cin.space_style || "-1")) {
@@ -163,15 +109,49 @@ function GcinQuirks(cin) {
   }
 }
 
-/* Check and apply various fixes or workarounds to make the input table
- * better. */
+// Space (' ') cannot be set in CIN selkey, so input methods like Dayi
+// and Boshiamy that expecting to select the first candidate by Space,
+// they need SELKEY_SHIFT. However when SPACE_AUTOUP is also set (like
+// Boshiamy), SPACE = commit the first candidate so with RelatedText
+// turned on, SPACE will keep committing unexpected words so '0' may a
+// better choice - and implementations like Boshiamy on Mac does use 0.
+//
+// Some tables already took that into consideration and some don't,
+// so we have to enforce using '0':
+//
+// - Official gcin (boshiamy-*.gtab):           123456789
+// - Official cin  (boshiamy-c.cin, liu57.cin): 0123456789
+// - Github cin-tables (boshiamy.cin):          1234567890
+// - liu5.cin:                                  1234567890
+// - liu7.cin:                                  0123456789
+// - noseeing.cin (LuneIME):                    1234567890, %space_style=1
+// - noseeing-12.gtb:                           1234567890
+function SelkeyShiftQuirks(cin) {
+  if (!cin.SELKEY_SHIFT)
+    return;
+
+  let k = cin.selkey || '';
+  if (k.startsWith(' ')) {
+    error("SELKEY_SHIFT but selkey alreay started with SPACE.");
+    return;
+  }
+
+  if (cin.SPACE_AUTOUP && k.includes('123456789')) {
+    k = '0' + k.replaceAll('0', '');
+    debug("SELKEY_SHIFT + SPACE_AUTOUP: shift with '0':", k);
+  } else {
+    k = ' ' + k;
+    debug(`SELKEY_SHIFT: new selkey=[${k}]`);
+  }
+  cin.selkey = k;
+  delete cin.SELKEY_SHIFT;
+}
+
+/* Check and apply various patches to make the input table better. */
 export function applyInputMethodTableQuirks(cin) {
   GeneralQuirks(cin);
+  GcinQuirks(cin);
 
   Array30Quirks(cin);
-  BoshiamyQuirks(cin);
-
-  // GcinQuirks must be applied after BoshiamyQuirks so the space_style can be
-  // modified before being converted to XCIN commands.
-  GcinQuirks(cin);
+  SelkeyShiftQuirks(cin);
 }
