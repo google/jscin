@@ -40,14 +40,7 @@ export class GenInp2 extends BaseInputMethod
     // The table to override when composition is not explicitly converted.
     this.override_autocompose = conf.quick;
 
-    // Adjust options (implicitly) by table content.
-
-    for (let k of this.selkey) {
-      if (k in this.keyname || this.endkey.includes(k))
-        this.opts.OPT_AUTO_COMPOSE = false;
-    }
-
-    // Adjust options (explicitly) by table commands.
+    // Convert table commands to options.
 
     let opts_remap = {
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',

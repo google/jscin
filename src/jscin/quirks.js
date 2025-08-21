@@ -26,6 +26,23 @@ function GeneralQuirks(cin) {
       v = (v || '').toLowerCase();
     cin[cmd] = v;
   }
+
+  // Turn on AUTO_COMPOSE if the selkey does not overlap with keyname and
+  // endkey, so we always know the selkey = "select candidate" when pressed
+  // without ambiguity no matter if candidates are listed or not.
+  if (!('AUTO_COMPOSE' in cin)) {
+    let v = true;
+    for (let k of cin.selkey) {
+      if (k in cin.keyname || cin.endkey?.includes(k)) {
+        v = false;
+        debug("selkey in keyname or endkey, set AUTO_COMPOSE default to false.",
+          k, cin.keyname, cin.endkey);
+        break;
+      }
+    }
+    debug("Change AUTO_COMPOSE default to:", v);
+    cin.AUTO_COMPOSE = v;
+  }
 }
 
 function Array30Quirks(cin) {
