@@ -283,7 +283,7 @@ export class CrOS_CIN {
     // Vertical candidates window looks better on ChromeOS.
     // CIN tables don't expect cursor in candidates window.
     this.SetCandidateWindowProperties({
-      vertical: true,
+      vertical: this.config.VerticalWindow(),
       cursorVisible: false,
       visible: false,
       auxiliaryText: this.im_label,

@@ -83,9 +83,10 @@ async function init() {
       "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
       "optionTableDetailTypeHeader", "optionQueryKeystrokes",
       "optionSettingChoices",
-      "optionGeneral", "optionSupportNonChromeOS",
-      "optionAlertChangeSupportNonChromeOS",
+      "optionGeneral",
       "optionRawMode", "optionRelatedText", "optionPunctuations",
+      "optionVerticalWindow",
+      "optionSupportNonChromeOS", "optionAlertChangeSupportNonChromeOS",
       "optionSelectDefaultInputModule", "optionSandbox",
       "optionDebug", "optionDebugMessage");
 
@@ -276,6 +277,10 @@ async function init() {
   $('#checkRelatedText').prop("checked",
     config.AddonRelatedText()).click(function () {
       config.Set("AddonRelatedText", $(this).prop("checked"));
+    });
+  $('#checkVerticalWindow').prop("checked",
+    config.VerticalWindow()).click(function () {
+      config.Set("VerticalWindow", $(this).prop("checked"));
     });
 
   // To set default check state of checkboxes, do call button("refresh").

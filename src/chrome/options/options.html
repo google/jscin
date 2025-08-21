@@ -37,10 +37,6 @@
       <h3 class="optionGeneral"></h3>
       <div>
 
-      <input type="checkbox" id="checkRawMode"></input>
-      <label for="checkRawMode" class="optionRawMode">
-      </label><br/>
-
       <input type="checkbox" id="checkPunctuations"></input>
       <label for="checkPunctuations" class="optionPunctuations">
       </label><br/>
@@ -49,8 +45,23 @@
       <label for="checkRelatedText" class="optionRelatedText">
       </label><br/>
 
-      <div id="divSupportNonCrOS">
-      <hr>
+      <hr/>
+
+      <div id="divOnCrOS">
+      <input type="checkbox" id="checkRawMode"></input>
+      <label for="checkRawMode" class="optionRawMode">
+      </label><br/>
+
+      <!-- Vertical Window currently does not work on ChromeOS. -->
+      <span style="display: none;">
+      <input type="checkbox" id="checkVerticalWindow"></input>
+      <label for="checkVerticalWindow" class="optionVerticalWindow">
+      </label><br/>
+      </span>
+
+      </div>
+
+      <div id="divNonCrOS">
       <input type="checkbox" id="checkSupportNonChromeOS"></input>
       <label for="checkSupportNonChromeOS" class="optionSupportNonChromeOS">
       </label>

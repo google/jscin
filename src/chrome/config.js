@@ -62,6 +62,7 @@ export class Config {
       DefaultModule: '',
       Emulation: false,
       RawMode: true,
+      VerticalWindow: true,
       AddonRelatedText: false,
       AddonPunctuations: true,
       AddonCrossQuery: "",
@@ -161,6 +162,7 @@ export class Config {
   DefaultModule()       { return this.Get("DefaultModule"); }
   Emulation()           { return this.Get("Emulation"); }
   RawMode()             { return this.Get("RawMode"); }
+  VerticalWindow()      { return this.Get("VerticalWindow"); }
   Version()             { return this.Get("Version"); }
   AddonRelatedText()    { return this.Get("AddonRelatedText"); }
   AddonPunctuations()   { return this.Get("AddonPunctuations"); }
