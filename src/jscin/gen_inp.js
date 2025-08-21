@@ -86,8 +86,6 @@ export class GenInp extends BaseInputMethod
     this.table = conf.chardef;
     this.header.max_keystroke = parseInt(this.header.max_keystroke);
 
-    if (this.header.endkey == undefined)
-      this.header.endkey = '';
     if (this.header.endkey) {
       this.conf.mode.INP_MODE_ENDKEY = true;
     }

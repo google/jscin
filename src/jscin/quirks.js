@@ -11,8 +11,21 @@ const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
 function GeneralQuirks(cin) {
   // Only table-commands (keyname, chardef) will be lowercased in cin_parser.
   // Any known one line params must be normalized to lower case.
-  cin.selkey = (cin.selkey || '').toLowerCase();
-  cin.endkey = (cin.endkey || '').toLowerCase();
+  // The parser may leave the command as 'true' if no params so we have to
+  // check.
+  // 'endkey' may be optional so we want to leave that for the input module to
+  // decide if they want to turn that into a string (or undefined).
+  for (let cmd of ['selkey', 'endkey']) {
+    if (!(cmd in cin))
+      continue;
+
+    let v = cin[cmd];
+    if (v === true)
+      v = '';
+    else
+      v = (v || '').toLowerCase();
+    cin[cmd] = v;
+  }
 }
 
 function Array30Quirks(cin) {

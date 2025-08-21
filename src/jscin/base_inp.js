@@ -27,7 +27,7 @@ export class BaseInputMethod
     // TODO(hungte) use conf directly.
     this.keyname = conf.keyname;
     this.selkey = conf.selkey;
-    this.endkey = conf.endkey;
+    this.endkey = conf.endkey || '';  // endkey is optional.
   }
 
   // Called when the IM is first initialized.

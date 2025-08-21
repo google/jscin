@@ -45,18 +45,18 @@ export function parseCin(cin_input) {
         if (arg == 'begin') {
           runningcmd = cmd;
           if (data[cmd] != undefined)
-            return failed(lineno, 'section already exists');
+            return failed(lineno, `section already exists: ${cmd}`);
           data[cmd] = {};
         } else if (arg == 'end') {
           if (!runningcmd)
-            return failed(lineno, 'end before begin');
+            return failed(lineno, `end before begin: ${cmd}`);
           runningcmd = null;
         } else {
-          return failed(lineno, 'should be begin/end');
+          return failed(lineno, `should be begin/end: ${arg}`);
         }
       } else {
         if (runningcmd)
-          return failed(lineno, 'previous section has no end');
+          return failed(lineno, `previous section has no end: ${runningcmd}`);
         if (arg == undefined)
           arg = true;
         else if (arg == 'false')
@@ -105,23 +105,31 @@ export function parseCin(cin_input) {
     }
   }
 
-  // verify mandatory fields
-  if (data['prompt']) {  // gcin format
-    data['cname'] = data['prompt'];
+  // We want to keep the CIN AS-IS and prevent minimal changes (except the
+  // cname/ename because they are critical for storing and showing). The
+  // normalization and quirks should be applied only in the runtime - that will
+  // help us to change the logic by updating the program. Check `quirks.js`
+  // and `gen_inp[2].js` for further details.
+
+  // Normalize and verify mandatory fields
+  if (data.prompt && !data.cname) {  // gcin format
+    data.cname = data.prompt;
   }
   let mandatory_command = [
-      'ename', 'cname', 'selkey', 'keyname', 'chardef'
-      ];
-  for (let i in mandatory_command) {
-    if (data[mandatory_command[i]] == undefined)
-      return failed(-1, 'mandatory section %' + mandatory_command[i] +
-                    ' missing');
+    'ename', 'cname', 'selkey', 'keyname', 'chardef',
+  ];
+  for (let cmd of mandatory_command) {
+    if (data[cmd] == undefined)
+      return failed(-1, `missing mandatory section: %${cmd}`);
+  }
+  // TODO(hungte) Allow ename/cname to derive from each other.
+  for (let cmd of ['ename', 'cname']) {
+    if (data[cmd] === true)
+      return failed(-1, `missing valid name: %${cmd}`);
   }
 
-  // Normalize mandatory commands without values
-  if (data.selkey === true) {
-    data.selkey = '';
-  }
+  // TOOD(hungte) Move selkey (can be default) and keyname (can be calculated)
+  // as optional.
 
   // TODO (hungte) export this for migration.
   // Some CIN tables (https://github.com/chinese-opendesktop/cin-tables) have
@@ -156,5 +164,5 @@ export function parseCin(cin_input) {
 
   normalizeEName(data, data.ename);
 
-  return [true, data, ''];
+  return [true, data, 'Success'];
 }

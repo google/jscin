@@ -422,7 +422,7 @@ export class GenInp2 extends BaseInputMethod
 
   IsEndKey(ctx, key) {
     debug("IsEndKey", key);
-    return this.endkey && this.endkey.includes(key);
+    return this.endkey.includes(key);
   }
 
   SelectCommit(ctx, key) {
