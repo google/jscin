@@ -250,8 +250,12 @@ async function init() {
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
-  if (chrome?.input?.ime)
-    $('#divSupportNonCrOS').display = 'none';
+  let divName = 'divOnCrOS';
+  if (chrome?.input?.ime) {
+    divName = 'divNonCrOS';
+  }
+  // Not sure why but we can't use $(divName).hide().
+  document.getElementById(divName).style.display = 'none';
 
   $('#checkSupportNonChromeOS').prop("checked",
     config.Emulation()).click(function ()
