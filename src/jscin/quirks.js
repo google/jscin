@@ -90,10 +90,88 @@ function BoshiamyQuirks(cin) {
   return true;
 }
 
+function GcinQuirks(cin) {
+
+  switch (parseInt(cin.space_style || "-1")) {
+    case 0:
+      // GTAB_space_auto_first_none: use the value set by .cin
+      break;
+
+    case 1:
+      // GTAB_space_auto_first_any: Boshiamy
+      cin.SPACE_AUTOUP = true;
+      cin.SELKEY_SHIFT = true;
+      cin.SPACE_RESET = true;
+      break;
+
+    case 2:
+      // GTAB_space_auto_first_full: Simplex.
+      cin.AUTO_FULLUP = true;
+      break;
+
+    case 4:
+      // GTAB_space_auto_first_nofull: Windows Array30, Changjei.
+      break;
+
+    case 8:
+      // GTAB_space_auto_first_dayi: Dayi (input:2, select:1).
+      cin.SELKEY_SHIFT = true;
+      break;
+
+    case -1:
+      break;
+
+    default:
+      trace("unknown space_style: ", cin.space_style);
+      break;
+  }
+
+  // Decoding flags to % commands should be done in the gtab parser, but given
+  // there may be unknown flags, we want to expand in the runtime.
+
+  // Flags from GCIN 2.9.4:
+  let flag = parseInt(cin.flag || "0");
+  const flag_value_to_cmds = {
+    flag_keep_key_case: 0x01,
+    flag_gtab_sym_kbm: 0x02,
+    flag_phrase_auto_skip_endkey: 0x04,
+    flag_auto_select_by_phrase: 0x08,
+    flag_disp_partial_match: 0x10,
+    flag_disp_full_match: 0x20,
+    flag_vertical_selection: 0x40,
+    flag_press_full_auto_send: 0x80,
+    flag_unique_auto_send: 0x100,
+    flag_keypad_input_key: 0x200,
+  };
+  for (const [k, v] of Object.entries(flag_value_to_cmds)) {
+    if (flag & v) {
+      cin[k] = true;
+      debug("quirks: Add GCIN command from flag:", k);
+    }
+  }
+
+  const gcin_to_xcin25 = {
+    flag_disp_partial_match: "AUTO_COMPOSE", // Technically we don't really support this yet.
+    flag_disp_full_match: "AUTO_COMPOSE",
+    flag_press_full_auto_send: "AUTO_FULLUP",
+  };
+  for (const [k, v] of Object.entries(gcin_to_xcin25)) {
+    if (cin[k]) {
+      cin[v] = true;
+      debug("quirks: Altered GCIN command to XCIN25:", k, v);
+    }
+  }
+}
+
 /* Check and apply various fixes or workarounds to make the input table
  * better. */
 export function applyInputMethodTableQuirks(cin) {
   GeneralQuirks(cin);
+
   Array30Quirks(cin);
   BoshiamyQuirks(cin);
+
+  // GcinQuirks must be applied after BoshiamyQuirks so the space_style can be
+  // modified before being converted to XCIN commands.
+  GcinQuirks(cin);
 }

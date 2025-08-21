@@ -57,7 +57,8 @@ export class GenInp2 extends BaseInputMethod
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
       SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
-      AUTO_FULLUP: 'OPT_COMMIT_ON_FULL'
+      AUTO_FULLUP: 'OPT_COMMIT_ON_FULL',
+      flag_unique_auto_send: 'OPT_COMMIT_ON_SINGLE_CANDIDATE',
     };
 
     let conf_remap = {
@@ -77,45 +78,6 @@ export class GenInp2 extends BaseInputMethod
       }
     }
 
-    // gcin
-    switch (parseInt(conf.space_style || "-1")) {
-      case 1:
-        // GTAB_space_auto_first_any: Boshiamy
-        this.opts.OPT_SPACE_AUTOUP = true;
-        this.opts.OPT_SELKEY_SHIFT = true;
-        this.opts.OPT_SPACE_RESET = true;
-        break;
-
-      case 2:
-        // GTAB_space_auto_first_full: Simplex.
-        this.opts.OPT_COMMIT_ON_FULL = true;
-        break;
-
-      case 4:
-        // GTAB_space_auto_first_nofull: Windows Array30, Changjei.
-        break;
-
-      case 8:
-        // GTAB_space_auto_first_dayi: Dayi (input:2, select:1).
-        this.opts.OPT_SELKEY_SHIFT = true;
-        break;
-
-      case -1:
-        break;
-
-      default:
-        trace("unknown space_style: ", conf.space_style);
-        break;
-    }
-
-    let flag = parseInt(conf.flag || "0");
-    if (flag & 0x80) {  // FLAG_GTAB_PRESS_FULL_AUTO_SEND
-      this.opts.OPT_COMMIT_ON_FULL = true;
-    }
-    if (flag & 0x100) { // FLAG_GTAB_UNIQUE_AUTO_SEND
-      // Only seen on greek.cin
-      this.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE = true;
-    }
     if (this.opts.OPT_SELKEY_SHIFT) {
       this.selkey = ' ' + this.selkey;
     }
