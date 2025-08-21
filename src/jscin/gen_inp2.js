@@ -27,14 +27,15 @@ export class GenInp2 extends BaseInputMethod
     this.STATE_COMPOSITION = 1;
     this.STATE_CANDIDATES = 2;
 
-    this.MAX_GLOB_PAGES = 50;
+    this.MAX_GLOB_PAGES = 10;
     this.GLOB_KEYS = '?*';
 
     // Read and parse from conf (a standard parsed CIN).
     this.table = conf.chardef || {}; // lowercase(keys) by cin_parser.
     this.max_composition = parseInt(conf.max_keystroke || "0");
     this.opts = {
-      OPT_AUTO_COMPOSE: true
+      OPT_AUTO_COMPOSE: true,
+      OPT_WILD_ENABLE: true,
     };
     // The table to override when converting composition to candidates.
     this.override_conversion = undefined;
@@ -58,7 +59,8 @@ export class GenInp2 extends BaseInputMethod
       SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
       AUTO_FULLUP: 'OPT_COMMIT_ON_FULL',
-      flag_unique_auto_send: 'OPT_COMMIT_ON_SINGLE_CANDIDATE',
+      WILD_ENABLE: 'OPT_WILD_ENABLE',
+      flag_unique_auto_send: 'OPT_UNIQUE_AUTO',
     };
 
     let conf_remap = {
@@ -137,30 +139,22 @@ export class GenInp2 extends BaseInputMethod
   }
 
   Glob2Regex(pattern) {
+    // assert GLOB_KEYS == '*?'.
     return new RegExp("^" + pattern
       .replace(new RegExp('([\\][\\\\./^$()!|{}+-])', "g"), "\\$1")
       .replace(/\?/g, ".").replace(/\*/g, ".*")
       + "$");
   }
 
-  IsGlobInPattern(pattern) {
-    return (pattern.includes('?') || pattern.includes('*'));
+  IsGlobPattern(pattern) {
+    for (let k of this.GLOB_KEYS)
+      if (pattern.includes(k))
+        return true;
+    return false;
   }
 
   IsGlobKey(key) {
-    // TODO(hungte) Add an option to turn on/off.
     return this.GLOB_KEYS.includes(key);
-  }
-
-  GlobFromArray(pattern, array, callback) {
-    // Terminates when callback returns true.
-    trace(pattern);
-    let regex = this.Glob2Regex(pattern);
-    // Currently looping with index is the fastest way to iterate an array.
-    for (let v of array) {
-      if (regex.test(v) && callback(v))
-        break;
-    }
   }
 
   ResetContext(ctx) {
@@ -206,6 +200,13 @@ export class GenInp2 extends BaseInputMethod
     return ctx.candidates.length == 1;
   }
 
+  IsUniqueCandidate(ctx) {
+    // Checks if there is only 1 candidate (by partial match).
+    let r = this.GlobCandidates(ctx.composition + '*');
+    debug("IsUniqueCandidate:", r);
+    return (r.length == 1);
+  }
+
   CanCycleCandidates(ctx) {
     return ctx.candidates.length > this.selkey.length;
   }
@@ -230,21 +231,28 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
-  GlobCandidates(ctx) {
-    let regex = this.Glob2Regex(ctx.composition);
-    let lookup = Object.keys(this.table);
-    this.ClearCandidates(ctx);
+  GlobCandidates(pattern, table, hits) {
+    if (!pattern)
+      pattern = this.composition;
+    if (!table)
+      table = this.table;
+    if (!hits)
+      hits = this.MAX_GLOB_PAGES * this.selkey.length;
+
+    let result = '';
+    let regex = this.Glob2Regex(pattern);
 
     // Currently looping with index is the fastest way to iterate an array.
-    for (let l of lookup) {
+    for (let l of Object.keys(table)) {
       if (!regex.test(l))
         continue;
-      ctx.candidates += this.table[l];
-      if (ctx.candidates.length >= this.MAX_GLOB_PAGES * ctx.selkey.length)
+      result += table[l];
+      if (result.length >= hits) {
+        debug("GlobCandidates: too many candidates:", result.length, result);
         break;
+      }
     }
-    this.UpdateCandidates(ctx);
-    return ctx.candidates.length > 0;
+    return result;
   }
 
   PrepareCandidates(ctx, is_autocompose) {
@@ -267,12 +275,8 @@ export class GenInp2 extends BaseInputMethod
         table = this.override_conversion;
     }
 
-    if (this.IsGlobInPattern(key)) {
-      this.GlobFromArray(key, Object.keys(table), (key) => {
-        ctx.candidates += table[key];
-        return (ctx.candidates.length >=
-          (this.MAX_GLOB_PAGES * this.selkey.length));
-      });
+    if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
+      ctx.candidates += this.GlobCandidates(key);
     } else {
       // TODO(hungte) Currently cin_parser concats everything into a big
       // string, so candidates is a string. We should make it into an array.
@@ -284,7 +288,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   IsCompositionKey(ctx, key) {
-    return (key in this.keyname) || this.IsGlobKey(key);
+    return (key in this.keyname) || (this.opts.OPT_WILD_ENABLE && this.IsGlobKey(key));
   }
 
   CanDoComposition(ctx, key) {
@@ -461,8 +465,7 @@ export class GenInp2 extends BaseInputMethod
           if (this.opts.OPT_COMMIT_ON_FULL && this.IsFullComposition(ctx))
             return this.ConvertComposition(ctx, key);
 
-          if (this.opts.OPT_COMMIT_ON_SINGLE_CANDIDATE &&
-            this.IsSingleCandidate(ctx))
+          if (this.opts.OPT_UNIQUE_AUTO && this.IsUniqueCandidate(ctx))
             return this.ConvertComposition(ctx, key);
 
           // Implicit endkeys (Array30/XCIN25 W[0-9])
