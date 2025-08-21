@@ -5,10 +5,8 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-// TODO(hungte) SPACE_RESET (reset on error).
 // TODO(hungte) Indicators for candidates to show "composition state" or
 // "selection only state".
-// TODO(hungte) Allow enabling glob or not, and to allow glob keys properly.
 // TODO(hungte) Change mcch (candidates) to array instead of a string.
 
 import {jscin} from "./jscin.js";
@@ -56,6 +54,7 @@ export class GenInp2 extends BaseInputMethod
       SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
       AUTO_FULLUP: 'OPT_COMMIT_ON_FULL',
+      AUTO_RESET: 'OPT_AUTO_RESET',
       WILD_ENABLE: 'OPT_WILD_ENABLE',
       flag_unique_auto_send: 'OPT_UNIQUE_AUTO',
     };
@@ -107,7 +106,8 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ResultError(ctx, key) {
-    if (this.opts.OPT_SPACE_RESET && key == ' ') {
+    if (this.opts.OPT_AUTO_RESET ||
+        (this.opts.OPT_SPACE_RESET && key == ' ')) {
       // TODO we should display the current (wrong) composition in a different
       // color to indicate it's error... Maybe in auxiliaryText?
       this.ResetContext(ctx);
