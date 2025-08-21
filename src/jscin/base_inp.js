@@ -44,12 +44,12 @@ export class BaseInputMethod
   {
     // XCIN style interface.
     ctx.selkey = this.selkey;
-    ctx.keystroke = '';
+    ctx.keystroke = '';  // compoisition
     ctx.suggest_keystroke = '';
-    ctx.cch = '';
-    ctx.mcch = [];
-    ctx.lcch = [];
-    ctx.edit_pos = 0;
+    ctx.cch = '';  // the string to commit
+    ctx.mcch = [];  // multi-char list (candidates)
+    ctx.lcch = [];  // composed cch list, e.g., edit buffer in Smart IMs
+    ctx.edit_pos = 0;  // cursor in the edit buffer.
     // The cch_publish should be initialized only one time, not in every
     // reset_context -- see init.
   }
