@@ -60,6 +60,7 @@ export class CrOS_CIN {
 
     this.kMenuOptions = "options";
     this.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
+    this.kImeErrorLabel = chrome.i18n.getMessage("imeError");
 
     this.engineID = this.kEngineId;
     this.context = null;
@@ -238,6 +239,12 @@ export class CrOS_CIN {
         this.UpdateUI();
         return true;
 
+      case jscin.IMKEY_ERROR:
+        debug("im.keystroke: return IMKEY_ERROR");
+        this.UpdateUI();
+        this.ShowAuxiliaryText(this.kImeErrorLabel);
+        return true;
+
       case jscin.IMKEY_IGNORE:
         debug("im.keystroke: return IMKEY_IGNORE");
         this.UpdateUI();
@@ -284,6 +291,13 @@ export class CrOS_CIN {
 
     // Setup menu
     this.UpdateMenu();
+  }
+
+  ShowAuxiliaryText(message) {
+    this.SetCandidateWindowProperties({
+      auxiliaryText: message,
+      auxiliaryTextVisible: true});
+    this.imctx.last_aux = message;
   }
 
   ShowOnlyAuxiliaryText(message) {

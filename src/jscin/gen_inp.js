@@ -118,7 +118,7 @@ export class GenInp extends BaseInputMethod
     // ------------------------------------------
     // member functions
     function return_wrong() {
-      return jscin.IMKEY_ABSORB;
+      return jscin.IMKEY_ERROR;
     }
     function return_correct() {
       return jscin.IMKEY_ABSORB;

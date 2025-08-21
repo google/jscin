@@ -12,6 +12,8 @@
 
   "imeToggleHint": { "message":
     "<按Shift 可切換英數輸入>" },
+  "imeError": { "message":
+    "輸入錯誤" },
 
   "optionCaption": { "message":
     "JsCIN 輸入法選項設定" },

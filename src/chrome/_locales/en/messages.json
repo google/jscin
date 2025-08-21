@@ -12,6 +12,8 @@
 
   "imeToggleHint": { "message":
     "<SHIFT to toggle>" },
+  "imeError": { "message":
+    "ERROR" },
 
   "optionCaption": { "message":
     "JsCIN Options" },

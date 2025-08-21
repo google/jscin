@@ -85,6 +85,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   keystroke(ctx, ev)
+
   {
     return this.ProcessKeystroke(ctx, ev);
   }
@@ -100,15 +101,17 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ResultError(ctx, key) {
+    // TODO(hungte) The SPACE_RESET here is actually incorrect - we should track
+    // the last state and check SPACE in the entry to reset. Or split the error
+    // in different modes (composition vs candidates list)
     if (this.opts.OPT_AUTO_RESET ||
-        (this.opts.OPT_SPACE_RESET && key == ' ')) {
-      // TODO we should display the current (wrong) composition in a different
-      // color to indicate it's error... Maybe in auxiliaryText?
+      this.opts.OPT_SPACE_RESET && key == ' ') {
+      this.NotifyError(ctx);
       this.ResetContext(ctx);
     } else {
       this.NotifyError(ctx);
     }
-    return jscin.IMKEY_ABSORB;
+    return jscin.IMKEY_ERROR;
   }
 
   ResultProcessed(ctx) {

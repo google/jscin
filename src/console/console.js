@@ -35,6 +35,9 @@ function Simulate(ev) {
     case jscin.IMKEY_ABSORB:
       print("Simulate result: IMKEY_ABSORB");
       break;
+    case jscin.IMKEY_ERROR:
+      print("Simulate result: IMKEY_ERROR");
+      break;
     case jscin.IMKEY_IGNORE:
       print("Simulate result: IMKEY_IGNORE");
       break;
