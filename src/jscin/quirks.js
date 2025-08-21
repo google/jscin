@@ -43,6 +43,17 @@ function GeneralQuirks(cin) {
     debug("Change AUTO_COMPOSE default to:", v);
     cin.AUTO_COMPOSE = v;
   }
+
+  if (!('max_keystroke' in cin)) {
+    let v = 0;
+    for (let k in cin.chardef) {
+      if (k.length > v) {
+        v = k.length;
+      }
+    }
+    debug("max_keystroke detected as:", v);
+    cin.max_keystroke = '' + v;
+  }
 }
 
 function Array30Quirks(cin) {
