@@ -70,11 +70,8 @@ export function parseCin(cin_input) {
       if (m) {
         let key = m[1];
 
-        if (cmd == 'chardef' && data.keep_key_case) {
-          // do not process the key.
-        } else {
+        if (!data.keep_key_case)
           key = key.toLowerCase();
-        }
 
         // Always process chardef as phrases, and merge later.
         if (cmd == 'chardef') {
