@@ -33,6 +33,7 @@ export class GenInp2 extends BaseInputMethod
     this.max_composition = parseInt(conf.max_keystroke || "0");
     this.opts = {
       OPT_AUTO_COMPOSE: true,
+      OPT_AUTO_UPCHAR: true,
       OPT_SPACE_RESET: true,
       OPT_WILD_ENABLE: true,
     };
@@ -49,6 +50,8 @@ export class GenInp2 extends BaseInputMethod
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
       AUTO_FULLUP: 'OPT_COMMIT_ON_FULL',
       AUTO_RESET: 'OPT_AUTO_RESET',
+      AUTO_UPCHAR: 'OPT_AUTO_UPCHAR',
+      END_KEY: 'OPT_END_KEY',
       WILD_ENABLE: 'OPT_WILD_ENABLE',
       flag_unique_auto_send: 'OPT_UNIQUE_AUTO',
     };
@@ -363,7 +366,6 @@ export class GenInp2 extends BaseInputMethod
     let text = ctx.candidates[candidate_index];
     this.ResetContext(ctx);
     ctx.commit = text;
-    debug('CommitText, COMMIT=', ctx.commit);
     // Compatible with gen_inp.
     ctx.cch = text;
     return true;
@@ -391,7 +393,27 @@ export class GenInp2 extends BaseInputMethod
       return this.ResultError(ctx, key);
     }
     this.ShiftState(ctx);
-    if (this.IsSingleCandidate(ctx) || this.opts.OPT_SPACE_AUTOUP) {
+
+    let commit = this.IsSingleCandidate(ctx);
+    if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE &&
+        !this.override_autocompose) {
+      // In AUTO_COMPOSE mode, the candidates window is already there so most
+      // modern IM implementations will expect the SPACE to commit. Boshiamy
+      // explicit claimed this, Array rejected this (because the 'quick'
+      // generates a different set of candidates), and other IMs are towards
+      // auto commit.
+      // As a result, the implementation for SPACE here is:
+      //  - If override_autocompose, don't commit.
+      //  - If OPT_SPACE_AUTOUP, always commit.
+      //  - If not CanCycleCandidates, commit.
+      if ((this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) ||
+        !this.CycleCandidates(ctx)) {
+        commit = true;
+      }
+    }
+    debug('ConvertComposition', `[${key}]`, commit, this.opts);
+
+    if (commit) {
       this.CommitText(ctx, 0);
       return this.ResultCommit(ctx);
     }
@@ -491,7 +513,8 @@ export class GenInp2 extends BaseInputMethod
         return this.ResultProcessed(ctx);
 
       case ' ':
-        if (!this.CycleCandidates(ctx)) {
+        if ((this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) ||
+            !this.CycleCandidates(ctx)) {
           this.CommitText(ctx, 0);
           return this.ResultCommit(ctx);
         }
@@ -503,14 +526,22 @@ export class GenInp2 extends BaseInputMethod
             return this.ResultCommit(ctx);
           return this.ResultError(ctx, key);
         }
-        if (this.IsCompositionKey(ctx, key)) {
-          this.CommitText(ctx, 0);
-          this.AddComposition(ctx, key);
-          return this.ResultCommit(ctx);
+        // From definition, we should commit + keep typing any characters;
+        // however, currently we can't do ResultCommit+ResultIgnore at the same
+        // time, so we can only commit on Composition keys.
+        if (this.opts.OPT_AUTO_UPCHAR) {
+          if (this.IsCompositionKey(ctx, key)) {
+            this.CommitText(ctx, 0);
+            this.AddComposition(ctx, key);
+            return this.ResultCommit(ctx);
+          }
         }
-        break;
+        if (this.IsCompositionKey(key, key))
+          return this.ResultError(ctx);
+        return this.ResultIgnored(ctx);
     }
   }
+
   ProcessKeystroke(ctx, ev) {
     debug("ProcessKeystroke", ev);
     if (ev.type != 'keydown' || hasCtrlAltMeta(ev)) {
