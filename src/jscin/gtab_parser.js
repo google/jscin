@@ -205,8 +205,12 @@ export function parseGtab(arraybuffer) {
   // GTAB actually combines multiple %flag_* in CIN into the binary flag and
   // there is no '%flag' command. However we want to put the parsing of flags in
   // the jscin IM modules (so we can handle new tables by an update) so we have
-  // to store that using a fake '%flag'.
+  // to store that using a fake '%flag'. One exception is the 0x01
+  // %keep_key_case because that will change the CIN file parsing.
   cin += `%flag ${th.flag}\n`;
+  if (th.flag & 0x01) {
+    cin += '%keep_key_case\n';
+  }
   cin += `%space_style ${th.space_style}\n`;
   if (th.MaxPress)
     cin += `%max_keystroke ${th.MaxPress}\n`;

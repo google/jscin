@@ -106,7 +106,7 @@ function GcinQuirks(cin) {
   // Flags from GCIN 2.9.4:
   let flag = parseInt(cin.flag || "0");
   const flag_value_to_cmds = {
-    flag_keep_key_case: 0x01,
+    keep_key_case: 0x01,
     flag_gtab_sym_kbm: 0x02,
     flag_phrase_auto_skip_endkey: 0x04,
     flag_auto_select_by_phrase: 0x08,
