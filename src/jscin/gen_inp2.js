@@ -247,21 +247,20 @@ export class GenInp2 extends BaseInputMethod
     debug("PrepareCandidates", ctx.composition);
     let table = this.table;
     let key = ctx.composition;
+    let override = undefined;
 
     this.ClearCandidates(ctx);
 
     // Process override_* tables.
     if (is_autocompose) {
-      if (this.override_autocompose) {
-        if (this.override_autocompose[key])
-          table = this.override_autocompose;
-      } else if (!this.opts.OPT_AUTO_COMPOSE) {
+      override = this.override_autocompose;
+      if (!override && !this.opts.OPT_AUTO_COMPOSE)
         table = {};
-      }
     } else {
-      if (this.override_conversion && this.override_conversion[key])
-        table = this.override_conversion;
+      override = this.override_conversion;
     }
+    if (override && override[key])
+      table = override;
 
     if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
       ctx.candidates += this.GlobCandidates(key);
