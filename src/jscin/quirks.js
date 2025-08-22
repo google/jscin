@@ -103,12 +103,12 @@ function GcinQuirks(cin) {
   // Decoding flags to % commands should be done in the gtab parser, but given
   // there may be unknown flags, we want to expand in the runtime.
 
-  // Flags from GCIN 2.9.4:
+  // Flags from GCIN 2.9.4 (not all commands have prefix 'flag_'):
   let flag = parseInt(cin.flag || "0");
   const flag_value_to_cmds = {
     keep_key_case: 0x01,
-    flag_gtab_sym_kbm: 0x02,
-    flag_phrase_auto_skip_endkey: 0x04,
+    symbol_kbm: 0x02,
+    phrase_auto_skip_endkey: 0x04,
     flag_auto_select_by_phrase: 0x08,
     flag_disp_partial_match: 0x10,
     flag_disp_full_match: 0x20,
