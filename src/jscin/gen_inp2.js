@@ -179,7 +179,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   UpdateComposition(ctx) {
-    debug("UpdateCandidates", ctx.composition);
+    debug("UpdateComposition", ctx.composition);
     ctx.display_composition = ctx.composition.split('').map(
       (c) => this.keyname[c] || c).join('');
     // Compatible with gen_inp.
