@@ -1,8 +1,9 @@
 CIN 檔案格式說明
 
 JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入了不少與 GCIN 相容
-的指令。指令一律以 % 開頭。註解以 # 開頭。XCIN/GCIN 的命令全為小寫。JsCIN 自創
-的命令(部份來自於 XCIN2.5 的使用者設定檔) 一律為大寫，如 %AUTO_COMPOSE。
+的指令。指令一律以 % 開頭。註解以 # 開頭。XCIN/GCIN 的命令全為小寫。
+由於 XCIN2.5 把部份設定指令放在使用者設定檔 (xcinrc) ，JsCIN 也同時接受此類
+指令，如 %AUTO_COMPOSE。
 
 另外還有表格形式的命令較特殊，語法是:
 %command begin
@@ -38,9 +39,12 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 次要的指令
 
 %gen_inp
-  指定使用傳統 "General Input" 輸入法模組。由於 XCIN 與 GCIN 幾乎沒有其它標準
-  模組，此指令常被省略；在 JsCIN 中有其它模組但用來指定的命令為 %MODULE。
-  另外，JsCIN 目前有兩組 gen_inp 的實作，gen_inp 與 gen_inp2，可在選項中調整。
+  指定使用傳統 "General Input" 輸入法模組。由於 XCIN 與 GCIN 的表格類輸入法
+  幾乎只會使用 gen_inp (智慧選字形通常有自己的模組)，此指令常被省略；
+  在 JsCIN 中有其它模組但用來指定的命令為 %MODULE。
+  另外，JsCIN 目前有兩組 gen_inp 的實作: GenInp 與 GenInp2 ，可在選項中調整。
+  GenInp 為原始 XCIN2.5 的直接移植，GenInp2 則是JsCIN從零開始的版本。
+  預設與建議都是使用 GenInp2。
 
 %endkey <KEYS>
   立刻開始組字的鍵（相當於加入該鍵後立刻按空白）。
@@ -50,10 +54,14 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 <KEY> <VALUE>
 %quick end
   自行指定預列候選字的列表。主要用於行列30的一級與二級簡碼。
-  JsCIN 同時支援 XCIN2.3 的指令名「quickkey」。
+  JsCIN 也支援 XCIN2.3 的同命指令 %quickkey
 
 -----------------------------------------------------------------------------
 來自 GCIN 的指令
+(https://hyperrate.com/gcin-source/)
+
+%prompt <NAME>
+  同 %cname。
 
 %space_style <STYLE>
   指定空白鍵的行為模式。
@@ -68,6 +76,10 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 這個差異在 DOS 時代比較明顯，Windows 時代則由於大部份的輸入法實作都開始支援
 部份預列選字（不用打完就可以看到符合的字），所以兩種選項的差異變的模糊。
 
+-----------------------------------------------------------------------------
+來自 CIN2 或其它表格的指令
+(CIN2: https://vchewing.github.io/CIN_EVOLUTION.html)
+
 %intlname <NAME>
 輸入法的多國顯示名稱，類似把 cname ename 全部列在一行。
 格式是 名稱:語言[;].... ，如 行列:zh;Array:en
@@ -77,6 +89,7 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 
 -----------------------------------------------------------------------------
 來自 XCIN 2.5 選項 (xcinrc) 的指令
+(https://github.com/kcwu/xcin25/blob/master/doc/modules/gen_inp)
 
 %AUTO_COMPOSE
   在組字完成前就自動列出符合的候選字。
@@ -88,10 +101,11 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   空白鍵自動上字。
 
 %SPACE_RESET
-  空白鍵自動清除錯誤輸入 (GenInp2 目前不支援)。
+  空白鍵自動清除錯誤輸入。
 
 %SELKEY_SHIFT
-  第一個候選字用空白選（用於嘸蝦米與大易）
+  第一個候選字用空白選（用於嘸蝦米與大易），當同時使用 SPACE_AUTOUP
+  時會把選擇鍵改為 0 但還是可以用空白選。
 
 %DISABLE_SEL_LIST <KEYS>
   XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround。
