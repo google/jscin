@@ -36,13 +36,14 @@ export class GenInp2 extends BaseInputMethod
       OPT_SPACE_RESET: true,
       OPT_WILD_ENABLE: true,
     };
+
     // The table to override when converting composition to candidates.
-    this.override_conversion = undefined;
+    this.override_conversion = conf.KEYSTROKE_REMAP;
     // The table to override when composition is not explicitly converted.
     this.override_autocompose = conf.quick;
+    this.keygroups = conf.KEYGROUPS;
 
     // Convert table commands to options.
-
     let opts_remap = {
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
       SPACE_RESET: 'OPT_SPACE_RESET',
@@ -56,27 +57,18 @@ export class GenInp2 extends BaseInputMethod
       flag_disp_partial_match: 'OPT_PARTIAL_MATCH',
     };
 
-    let conf_remap = {
-      KEYGROUPS: 'keygroups',
-      KEYSTROKE_REMAP: 'override_conversion',
-    };
-
     for (let key in opts_remap) {
       if (key in conf)
         this.opts[opts_remap[key]] = conf[key];
     }
 
-    for (let key in conf_remap) {
-      if (key in conf)
-        this[conf_remap[key]] = conf[key];
-    }
     // Currently CIN stores most tables as simple strings.
-    this.NormalizeTable(this.override_conversion);
-    this.NormalizeTable(this.override_autocompose);
-    this.NormalizeTable(this.table);
+    this._NormalizeTable(this.override_conversion);
+    this._NormalizeTable(this.override_autocompose);
+    this._NormalizeTable(this.table);
   }
 
-  NormalizeTable(t) {
+  _NormalizeTable(t) {
     if (!t)
       return t;
     for (let k in t) {
@@ -103,7 +95,6 @@ export class GenInp2 extends BaseInputMethod
   }
 
   keystroke(ctx, ev)
-
   {
     return this.ProcessKeystroke(ctx, ev);
   }
@@ -173,9 +164,8 @@ export class GenInp2 extends BaseInputMethod
 
   UpdateCandidates(ctx) {
     // Compatible with gen_inp.
-    ctx.mcch = ctx.candidates.slice(
-      ctx.candidates_start_index,
-      ctx.candidates_start_index + this.selkey.length);
+    const i = ctx.candidates_start_index;
+    ctx.mcch = ctx.candidates.slice(i, i + this.selkey.length);
   }
 
   UpdateComposition(ctx) {
@@ -344,10 +334,11 @@ export class GenInp2 extends BaseInputMethod
   }
 
   GetCompositionKeyGroup(ctx, key) {
-    if (!this.keygroups)
+    let groups = this.keygroups;
+    if (!groups)
       return undefined;
-    for (let g in this.keygroups) {
-      if (this.keygroups[g].includes(key))
+    for (let g in groups) {
+      if (groups[g].includes(key))
         return g;
     }
     return undefined;
@@ -357,8 +348,7 @@ export class GenInp2 extends BaseInputMethod
     debug("CreateCompositionByGroups: new_grouop", newgroup);
     // modify composition to fit key groups.
     let key_by_group = {};
-    for (let i = 0; i < ctx.composition.length; i++) {
-      let c = ctx.composition[i];
+    for (let c of ctx.composition) {
       let cg = this.GetCompositionKeyGroup(ctx, c);
       // If any composition is not grouped, abort.
       if (!cg)
@@ -367,10 +357,11 @@ export class GenInp2 extends BaseInputMethod
     }
     debug("CreateCompositionByGroups key_by_group", key_by_group, newgroup, key);
     key_by_group[newgroup] = key;
-    ctx.composition = '';
+    let v = '';
     for (let g of Object.keys(key_by_group).sort()) {
-      ctx.composition += key_by_group[g];
+      v += key_by_group[g];
     }
+    ctx.composition = v;
     return true;
     // TODO(hungte) Make an index for DelComposition to delete last entered
     // key, or only update the displayed composition.
@@ -390,10 +381,11 @@ export class GenInp2 extends BaseInputMethod
   }
 
   DelComposition(ctx) {
-    debug("DelComposition", ctx.composition);
-    if (!ctx.composition.length)
+    let comp = ctx.composition;
+    debug("DelComposition", comp);
+    if (!comp.length)
       return false;
-    ctx.composition = ctx.composition.replace(/.$/, '');
+    ctx.composition = comp.replace(/.$/, '');
     this.UpdateComposition(ctx);
     return true;
   }
@@ -422,9 +414,9 @@ export class GenInp2 extends BaseInputMethod
   }
 
   SelectCommit(ctx, key) {
-    debug("SelectionKey", ctx.candidates, ctx.candidates_start_index, key);
-    let index = ctx.candidates_start_index + this.selkey.indexOf(key);
-    return this.CommitText(ctx, index);
+    const i = ctx.candidates_start_index;
+    debug("SelectionKey", ctx.candidates, i, key);
+    return this.CommitText(ctx, i + this.selkey.indexOf(key));
   }
 
   ConvertComposition(ctx, key) {
