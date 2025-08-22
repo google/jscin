@@ -54,6 +54,7 @@ export class GenInp2 extends BaseInputMethod
       END_KEY: 'OPT_END_KEY',
       WILD_ENABLE: 'OPT_WILD_ENABLE',
       flag_unique_auto_send: 'OPT_UNIQUE_AUTO',
+      flag_disp_partial_match: 'OPT_PARTIAL_MATCH',
     };
 
     let conf_remap = {
@@ -193,7 +194,7 @@ export class GenInp2 extends BaseInputMethod
 
   IsUniqueCandidate(ctx) {
     // Checks if there is only 1 candidate (by partial match).
-    let r = this.GlobCandidates(ctx.composition + '*');
+    let r = this.GetPartialMatchCandidates(ctx);
     debug("IsUniqueCandidate:", r);
     return (r.length == 1);
   }
@@ -222,9 +223,30 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
-  GlobCandidates(pattern, table, hits) {
+  GetPartialMatchCandidates(ctx, key, table, hits) {
+    if (!key)
+      key = ctx.composition;
+    if (!table)
+      table = this.table;
+    if (!hits)
+      hits = this.MAX_GLOB_PAGES * this.selkey.length;
+
+    let result = ''
+    for (let k of Object.keys(table)) {
+      if (!k.startsWith(key))
+        continue;
+      result += table[k];
+      if (result.length >= hits) {
+        debug("GetPartialMatchCandidates: too many candidates:", result.length, result);
+        break;
+      }
+    }
+    return result;
+  }
+
+  GlobCandidates(ctx, pattern, table, hits) {
     if (!pattern)
-      pattern = this.composition;
+      pattern = ctx.composition;
     if (!table)
       table = this.table;
     if (!hits)
@@ -266,7 +288,9 @@ export class GenInp2 extends BaseInputMethod
       table = override;
 
     if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
-      ctx.candidates += this.GlobCandidates(key);
+      ctx.candidates += this.GlobCandidates(ctx, key);
+    } else if (this.opts.OPT_PARTIAL_MATCH) {
+      ctx.candidates += this.GetPartialMatchCandidates(ctx, key);
     } else {
       // TODO(hungte) Currently cin_parser concats everything into a big
       // string, so candidates is a string. We should make it into an array.
