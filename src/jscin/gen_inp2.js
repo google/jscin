@@ -244,9 +244,9 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
-  GetPartialMatchCandidates(ctx, key, table, hits) {
-    if (!key)
-      key = ctx.composition;
+  GetPartialMatchCandidates(ctx, pattern, table, hits) {
+    if (!pattern)
+      pattern = ctx.composition;
     if (!table)
       table = this.table;
     if (!hits)
@@ -254,7 +254,7 @@ export class GenInp2 extends BaseInputMethod
 
     let result = [];
     for (let k of Object.keys(table)) {
-      if (!k.startsWith(key))
+      if (!k.startsWith(pattern))
         continue;
       result = result.concat(table[k]);
       if (result.length >= hits) {
@@ -289,28 +289,31 @@ export class GenInp2 extends BaseInputMethod
     return result;
   }
 
-  PrepareCandidates(ctx, is_autocompose) {
-    debug("PrepareCandidates", ctx.composition);
+  PrepareCandidates(ctx, autocompose_stage) {
+    debug("PrepareCandidates", ctx.composition, "autocompose_stage:", autocompose_stage);
     let table = this.table;
     let key = ctx.composition;
     let override = undefined;
+    let changed = false;
 
     this.ClearCandidates(ctx);
 
     // Process override_* tables.
-    if (is_autocompose) {
+    if (autocompose_stage) {
       override = this.override_autocompose;
       if (!override && !this.opts.OPT_AUTO_COMPOSE)
         table = {};
-    } else {
+    } else { // converted (candidates) stage.
       override = this.override_conversion;
     }
-    if (override && override[key])
+    if (override && override[key]) {
       table = override;
+      changed = true;
+    }
 
     if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
       this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table));
-    } else if (this.opts.OPT_PARTIAL_MATCH) {
+    } else if (!changed && autocompose_stage && this.opts.OPT_PARTIAL_MATCH) {
       this.AddCandidates(ctx, this.GetPartialMatchCandidates(ctx, key, table));
     } else {
       this.AddCandidates(ctx, table[key]);
