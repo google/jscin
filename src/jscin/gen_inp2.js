@@ -28,7 +28,7 @@ export class GenInp2 extends BaseInputMethod
     this.GLOB_KEYS = '?*';
 
     // Read and parse from conf (a standard parsed CIN).
-    this.table = conf.chardef || {}; // lowercase(keys) by cin_parser.
+    this.table = conf.chardef || {};
     this.max_composition = parseInt(conf.max_keystroke || "0");
     this.opts = {
       OPT_AUTO_COMPOSE: true,

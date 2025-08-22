@@ -22,6 +22,8 @@ function GeneralQuirks(cin) {
     let v = cin[cmd];
     if (v === true)
       v = '';
+    else if (cin.keep_key_case)
+      v = v || '';
     else
       v = (v || '').toLowerCase();
     cin[cmd] = v;
@@ -177,9 +179,10 @@ function SelkeyShiftQuirks(cin) {
 
 /* Check and apply various patches to make the input table better. */
 export function applyInputMethodTableQuirks(cin) {
-  GeneralQuirks(cin);
+  // GcinQuirks will extract flag to more commands.
   GcinQuirks(cin);
 
+  GeneralQuirks(cin);
   Array30Quirks(cin);
   SelkeyShiftQuirks(cin);
 }
