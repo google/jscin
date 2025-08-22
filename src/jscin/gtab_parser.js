@@ -81,7 +81,7 @@ export function parseGtab(arraybuffer) {
   }
 
   MyView.prototype.getUint64 = function() {
-    let n = this.view.getUint64(this.offset, this.littleEndian);
+    let n = this.view.getBigUint64(this.offset, this.littleEndian);
     this.offset += 8;
     return n;
   }
@@ -233,13 +233,13 @@ export function parseGtab(arraybuffer) {
     if(key64) {
       keyUint = myView.getUint64();
     } else {
-      keyUint = myView.getUint32();
+      keyUint = BigInt(myView.getUint32());
     }
 
     let mask = (1 << th.keybits) - 1;
     let keyString = '';
     for(let k = 0; k < th.MaxPress; k++) {
-      let c = (keyUint >> (LAST_K_bitN - k * th.keybits)) & mask;
+      let c = (keyUint >> BigInt(LAST_K_bitN - k * th.keybits)) & BigInt(mask);
       if(c == 0) {
         break;
       }
