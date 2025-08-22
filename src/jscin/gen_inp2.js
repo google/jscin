@@ -7,7 +7,6 @@
 
 // TODO(hungte) Indicators for candidates to show "composition state" or
 // "selection only state".
-// TODO(hungte) Change mcch (candidates) to array instead of a string.
 
 import {jscin} from "./jscin.js";
 import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
@@ -71,6 +70,21 @@ export class GenInp2 extends BaseInputMethod
       if (key in conf)
         this[conf_remap[key]] = conf[key];
     }
+    // Currently CIN stores most tables as simple strings.
+    this.NormalizeTable(this.override_conversion);
+    this.NormalizeTable(this.override_autocompose);
+    this.NormalizeTable(this.table);
+  }
+
+  NormalizeTable(t) {
+    if (!t)
+      return t;
+    for (let k in t) {
+      let v = t[k];
+      if (typeof(v) == 'string')
+        t[k] = v.split('');
+    }
+    return t;
   }
 
   reset_context(ctx)
@@ -78,7 +92,7 @@ export class GenInp2 extends BaseInputMethod
     super.reset_context(ctx);
     ctx.state = this.STATE_COMPOSITION;
     ctx.composition = '';
-    ctx.candidates = '';
+    ctx.candidates = [];
     ctx.commit = '';
     ctx.display_composition = '';
     ctx.candidates_start_index = 0;
@@ -154,7 +168,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ClearCandidates(ctx) {
-    ctx.candidates = '';
+    ctx.candidates = [];
   }
 
   UpdateCandidates(ctx) {
@@ -186,6 +200,13 @@ export class GenInp2 extends BaseInputMethod
         ctx.candidates_start_index = 0;
         break;
     }
+  }
+
+  AddCandidates(ctx, list) {
+    if (!list || !list.length)
+      return false;
+    ctx.candidates = ctx.candidates.concat(list);
+    return true;
   }
 
   IsSingleCandidate(ctx) {
@@ -231,11 +252,11 @@ export class GenInp2 extends BaseInputMethod
     if (!hits)
       hits = this.MAX_GLOB_PAGES * this.selkey.length;
 
-    let result = ''
+    let result = [];
     for (let k of Object.keys(table)) {
       if (!k.startsWith(key))
         continue;
-      result += table[k];
+      result = result.concat(table[k]);
       if (result.length >= hits) {
         debug("GetPartialMatchCandidates: too many candidates:", result.length, result);
         break;
@@ -252,14 +273,14 @@ export class GenInp2 extends BaseInputMethod
     if (!hits)
       hits = this.MAX_GLOB_PAGES * this.selkey.length;
 
-    let result = '';
+    let result = [];
     let regex = this.Glob2Regex(pattern);
 
     // Currently looping with index is the fastest way to iterate an array.
     for (let l of Object.keys(table)) {
       if (!regex.test(l))
         continue;
-      result += table[l];
+      result = result.concat(table[l]);
       if (result.length >= hits) {
         debug("GlobCandidates: too many candidates:", result.length, result);
         break;
@@ -288,13 +309,11 @@ export class GenInp2 extends BaseInputMethod
       table = override;
 
     if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
-      ctx.candidates += this.GlobCandidates(ctx, key);
+      this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table));
     } else if (this.opts.OPT_PARTIAL_MATCH) {
-      ctx.candidates += this.GetPartialMatchCandidates(ctx, key);
+      this.AddCandidates(ctx, this.GetPartialMatchCandidates(ctx, key, table));
     } else {
-      // TODO(hungte) Currently cin_parser concats everything into a big
-      // string, so candidates is a string. We should make it into an array.
-      ctx.candidates = table[key] || '';
+      this.AddCandidates(ctx, table[key]);
     }
 
     this.UpdateCandidates(ctx);
