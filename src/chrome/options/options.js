@@ -250,12 +250,22 @@ async function init() {
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
-  let divName = 'divOnCrOS';
-  if (chrome?.input?.ime) {
-    divName = 'divNonCrOS';
+  function HideByClass(cls, bg) {
+    for (let n of document.getElementsByClassName(cls)) {
+      if (!bg)
+        n.style.display = 'none';
+      else
+        n.style.background = bg;
+    }
   }
-  // Not sure why but we can't use $(divName).hide().
-  document.getElementById(divName).style.display = 'none';
+
+  let divPlat = 'divOnCrOS';
+  if (chrome?.input?.ime) {
+    divPlat = 'divNonCrOS';
+  }
+  const debug = config.Debug();
+  HideByClass(divPlat, debug ? "yellow" : undefined);
+  HideByClass('spanExperimental', debug ? "greenyellow" : undefined);
 
   $('#checkSupportNonChromeOS').prop("checked",
     config.Emulation()).click(function ()
