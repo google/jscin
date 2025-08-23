@@ -85,6 +85,9 @@ export class CrOS_CIN {
       debug("Emulation", value);
       // Can't restart extension here - should
       // be handled in the options confirm dialog.
+    }).Bind("VerticalWindow", (value)=> {
+      debug("VerticalWindow", value);
+      this.SwitchVerticalWindow();
     });
     this.config.forEach((key, value) => {
       if (!key.startsWith('Addon'))
@@ -293,6 +296,11 @@ export class CrOS_CIN {
     this.UpdateMenu();
   }
 
+  SwitchVerticalWindow() {
+    this.SetCandidateWindowProperties({
+      vertical: this.config.VerticalWindow()});
+  }
+
   ShowAuxiliaryText(message) {
     this.SetCandidateWindowProperties({
       auxiliaryText: message,
@@ -371,10 +379,19 @@ export class CrOS_CIN {
       assert('candidate_list (mcch) should be an array!', candidate_list);
       candidate_list = candidate_list.split('');
     }
-    const candidates = candidate_list.map((c, i) => ({
-      candidate: c,
-      id: i,
-      label: labels.charAt(i)})
+    let vert = this.config.VerticalWindow();
+    const candidates = candidate_list.map((c, i) => (
+      vert ?  {
+        candidate: c,
+        id: i,
+        label: labels.charAt(i),
+      } : {
+        // Dirty workaround because recent ChromeOS horizontal IME window was
+        // broken displaying candidate.
+        candidate: '',
+        id: i,
+        annotation: `${labels.charAt(i)}${c}`,
+      })
     );
     debug("UpdateCandidates: candidate_list:", candidate_list,
           "labels:", labels, 'candidates:', candidates);
