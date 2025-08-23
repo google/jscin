@@ -244,45 +244,40 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
-  GetPartialMatchCandidates(ctx, pattern, table, hits) {
-    if (!pattern)
-      pattern = ctx.composition;
-    if (!table)
-      table = this.table;
-    if (!hits)
-      hits = this.MAX_GLOB_PAGES * this.selkey.length;
-
-    let result = [];
-    for (let k of Object.keys(table)) {
-      if (!k.startsWith(pattern))
-        continue;
-      result = result.concat(table[k]);
-      if (result.length >= hits) {
-        debug("GetPartialMatchCandidates: too many candidates:", result.length, result);
-        break;
-      }
-    }
-    return result;
+  GetPartialMatchCandidates(ctx, prefix, table, hits) {
+    if (!prefix)
+      prefix = ctx.composition;
+    return this._MatchCandidates(ctx, (k) => {
+      return k.startsWith(prefix);
+    }, table, hits);
   }
 
   GlobCandidates(ctx, pattern, table, hits) {
     if (!pattern)
       pattern = ctx.composition;
+    let regex = this.Glob2Regex(pattern);
+
+    return this._MatchCandidates(ctx, (k) => {
+      return regex.test(k);
+    }, table, hits);
+  }
+
+  // Search for candidates by callback function.
+  _MatchCandidates(ctx, matcher, table, hits) {
+    let result = [];
+
     if (!table)
       table = this.table;
     if (!hits)
       hits = this.MAX_GLOB_PAGES * this.selkey.length;
 
-    let result = [];
-    let regex = this.Glob2Regex(pattern);
-
     // Currently looping with index is the fastest way to iterate an array.
-    for (let l of Object.keys(table)) {
-      if (!regex.test(l))
+    for (let k of Object.keys(table)) {
+      if (!matcher(k))
         continue;
-      result = result.concat(table[l]);
+      result = result.concat(table[k]);
       if (result.length >= hits) {
-        debug("GlobCandidates: too many candidates:", result.length, result);
+        debug("MatchCandidates: too many candidates:", result.length, result);
         break;
       }
     }
