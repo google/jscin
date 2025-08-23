@@ -177,12 +177,48 @@ function SelkeyShiftQuirks(cin) {
   delete cin.SELKEY_SHIFT;
 }
 
+function PhoneticQuirks(cin) {
+  if (cin.KEYGROUPS)
+    return;
+
+  const groups = [
+    'ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ',
+    'ㄧㄨㄩ',
+    'ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ',
+  ];
+  let keyname = cin.keyname;
+
+  // First, check if all symbols in group are defined as key labels.
+  let all_names = Object.values(keyname).join();
+  for (let c of groups.join('')) {
+    if (!all_names.includes(c))
+      return;
+  }
+
+  // Now, reverse back.
+  let reverse = {};
+  for (let i in keyname) {
+    reverse[keyname[i]] = i;
+  }
+
+  let r = {};
+  for (let i in groups) {
+    let v = groups[i].split('').map((v) => {
+      return reverse[v];
+    });
+    r[parseInt(i)+1] = v.join('');
+  }
+  cin.KEYGROUPS = r;
+  debug("PhoneticQuirks: Added KEYGROUPS:", r);
+}
+
 /* Check and apply various patches to make the input table better. */
 export function applyInputMethodTableQuirks(cin) {
   // GcinQuirks will extract flag to more commands.
   GcinQuirks(cin);
 
   GeneralQuirks(cin);
+  PhoneticQuirks(cin);
   Array30Quirks(cin);
   SelkeyShiftQuirks(cin);
 }
