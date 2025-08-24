@@ -22,6 +22,7 @@ export class WebPageIme extends ChromeInputIme {
     this.engineID = "jscin.chrome.input.ime.webpage";
     this.panel = panel;
     this.contexts = [];
+    this.vertical = true;
   }
 
   getNode(id) {
@@ -103,13 +104,25 @@ export class WebPageIme extends ChromeInputIme {
   // TODO(hungte) Bind CandidateClicked.
   setCandidates(parameters, callback) {
     let node = this.getNode('candidates');
-    node.empty().append(NBSP);
+    node.empty();
     for (let c of parameters.candidates) {
       let label = c.label || c.id;
       let candidate = `${c.candidate} `;
+      if (!c.candidate && c.annotation) {
+        // Special workaround for CrOS showing background=textcolor in
+        // horizontal mode.
+        candidate = `${c.annotation} `;
+        label = '';
+      }
+      if (this.vertical && label)
+        label += ' ';
       node.append($('<span/>', {text: candidate, class: "candidate"}).
-          prepend($('<span/>', {text: label, class: "candidate_label"})));
+        prepend($('<span/>', {text: label, class: "candidate_label"})));
+      if (this.vertical)
+        node.append($('<br/>'));
     }
+    if (node.is(':empty'))
+      node.append(NBSP);
     return true;
   }
 
@@ -117,9 +130,10 @@ export class WebPageIme extends ChromeInputIme {
     let p = parameters.properties;
     if ('auxiliaryText' in p) {
       let node = this.getNode('auxiliary');
-      node.text(`|${NBSP}${p.auxiliaryText}${NBSP}`).
-        prepend($('<span/>').css({color: '#444'}).
-          text(`${_("imeToggleHint")}${NBSP}`));
+      let hint = this.vertical ? '' : _("imeToggleHint");
+      node.text(`${NBSP}${p.auxiliaryText}${NBSP}`).
+        prepend($('<span/>|').css({color: '#444'}).
+          text(`${hint}${NBSP}`));
     }
     if ('auxiliaryTextVisible' in p) {
       let node = this.getNode('auxiliary');
@@ -131,6 +145,9 @@ export class WebPageIme extends ChromeInputIme {
       node.toggle(p.visible);
       if (p.visible)
         body.css({opacity: 1.0});
+    }
+    if ('vertical' in p) {
+      this.vertical = p.vertical;
     }
     return true;
   }

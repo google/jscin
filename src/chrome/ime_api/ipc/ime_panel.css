@@ -7,7 +7,7 @@ body {
 
 #imePanel {
   padding: 0.5em;
-  min-width: 100px;
+  min-width: 50px;
   min-height: 50px;
   background: #eee;
   border: 2px solid #aaa;
