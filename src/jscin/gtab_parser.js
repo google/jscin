@@ -77,6 +77,24 @@ class MyView {
     return n;
   }
 
+  getBytes(len) {
+    let r = [];
+    for (let i = 0; i < len; i++) {
+      let c = this.view.getUint8(this.offset + i);
+      r.push(c);
+    }
+    this.offset += len;
+    return r;
+  }
+
+  getItemCh() {
+    const len = 4;  // CHSZ
+    let bytes = this.getBytes(len);
+    if (bytes[0] & 0x80)
+      return decode_utf8(bytes.map((v)=> v ? String.fromCharCode(v) : '').join(''));
+    return bytes[0] << 16 | bytes[1] << 8 | bytes[2];
+  }
+
   getString(len) {
     let ret = '';
     for(let j = 0; j < len; j++) {
@@ -94,6 +112,10 @@ class MyView {
     let KeyS_first_byte = this.view.getUint8(56);
     // key size should not be more than 255
     this.littleEndian = !!KeyS_first_byte;
+  }
+
+  EOF() {
+    return this.offset >= this.byteLength;
   }
 }
 
@@ -113,8 +135,8 @@ export function parseGtab(arraybuffer) {
   }
 
   let cin = '';
-  let myView = new MyView(new DataView(arraybuffer));
   let th = {};
+  let myView = new MyView(new DataView(arraybuffer));
 
   myView.detectEndian();
 
@@ -232,7 +254,8 @@ export function parseGtab(arraybuffer) {
     cin += `%quick begin\n${qs}%quick end\n`;
   }
 
-  cin += '%chardef begin\n';
+  // decode chardef; but we have to decide ITEMS[64] table and phrases first.
+
   let LAST_K_bitN = (Math.floor((key64 ? 64:32) / th.keybits) - 1) * th.keybits;
   let itout = [];
   for(let j = 0; j < th.DefC; j++) {
@@ -253,7 +276,32 @@ export function parseGtab(arraybuffer) {
       keyString += keymap[c];
     }
 
-    let ch = myView.getString(CH_SZ);
+    let ch = myView.getItemCh();
+    itout.push([keyString, ch]);
+  }
+
+  let phrases = [];
+
+  if (!myView.EOF()) {
+    let phrnum = myView.getUint32();
+    let phridx = [];
+    for (let i = 0; i < phrnum; i++) {
+      phridx.push(myView.getUint32());
+    }
+    for (let i = 0; i < phrnum-1; i++) {
+      let size = phridx[i+1] - phridx[i];
+      let s = myView.getString(size);
+      phrases.push(s);
+    }
+  }
+
+  cin += '%chardef begin\n';
+  for (let [keyString, ch] of itout) {
+    if (typeof(ch) == 'number') {
+      if (!phrases[ch])
+        console.error("gtab: Invalid chardef:", keyString, ch);
+      ch = phrases[ch];
+    }
     cin += checkAndConcat(keyString, ch);
   }
   cin += '%chardef end\n';
