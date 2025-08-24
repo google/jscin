@@ -11,6 +11,7 @@
 import {jscin} from "./jscin.js";
 import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 import {BaseInputMethod} from "./base_inp.js";
+import {Trie} from "./trie.js";
 
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp2");
@@ -29,6 +30,7 @@ export class GenInp2 extends BaseInputMethod
 
     // Read and parse from conf (a standard parsed CIN).
     this.table = conf.chardef || {};
+    this.trie = undefined; // trie is created only if we need frequent partial match.
     this.max_composition = parseInt(conf.max_keystroke || "0");
     this.opts = {
       OPT_AUTO_COMPOSE: true,
@@ -234,18 +236,45 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
+  BuildTrie(table) {
+    let trie = new Trie();
+    if (!table)
+      table = this.table;
+    for (const [k, v] of Object.entries(table))
+      trie.add(k, v);
+    return trie;
+  }
+
+  TriePartialMatch(ctx, prefix, trie, hits) {
+    if (!trie)
+      trie = this.trie;
+    if (!hits)
+      hits = this.MAX_GLOB_PAGES * this.selkey.length;
+    let node = trie.find(prefix);
+    if (!node)
+      return [];
+    let r = node.below(hits).flat();
+    debug("Trie partial match:", prefix, node, r);
+    return r;
+  }
+
   GetPartialMatchCandidates(ctx, prefix, table, hits) {
     if (!prefix)
       prefix = ctx.composition;
+    if (this.opts.OPT_PARTIAL_MATCH || this.opts.OPT_UNIQUE_AUTO) {
+      // We can't afford to create trie on every new table, so let's assume the
+      // table is exactly this.table.
+      if (!this.trie)
+        this.trie = this.BuildTrie(this.table);
+      return this.TriePartialMatch(ctx, prefix, this.trie, hits);
+    }
     return this._MatchCandidates(ctx, (k) => {
       return k.startsWith(prefix);
     }, table, hits);
   }
 
   GlobCandidates(ctx, pattern, table, hits) {
-    if (!pattern)
-      pattern = ctx.composition;
-    let regex = this.Glob2Regex(pattern);
+    let regex = this.Glob2Regex(pattern || ctx.composition);
 
     return this._MatchCandidates(ctx, (k) => {
       return regex.test(k);
