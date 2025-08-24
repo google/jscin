@@ -26,9 +26,13 @@
 //   };
 // };
 
+function debug(...args) {
+  // console.log(...args);
+}
+
 export function IsGTabBlob(blob) {
   /* The TableHead is very large - roughly 86779 bytes. */
-  console.log("IsGTabBlob: blob length:", blob.byteLength);
+  debug("IsGTabBlob: blob length:", blob.byteLength);
   if (blob.byteLength < 0x15300)
     return false;
 
@@ -38,55 +42,42 @@ export function IsGTabBlob(blob) {
   // quickly decide the type by checking the first byte.
   let leading_byte = new Uint8Array(blob.slice(0, 1))[0];
   if (leading_byte >= 32) {
-    console.log("IsGTabBlob: invalid leading byte:", leading_byte);
+    debug("IsGTabBlob: invalid leading byte:", leading_byte);
     return false;
   }
-  console.log("IsGTabBlob: Looks like a GTAB.");
+  debug("IsGTabBlob: Looks like a GTAB.");
   return true;
 }
 
-export function parseGtab(arraybuffer) {
+function decode_utf8(s) {
+  return decodeURIComponent(escape(s));
+}
 
-  let MAX_GTAB_QUICK_KEYS = 46;
-  let CH_SZ = 4;
-
-  function decode_utf8(s) {
-    return decodeURIComponent(escape(s));
-  }
-
-  function checkAndConcat(key, ch) {
-    if(key[0] == '%') {
-      throw "key cannot start with '%'";
-    }
-    if(/\s/.test(key)) {
-      throw "key cannot contain space characters";
-    }
-    return key + ' ' + ch + '\n';
-  }
-
-  function MyView (view) {
+class MyView {
+  constructor(view) {
     this.view = view;
     this.offset = 0;
     this.littleEndian = false;
+    this.byteLength = view.byteLength;
   }
 
-  MyView.prototype.getUint8 = function() {
+  getUint8() {
     return this.view.getUint8(this.offset++);
   };
 
-  MyView.prototype.getUint32 = function() {
+  getUint32() {
     let n = this.view.getUint32(this.offset, this.littleEndian);
     this.offset += 4;
     return n;
   }
 
-  MyView.prototype.getUint64 = function() {
+  getUint64() {
     let n = this.view.getBigUint64(this.offset, this.littleEndian);
     this.offset += 8;
     return n;
   }
 
-  MyView.prototype.getString = function(len) {
+  getString(len) {
     let ret = '';
     for(let j = 0; j < len; j++) {
       let c = this.view.getUint8(this.offset + j);
@@ -99,14 +90,26 @@ export function parseGtab(arraybuffer) {
     return decode_utf8(ret);
   }
 
-  MyView.prototype.detectEndian = function() {
+  detectEndian() {
     let KeyS_first_byte = this.view.getUint8(56);
     // key size should not be more than 255
-    if(KeyS_first_byte) {
-      this.littleEndian = true;
-    } else {
-      this.littleEndian = false;
+    this.littleEndian = !!KeyS_first_byte;
+  }
+}
+
+export function parseGtab(arraybuffer) {
+
+  let MAX_GTAB_QUICK_KEYS = 46;
+  let CH_SZ = 4;
+
+  function checkAndConcat(key, ch) {
+    if(key[0] == '%') {
+      throw "key cannot start with '%'";
     }
+    if(/\s/.test(key)) {
+      throw "key cannot contain space characters";
+    }
+    return key + ' ' + ch + '\n';
   }
 
   let cin = '';
