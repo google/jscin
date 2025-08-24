@@ -217,21 +217,21 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CycleCandidates(ctx, direction) {
-    debug("CycleCandidates", ctx.candidates, ctx.candidates_start_index, direction);
+    let start = ctx.candidates_start_index;
+    debug("CycleCandidates", ctx.candidates, start, direction);
     if (!this.CanCycleCandidates(ctx))
       return false;
     direction = direction || 1;
     let max = ctx.candidates.length;
     let cycle_size = this.selkey.length;
-    let new_index = ctx.candidates_start_index + direction * cycle_size;
+    let new_index = start + direction * cycle_size;
     if (new_index >= max) {
       new_index = 0;
     } else if (new_index < 0) {
       new_index = max - (max % cycle_size);
     }
-    debug("CycleCandidates", 'old index:', ctx.candidates_start_index,
-      "new index:", new_index);
     ctx.candidates_start_index = new_index;
+    debug("CycleCandidates index:", 'old=', start, "new=", new_index);
     this.UpdateCandidates(ctx);
     return true;
   }
