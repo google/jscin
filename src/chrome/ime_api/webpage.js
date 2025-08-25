@@ -131,9 +131,10 @@ export class WebPageIme extends ChromeInputIme {
     if ('auxiliaryText' in p) {
       let node = this.getNode('auxiliary');
       let hint = this.vertical ? '' : _("imeToggleHint");
-      node.text(`${NBSP}${p.auxiliaryText}${NBSP}`).
-        prepend($('<span/>|').css({color: '#444'}).
-          text(`${hint}${NBSP}`));
+      node.text(`${NBSP}${p.auxiliaryText}${NBSP}`);
+      if (hint)
+        node.prepend($('<span/>').css({color: '#444'}).
+          text(`${NBSP}${hint}|`));
     }
     if ('auxiliaryTextVisible' in p) {
       let node = this.getNode('auxiliary');
