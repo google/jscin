@@ -49,12 +49,12 @@ export class Trie {
   }
 
   // collect and return all data below this node.
-  below(hits) {
-    if (!hits)
-      hits = 100;
+  below(limit) {
+    if (!limit)
+      limit = 100;
     let r = [];
     this._walk((node) => {
-      if (r.length > hits)
+      if (r.length > limit)
         return false;
       else if (node.data)
         r.push(node.data);

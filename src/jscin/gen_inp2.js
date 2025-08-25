@@ -25,7 +25,7 @@ export class GenInp2 extends BaseInputMethod
     this.STATE_COMPOSITION = 1;
     this.STATE_CANDIDATES = 2;
 
-    this.MAX_GLOB_PAGES = 10;
+    this.MAX_MATCH_PAGES = 10; // eeach page has self.selkey.length candidates
     this.GLOB_KEYS = '?*';
 
     // Read and parse from conf (a standard parsed CIN).
@@ -137,6 +137,10 @@ export class GenInp2 extends BaseInputMethod
     return jscin.IMKEY_COMMIT;
   }
 
+  GetMatchLimit() {
+    return this.MAX_MATCH_PAGES * this.selkey.length;
+  }
+
   Glob2Regex(pattern) {
     // assert GLOB_KEYS == '*?'.
     return new RegExp("^" + pattern
@@ -245,20 +249,20 @@ export class GenInp2 extends BaseInputMethod
     return trie;
   }
 
-  TriePartialMatch(ctx, prefix, trie, hits) {
+  TriePartialMatch(ctx, prefix, trie, limit) {
     if (!trie)
       trie = this.trie;
-    if (!hits)
-      hits = this.MAX_GLOB_PAGES * this.selkey.length;
+    if (!limit)
+      limit = this.GetMatchLimit();
     let node = trie.find(prefix);
     if (!node)
       return [];
-    let r = node.below(hits).flat();
+    let r = node.below(limit).flat();
     debug("Trie partial match:", prefix, node, r);
     return r;
   }
 
-  GetPartialMatchCandidates(ctx, prefix, table, hits) {
+  GetPartialMatchCandidates(ctx, prefix, table, limit) {
     if (!prefix)
       prefix = ctx.composition;
     if (this.opts.OPT_PARTIAL_MATCH || this.opts.OPT_UNIQUE_AUTO) {
@@ -266,36 +270,36 @@ export class GenInp2 extends BaseInputMethod
       // table is exactly this.table.
       if (!this.trie)
         this.trie = this.BuildTrie(this.table);
-      return this.TriePartialMatch(ctx, prefix, this.trie, hits);
+      return this.TriePartialMatch(ctx, prefix, this.trie, limit);
     }
     return this._MatchCandidates(ctx, (k) => {
       return k.startsWith(prefix);
-    }, table, hits);
+    }, table, limit);
   }
 
-  GlobCandidates(ctx, pattern, table, hits) {
+  GlobCandidates(ctx, pattern, table, limit) {
     let regex = this.Glob2Regex(pattern || ctx.composition);
 
     return this._MatchCandidates(ctx, (k) => {
       return regex.test(k);
-    }, table, hits);
+    }, table, limit);
   }
 
   // Search for candidates by callback function.
-  _MatchCandidates(ctx, matcher, table, hits) {
+  _MatchCandidates(ctx, matcher, table, limit) {
     let result = [];
 
     if (!table)
       table = this.table;
-    if (!hits)
-      hits = this.MAX_GLOB_PAGES * this.selkey.length;
+    if (!limit)
+      limit = this.GetMatchLimit();
 
     // Currently looping with index is the fastest way to iterate an array.
     for (let k of Object.keys(table)) {
       if (!matcher(k))
         continue;
       result = result.concat(table[k]);
-      if (result.length >= hits) {
+      if (result.length >= limit) {
         debug("MatchCandidates: too many candidates:", result.length, result);
         break;
       }
