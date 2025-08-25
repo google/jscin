@@ -422,11 +422,12 @@ export class GenInp2 extends BaseInputMethod
   CommitText(ctx, candidate_index) {
     debug("CommitText", ctx.candidates, candidate_index);
     candidate_index = candidate_index || 0;
-    if (ctx.candidates.length < candidate_index)
+    if (candidate_index >= ctx.candidates.length)
       return false;
 
     let text = ctx.candidates[candidate_index];
     this.ResetContext(ctx);
+    assert(text != undefined, "CommitText: missing commit text.");
     ctx.commit = text;
     // Compatible with gen_inp.
     ctx.cch = text;
@@ -443,9 +444,13 @@ export class GenInp2 extends BaseInputMethod
   }
 
   SelectCommit(ctx, key) {
-    const i = ctx.candidates_start_index;
-    debug("SelectionKey", ctx.candidates, i, key);
-    return this.CommitText(ctx, i + this.selkey.indexOf(key));
+    let keyidx = this.selkey.indexOf(key);
+    assert(keyidx >= 0, "SelectCommit: key should never be out of selkey", key, this.selkey);
+    let index = ctx.candidates_start_index + keyidx;
+    if (index >= ctx.candidates.length)
+      return false;
+    debug("SelectCommit: keyidx, index:", keyidx, index);
+    return this.CommitText(ctx, index);
   }
 
   ConvertComposition(ctx, key) {
