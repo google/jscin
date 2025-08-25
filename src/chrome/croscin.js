@@ -17,6 +17,11 @@ export { jscin };
 import { AddLogger } from "./jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
 
+// Running with native chrome.input.ime support (e.g., CrOS)
+function isNavite() {
+  return !!chrome?.input?.ime;
+}
+
 class Heartbeat {
   constructor() {
     this.interval = null;
@@ -29,7 +34,7 @@ class Heartbeat {
     // Today only the CrOS implementation will put croscin instance in the
     // background service worker (that will need heartbeat). The webpage
     // implementation or iframe based implementations do not need it.
-    if (!chrome?.input?.ime)
+    if (!isNavite())
       return;
     if (this.interval) {
       assert(false, "Heartbeat.start: should not run again without stop().");
@@ -379,18 +384,18 @@ export class CrOS_CIN {
       assert('candidate_list (mcch) should be an array!', candidate_list);
       candidate_list = candidate_list.split('');
     }
-    let vert = this.config.VerticalWindow();
+    // Dirty workaround because recent ChromeOS horizontal IME window was
+    // broken displaying candidate.
+    let quirk_use_annotation = isNavite() && !this.config.VerticalWindow();
     const candidates = candidate_list.map((c, i) => (
-      vert ?  {
-        candidate: c,
-        id: i,
-        label: labels.charAt(i),
-      } : {
-        // Dirty workaround because recent ChromeOS horizontal IME window was
-        // broken displaying candidate.
+      quirk_use_annotation ? {
         candidate: '',
         id: i,
         annotation: `${labels.charAt(i)}${c}`,
+      } : {
+        candidate: c,
+        id: i,
+        label: labels.charAt(i),
       })
     );
     debug("UpdateCandidates: candidate_list:", candidate_list,
