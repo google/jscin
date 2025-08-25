@@ -78,8 +78,6 @@ export function parseCin(cin_input) {
           if (data[cmd][key] == undefined)
             data[cmd][key] = [];
           data[cmd][key].push(m[2]);
-          if (m[2].length > 1 && !data.PHRASE_CHARDEF)
-            data.PHRASE_CHARDEF = true;
         } else {
           // Truncate all.
           if (data[cmd][key] == undefined)
@@ -95,12 +93,8 @@ export function parseCin(cin_input) {
   if (runningcmd && runningcmd != 'chardef') // iBus tables has no "%chardef end"
     return failed(lineno, 'previous section has no end');
 
-  // merge data[chardef] entries.
-  if (!data.PHRASE_CHARDEF) {
-    for (let key in data.chardef) {
-      data.chardef[key] = data.chardef[key].join('');
-    }
-  }
+  // TODO(hungte) Remove this command after migration completed.
+  data.PHRASE_CHARDEF = true;
 
   // We want to keep the CIN AS-IS and prevent minimal changes (except the
   // cname/ename because they are critical for storing and showing). The
