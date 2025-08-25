@@ -27,35 +27,22 @@ export class Migration {
     this.ime = ime;
   }
 
-  // Migrate from version <= v2.27.0
-  migrateTable(data, meta) {
-    if ('cin' in data)
-      return data;
-
-    // Ok, not a new format; let's try if it's ok for migration
-    if (!data.ename || !data.cname || !data.chardef) {
-      error("migrateTable: Unkown format:",  data.ename, data);
-      return data;
+  // Migrate from version <= v3.0.2
+  migrateTable(data) {
+    let modified = false;
+    let chardef = data.cin.chardef;
+    for (let k in chardef) {
+      let v = chardef[k];
+      if (typeof(v) == 'string') {
+        chardef[k] = v.split('');
+        modified = true;
+      }
     }
-
-    function renameProperty(obj, old_name, new_name) {
-      if (!obj || !(old_name in obj))
-        return;
-      obj[new_name] = obj[old_name]
-      delete obj[old_name];
+    if (data.cin.PHRASE_CHARDEF) {
+      delete data.cin.PHRASE_CHARDEF;
+      modified = true;
     }
-
-    let type = structuredClone(meta.setting);
-    renameProperty(type, 'options', 'cin');
-    renameProperty(type, 'by_auto_detect', 'auto_detect');
-
-    // meta.ename may be broken; table.ename was fixed.
-    if (!meta.url)
-      meta.url = data.ename + ".cin";
-
-    let table = this.ime.createTable(data, meta.url, type);
-    debug("Migrated the table to new format:", table.info.name, data, "=>", table);
-    return table;
+    return [modified, data];
   }
 
   async migrateAllTables(force) {
@@ -70,15 +57,17 @@ export class Migration {
       if (!k.startsWith(KEY_TABLE_PREFIX))
         continue;
 
-      // Migrate table k if needed.
-      let need_migrate = false;
-      if (!need_migrate)
+      let src = await this.storage.get(k);
+      let [need_update, output] = this.migrateTable(src)
+
+      if (!need_update) {
+        debug("Migration not needed:", k);
         continue;
+      } else {
+        debug("Migrated (saving):", k);
+      }
 
-      // Update table here
-      let table = this.migrateTable(await this.storage.get(k));
-
-      let w = this.storage.set(k, table);
+      let w = this.storage.set(k, output);
       if (parallel)
         waits.push(w);
       else
@@ -89,7 +78,7 @@ export class Migration {
     for (let w of waits)
       await w;
     let exec = Math.round(performance.now() - start);
-    debug("migrateTable: All tables migrated.", exec, "ms");
+    debug("migrateTable: Migrated all tables.", exec, "ms");
     console.log(`Migration/${parallel ? "parallel" : "single-thread"} ${exec} ms.`);
   }
 

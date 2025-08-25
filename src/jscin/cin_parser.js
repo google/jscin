@@ -93,9 +93,6 @@ export function parseCin(cin_input) {
   if (runningcmd && runningcmd != 'chardef') // iBus tables has no "%chardef end"
     return failed(lineno, 'previous section has no end');
 
-  // TODO(hungte) Remove this command after migration completed.
-  data.PHRASE_CHARDEF = true;
-
   // We want to keep the CIN AS-IS and prevent minimal changes (except the
   // cname/ename because they are critical for storing and showing). The
   // normalization and quirks should be applied only in the runtime - that will

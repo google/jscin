@@ -67,7 +67,6 @@ export class GenInp2 extends BaseInputMethod
     // Currently CIN stores most tables as simple strings.
     this._NormalizeTable(this.override_conversion);
     this._NormalizeTable(this.override_autocompose);
-    this._NormalizeTable(this.table);
   }
 
   _NormalizeTable(t) {
