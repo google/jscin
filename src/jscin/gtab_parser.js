@@ -218,15 +218,6 @@ export function parseGtab(arraybuffer) {
 
   myView.offset += 4 * (th.KeyS + 1); // skip parsing idx since it's unused
 
-  let qs = '';
-
-  th.qkeys.quick1.forEach((v, j) => {
-    if (!v.length)
-      return;
-    let s = checkAndConcat(keymap[j + 1], v.join(''));
-    qs += s;
-  });
-
   // GTAB actually combines multiple %flag_* in CIN into the binary flag and
   // there is no '%flag' command. However we want to put the parsing of flags in
   // the jscin IM modules (so we can handle new tables by an update) so we have
@@ -239,6 +230,15 @@ export function parseGtab(arraybuffer) {
   cin += `%space_style ${th.space_style}\n`;
   if (th.MaxPress)
     cin += `%max_keystroke ${th.MaxPress}\n`;
+
+  let qs = '';
+
+  th.qkeys.quick1.forEach((v, j) => {
+    if (!v.length)
+      return;
+    let s = checkAndConcat(keymap[j + 1], v.join(''));
+    qs += s;
+  });
 
   th.qkeys.quick2.forEach((w, j) => {
     w.forEach((v, k) => {

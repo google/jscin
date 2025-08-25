@@ -227,7 +227,6 @@ export class InputMethodsEnvironment {
 
   parseCinFromString(str) {
     debug("parseCinFromString:", str.substring(0, 40), '...');
-    // TODO(hungte) Dyanmic load cin_parser
     let [success, cin, msg] = parseCin(str);
 
     if (!success || !cin) {

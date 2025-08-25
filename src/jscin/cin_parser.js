@@ -21,8 +21,8 @@ export function parseCin(cin_input) {
     KEYSTROKE_REMAP: 1, KEYGROUPS: 1, // XCINRC
   };
 
-  // TODO for very old XCIN table (1.x~2.1b), there's no %chardef -- anything
-  // not inside commands are chardefs.
+  // For very old XCIN table (1.x~2.1b), there's no %chardef -- anything
+  // not inside commands are chardefs. But we don't want to support those.
 
   function failed(lineno, msg) {
     return [false, undefined, 'line ' + (lineno+1) + ': ' + msg];
