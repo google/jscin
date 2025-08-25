@@ -26,8 +26,10 @@ class testInputIme {
 
   items() {
     return [
-      (ev) => { this.test_setCandidateWindowProperties(true); },
-      (ev) => { this.test_setCandidateWindowProperties(false); },
+      (ev) => { this.test_setCandidateWindowProperties({vertical:false}); },
+      (ev) => { this.test_setCandidateWindowProperties({vertical:true}); },
+      (ev) => { this.test_setCandidateWindowProperties({visible:false}); },
+      (ev) => { this.test_setCandidateWindowProperties({visible:true}); },
       (ev) => { this.test_setComposition("hello"); },
       (ev) => { this.test_clearComposition(); },
       (ev) => { this.test_commitText("hello world"); },
@@ -64,10 +66,10 @@ class testInputIme {
     });
   }
 
-  test_setCandidateWindowProperties(flag) {
+  test_setCandidateWindowProperties(obj) {
     this.ime.setCandidateWindowProperties({
       contextID: testContextID,
-      properties: {visible: flag}});
+      properties: obj});
   }
 
   test_clearComposition() {

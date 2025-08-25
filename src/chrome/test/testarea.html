@@ -41,8 +41,11 @@ input, textarea, button {
 
 <div id="TestItems">
   <h3>chrome.input.ime.* Implementation Tests</h3>
-  <button>setCandidateWindowProperties(true)</button>
-  <button>setCandidateWindowProperties(false)</button>
+  <button>setCandidateWindowProperties({vertical: false})</button>
+  <button>setCandidateWindowProperties({vertical: true})</button>
+  <br/>
+  <button>setCandidateWindowProperties({visible: false})</button>
+  <button>setCandidateWindowProperties(visible: true})</button>
   <br/>
   <button>setComposition("hello;")</button>
   <button>clearComposition()</button>
