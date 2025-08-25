@@ -137,6 +137,8 @@ async function Init() {
   ime.attach(node);
 
   let test = new testInputIme(ime);
+  $('#TestItems').hide();
+  $('#ShowTestItems').click(() => $('#TestItems').toggle());
   test.bind();
   node.focus();
 }
