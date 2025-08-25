@@ -260,7 +260,8 @@ export class CrOS_CIN {
 
       case jscin.IMKEY_DELAY:
         // UI will be updated later, see im.set_notifier.
-        return true;
+        // Also see chrome.input.ime.onKeyEvent
+        return undefined;
     }
 
     // default: Unknown return value.

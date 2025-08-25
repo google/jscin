@@ -25,7 +25,7 @@ export class ChromeInputIme {
     return{checked, enabled, id, label, style, visible};
   }
 
-  // Each item i  the items is a MenuItem.
+  // Each item in the items is a MenuItem.
   MenuParameters(engineId, items) {
     return {engineId, items};
   }
@@ -92,8 +92,30 @@ export class ChromeInputIme {
     return false;
   }
 
-  // events
-  createEventHandler(event, check_result) {
+  // Indicates that the key event received by onKeyEvent is handled.
+  // This should only be called if the onKeyEvent listener is asynchronous.
+  keyEventHandled(requestId, response) {
+    // requestId: string (from keyEvent.requestId)
+    // response: boolean
+    debug("keyEventHandled: NOT_IMPL");
+  }
+
+  sendKeyEvents(parameters) {
+    // parameters:
+    // - contextID: number
+    // - keyData: KeyboardEvent[]
+    debug("sendKeyEvents: NOT_IMPL");
+  }
+
+  setCursorPosition(parameters) {
+    // parameters:
+    // - candidateID: number
+    // - contextID: number
+    debug("setCursorPosition: NOT_IMPL");
+  }
+
+  // Meta function to help creating the event handlers.
+  _createEventHandler(event, check_result) {
     return {
       addListener: (c) => {
         if (!(event in this.callbacks)) {
@@ -114,19 +136,17 @@ export class ChromeInputIme {
     };
   }
 
-  dispatchEvent(name, ...args) {
-    let dispatcher = this[`on${name}`].dispatch;
-    return dispatcher(...args);
-  }
+  // For onKeyEvent, the callback should return true if the event was handled;
+  // false if not handled, and undefined for events to be asynchronous (see
+  // keyEventHandled).
+  onKeyEvent = this._createEventHandler("KeyEvent", true);
 
-  onActivate = this.createEventHandler("Activate");
-  onBlur = this.createEventHandler("Blur");
-  onCandidateClicked = this.createEventHandler("CandidateClicked");
-  onDeactivated = this.createEventHandler("Deactivated");
-  onFocus = this.createEventHandler("Focus");
-  onInputContextUpdate = this.createEventHandler("InputContextUpdate");
-  // For onKeyEvent, the callback should return true if the event was handled; false if it was not.
-  onKeyEvent = this.createEventHandler("KeyEvent", true);
-  onMenuItemActivated = this.createEventHandler("MenuItemActivated");
-  onReset = this.createEventHandler("Reset");
+  onActivate = this._createEventHandler("Activate");
+  onBlur = this._createEventHandler("Blur");
+  onCandidateClicked = this._createEventHandler("CandidateClicked");
+  onDeactivated = this._createEventHandler("Deactivated");
+  onFocus = this._createEventHandler("Focus");
+  onInputContextUpdate = this._createEventHandler("InputContextUpdate");
+  onMenuItemActivated = this._createEventHandler("MenuItemActivated");
+  onReset = this._createEventHandler("Reset");
 }
