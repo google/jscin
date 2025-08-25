@@ -11,6 +11,25 @@ import fs from 'node:fs';
 let print = console.log
 jscin.debug = true;
 
+function shallowEqual(obj1, obj2)
+{
+  let equ = (obj1 == obj2);
+  if (equ)
+    return equ;
+
+  if (Array.isArray(obj1)) {
+    equ = obj1.length == obj2.length;
+    if (!equ)
+      return equ;
+    for (let k in obj1)
+      if (obj1[k] != obj2[k])
+        return false;
+    return true;
+  }
+
+  return equ;
+}
+
 function simulate(inst, inpinfo, input, result, expects) {
   let committed = '';
 
@@ -31,14 +50,14 @@ function simulate(inst, inpinfo, input, result, expects) {
     let ok = true;
     let to_check = ['keystroke', 'mcch', 'cch', 'selkey'];
     for (let name of to_check) {
-      if (expect[name] != undefined) {
-        if (inpinfo[name] != expect[name]) {
-          print('test failed: ', name, '=', inpinfo[name], ', expected: ',
-                expect[name]);
-          ok = false;
-        }
+      if (!(name in expect))
+        continue;
+      if (!shallowEqual(expect[name], inpinfo[name])) {
+        print('test failed: ', name, '=', inpinfo[name], ', expected: ',
+          expect[name]);
+        ok = false;
       }
-    };
+    }
     if (expect.ret != undefined && ret != expect.ret) {
       print("test failed: ret=", ret, ", expected: ", expect.ret);
       ok = false;
@@ -94,7 +113,7 @@ async function main() {
       table: "test_boshiamy.cin",
       test: [
         { input: "a ", result: "對", 0: {selkey: '0123456789'} },
-        { input: "o ", result: "○", 0: {mcch: '○〇'} },
+        { input: "o ", result: "○", 0: {mcch: ['○', '〇']} },
         { input: "o1", result: "〇" },
       ]
     }, {
