@@ -589,8 +589,18 @@ function addTableToList(name, list_id, do_insert) {
     let buttons = [{
       text: ' OK ',
       click: function () {
-        config.Set("AddonCrossQuery",
-          $('#query_keystrokes').is(':checked') ? name : "");
+        let checked = $('#query_keystrokes').is(':checked');
+        let current = config.AddonCrossQuery();
+        let update = false;
+
+        if (checked)
+          update = (current != name);
+        else
+          update = (current == name);
+
+        if (update)
+          config.Set("AddonCrossQuery", checked ? name : '');
+
         $(this).dialog("close");
       } }];
 
