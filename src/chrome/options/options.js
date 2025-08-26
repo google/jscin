@@ -120,12 +120,21 @@ async function init() {
     modal: true,
   });
 
-  $(".optionAddUrl").button().click(function(event) {
+  function selectAddDiv(target) {
+    const targets = ['file', 'url', 'odlist'];
+    for (const div of targets) {
+      const selector = `#${div}_div`;
+      if (div == target) {
+        $(selector).show();
+      } else {
+        $(selector).hide();
+      }
+    }
     setAddTableStatus("");
-    $("#file_div").hide();
-    $("#url_div").show();
-    $("#doc_div").hide();
-    $("#odlist_div").hide();
+  }
+
+  $(".optionAddUrl").button().click(function(event) {
+    selectAddDiv('url');
     $('#cin_table_url_input').addClass("ui-corner-all");
 
     $("#add_table_dialog").dialog('option', 'buttons', [
@@ -148,11 +157,7 @@ async function init() {
   });
 
   $(".optionAddFile").button().click(function(event) {
-    setAddTableStatus("");
-    $("#file_div").show();
-    $("#url_div").hide();
-    $("#doc_div").hide();
-    $("#odlist_div").hide();
+    selectAddDiv('file');
     $('#cin_table_file_input').button().addClass("ui-corner-all");
 
     $("#add_table_dialog").dialog('option', 'buttons', [
@@ -175,10 +180,7 @@ async function init() {
   });
 
   $(".optionAddOpenDesktop").button().click(function (event) {
-    $("#file_div").hide();
-    $("#url_div").hide();
-    $("#doc_div").hide();
-    $("#odlist_div").show();
+    selectAddDiv('odlist');
     let list = $("#odlist_select");
     list.change(() => {
       $('.btnAddTable').show();
