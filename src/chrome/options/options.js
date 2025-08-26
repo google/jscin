@@ -52,12 +52,6 @@ function ___(ename, cname) {
   return ename || cname;
 }
 
-function SetElementsText(...args) {
-  for (let name of args) {
-    $(`.${name}`).text(_(name));
-  }
-}
-
 function encodeId(name) {
   let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
   return v;
@@ -77,18 +71,10 @@ async function init() {
     logger.enableAllLoggers();
   }
 
-  SetElementsText("optionCaption", "optionInputMethodTables",
-      "optionHowToEnableTables", "optionEnabledTables", "optionAvailableTables",
-      "optionAddTables", "optionAddUrl", "optionAddFile", "optionAddOpenDesktop",
-      "optionTableDetailNameHeader", "optionTableDetailSourceHeader",
-      "optionTableDetailTypeHeader", "optionQueryKeystrokes",
-      "optionSettingChoices",
-      "optionGeneral",
-      "optionRawMode", "optionRelatedText", "optionPunctuations",
-      "optionVerticalWindow",
-      "optionSupportNonChromeOS", "optionAlertChangeSupportNonChromeOS",
-      "optionSelectDefaultInputModule", "optionSandbox",
-      "optionDebug", "optionDebugMessage");
+  // Localize all .option* elements.
+  for (let v of $('*[class^="option"]')) {
+    $(v).text(_(v.className));
+  }
 
   $('#available_im_list').sortable({
     revert: true,
@@ -510,7 +496,7 @@ async function addTable(content, url, type, save_name) {
 
 async function updateBytesInUse(storage=jscin.storage) {
   const bytes_in_use = await storage.getBytesInUse();
-  $('.optionBytesInUse').text(_("optionBytesInUse", `${bytes_in_use}`));
+  $('#optionBytesInUse').text(_("optionBytesInUse", `${bytes_in_use}`));
 }
 
 function setAddTableStatus(status, err) {
@@ -593,9 +579,9 @@ function addTableToList(name, list_id, do_insert) {
     if (builtin)
       type_label.push(_("optionBuiltin"));
 
-    $('.optionTableDetailName').text(display_name);
-    $('.optionTableDetailSource').val(url);
-    $('.optionTableDetailType').text(type_label.join(' '));
+    $('#optionTableDetailName').text(display_name);
+    $('#optionTableDetailSource').val(url);
+    $('#optionTableDetailType').text(type_label.join(' '));
     $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
 
     let buttons = [{

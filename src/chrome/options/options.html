@@ -23,7 +23,7 @@
           <span class="optionAvailableTables"></span>
           <ul id="available_im_list" class="sortable">
           </ul>
-          <div class="optionBytesInUse"
+          <div id="optionBytesInUse"
                style="text-align: right; font-size: 90%;"></div>
         </div>
         <div style="clear: both;"></div>
@@ -116,30 +116,29 @@
       </div>
 
       <div id="table_detail_dialog">
-        <span class="optionTableDetail"></span>
 
         <p>
           <span class="optionTableDetailNameHeader"></span>
-          <span class="optionTableDetailName"></span>
+          <span id="optionTableDetailName"></span>
         </p>
 
         <p>
           <span class="optionTableDetailTypeHeader"></span>
-          <span class="optionTableDetailType"></span>
+          <span id="optionTableDetailType"></span>
         </p>
 
         <p>
           <span class="optionTableDetailSourceHeader"></span><br/>
           &nbsp;
           <textarea
-              class="optionTableDetailSource"
+              id="optionTableDetailSource"
               style="word-wrap: break-word; word-break: break-all; resize: none;"
               rows="2" cols="64" wrap="hard" disabled>
           </textarea>
         </p>
 
         <p>
-          <input type="checkbox" class="optionQueryKeystrokesCheckbox" id="query_keystrokes">
+          <input type="checkbox" id="query_keystrokes"></input>
           <label for="query_keystrokes" class="optionQueryKeystrokes"></label>
         </p>
       </div>
