@@ -165,6 +165,8 @@ export class GenInp2 extends BaseInputMethod
 
   ClearCandidates(ctx) {
     ctx.candidates = [];
+    ctx.candidates_start_index = 0;
+    ctx.mcch = [];
   }
 
   UpdateCandidates(ctx) {
@@ -264,6 +266,10 @@ export class GenInp2 extends BaseInputMethod
   GetPartialMatchCandidates(ctx, prefix, table, limit) {
     if (!prefix)
       prefix = ctx.composition;
+    if (!prefix) {
+      warn("GetPartialMatchCandidates: prefix is empty, abort");
+      return [];
+    }
     if (this.opts.OPT_PARTIAL_MATCH || this.opts.OPT_UNIQUE_AUTO) {
       // We can't afford to create trie on every new table, so let's assume the
       // table is exactly this.table.
@@ -315,6 +321,12 @@ export class GenInp2 extends BaseInputMethod
 
     this.ClearCandidates(ctx);
 
+    if (!key) {
+      // calling this.UpdateCandidates(ctx) was required, but today we always
+      // modified the states in ClearCandidates.
+      return false;
+    }
+
     // Process override_* tables.
     if (autocompose_stage) {
       override = this.override_autocompose;
@@ -330,10 +342,13 @@ export class GenInp2 extends BaseInputMethod
 
     if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
       this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table));
+      debug("PrepareCandidates: - glob", ctx.candidates);
     } else if (!changed && autocompose_stage && this.opts.OPT_PARTIAL_MATCH) {
       this.AddCandidates(ctx, this.GetPartialMatchCandidates(ctx, key, table));
+      debug("PrepareCandidates: - partial", ctx.candidates);
     } else {
       this.AddCandidates(ctx, table[key]);
+      debug("PrepareCandidates: - exact match", ctx.candidates);
     }
 
     this.UpdateCandidates(ctx);
