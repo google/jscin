@@ -81,6 +81,21 @@ input[type=file]::file-selector-button {
   transition: .5s;
 }
 
+label {
+  cursor: pointer;
+}
+
+#divOpts {
+  border: 1px solid #ccc;
+  margin: 7px;
+  padding: 7px;
+}
+
+label:hover {
+  color: navy;
+  background-color: #f8f8f8;
+}
+
 /*
 .input_container {
   border: 1px solid #e5e5e5;

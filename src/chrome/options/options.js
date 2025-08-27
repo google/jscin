@@ -76,6 +76,15 @@ async function init() {
     $(v).text(_(v.className));
   }
 
+  // Generate the options list in the details window
+  let node = $('#divOpts');
+  for (let o in jscin.OPTS) {
+    let cls = `opt_${o}`;
+    node.append($('<input/>').attr("type", "checkbox").attr("id", cls)).
+      append($('<label/>').attr("for", cls).attr("class", cls).
+        text(_(cls)).attr('title', _(`title_${o}`))).append($('<br/>'));
+  }
+
   $('#available_im_list').sortable({
     revert: true,
     connectWith: ".sortable",
@@ -567,6 +576,7 @@ function addTableToList(name, list_id, do_insert) {
     let table = {};
     if (!builtin)
       table = await jscin.loadTable(name);
+    let opts = await jscin.loadOpts(name);
 
     // `type` from table.type should remain the same (even if it's undefined) so
     // the behavior will be the same when being reloaded.
@@ -586,9 +596,15 @@ function addTableToList(name, list_id, do_insert) {
     $('#optionTableDetailType').text(type_label.join(' '));
     $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
 
+    for (let o in jscin.OPTS) {
+      let idsel = `#opt_${o}`;
+      $(idsel).prop('checked', opts[o]);
+    }
+
     let buttons = [{
       text: ' OK ',
-      click: function () {
+      click: async function () {
+        // Save CrossQuery
         let checked = $('#query_keystrokes').is(':checked');
         let current = config.AddonCrossQuery();
         let update = false;
@@ -600,6 +616,20 @@ function addTableToList(name, list_id, do_insert) {
 
         if (update)
           config.Set("AddonCrossQuery", checked ? name : '');
+
+        // Save Opts
+        update = false;
+        let new_opts = {};
+        for (let o in jscin.OPTS) {
+          let id = `opt_${o}`;
+          new_opts[o] = $(`#${id}`).is(':checked');
+          if (new_opts[o] != opts[o])
+            update = true;
+        }
+        if (update) {
+          debug("Save new opts:", new_opts);
+          jscin.saveOpts(name, new_opts);
+        }
 
         $(this).dialog("close");
       } }];
@@ -635,7 +665,7 @@ function addTableToList(name, list_id, do_insert) {
 
     $('#table_detail_dialog').dialog({
       title: _("optionTableDetail"),
-      minWidth: 600,
+      minWidth: 575,
       buttons: buttons,
       modal: true
     });
