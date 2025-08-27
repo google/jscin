@@ -534,8 +534,8 @@ export class CrOS_CIN {
         continue;
       }
 
-      // Clear any existing records - both the table contents and info.
-      await jscin.removeTable(name);
+      // Clear existing tables (both the CIN contents and info) but keep the opts
+      await jscin.removeTable(name, true);
 
       let url = chrome.runtime.getURL(`tables/${list[name]}`);
       let content = await LoadText(url);

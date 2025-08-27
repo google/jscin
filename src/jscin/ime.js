@@ -318,21 +318,28 @@ export class InputMethodsEnvironment {
       await this.storage.set(key, table);
     debug("saveTable: new info_list=", this.info_list);
     await this.saveTableInfoList();
-    /* Apply the quirks to get default opts. */
-    let quirk = structuredClone(table.cin);
-    applyInputMethodTableQuirks(quirk);
-    await this.saveOpts(name, this.cin2Opts(quirk));
+
+    // TODO(hungte) We want to preserve the opts but the built-in tables
+    // actually will be removed/saved on each version update.
+    if (!await this.loadOpts(name)) {
+      /* Apply the quirks to get default opts. */
+      let quirk = structuredClone(table.cin);
+      applyInputMethodTableQuirks(quirk);
+      await this.saveOpts(name, this.cin2Opts(quirk));
+    }
+
     return name;
   }
 
-  async removeTable(name) {
+  async removeTable(name, keep_opts) {
     const key = this.tableKey(name);
     debug("Removing the table for:", name, key);
     delete this.info_list[name];
     delete this.cache[name];
 
     await this.storage.remove(key);
-    await this.removeOpts(name);
+    if (!keep_opts)
+      await this.removeOpts(name);
     await this.saveTableInfoList();
     return true;
   }
@@ -340,13 +347,10 @@ export class InputMethodsEnvironment {
   async loadOpts(name) {
     const key = this.optsKey(name);
     debug("Loading opts:", name, '->', key);
-    let opts = await this.storage.get(key);
     // All opts should be processed in saveTable.
     // And defaults should be applied in the applyInputMethodTableQuirks
     // so we don't need to create another 'default' here.
-    if (!opts)
-      opts = {};
-    return opts;
+    return await this.storage.get(key);
   }
 
   async saveOpts(name, opts) {
@@ -471,7 +475,7 @@ export class InputMethodsEnvironment {
       return;
     }
     if (!opts)
-      opts = await this.loadOpts(name);
+      opts = (await this.loadOpts(name) || {});
 
     // module: from param (string or constructor),
     // from table, or the fallback.

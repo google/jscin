@@ -576,7 +576,7 @@ function addTableToList(name, list_id, do_insert) {
     let table = {};
     if (!builtin)
       table = await jscin.loadTable(name);
-    let opts = await jscin.loadOpts(name);
+    let opts = (await jscin.loadOpts(name)) || {};
 
     // `type` from table.type should remain the same (even if it's undefined) so
     // the behavior will be the same when being reloaded.
@@ -600,6 +600,8 @@ function addTableToList(name, list_id, do_insert) {
       let idsel = `#opt_${o}`;
       $(idsel).prop('checked', opts[o]);
     }
+    // TODO(hungte) Add a 'reset' inside the opts for IM defaults.
+    // TODO(hungte) Consider allow reseting to different IM rules.
 
     let buttons = [{
       text: ' OK ',
