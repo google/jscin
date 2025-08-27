@@ -163,7 +163,7 @@ function SelkeyShiftQuirks(cin) {
 
   let k = cin.selkey || '';
   if (k.startsWith(' ')) {
-    error("SELKEY_SHIFT but selkey alreay started with SPACE.");
+    warn("SELKEY_SHIFT but selkey alreay started with SPACE.");
     return;
   }
 
