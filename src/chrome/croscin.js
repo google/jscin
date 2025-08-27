@@ -473,7 +473,7 @@ export class CrOS_CIN {
 
     let imctx = {};
     let im = await jscin.activateInputMethod(
-      name, imctx, null, this.config.DefaultModule());
+      name, imctx, null, null, this.config.DefaultModule());
 
     if (!im) {
       debug("ActivateInputMethod: Cannot start Input Method:", name);

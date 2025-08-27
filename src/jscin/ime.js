@@ -460,7 +460,7 @@ export class InputMethodsEnvironment {
   // ----- Input Methods -----
 
   /* TODO(hungte) Should we make this sync and only allow loaded table? */
-  async activateInputMethod(name, ctx, table, module) {
+  async activateInputMethod(name, ctx, table, opts, module) {
     debug("Activating input method:", name);
 
     // table: from param, or from storage.
@@ -470,6 +470,8 @@ export class InputMethodsEnvironment {
       error("No table found for:", name);
       return;
     }
+    if (!opts)
+      opts = await this.loadOpts(name);
 
     // module: from param (string or constructor),
     // from table, or the fallback.
@@ -485,8 +487,11 @@ export class InputMethodsEnvironment {
     // some quirks may be triggered only after the table.type is applied.
     applyInputMethodTableQuirks(table.cin);
 
+    // Overwrite from the stored options
+    Object.assign(table.cin, opts);
+
     let instance = new module(name, table.cin);
-    debug("activateInputMethod: Created input method:", name, instance, module.name);
+    debug("activateInputMethod: Created input method:", name, opts, instance, module.name);
 
     for (let addon of this.addons)
       instance = new addon('addon', instance);
