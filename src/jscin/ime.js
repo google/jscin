@@ -301,6 +301,13 @@ export class InputMethodsEnvironment {
     return opts;
   }
 
+  // Check the (CIN) table and figure out the default opts.
+  getTableDefaultOpts(cin) {
+    let quirk = structuredClone(cin);
+    applyInputMethodTableQuirks(quirk);
+    return this.cin2Opts(quirk);
+  }
+
   async saveTable(name, cin, url, type, save_in_storage=true) {
     let table = this.createTable(cin, url, type, name);
     if (!table)
@@ -318,14 +325,8 @@ export class InputMethodsEnvironment {
     debug("saveTable: new info_list=", this.info_list);
     await this.saveTableInfoList();
 
-    // TODO(hungte) We want to preserve the opts but the built-in tables
-    // actually will be removed/saved on each version update.
-    if (!await this.loadOpts(name)) {
-      /* Apply the quirks to get default opts. */
-      let quirk = structuredClone(table.cin);
-      applyInputMethodTableQuirks(quirk);
-      await this.saveOpts(name, this.cin2Opts(quirk));
-    }
+    if (!await this.loadOpts(name))
+      await this.saveOpts(name, this.getTableDefaultOpts(table.cin));
 
     return name;
   }
