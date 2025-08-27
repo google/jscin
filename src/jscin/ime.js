@@ -15,6 +15,8 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin.
 /* Key names in the storage. */
 export const KEY_INFO_LIST = "info_list";
 export const KEY_TABLE_PREFIX = "table-";
+export const KEY_OPTS_PREFIX = "opts-";
+
 export const OPTS = {
   SPACE_RESET: true,
   AUTO_RESET: false,
@@ -215,6 +217,9 @@ export class InputMethodsEnvironment {
   tableName(key) {
     return key.substring(KEY_TABLE_PREFIX.length);
   }
+  optsKey(name) {
+    return `${KEY_OPTS_PREFIX}${name}`;
+  }
 
   isValidCIN(cin) {
     if (cin &&
@@ -286,6 +291,17 @@ export class InputMethodsEnvironment {
     return table;
   }
 
+  // Filter out OPTS commands from the cin commands
+  cin2Opts(cin) {
+    let opts = {};
+    for (let k in this.OPTS) {
+      if (k in cin)
+        opts[k] = cin[k];
+    }
+    debug("cin2Opts:", cin, '->', opts);
+    return opts;
+  }
+
   async saveTable(name, cin, url, type, save_in_storage=true) {
     let table = this.createTable(cin, url, type, name);
     if (!table)
@@ -302,6 +318,10 @@ export class InputMethodsEnvironment {
       await this.storage.set(key, table);
     debug("saveTable: new info_list=", this.info_list);
     await this.saveTableInfoList();
+    /* Apply the quirks to get default opts. */
+    let quirk = structuredClone(table.cin);
+    applyInputMethodTableQuirks(quirk);
+    await this.saveOpts(name, this.cin2Opts(quirk));
     return name;
   }
 
@@ -312,8 +332,33 @@ export class InputMethodsEnvironment {
     delete this.cache[name];
 
     await this.storage.remove(key);
+    await this.removeOpts(name);
     await this.saveTableInfoList();
     return true;
+  }
+
+  async loadOpts(name) {
+    const key = this.optsKey(name);
+    debug("Loading opts:", name, '->', key);
+    let opts = await this.storage.get(key);
+    // All opts should be processed in saveTable.
+    // And defaults should be applied in the applyInputMethodTableQuirks
+    // so we don't need to create another 'default' here.
+    if (!opts)
+      opts = {};
+    return opts;
+  }
+
+  async saveOpts(name, opts) {
+    const key = this.optsKey(name);
+    debug("Saving opts:", name, '->', key, '->', opts);
+    await this.storage.set(key, opts);
+  }
+
+  async removeOpts(name) {
+    const key = this.optsKey(name);
+    debug("Remove opts for:", name, key);
+    await this.storage.remove(key);
   }
 
   async loadTable(name, url) {
