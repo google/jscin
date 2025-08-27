@@ -70,6 +70,7 @@ async function init() {
   if (config.Debug()) {
     logger.enableAllLoggers();
   }
+  const debugFlag = config.Debug();
 
   // Localize all .option* elements.
   for (let v of $('*[class^="option"]')) {
@@ -77,12 +78,18 @@ async function init() {
   }
 
   // Generate the options list in the details window
+  let exp_opts = [];
   let node = $('#divOpts');
   for (let o in jscin.OPTS) {
     let cls = `opt_${o}`;
-    node.append($('<input/>').attr("type", "checkbox").attr("id", cls)).
+    let div = $('<div/>').attr("id", `div_${cls}`).append(
+      $('<input/>').attr("type", "checkbox").attr("id", cls)).
       append($('<label/>').attr("for", cls).attr("class", cls).
-        text(_(cls)).attr('title', _(`title_${o}`))).append($('<br/>'));
+        text(_(cls)).attr('title', _(`title_${o}`)));
+    if (exp_opts.includes(o)) {
+      div.attr("class", "experimental");
+    }
+    node.append(div);
   }
 
   $('#available_im_list').sortable({
@@ -260,9 +267,8 @@ async function init() {
   if (chrome?.input?.ime) {
     divPlat = 'divNonCrOS';
   }
-  const debug = config.Debug();
-  HideByClass(divPlat, debug ? "yellow" : undefined);
-  HideByClass('spanExperimental', debug ? "greenyellow" : undefined);
+  HideByClass(divPlat, debugFlag ? "yellow" : undefined);
+  HideByClass('experimental', debugFlag ? "greenyellow" : undefined);
 
   $('#checkSupportNonChromeOS').prop("checked",
     config.Emulation()).click(function ()
