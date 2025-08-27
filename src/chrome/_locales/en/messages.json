@@ -126,6 +126,13 @@
   "title_WILD_ENABLE": {"message": "XCIN25 Command: %WILD_ENABLE" },
   "title_END_KEY": {"message": "XCIN25 Command: %ENDKEY" },
 
+  "im_phonetic": {"message": "Phonetic"},
+  "im_changjei": {"message": "ChangJei"},
+  "im_simplex": {"message": "SimpleX"},
+  "im_boshiamy": {"message": "Boshiamy"},
+  "im_dayi": {"message": "Dayi"},
+  "im_array30": {"message": "Array30"},
+
   "tableStatusURLisEmpty": {"message":
     "URL is empty." },
   "tableStatusStillDownloadingName": {"message":

@@ -127,6 +127,13 @@
   "title_WILD_ENABLE": {"message": "XCIN25 指令: %WILD_ENABLE" },
   "title_END_KEY": {"message": "XCIN25 指令: %ENDKEY" },
 
+  "im_phonetic": {"message": "注音"},
+  "im_changjei": {"message": "倉頡"},
+  "im_simplex": {"message": "簡易倉頡"},
+  "im_boshiamy": {"message": "嘸蝦米"},
+  "im_dayi": {"message": "大易"},
+  "im_array30": {"message": "行列30"},
+
   "tableStatusURLisEmpty": {"message":
     "空白網址無法下載。" },
   "tableStatusStillDownloadingName": {"message":

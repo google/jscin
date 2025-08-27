@@ -68,6 +68,63 @@ function GeneralQuirks(cin) {
   }
 }
 
+export function DetectInputMethodType(cin) {
+  const detectors = {
+    phonetic: {
+      detect: { "ji3": "我" },
+    },
+    changjei: {
+      detect: { "bmr": "同" },
+    },
+    simplex: {
+      detect: { "ab": "晴" },
+      opts: {
+        AUTO_COMPOSE: false,
+        AUTO_FULLUP: true,
+      },
+    },
+    boshiamy: {
+      detect: { "ca": "夕" },
+      opts: {
+        SELKEY_SHIFT: true,
+        SPACE_AUTOUP: true,
+        SPACE_RESET: true,
+      },
+    },
+    dayi: {
+      detect: { "mg": "字" },
+      opts: {
+        SELKEY_SHIFT: true,
+      },
+    },
+    array30: {
+      // AR 40 has / as 貝 instead , AR 26 does not have,
+      detect: { "a": "一", "/": "虫" },
+    },
+  };
+
+  for (let name in detectors) {
+    let rule = detectors[name];
+    let detect = rule.detect;
+    let opts = rule.opts || {};
+
+    assert(detect, "No detection rule defined in:", name);
+    let matched = true;
+    for (let [key, value] of Object.entries(detect)) {
+      if (!cin.chardef[key]?.includes(value)) {
+        matched = false;
+        break;
+      }
+    }
+    if (!matched)
+      continue;
+    debug("DetectInputMethodType: matched:", name, opts);
+    ApplyIfMissing(cin, opts);
+    return name;
+  }
+  return null;
+}
+
 function GcinQuirks(cin) {
 
   // quickkey (xcin2.3, openvanilla) and quick (gcin) are equivalent.
@@ -228,6 +285,10 @@ function AddDefaultOptions(cin) {
 export function applyInputMethodTableQuirks(cin) {
   // GcinQuirks will extract the flag and normalize commands across gcin/xcin.
   GcinQuirks(cin);
+
+  // DetectInputMethodType must be done before other general quirks so the
+  // IM-specific default options will be applied.
+  DetectInputMethodType(cin);
 
   // Normalize the table
   GeneralQuirks(cin);
