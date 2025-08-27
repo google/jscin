@@ -67,6 +67,8 @@
     "Display corresponding keystrokes of this input method."},
   "optionAreYouSure": {"message":
     "Are you sure?" },
+  "optionOverwriteTable": {"message":
+    "Are you sure to overwrite $1 ($2)?" },
 
   "optionGeneral": {"message":
     "General Settings" },

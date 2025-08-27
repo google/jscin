@@ -67,6 +67,8 @@
     "反查此輸入法中對應的字根"},
   "optionAreYouSure": {"message":
     "確定要繼續嗎？" },
+  "optionOverwriteTable": {"message":
+    "確定要取代 $1 ($2) 嗎?" },
 
   "optionGeneral": {"message":
     "一般性設定" },

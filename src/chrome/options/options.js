@@ -319,7 +319,7 @@ function GuessNameFromURL(url) {
   return guess || '<Unknown>';
 }
 
-async function addTableFromBlob(blob, source, save_name) {
+async function addTableFromBlob(blob, source) {
   debug("addTableFromBlob", source, blob);
 
   if (source instanceof File) {
@@ -331,15 +331,16 @@ async function addTableFromBlob(blob, source, save_name) {
     try {
       // No %ename from blob so let's "guess" from the URL name or the file
       // name.
-      let ename = save_name || GuessNameFromURL(source);
+      let ename = GuessNameFromURL(source);
       debug("Parsing GTAB into CIN:", source, ename);
       let cin = `%ename ${ename}\n` + parseGtab(blob);
       debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
-      if (await addTable(cin, source, save_name)) {
+      if (await addTable(cin, source)) {
         debug("addTableFromBlob: success.", source);
         return true;
       } else {
         debug("addTableFromBlob: Failed adding table:", source);
+        return false;
       }
     } catch (err) {
       warn("Failed to parse as GTAB from:", source, err);
@@ -358,7 +359,7 @@ async function addTableFromBlob(blob, source, save_name) {
   if (!t) {
     setAddTableStatus(_("tableStatusFailedParsingMsg", `Unknown format: ${source}`), true);
     debug("Failed to decode the table:", source);
-  } else if (await addTable(t, source, save_name)) {
+  } else if (await addTable(t, source)) {
     debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
     return;
   } else {
@@ -367,8 +368,8 @@ async function addTableFromBlob(blob, source, save_name) {
   }
 }
 
-async function addTableFromUrl(url, save_name, progress=true) {
-  let name = save_name || GuessNameFromURL(url);
+async function addTableFromUrl(url, progress=true) {
+  let name = GuessNameFromURL(url);
   debug("addTableFromUrl:", name, url);
   try {
     if (url.replace(/^\s+|s+$/g, "") == "") {
@@ -402,7 +403,7 @@ async function addTableFromUrl(url, save_name, progress=true) {
       xhr.addEventListener("load", (e)=> {
         setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
         blob = e.currentTarget.response;
-        addTableFromBlob(blob, url, save_name);
+        addTableFromBlob(blob, url);
         delete table_loading[url];
       });
       xhr.onreadystatechange = (e) => {
@@ -422,7 +423,7 @@ async function addTableFromUrl(url, save_name, progress=true) {
     } else {
       blob = await LoadArrayBuffer(url, true);
       setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
-      addTableFromBlob(blob, url, save_name);
+      addTableFromBlob(blob, url);
       delete table_loading[url];
     }
   } catch (err) {
@@ -449,7 +450,7 @@ async function addTableFromFile(files) {
   }
 }
 
-async function addTable(content, url, save_name) {
+async function addTable(content, url) {
 
   // TODO(hungte) Parse using jscin.createTable
   // so we can better figure out the right name.
@@ -462,11 +463,11 @@ async function addTable(content, url, save_name) {
     return false;
   }
 
-  let name = save_name || cin.ename;
+  let name = jscin.getTableSaveName(cin, url);
+  debug("addTable - test overwrite - ", name);
   let info = jscin.getTableInfo(name);
   if (info) {
-    // TODO(hungte) Localize this.
-    if (!confirm(`Do you wish to overwrite ${info.cname} / ${info.ename} ?`)) {
+    if (!confirm(_("optionOverwriteTable", [info.cname, info.ename]))) {
       setAddTableStatus(_("tableStatusNotAdded"), true);
       return false;
     } else {
@@ -478,7 +479,7 @@ async function addTable(content, url, save_name) {
   debug("addTable: table type:", real_type);
 
   // Update the UI
-  const new_name = await jscin.saveTable(save_name, cin, url);
+  const new_name = await jscin.saveTable(name, cin, url);
   if (!new_name) {
     setAddTableStatus(_("tableStatusFailedParsingMsg", "Cannot save"), true);
     return false;
@@ -606,10 +607,7 @@ function addTableToList(name, list_id, do_insert) {
         text: _('optionReload'),
         click: function() {
           debug("optionReload:", url);
-          if (confirm(_("optionAreYouSure"))) {
-            // Reload is the only case we want to preserve the 'name'.
-            addTableFromUrl(url, name);
-          }
+          addTableFromUrl(url);  // Confirmation in addTable.
           $(this).dialog("close");
         }});
     }

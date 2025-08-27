@@ -254,6 +254,12 @@ export class InputMethodsEnvironment {
     return cin;
   }
 
+  getTableSaveName(cin, url) {
+    const name = cin.sname || cin.ename;
+    const hash = this.getHash(url || `${name}.cin`);
+    return `${name}#${hash}`;
+  }
+
   createTable(cin, url, name) {
     if (typeof(cin) == typeof(''))
       cin = this.parseCinFromString(cin);
@@ -262,9 +268,7 @@ export class InputMethodsEnvironment {
       return false;
     }
     if (!name) {
-      const sname = cin.sname || cin.ename;
-      const hash = this.getHash(url || `${sname}.cin`);
-      name = `${sname}#${hash}`;
+      name = this.getTableSaveName(cin, url);
     }
     debug("createTable:", "name=>", name, "url=>", url, "cin=>", cin);
     // Now, create the table.
