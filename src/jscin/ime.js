@@ -299,6 +299,8 @@ export class InputMethodsEnvironment {
 
   // Check the (CIN) table and figure out the default opts.
   getTableDefaultOpts(cin) {
+    if (!cin)
+      return structuredClone(this.OPTS);
     let quirk = structuredClone(cin);
     applyInputMethodTableQuirks(quirk);
     return this.cin2Opts(quirk);

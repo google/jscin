@@ -59,6 +59,10 @@
     "名稱: " },
   "optionTableDetailSourceHeader": {"message":
     "來源: " },
+  "optionResetOpts": {"message":
+    "重設" },
+  "optionResetOptsAs": {"message":
+    "重設 (類型: $1)" },
   "optionQueryKeystrokes": {"message":
     "反查此輸入法中對應的字根"},
   "optionAreYouSure": {"message":
@@ -127,6 +131,7 @@
   "im_boshiamy": {"message": "嘸蝦米"},
   "im_dayi": {"message": "大易"},
   "im_array30": {"message": "行列30"},
+  "im_unknown": {"message": "預設"},
 
   "tableStatusURLisEmpty": {"message":
     "空白網址無法下載。" },

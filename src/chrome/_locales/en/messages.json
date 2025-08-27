@@ -59,6 +59,10 @@
     "Name: " },
   "optionTableDetailSourceHeader": {"message":
     "Source: " },
+  "optionResetOpts": {"message":
+    "Reset" },
+  "optionResetOptsAs": {"message":
+    "Reset (Type: $1)" },
   "optionQueryKeystrokes": {"message":
     "Display corresponding keystrokes of this input method."},
   "optionAreYouSure": {"message":
@@ -126,6 +130,7 @@
   "im_boshiamy": {"message": "Boshiamy"},
   "im_dayi": {"message": "Dayi"},
   "im_array30": {"message": "Array30"},
+  "im_unknown": {"message": "Default"},
 
   "tableStatusURLisEmpty": {"message":
     "URL is empty." },

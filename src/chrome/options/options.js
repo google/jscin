@@ -526,21 +526,31 @@ function addTableToList(name, list_id, do_insert) {
     $(list_id).append(item);
 
   $(`#${id}`).prepend(icon).click(async function() {
-    let table = {};
-    if (!builtin)
-      table = await jscin.loadTable(name);
+    let table = await jscin.loadTable(name, url);
     let opts = (await jscin.loadOpts(name)) || {};
+    let im_type = DetectInputMethodType(table.cin);
 
     $('#optionTableDetailName').text(name_label);
     $('#optionTableDetailSource').val(url);
     $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
-
-    for (let o in jscin.OPTS) {
-      let idsel = `#opt_${o}`;
-      $(idsel).prop('checked', opts[o]);
+    if (im_type) {
+      $('.optionResetOpts').text(_('optionResetOptsAs', _(`im_${im_type}`)));
+    } else {
+      $('.optionResetOpts').text(_('optionResetOpts'));
     }
-    // TODO(hungte) Add a 'reset' inside the opts for IM defaults.
-    // TODO(hungte) Consider allow reseting to different IM rules.
+
+    function SetOpts(opts) {
+      for (let o in jscin.OPTS) {
+        let idsel = `#opt_${o}`;
+        $(idsel).prop('checked', opts[o]);
+      }
+    }
+
+    SetOpts(opts);
+
+    $('.optionResetOpts').button().off("click").click(async () => {
+      SetOpts(jscin.getTableDefaultOpts(name, table.cin));
+    });
 
     let buttons = [{
       text: ' OK ',
