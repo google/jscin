@@ -9,6 +9,15 @@ import { AddLogger } from "./logger.js";
 import { jscin } from "./jscin.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
 
+function ApplyIfMissing(dest, src) {
+  for (let k in src) {
+    if (k in dest)
+      continue;
+    dest[k] = src[k];
+  }
+  return dest;
+}
+
 function GeneralQuirks(cin) {
   // Only table-commands (keyname, chardef) will be lowercased in cin_parser.
   // Any known one line params must be normalized to lower case.
@@ -214,12 +223,7 @@ function PhoneticQuirks(cin) {
 }
 
 function AddDefaultOptions(cin) {
-  const DEFAULT_OPTS = jscin.OPTS
-  for (let k in DEFAULT_OPTS) {
-    if (k in cin)
-      continue;
-    cin[k] = DEFAULT_OPTS[k];
-  }
+  ApplyIfMissing(cin, jscin.OPTS);
 }
 
 /* Check and apply various patches to make the input table better. */
