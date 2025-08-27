@@ -100,6 +100,32 @@
   "optionReloadExtensionOrRestart": {"message":
     "Please reload extension or restart browser." },
 
+  "optionTableOptionsHeader": {"message": "Options:" },
+
+  "opt_SPACE_RESET": {"message": "Reset error by SPACE." },
+  "opt_AUTO_RESET": {"message": "Reset error automatically." },
+  "opt_AUTO_UPCHAR": {"message": "Auto commit if only one candidate after composition" },
+  "opt_SPACE_AUTOUP": {"message": "Auto commit the first candidate by SPACE." },
+  "opt_AUTO_FULLUP": {"message": "Auto commit when reaching the max key strokes." },
+  "opt_flag_unique_auto_send": {"message":
+    "Auto commit the unique (even partial matched) candidate." },
+  "opt_AUTO_COMPOSE": {"message": "Preview exactly matched candidates." },
+  "opt_flag_disp_partial_match": {"message":
+    "Preview all partial-matched candidates." },
+  "opt_WILD_ENABLE": {"message": "Match candidates with wildcards: *?." },
+  "opt_END_KEY": {"message": "ENDKEY" },
+
+  "title_SPACE_RESET": {"message": "XCIN25 Command: %SPACE_RESET" },
+  "title_AUTO_RESET": {"message": "XCIN25 Command: %AUTO_RESET" },
+  "title_AUTO_UPCHAR": {"message": "XCIN25 Command: %AUTO_UPCHAR" },
+  "title_SPACE_AUTOUP": {"message": "XCIN25 Command: %SPACE_AUTOUP" },
+  "title_AUTO_FULLUP": {"message": "XCIN25 Command: %AUTO_FULLUP" },
+  "title_flag_unique_auto_send": {"message": "GCIN Command: %flag_unique_auto_send" },
+  "title_AUTO_COMPOSE": {"message": "XCIN25 Command: %AUTO_COMPOSE" },
+  "title_flag_disp_partial_match": {"message": "GCIN Command: %flag_disp_partial_match" },
+  "title_WILD_ENABLE": {"message": "XCIN25 Command: %WILD_ENABLE" },
+  "title_END_KEY": {"message": "XCIN25 Command: %ENDKEY" },
+
   "tableStatusURLisEmpty": {"message":
     "URL is empty." },
   "tableStatusStillDownloadingName": {"message":
