@@ -15,6 +15,22 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("jscin.
 /* Key names in the storage. */
 export const KEY_INFO_LIST = "info_list";
 export const KEY_TABLE_PREFIX = "table-";
+export const OPTS = {
+  SPACE_RESET: true,
+  AUTO_RESET: false,
+
+  AUTO_UPCHAR: true,
+  SPACE_AUTOUP: false,
+  AUTO_FULLUP: false,
+  flag_unique_auto_send: false,
+
+  AUTO_COMPOSE: true,
+  flag_disp_partial_match: false,
+  WILD_ENABLE: true,
+
+  // Not implemented yet:
+  // END_KEY: false,
+};
 
 /*
  * The environment to manage all (table-based) input methods.
@@ -99,6 +115,7 @@ export class InputMethodsEnvironment {
     };
 
     this.MIGRATION = true;
+    this.OPTS = OPTS;
   }
 
   async initialize() {

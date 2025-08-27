@@ -6,6 +6,7 @@
  */
 
 import { AddLogger } from "./logger.js";
+import { jscin } from "./jscin.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
 
 function GeneralQuirks(cin) {
@@ -212,6 +213,15 @@ function PhoneticQuirks(cin) {
   debug("PhoneticQuirks: Added KEYGROUPS:", r);
 }
 
+function AddDefaultOptions(cin) {
+  const DEFAULT_OPTS = jscin.OPTS
+  for (let k in DEFAULT_OPTS) {
+    if (k in cin)
+      continue;
+    cin[k] = DEFAULT_OPTS[k];
+  }
+}
+
 /* Check and apply various patches to make the input table better. */
 export function applyInputMethodTableQuirks(cin) {
   // GcinQuirks will extract flag to more commands.
@@ -221,4 +231,7 @@ export function applyInputMethodTableQuirks(cin) {
   PhoneticQuirks(cin);
   Array30Quirks(cin);
   SelkeyShiftQuirks(cin);
+
+  // Default options should be applied at the last step.
+  AddDefaultOptions(cin);
 }
