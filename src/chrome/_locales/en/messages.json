@@ -113,7 +113,7 @@
   "opt_flag_disp_partial_match": {"message":
     "Preview all partial-matched candidates." },
   "opt_WILD_ENABLE": {"message": "Match candidates with wildcards: *?." },
-  "opt_END_KEY": {"message": "ENDKEY" },
+  "opt_END_KEY": {"message": "Convert immediately when any ending key (%endkey) is pressed." },
 
   "title_SPACE_RESET": {"message": "XCIN25 Command: %SPACE_RESET" },
   "title_AUTO_RESET": {"message": "XCIN25 Command: %AUTO_RESET" },

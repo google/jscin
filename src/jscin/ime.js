@@ -30,8 +30,7 @@ export const OPTS = {
   flag_disp_partial_match: false,
   WILD_ENABLE: true,
 
-  // Not implemented yet:
-  // END_KEY: false,
+  END_KEY: false,
 };
 
 /*

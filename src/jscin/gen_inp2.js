@@ -539,6 +539,10 @@ export class GenInp2 extends BaseInputMethod
         //   - Array30/XCIN25: [0-9] are sel.
         //     * W[0-9]: must be also considered as composition / end key.
 
+        if (this.opts.OPT_END_KEY && this.IsEndKey(ctx, key)) {
+            this.AddComposition(ctx, key);
+            return this.ConvertComposition(ctx, key);
+        }
         if (this.CanDoComposition(ctx, key)) {
           if (this.IsEndKey(ctx, key)) {
             this.AddComposition(ctx, key);

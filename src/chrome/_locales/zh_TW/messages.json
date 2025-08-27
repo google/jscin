@@ -114,7 +114,7 @@
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出所有完全符合的候選字" },
   "opt_flag_disp_partial_match": {"message": "組字時預先列出所有部分符合的候選字" },
   "opt_WILD_ENABLE": {"message": "允許使用萬用字元(?*)來找尋候選字" },
-  "opt_END_KEY": {"message": "ENDKEY" },
+  "opt_END_KEY": {"message": "按下輸入法指定的結束鍵(%endkey)時立刻組字轉換" },
 
   "title_SPACE_RESET": {"message": "XCIN25 指令: %SPACE_RESET" },
   "title_AUTO_RESET": {"message": "XCIN25 指令: %AUTO_RESET" },
