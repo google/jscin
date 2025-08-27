@@ -39,8 +39,6 @@
     "由 Google Drive 新增輸入法" },
   "optionSaveToDrive": {"message":
     "存入 Google Drive" },
-  "optionSettingChoices": {"message":
-    "輸入法類別:" },
   "optionAddTable": {"message":
     "新增輸入法表格" },
   "optionAdd": {"message":
@@ -49,8 +47,6 @@
     "取消" },
   "optionBuiltin": {"message":
     "內建" },
-  "optionTypeAuto": {"message":
-    "(自動偵測)" },
   "optionTableDetail": {"message":
     "輸入法詳細內容" },
   "optionRemove": {"message":
@@ -63,8 +59,6 @@
     "名稱: " },
   "optionTableDetailSourceHeader": {"message":
     "來源: " },
-  "optionTableDetailTypeHeader": {"message":
-    "類別: " },
   "optionQueryKeystrokes": {"message":
     "反查此輸入法中對應的字根"},
   "optionAreYouSure": {"message":

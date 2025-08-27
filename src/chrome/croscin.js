@@ -542,7 +542,7 @@ export class CrOS_CIN {
       assert(content, "Can't load built-in table:", url);
       // Built-in tables may have a special name so they won't overwrite user
       // installed tables and we should use the name from `builtin.son`.
-      await jscin.saveTable(name, content, url, {}, saveBuiltin);
+      await jscin.saveTable(name, content, url, saveBuiltin);
     }
   }
 

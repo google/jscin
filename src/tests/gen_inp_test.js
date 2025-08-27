@@ -82,7 +82,7 @@ async function loadTableFromFile(filename) {
     jscin.log('failed to load:', filename, 'msg:', msg);
     return;
   }
-  let name = await jscin.saveTable(cin.ename, content, filename, {});
+  let name = await jscin.saveTable(cin.ename, content, filename);
   return name;
 }
 

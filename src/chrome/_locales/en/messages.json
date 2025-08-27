@@ -39,8 +39,6 @@
     "Add Input Table from Google Drive" },
   "optionSaveToDrive": {"message":
     "Save to Google Drive" },
-  "optionSettingChoices": {"message":
-    "Input Method Table type:" },
   "optionAddTable": {"message":
     "Add Input Method Table" },
   "optionAdd": {"message":
@@ -49,8 +47,6 @@
     "Cancel" },
   "optionBuiltin": {"message":
     "Built-in" },
-  "optionTypeAuto": {"message":
-    "(auto detected)" },
   "optionTableDetail": {"message":
     "Input Method Details" },
   "optionRemove": {"message":
@@ -63,8 +59,6 @@
     "Name: " },
   "optionTableDetailSourceHeader": {"message":
     "Source: " },
-  "optionTableDetailTypeHeader": {"message":
-    "Type: " },
   "optionQueryKeystrokes": {"message":
     "Display corresponding keystrokes of this input method."},
   "optionAreYouSure": {"message":

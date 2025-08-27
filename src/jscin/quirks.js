@@ -71,6 +71,8 @@ function GeneralQuirks(cin) {
 export function DetectInputMethodType(cin) {
   const detectors = {
     phonetic: {
+      // We may add AUTO_COMPOSE=false and KEYGROUPS, but the PhoneticQuirks
+      // already provided a better way to construct the keygroups.
       detect: { "ji3": "我" },
     },
     changjei: {
@@ -100,6 +102,12 @@ export function DetectInputMethodType(cin) {
     array30: {
       // AR 40 has / as 貝 instead , AR 26 does not have,
       detect: { "a": "一", "/": "虫" },
+      opts: {
+        'DISABLE_SEL_LIST': 'w',
+        'KEYSTROKE_REMAP': {
+          't': '的',
+        }
+      }
     },
   };
 

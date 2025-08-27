@@ -13,6 +13,7 @@ import { jscin } from "../jscin/all.js";
 
 import { parseGtab, IsGTabBlob } from "../jscin/gtab_parser.js";
 import { parseCin } from "../jscin/cin_parser.js";
+import { DetectInputMethodType } from "../jscin/quirks.js";
 import { Config } from "../config.js";
 import { ChromeStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
 
@@ -59,10 +60,6 @@ function encodeId(name) {
 
 function decodeId(id) {
   return id.match(/.{2}/g).map((v)=>String.fromCharCode(parseInt(v, 16))).join('');
-}
-
-function getSelectedTypeFromUI() {
-  return KnownTypes[$('#add_table_setting').prop('selectedIndex')];
 }
 
 async function init() {
@@ -116,21 +113,7 @@ async function init() {
   await loadTables();
   updateBytesInUse(); // no need to wait.
 
-  // TODO(hungte) we should autodetect again after source is specified.
-  let select = $("#add_table_setting");
-  select.empty();
-
-  KnownTypes.forEach((entry, i) => {
-    let option = $("<option>", {id: `option${i}`});
-    option.text(`${entry.ename} ${entry.cname}`);
-    if (entry.default)
-      option.attr("selected", "selected");
-    select.append(option);
-  });
-
-  $("#add_table_dialog").attr("title", _("optionAddTable"));
-
-  $("#add_table_dialog").dialog({
+  $("#add_table_dialog").attr("title", _("optionAddTable")).dialog({
     autoOpen: false,
     width: 500,
     modal: true,
@@ -158,7 +141,7 @@ async function init() {
         text: _("optionAddTable"),
         click: function() {
           let url = $("#cin_table_url_input").val();
-          addTableFromUrl(url, getSelectedTypeFromUI());
+          addTableFromUrl(url);
           $(this).dialog("close");
         }
       },
@@ -169,7 +152,6 @@ async function init() {
         }
       }
     ]).dialog("open");
-    select.selectmenu();
   });
 
   $(".optionAddFile").button().click(function(event) {
@@ -181,7 +163,7 @@ async function init() {
         text: _("optionAddTable"),
         click: function() {
           let files = document.getElementById("cin_table_file_input").files;
-          addTableFromFile(files, getSelectedTypeFromUI());
+          addTableFromFile(files);
           $(this).dialog("close");
         }
       },
@@ -192,7 +174,6 @@ async function init() {
         }
       }
     ]).dialog("open");
-    select.selectmenu();
   });
 
   $(".optionAddOpenDesktop").button().click(function (event) {
@@ -226,7 +207,7 @@ async function init() {
         click: function() {
           let val = $('#odlist_select').val();
           $(this).dialog("close");
-          addTableFromUrl(openDesktop.getURL(val), getSelectedTypeFromUI());
+          addTableFromUrl(openDesktop.getURL(val));
         }
       },
       {
@@ -245,7 +226,6 @@ async function init() {
       },
     ]).dialog("open");
     $('.btnAddTable').hide();
-    select.selectmenu();
   });
 
   function SameWidth(...args) {
@@ -339,8 +319,8 @@ function GuessNameFromURL(url) {
   return guess || '<Unknown>';
 }
 
-async function addTableFromBlob(blob, source, type, save_name) {
-  debug("addTableFromBlob", source, blob, type);
+async function addTableFromBlob(blob, source, save_name) {
+  debug("addTableFromBlob", source, blob);
 
   if (source instanceof File) {
     source = source.name;
@@ -355,7 +335,7 @@ async function addTableFromBlob(blob, source, type, save_name) {
       debug("Parsing GTAB into CIN:", source, ename);
       let cin = `%ename ${ename}\n` + parseGtab(blob);
       debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
-      if (await addTable(cin, source, type, save_name)) {
+      if (await addTable(cin, source, save_name)) {
         debug("addTableFromBlob: success.", source);
         return true;
       } else {
@@ -378,7 +358,7 @@ async function addTableFromBlob(blob, source, type, save_name) {
   if (!t) {
     setAddTableStatus(_("tableStatusFailedParsingMsg", `Unknown format: ${source}`), true);
     debug("Failed to decode the table:", source);
-  } else if (await addTable(t, source, type, save_name)) {
+  } else if (await addTable(t, source, save_name)) {
     debug("Succesfully added a table:", source, t.substring(0,100).split('\n'));
     return;
   } else {
@@ -387,7 +367,7 @@ async function addTableFromBlob(blob, source, type, save_name) {
   }
 }
 
-async function addTableFromUrl(url, type, save_name, progress=true) {
+async function addTableFromUrl(url, save_name, progress=true) {
   let name = save_name || GuessNameFromURL(url);
   debug("addTableFromUrl:", name, url);
   try {
@@ -422,7 +402,7 @@ async function addTableFromUrl(url, type, save_name, progress=true) {
       xhr.addEventListener("load", (e)=> {
         setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
         blob = e.currentTarget.response;
-        addTableFromBlob(blob, url, type, save_name);
+        addTableFromBlob(blob, url, save_name);
         delete table_loading[url];
       });
       xhr.onreadystatechange = (e) => {
@@ -442,7 +422,7 @@ async function addTableFromUrl(url, type, save_name, progress=true) {
     } else {
       blob = await LoadArrayBuffer(url, true);
       setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
-      addTableFromBlob(blob, url, type, save_name);
+      addTableFromBlob(blob, url, save_name);
       delete table_loading[url];
     }
   } catch (err) {
@@ -453,12 +433,12 @@ async function addTableFromUrl(url, type, save_name, progress=true) {
   }
 }
 
-async function addTableFromFile(files, type) {
+async function addTableFromFile(files) {
   for (let f of files) {
     debug("addTableFromFile", f);
     let fr = new FileReader();
     fr.addEventListener("load", (event) => {
-      addTableFromBlob(fr.result, f, type);
+      addTableFromBlob(fr.result, f);
     });
     fr.addEventListener("error", (event) => {
       error("Failed loading file:", f);
@@ -469,7 +449,7 @@ async function addTableFromFile(files, type) {
   }
 }
 
-async function addTable(content, url, type, save_name) {
+async function addTable(content, url, save_name) {
 
   // TODO(hungte) Parse using jscin.createTable
   // so we can better figure out the right name.
@@ -494,11 +474,11 @@ async function addTable(content, url, type, save_name) {
     }
   }
 
-  let real_type = solveFileType(cin, type);
-  debug("addTable: table type:", type, "=>", real_type);
+  let real_type = DetectInputMethodType(cin);
+  debug("addTable: table type:", real_type);
 
   // Update the UI
-  const new_name = await jscin.saveTable(save_name, cin, url, real_type);
+  const new_name = await jscin.saveTable(save_name, cin, url);
   if (!new_name) {
     setAddTableStatus(_("tableStatusFailedParsingMsg", "Cannot save"), true);
     return false;
@@ -522,40 +502,6 @@ function setAddTableStatus(status, err) {
   status_field.className = err ? "status_error" : "status_ok";
 }
 
-function solveFileType(cin, type) {
-  assert(type, "The type description must be provided.");
-  if (!type.auto_detect)
-    return type;
-
-  let matched = undefined;
-  let from_table = undefined;
-
-  for (let opt of KnownTypes) {
-    if (opt.from_table)
-      from_table = opt;
-    if (!opt.detect)
-      continue;
-
-    matched = opt;
-    for (let [key, expected] of Object.entries(opt.detect)) {
-      if (!(cin.chardef[key] &&
-            cin.chardef[key].includes(expected))) {
-        matched = null;
-        break;
-      }
-    }
-    if (matched) {
-      debug("solveFileType: matched:", opt);
-      break;
-    }
-  }
-  let result = matched || from_table || type;
-  assert(result, "There must be at least one type to match.");
-  // Make a record so we can re-parse its type next time.
-  result.auto_detect = true;
-  return result;
-}
-
 function addTableToList(name, list_id, do_insert) {
   let info = jscin.getTableInfo(name);
   const ename = info.ename;
@@ -571,8 +517,9 @@ function addTableToList(name, list_id, do_insert) {
   const display_name = `${cname} (${ename})`;
   const builtin_desc = builtin ? `[${_("optionBuiltin")}]` : "";
 
-  const item = $('<li class="ui-state-default"></li>').attr('id', id).text(
-               `${display_name} ${builtin_desc}`);
+  const name_label = `${display_name} ${builtin_desc}`;
+  const item = $('<li class="ui-state-default"></li>').
+    attr('id', id).text(name_label);
   if (do_insert)
     $(list_id).prepend(item);
   else
@@ -584,22 +531,8 @@ function addTableToList(name, list_id, do_insert) {
       table = await jscin.loadTable(name);
     let opts = (await jscin.loadOpts(name)) || {};
 
-    // `type` from table.type should remain the same (even if it's undefined) so
-    // the behavior will be the same when being reloaded.
-    let type = table.type;
-    let type_label = [];
-    if (type) {
-      if (type.cname)
-        type_label.push(`${type.cname} (${type.ename})`);
-      if (type.auto_detect)
-        type_label.push(_("optionTypeAuto"));
-    }
-    if (builtin)
-      type_label.push(_("optionBuiltin"));
-
-    $('#optionTableDetailName').text(display_name);
+    $('#optionTableDetailName').text(name_label);
     $('#optionTableDetailSource').val(url);
-    $('#optionTableDetailType').text(type_label.join(' '));
     $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
 
     for (let o in jscin.OPTS) {
@@ -662,14 +595,21 @@ function addTableToList(name, list_id, do_insert) {
       buttons.push({
         text: _('optionReload'),
         click: function() {
-          debug("optionReload:", type);
+          debug("optionReload:", url);
           if (confirm(_("optionAreYouSure"))) {
             // Reload is the only case we want to preserve the 'name'.
-            addTableFromUrl(url, type, name);
+            addTableFromUrl(url, name);
           }
           $(this).dialog("close");
         }});
     }
+    buttons.push(
+    {
+      text: _("optionCancel"),
+      click: function() {
+        $(this).dialog("close");
+      }
+    });
 
     $('#table_detail_dialog').dialog({
       title: _("optionTableDetail"),
@@ -751,13 +691,11 @@ class ChineseOpenDesktop {
 /* Global variables. */
 const openDesktop = new ChineseOpenDesktop();
 const BuiltinIMs = await LoadJSON("tables/builtin.json");
-const KnownTypes = await LoadJSON("tables/types.json");
 
 /* Export name for debugging. */
 globalThis.jscin = jscin;
 globalThis.options = {
   BuiltinIMs,
-  KnownTypes,
   openDesktop,
   jscin,
   config,

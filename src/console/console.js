@@ -21,7 +21,7 @@ const write = console.log;
 
 async function loadTable(url) {
   let [name] = url.split('/').pop().split('.');
-  return jscin.saveTable(name, fs.readFileSync(url, 'utf8'), url, {});
+  return jscin.saveTable(name, fs.readFileSync(url, 'utf8'), url);
 }
 
 function Simulate(ev) {
