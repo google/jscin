@@ -68,15 +68,13 @@ function GeneralQuirks(cin) {
   }
 }
 
-function Array30Quirks(cin) {
+function GcinQuirks(cin) {
+
   // quickkey (xcin2.3, openvanilla) and quick (gcin) are equivalent.
   if (cin.quickkey && !cin.quick) {
     cin.quick = cin.quickkey;
     delete cin.quickkey;
   }
-}
-
-function GcinQuirks(cin) {
 
   switch (parseInt(cin.space_style || "-1")) {
     case 0:
@@ -228,12 +226,14 @@ function AddDefaultOptions(cin) {
 
 /* Check and apply various patches to make the input table better. */
 export function applyInputMethodTableQuirks(cin) {
-  // GcinQuirks will extract flag to more commands.
+  // GcinQuirks will extract the flag and normalize commands across gcin/xcin.
   GcinQuirks(cin);
 
+  // Normalize the table
   GeneralQuirks(cin);
+
+  // IM specific quirks
   PhoneticQuirks(cin);
-  Array30Quirks(cin);
   SelkeyShiftQuirks(cin);
 
   // Default options should be applied at the last step.
