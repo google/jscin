@@ -379,8 +379,11 @@ export class InputMethodsEnvironment {
 
     // Although we may find the URL from this.getTableInfo,
     // we want an explicit confirmation "allow to load from URL".
-    if (!table && url) {
+    if (!table) {
+      if (!url)
+        url = this.getTableInfo(name)?.url;
       let start = performance.now();
+
       debug("Getting remote table:", url);
       let contents = await LoadText(url);
       if  (contents)
