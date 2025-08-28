@@ -6,6 +6,7 @@
  */
 
 import { $, jQuery } from "../jquery/jquery-ui.js";
+import { Notify, NOTIFY_RELOAD_IM  } from "../notify.js";
 
 // Here we must import the same set that the engine (e.g., croscin) is using,
 // because that is the only way to get the list of registered modules.
@@ -23,6 +24,7 @@ const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option
 // Use var for variables that we want to explore and change in the browser
 // debugging tool.
 let config = new Config();
+let notify = new Notify();
 
 // A list for managing loading messages in UI.
 let table_loading = {};
@@ -60,6 +62,11 @@ function encodeId(name) {
 
 function decodeId(id) {
   return id.match(/.{2}/g).map((v)=>String.fromCharCode(parseInt(v, 16))).join('');
+}
+
+async function reloadIM(name) {
+  // See croscin
+  notify.Send(NOTIFY_RELOAD_IM, name);
 }
 
 async function init() {
@@ -577,12 +584,14 @@ function addTableToList(name, list_id, do_insert) {
         let checked = $('#query_keystrokes').is(':checked');
         let current = config.AddonCrossQuery();
         let update = false;
+        let reload_im = false;
 
         if (checked)
           update = (current != name);
         else
           update = (current == name);
 
+        reload_im |= update;
         if (update)
           config.Set("AddonCrossQuery", checked ? name : '');
 
@@ -595,10 +604,14 @@ function addTableToList(name, list_id, do_insert) {
           if (new_opts[o] != opts[o])
             update = true;
         }
+        reload_im |= update;
         if (update) {
           debug("Save new opts:", new_opts);
           jscin.saveOpts(name, new_opts);
         }
+
+        if (reload_im)
+          reloadIM(name);
 
         $(this).dialog("close");
       } }];

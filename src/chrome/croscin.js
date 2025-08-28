@@ -6,6 +6,7 @@
  */
 
 import { Config  } from "./config.js";
+import { Notify, NOTIFY_RELOAD_IM  } from "../notify.js";
 import { jscin } from "./jscin/all.js";
 import { hasCtrlAltMeta } from "./jscin/key_event.js";
 import { LoadJSON, LoadText } from "./jscin/storage.js";
@@ -80,6 +81,7 @@ export class CrOS_CIN {
 
     this.heartbeat = new Heartbeat();
     this.config = new Config();
+    this.notify = new Notify();
 
     this.jscin = jscin;
     this.logger = logger;
@@ -147,6 +149,14 @@ export class CrOS_CIN {
       debug("Changed InputMethods(), activate the new default IM.");
       this.ActivateInputMethod(this.config.DefaultInputMethod());
     });
+
+    this.notify.Bind(NOTIFY_RELOAD_IM, (name) => {
+      debug("ReloadIM:", name, this.im_name);
+      // re-activate or just deactivate the IM.
+      if (name == this.im_name)
+        this.ActivateInputMethod(undefined, true);
+    });
+    this.notify.Listen();
   }
 
   // Standard utilities
@@ -447,14 +457,14 @@ export class CrOS_CIN {
     this.SetCandidateWindowProperties(props);
   }
 
-  async ActivateInputMethod(name) {
+  async ActivateInputMethod(name, reload) {
     if (name === undefined) {
       if (this.config.InputMethods().includes(this.im_name))
         name = this.im_name;
       else
         name = this.config.DefaultInputMethod();
     }
-    if (name && name == this.im_name) {
+    if (name && name == this.im_name && !reload) {
       debug("ActivateInputMethod: already activated:", name);
       // This may happen when the user has pressed Ctrl-space (Activate,
       // Deactivate) multiple times. We can either always reset the context and
