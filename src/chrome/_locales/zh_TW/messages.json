@@ -105,16 +105,17 @@
 
   "optionTableOptionsHeader": {"message": "可設定選項:" },
 
+  "opt_AUTO_FULLUP": {"message": "組字時打滿最大長度後自動送出候選字" },
+  "opt_flag_unique_auto_send": {"message": "只有單一候選字(包含部份符合)時自動送出" },
+  "opt_AUTO_UPCHAR": {"message": "組字後若只有一個候選字則自動送出" },
+  "opt_SPACE_AUTOUP": {"message": "組字時若只有一頁以內的候選字，按空白鍵可送出第一個字" },
+  "opt_SELKEY_SHIFT": {"message": "使用空白鍵（或0）當第一個候選字的選擇鍵" },
   "opt_SPACE_RESET": {"message": "組字錯誤時可按空白鍵清除" },
   "opt_AUTO_RESET": {"message": "組字錯誤時自動清除" },
-  "opt_AUTO_UPCHAR": {"message": "組字後若只有一個候選字則自動送出" },
-  "opt_SPACE_AUTOUP": {"message": "組字後若有多個候選字，按空白鍵送出第一個" },
-  "opt_AUTO_FULLUP": {"message": "打滿字根時送自動送出候選字" },
-  "opt_flag_unique_auto_send": {"message": "部份符合也只有單一候選字時自動送出" },
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出所有完全符合的候選字" },
   "opt_flag_disp_partial_match": {"message": "組字時預先列出所有部分符合的候選字" },
   "opt_WILD_ENABLE": {"message": "允許使用萬用字元(?*)來找尋候選字" },
-  "opt_END_KEY": {"message": "按下輸入法指定的結束鍵(%endkey)時立刻組字轉換" },
+  "opt_END_KEY": {"message": "按下輸入法指定的結束鍵(%endkey)時立刻組字" },
 
   "title_SPACE_RESET": {"message": "XCIN25 指令: %SPACE_RESET" },
   "title_AUTO_RESET": {"message": "XCIN25 指令: %AUTO_RESET" },
@@ -125,7 +126,7 @@
   "title_AUTO_COMPOSE": {"message": "XCIN25 指令: %AUTO_COMPOSE" },
   "title_flag_disp_partial_match": {"message": "GCIN 指令: %flag_disp_partial_match" },
   "title_WILD_ENABLE": {"message": "XCIN25 指令: %WILD_ENABLE" },
-  "title_END_KEY": {"message": "XCIN25 指令: %ENDKEY" },
+  "title_SELKEY_SHIFT": {"message": "XCIN25 指令: %SELKEY_SHIFT" },
 
   "im_phonetic": {"message": "注音"},
   "im_changjei": {"message": "倉頡"},

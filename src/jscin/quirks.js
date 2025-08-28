@@ -247,7 +247,6 @@ function SelkeyShiftQuirks(cin) {
     debug(`SELKEY_SHIFT: new selkey=[${k}]`);
   }
   cin.selkey = k;
-  delete cin.SELKEY_SHIFT;
 }
 
 function PhoneticQuirks(cin) {
