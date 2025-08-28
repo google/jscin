@@ -136,8 +136,10 @@ export class GenInp2 extends BaseInputMethod
     return jscin.IMKEY_COMMIT;
   }
 
-  GetMatchLimit() {
-    return this.MAX_MATCH_PAGES * this.selkey.length;
+  GetMatchLimit(pages) {
+    if (!pages)
+      pages = this.MAX_MATCH_PAGES;
+    return pages * this.selkey.length;
   }
 
   Glob2Regex(pattern) {
@@ -318,6 +320,7 @@ export class GenInp2 extends BaseInputMethod
     let key = ctx.composition;
     let override = undefined;
     let changed = false;
+    let limit = this.GetMatchLimit(autocompose_stage ? 1 : undefined);
 
     this.ClearCandidates(ctx);
 
@@ -341,10 +344,10 @@ export class GenInp2 extends BaseInputMethod
     }
 
     if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
-      this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table));
+      this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table, limit));
       debug("PrepareCandidates: - glob", ctx.candidates);
     } else if (!changed && autocompose_stage && this.opts.OPT_PARTIAL_MATCH) {
-      this.AddCandidates(ctx, this.GetPartialMatchCandidates(ctx, key, table));
+      this.AddCandidates(ctx, this.GetPartialMatchCandidates(ctx, key, table, limit));
       debug("PrepareCandidates: - partial", ctx.candidates);
     } else {
       this.AddCandidates(ctx, table[key]);
