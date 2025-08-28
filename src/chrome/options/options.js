@@ -574,7 +574,7 @@ function addTableToList(name, list_id, do_insert) {
     SetOpts(opts);
 
     $('.optionResetOpts').button().off("click").click(async () => {
-      SetOpts(jscin.getTableDefaultOpts(name, table.cin));
+      SetOpts(jscin.getTableDefaultOpts(table.cin));
     });
 
     let buttons = [{
