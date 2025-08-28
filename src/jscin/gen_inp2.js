@@ -479,22 +479,26 @@ export class GenInp2 extends BaseInputMethod
     }
     this.ShiftState(ctx);
 
+    // In AUTO_COMPOSE mode, the candidates window is already there so most
+    // modern IM implementations will expect the SPACE to commit. Array
+    // rejected this because of the 'quick' that generates a different set of
+    // candidates, but other IMs all towards auto-commit. Boshiamy is more
+    // explicit on SPACE to commit because it has almost no chance to show
+    // candidates more than one page, but the partial match and glob would
+    // change it. OpenVanilla proposed the solution of "auto commit only if
+    // the candidates are <= 1 page", which is a good solution so we'll follow
+    // here.
+    // As a result, the implementation for SPACE here is:
+    //  - If override_autocompose, don't commit.
+    //  - If CanCycleCandidates, don't commit.
+    //  - Otherwise, commit.
     let commit = this.IsSingleCandidate(ctx);
+
     if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE &&
-        !this.override_autocompose) {
-      // In AUTO_COMPOSE mode, the candidates window is already there so most
-      // modern IM implementations will expect the SPACE to commit. Boshiamy
-      // explicit claimed this, Array rejected this (because the 'quick'
-      // generates a different set of candidates), and other IMs are towards
-      // auto commit.
-      // As a result, the implementation for SPACE here is:
-      //  - If override_autocompose, don't commit.
-      //  - If OPT_SPACE_AUTOUP, always commit.
-      //  - If not CanCycleCandidates, commit.
-      if ((this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) ||
-        !this.CycleCandidates(ctx)) {
+      !this.override_autocompose && this.opts.OPT_AUTO_UPCHAR) {
+
+      if (!this.CycleCandidates(ctx))
         commit = true;
-      }
     }
     debug('ConvertComposition', `[${key}]`, commit, this.opts);
 
@@ -602,8 +606,9 @@ export class GenInp2 extends BaseInputMethod
         return this.ResultProcessed(ctx);
 
       case ' ':
-        if ((this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) ||
-            !this.CycleCandidates(ctx)) {
+        if (this.CycleCandidates(ctx))
+          return this.ResultProcessed(ctx);
+        if (this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) {
           this.CommitText(ctx, 0);
           return this.ResultCommit(ctx);
         }
