@@ -136,6 +136,8 @@
   "im_array30": {"message": "行列30"},
   "im_unknown": {"message": "預設"},
 
+  "promptRawMode": {"message": "英數" },
+
   "tableStatusURLisEmpty": {"message":
     "空白網址無法下載。" },
   "tableStatusStillDownloadingName": {"message":

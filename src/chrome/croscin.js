@@ -67,6 +67,7 @@ export class CrOS_CIN {
     this.kMenuOptions = "options";
     this.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
     this.kImeErrorLabel = chrome.i18n.getMessage("imeError");
+    this.kPromptRawMode = chrome.i18n.getMessage("promptRawMode");
 
     this.engineID = this.kEngineId;
     this.context = null;
@@ -222,7 +223,7 @@ export class CrOS_CIN {
     // Special case single-shift press
     if (this.CheckSingleShiftPress(keyData, this.imctx) && this.config.RawMode()) {
       this.imctx.raw_mode = !this.imctx.raw_mode;
-      let msg = this.imctx.raw_mode ? 'English (Raw)' : this.im_label;
+      let msg = this.imctx.raw_mode ? this.kPromptRawMode : this.im_label;
       if (this.imctx.raw_mode)
         this.im.reset(this.imctx);
       this.ShowOnlyAuxiliaryText(msg); // Prompt for IM mode.

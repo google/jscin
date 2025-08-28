@@ -136,6 +136,8 @@
   "im_array30": {"message": "Array30"},
   "im_unknown": {"message": "Default"},
 
+  "promptRawMode": {"message": "en-US (raw)" },
+
   "tableStatusURLisEmpty": {"message":
     "URL is empty." },
   "tableStatusStillDownloadingName": {"message":
