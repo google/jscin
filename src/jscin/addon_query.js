@@ -24,7 +24,7 @@ export class AddonCrossQuery extends BaseInputAddon
     this.label = '';
   }
   resetCross(ctx) {
-    delete ctx.override_aux;
+    delete ctx.addon_prompt;
     this.map = {};
     this.keyname = {};
     this.cross_name = null;
@@ -46,9 +46,8 @@ export class AddonCrossQuery extends BaseInputAddon
       let cross = this.map[ctx.cch];
       if (cross) {
         cross = cross.split('').map((v) => this.keyname[v] || v).join('');
-        ctx.override_aux = `${PROMPT}${ctx.cch} ${cross} ${this.label}`;
+        ctx.addon_prompt = `${ctx.cch}=${cross}`;
       }
-      debug("IMKEY_COMMIT", ctx, ev, this.override_aux);
     }
     return ret;
   }
@@ -80,7 +79,7 @@ export class AddonCrossQuery extends BaseInputAddon
       }
     }
     this.map = map;
-    this.label = cin.cname;
+    this.label = `[${cin.cname[0]}]`;
     return map;
   }
   async updateMap(cross_name) {

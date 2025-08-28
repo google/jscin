@@ -89,6 +89,7 @@ export class GenInp2 extends BaseInputMethod
     ctx.commit = '';
     ctx.display_composition = '';
     ctx.candidates_start_index = 0;
+    ctx.page_prompt = '';
 
     // Flag for addons.
     ctx.auto_compose = (
@@ -169,12 +170,19 @@ export class GenInp2 extends BaseInputMethod
     ctx.candidates = [];
     ctx.candidates_start_index = 0;
     ctx.mcch = [];
+    ctx.page_prompt = '';
   }
 
   UpdateCandidates(ctx) {
     // Compatible with gen_inp.
     const i = ctx.candidates_start_index;
-    ctx.mcch = ctx.candidates.slice(i, i + this.selkey.length);
+    const pageSize = this.selkey.length;
+    const c = ctx.candidates;
+    let total = Math.ceil(c.length / pageSize);
+    let now = Math.ceil((i + 1) / pageSize);
+
+    ctx.mcch = c.slice(i, i + pageSize);
+    ctx.page_prompt = (total > 1) ? `${now}/${total}` : '';
   }
 
   UpdateComposition(ctx) {

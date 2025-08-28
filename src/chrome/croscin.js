@@ -232,8 +232,7 @@ export class CrOS_CIN {
 
     if (this.imctx.raw_mode) {
       debug("Typing in raw mode");
-      if (this.imctx.last_aux)
-        this.ShowOnlyAuxiliaryText(undefined); // clar all UIs.
+      this.ShowOnlyAuxiliaryText(undefined); // clar all UIs.
       return false;
     }
 
@@ -260,8 +259,7 @@ export class CrOS_CIN {
 
       case jscin.IMKEY_ERROR:
         debug("im.keystroke: return IMKEY_ERROR");
-        this.UpdateUI();
-        this.ShowAuxiliaryText(this.kImeErrorLabel);
+        this.UpdateUI(undefined, this.kImeErrorLabel);
         return true;
 
       case jscin.IMKEY_IGNORE:
@@ -318,13 +316,6 @@ export class CrOS_CIN {
       vertical: this.config.VerticalWindow()});
   }
 
-  ShowAuxiliaryText(message) {
-    this.SetCandidateWindowProperties({
-      auxiliaryText: message,
-      auxiliaryTextVisible: true});
-    this.imctx.last_aux = message;
-  }
-
   ShowOnlyAuxiliaryText(message) {
     let arg = this.GetContextArg();
     this.ime_api.clearComposition(arg);
@@ -337,7 +328,6 @@ export class CrOS_CIN {
       visible: visible,
       auxiliaryText: message,
       auxiliaryTextVisible: visible});
-    this.imctx.last_aux = message;
   }
 
   UpdateComposition(keystroke, buffer, cursor) {
@@ -389,11 +379,11 @@ export class CrOS_CIN {
 
   UpdateCandidates(candidate_list, labels) {
     if (candidate_list === undefined) {
-      assert("candidate_list (mcch) is undefined");
+      assert(mcch, "candidate_list (mcch) is undefined");
       return;
     }
     if (typeof(candidate_list) == typeof('')) {
-      assert('candidate_list (mcch) should be an array!', candidate_list);
+      assert(false, 'candidate_list (mcch) should be an array!', candidate_list);
       candidate_list = candidate_list.split('');
     }
     // Dirty workaround because recent ChromeOS horizontal IME window was
@@ -416,44 +406,44 @@ export class CrOS_CIN {
     // UpdateComposition will only update the candidate list if it's not empty.
     // The caller must be responsible for calling setCandidateWindowProperties.
 
-    const len = candidates.length;
-    if (!len)
-      return len;
-
     let arg = this.GetContextArg();
     arg.candidates = candidates;
     this.ime_api.setCandidates(arg);
-    return len;
+    return candidates.length;
   }
 
-  UpdateUI(keystroke, mcch, selkey, lcch, cursor) {
-    if (arguments.length == 0) {
-      keystroke = this.imctx.keystroke;
-      selkey = this.imctx.selkey;
-      mcch = this.imctx.mcch;
-      lcch = this.imctx.lcch;
-      cursor = this.imctx.edit_pos;
-    }
+  UpdateUI(imctx, message) {
+    if (!imctx)
+      imctx = this.imctx;
+
+    const keystroke = imctx.keystroke;
+    const selkey = imctx.selkey;
+    const mcch = imctx.mcch || [];
+    const lcch = imctx.lcch;
+    const cursor = imctx.edit_pos;
 
     // process:
     //  - keystroke
     const has_composition = this.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
     let num_candidates = this.UpdateCandidates(mcch, selkey);
-    // show_keystroke(cch_publish) can be displayed in auxiliary text.
+    // show_keystroke(cch_publish) can be displayed in auxiliary text,
+    // although this is currently done by addon_query as addon_prompt.
 
-    let visible = num_candidates > 0;
+    let visible = num_candidates > 0 || !!imctx.addon_prompt || !!message;
     let props = { visible };
 
-    if (num_candidates)
-      props.pageSize = num_candidates;
+    // The pageSize is actually the width of the candidates window (and will be
+    // padded if not enough candidates so we should assign num_candidates to it.
+    // The totalCandidates seems not working.
+    props.pageSize = Math.max(num_candidates, 1);
 
-    // The IM, or the addon, wants to say something
-    let aux = this.imctx.override_aux || this.im_label;
-    if (aux != this.imctx.last_aux) {
-      this.imctx.last_aux = aux;
-      props.auxiliaryText = aux;
-    }
+    // Build up the auxiliaryText.
+    // We want it to be [addon][IM][Page]
+    let aux = [imctx.addon_prompt,
+               this.im_label,
+               imctx.page_prompt].filter((v) => (!!v));
+    props.auxiliaryText = message || aux.join(' | ');
 
     this.SetCandidateWindowProperties(props);
   }
