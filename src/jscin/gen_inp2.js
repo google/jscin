@@ -107,7 +107,6 @@ export class GenInp2 extends BaseInputMethod
   }
 
   NotifyError(ctx) {
-    error('BEEP');
     // beep.
   }
 
