@@ -547,6 +547,23 @@ function addTableToList(name, list_id, do_insert) {
       }
     }
 
+    function AssociateOpts(source, dest, reverse) {
+      let src_id = `#opt_${source}`;
+      let dest_id = `#opt_${dest}`;
+      $(src_id).off("change").on("change", function() {
+        let enabled = $(src_id).is(':checked');
+        if (reverse)
+          enabled = false;
+        $(dest_id).prop("disabled", !enabled);
+        let dest_label = $(`.opt_${dest}`);
+        if (enabled)
+          dest_label.removeClass('disabled');
+        else
+          dest_label.addClass('disabled');
+      });
+    }
+
+    AssociateOpts('AUTO_UPCHAR', 'SPACE_AUTOUP');
     SetOpts(opts);
 
     $('.optionResetOpts').button().off("click").click(async () => {

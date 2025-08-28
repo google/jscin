@@ -18,9 +18,9 @@ export const KEY_TABLE_PREFIX = "table-";
 export const KEY_OPTS_PREFIX = "opts-";
 
 export const OPTS = {
-  AUTO_UPCHAR: true,
   AUTO_FULLUP: false,
   flag_unique_auto_send: false,
+  AUTO_UPCHAR: true,
   SPACE_AUTOUP: false,
   SELKEY_SHIFT: false,
 
