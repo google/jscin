@@ -692,7 +692,7 @@ class ChineseOpenDesktop {
     if (!text)
       return result;
     for (let line of text.split('\n')) {
-      let regex = /^ *(?<cin>[^\.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);?(?<edesc>.*)?"/;
+      let regex = /^ *(?<cin>[^.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);?(?<edesc>.*)?"/;
       let v = line.match(regex)?.groups;
       if (!v)
         continue;
