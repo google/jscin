@@ -430,7 +430,7 @@ async function addTableFromUrl(url, progress=true) {
   } catch (err) {
     delete table_loading[url];
     error("addTableFromUrl: error", url, err);
-    setAddTableStatus(_("tableStatusDownloadFailNameStatus", [name, this.status]), true);
+    setAddTableStatus(_("tableStatusDownloadFailNameStatus", [name, err]), true);
     return;
   }
 }
@@ -585,7 +585,7 @@ function addTableToList(name, list_id, do_insert) {
         else
           update = (current == name);
 
-        reload_im |= update;
+        reload_im ||= update;
         if (update)
           config.Set("AddonCrossQuery", checked ? name : '');
 
@@ -598,7 +598,7 @@ function addTableToList(name, list_id, do_insert) {
           if (new_opts[o] != opts[o])
             update = true;
         }
-        reload_im |= update;
+        reload_im ||= update;
         if (update) {
           debug("Save new opts:", new_opts);
           jscin.saveOpts(name, new_opts);

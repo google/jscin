@@ -12,7 +12,7 @@ export const NOTIFY_RELOAD_IM = 'ReloadIM';
 export class Notify {
   constructor(target) {
     this.storage = new ChromeStorage();
-    target |= NOTIFY_TARGET_CROSCIN;
+    target ||= NOTIFY_TARGET_CROSCIN;
     this.target = `_Notification#${target}`;
     this.callbacks = {};
   }

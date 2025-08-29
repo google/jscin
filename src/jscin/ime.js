@@ -382,6 +382,10 @@ export class InputMethodsEnvironment {
     if (!table) {
       if (!url)
         url = this.getTableInfo(name)?.url;
+      if (!url) {
+        error("Cannot find table, also no URL to re-load:", name);
+        return undefined;
+      }
       let start = performance.now();
 
       debug("Getting remote table:", url);
