@@ -436,8 +436,8 @@ export class GenInp extends BaseInputMethod
       let groups_in_order = Object.keys(key_by_group).sort();
       self.keystroke = '';
       self.display_keystroke = [];
-      for (let i in groups_in_order) {
-        let ch = key_by_group[groups_in_order[i]];
+      for (let g of groups_in_order) {
+        let ch = key_by_group[g];
         self.keystroke += ch;
         self.display_keystroke.push(self.ime.header.keyname[ch]);
       }
