@@ -125,7 +125,7 @@ export class AddonRelatedText extends BaseInputAddon
       return false;
 
     // Update context to fill fake content.
-    this.last_mcch = candidates.substring(0, ctx.selkey.length);
+    this.last_mcch = candidates.substring(0, ctx.selkey.length).split('');
     ctx.mcch = this.last_mcch;
     return true;
   }
