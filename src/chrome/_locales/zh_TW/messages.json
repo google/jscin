@@ -108,7 +108,7 @@
   "optionTableOptionsHeader": {"message": "可設定選項:" },
 
   "opt_AUTO_FULLUP": {"message": "組字時打滿最大長度後自動送出候選字" },
-  "opt_flag_unique_auto_send": {"message": "只有單一候選字(包含部份符合)時自動送出" },
+  "opt_flag_unique_auto_send": {"message": "組字時若只有單一候選字(包含部份符合)則自動送出" },
   "opt_AUTO_UPCHAR": {"message": "組字後若只有一個候選字則自動送出" },
   "opt_SPACE_AUTOUP": {"message": "組字時若只有一頁以內的候選字，按空白鍵可送出第一個字" },
   "opt_SELKEY_SHIFT": {"message": "使用空白鍵（或0）當第一個候選字的選擇鍵" },
@@ -129,6 +129,7 @@
   "title_flag_disp_partial_match": {"message": "GCIN 指令: %flag_disp_partial_match" },
   "title_WILD_ENABLE": {"message": "XCIN25 指令: %WILD_ENABLE" },
   "title_SELKEY_SHIFT": {"message": "XCIN25 指令: %SELKEY_SHIFT" },
+  "title_END_KEY": {"message": "XCIN 25 指令: %ENDKEY" },
 
   "im_phonetic": {"message": "注音"},
   "im_changjei": {"message": "倉頡"},
