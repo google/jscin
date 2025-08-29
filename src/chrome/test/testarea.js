@@ -128,7 +128,8 @@ async function Init() {
   jscin.logger.enableAllLoggers();
 
   let ime = new WebPageIme();
-  globalThis.croscin = new CrOS_CIN(ime);
+  let croscin = new CrOS_CIN(ime);
+  globalThis.croscin = croscin;
 
   await croscin.Initialize();
 

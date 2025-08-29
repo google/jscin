@@ -92,8 +92,9 @@ async function init() {
   jscin.logger.enableAllLoggers();
 
   let dumb_ime = new DumbIME();
-  globalThis.croscin = new CrOS_CIN(dumb_ime);
+  let croscin = new CrOS_CIN(dumb_ime);
   const engineID = croscin.kEngineId;
+  globalThis.croscin = croscin;
 
   await croscin.Initialize();
 

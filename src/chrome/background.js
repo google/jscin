@@ -20,7 +20,8 @@ async function welcome_chromeos() {
 }
 
 
-globalThis.croscin = new CrOS_CIN();
+let croscin = new CrOS_CIN();
+globalThis.croscin = croscin;
 globalThis.jscin = croscin.jscin;
 
 croscin.Initialize().then(() => {

@@ -29,7 +29,8 @@ async function StartEmulation() {
   const mod_page = await LoadModule("./ime_api/ipc/ipc_content.js");
   const mod_croscin = await LoadModule("./croscin.js");
   let ime_api = new mod_page.IpcContentIme();
-  globalThis.croscin = new mod_croscin.CrOS_CIN(ime_api);
+  let croscin = new mod_croscin.CrOS_CIN(ime_api);
+  globalThis.croscin = croscin;
   await croscin.Initialize();
 
   // Now, bind the text input elements.
