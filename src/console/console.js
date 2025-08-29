@@ -73,7 +73,7 @@ async function console_main(argv) {
   print("To simulate special keys, press Tab first and type a key code.");
 
   while (true) {
-    const str = await rl.question("> ");
+    let str = await rl.question("> ");
     print(`#Raw input [${str}]`);
     let keycode = null;
     if (str.charCodeAt(0) == '\t') {
