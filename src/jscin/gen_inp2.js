@@ -178,9 +178,11 @@ export class GenInp2 extends BaseInputMethod
 
   UpdateCandidates(ctx) {
     // Compatible with gen_inp.
-    const i = ctx.candidates_start_index;
-    const pageSize = this.selkey.length;
+    const i = ctx.candidates_start_index || 0;
+    let pageSize = this.selkey?.length || 0;
     const c = ctx.candidates;
+    if (!pageSize)
+      pageSize = 10;
     let total = Math.ceil(c.length / pageSize);
     let now = Math.ceil((i + 1) / pageSize);
 
