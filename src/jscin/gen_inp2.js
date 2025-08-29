@@ -25,7 +25,7 @@ export class GenInp2 extends BaseInputMethod
     this.STATE_COMPOSITION = 1;
     this.STATE_CANDIDATES = 2;
 
-    this.MAX_MATCH_PAGES = 10; // eeach page has self.selkey.length candidates
+    this.MAX_MATCH_PAGES = 20; // eeach page has self.selkey.length candidates
     this.GLOB_KEYS = '?*';
 
     // Read and parse from conf (a standard parsed CIN).
@@ -333,7 +333,7 @@ export class GenInp2 extends BaseInputMethod
     let key = ctx.composition;
     let override = undefined;
     let changed = false;
-    let limit = this.GetMatchLimit(autocompose_stage ? 1 : undefined);
+    let limit = this.GetMatchLimit();
 
     this.ClearCandidates(ctx);
 
