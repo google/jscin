@@ -544,7 +544,7 @@ function addTableToList(name, list_id, do_insert) {
     function SetOpts(opts) {
       for (let o in jscin.OPTS) {
         let idsel = `#opt_${o}`;
-        $(idsel).prop('checked', opts[o]);
+        $(idsel).prop('checked', opts[o]).trigger('change');
       }
     }
 
