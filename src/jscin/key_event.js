@@ -94,7 +94,7 @@ export const KEY_TO_CODE = {
   "/":                  "Slash",
   "`":                  "BackQuote",
   "[":                  "BracketLeft",
-  "/":                  "Backslash",
+  "\\":                  "Backslash",
   "]":                  "BracketRight",
   "'":                  "Quote",
 };
