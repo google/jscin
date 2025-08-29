@@ -76,6 +76,7 @@ export class WebPageIme extends ChromeInputIme {
   // chrome.input.ime APIs
 
   async clearComposition(parameters) {
+    debug("clearComposition", parameters);
     let node = this.getNode('composition');
     node.empty().append(NBSP);
     return true;

@@ -20,6 +20,7 @@ class ImeBaseMessage {
     this.tab_id = tab_id;
   }
   dispatch(ime) {
+    console.error("ImeBaseMessage.dispatch: NOT_IMPL", ime);
     throw "Unimplemented message for dispatching.";
   }
 

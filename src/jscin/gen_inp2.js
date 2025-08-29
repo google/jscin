@@ -108,6 +108,7 @@ export class GenInp2 extends BaseInputMethod
 
   NotifyError(ctx) {
     // beep.
+    debug("NotifyError", ctx);
   }
 
   ResultError(ctx, key) {
@@ -125,14 +126,17 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ResultProcessed(ctx) {
+    debug("ResultProcessed", ctx);
     return jscin.IMKEY_ABSORB;
   }
 
   ResultIgnored(ctx) {
+    debug("ResultIgnored", ctx);
     return jscin.IMKEY_IGNORE;
   }
 
   ResultCommit(ctx) {
+    debug("ResultCommit", ctx);
     return jscin.IMKEY_COMMIT;
   }
 

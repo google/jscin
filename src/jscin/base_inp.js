@@ -57,11 +57,13 @@ export class BaseInputMethod
   // Called when a new key event is sent to IM.
   keystroke(ctx, ev)
   {
+    debug("base_inp.keystroke", ctx, ev);
     return jscin.IMKEY_UNKNOWN;
   }
 
   // Called when system wants to query corresponding key strokes for given text.
   show_keystroke(ctx, text) {
+    debug("base_inp.show_keystroke", ctx, text);
     return 'NOT IMPLEMENTED';
   }
 
@@ -110,6 +112,6 @@ export class BaseInputMethod
   // Called when then system is going to shutdown IM.
   terminate(ctx)
   {
-    trace('Terminating IM', this.name);
+    trace('Terminating IM', this.name, ctx);
   }
 }

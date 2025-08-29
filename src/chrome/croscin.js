@@ -145,7 +145,7 @@ export class CrOS_CIN {
 
     await this.LoadPreferences();
 
-    this.config.Bind("InputMethods", (value) => {
+    this.config.Bind("InputMethods", () => {
       if (!this.im)
         return;
       debug("Changed InputMethods(), activate the new default IM.");
@@ -425,7 +425,7 @@ export class CrOS_CIN {
 
     // process:
     //  - keystroke
-    const has_composition = this.UpdateComposition(keystroke, lcch, cursor);
+    this.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
     let num_candidates = this.UpdateCandidates(mcch, selkey);
     // show_keystroke(cch_publish) can be displayed in auxiliary text,

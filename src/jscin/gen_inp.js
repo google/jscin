@@ -12,7 +12,8 @@ import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp");
 
-let flag_match_keystroke_wild = false;
+const flag_match_keystroke_wild = false;
+const flag_has_keypad = false;
 
 // General Input Module for table-based IMs, ex. Zhuyin, Array
 export class GenInp extends BaseInputMethod
@@ -518,7 +519,7 @@ export class GenInp extends BaseInputMethod
       } else if (key == 'Tab' && conf.mode.INP_MODE_TABNEXTPAGE) {
         // ...
         trace('NotImplemented');
-      } else if (0 /* keypad */) {
+      } else if (flag_has_keypad) {
         return jscin.IMKEY_IGNORE;
       } else if (key.length == 1) {
         let ret = jscin.IMKEY_ABSORB;

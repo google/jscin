@@ -26,19 +26,19 @@ class testInputIme {
 
   items() {
     return [
-      (ev) => { this.test_setCandidateWindowProperties({vertical:false}); },
-      (ev) => { this.test_setCandidateWindowProperties({vertical:true}); },
-      (ev) => { this.test_setCandidateWindowProperties({visible:false}); },
-      (ev) => { this.test_setCandidateWindowProperties({visible:true}); },
-      (ev) => { this.test_setComposition("hello"); },
-      (ev) => { this.test_clearComposition(); },
-      (ev) => { this.test_commitText("hello world"); },
-      (ev) => { this.test_setCandidates("abcdefghi"); },
-      (ev) => { this.test_setCandidates("ab"); },
-      (ev) => { this.test_setCandidates(""); },
-      (ev) => { this.test_setMenuItems(["Item 1", "Item 2", "Blah"]); },
-      (ev) => { this.test_setMenuItems(["Activated"]); },
-      (ev) => { this.test_setMenuItems([]); },
+      () => { this.test_setCandidateWindowProperties({vertical:false}); },
+      () => { this.test_setCandidateWindowProperties({vertical:true}); },
+      () => { this.test_setCandidateWindowProperties({visible:false}); },
+      () => { this.test_setCandidateWindowProperties({visible:true}); },
+      () => { this.test_setComposition("hello"); },
+      () => { this.test_clearComposition(); },
+      () => { this.test_commitText("hello world"); },
+      () => { this.test_setCandidates("abcdefghi"); },
+      () => { this.test_setCandidates("ab"); },
+      () => { this.test_setCandidates(""); },
+      () => { this.test_setMenuItems(["Item 1", "Item 2", "Blah"]); },
+      () => { this.test_setMenuItems(["Activated"]); },
+      () => { this.test_setMenuItems([]); },
     ];
   }
 
