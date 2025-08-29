@@ -32,14 +32,14 @@ export class ChromeInputIme {
 
   // chrome.input.ime API
 
-  clearComposition(parameters, callback) {
+  async clearComposition(parameters) {
     // parameters:
     // - contextID
     debug("clearComposition", parameters);
     return false;
   }
 
-  commitText(parameters, callback) {
+  async commitText(parameters) {
     // parameters:
     // - contextID
     // - text
@@ -47,7 +47,7 @@ export class ChromeInputIme {
     return false;
   }
 
-  setCandidates(parameters, callback) {
+  async setCandidates(parameters) {
     // parameters:
     // - contextID
     // - candidates[]
@@ -56,7 +56,7 @@ export class ChromeInputIme {
     return false;
   }
 
-  setCandidateWindowProperties(parameters, callback) {
+  async setCandidateWindowProperties(parameters) {
     // parameters:
     // - engineID
     // - properties
@@ -67,7 +67,7 @@ export class ChromeInputIme {
     return false;
   }
 
-  setComposition(parameters, callback) {
+  async setComposition(parameters) {
     // parameters:
     // - contextID
     // - cursor
@@ -80,13 +80,13 @@ export class ChromeInputIme {
     return false;
   }
 
-  setMenuItems(parameters, callback) {
+  async setMenuItems(parameters) {
     // - parameters: MenuParameters
     debug("setMenuItems", parameters);
     return false;
   }
 
-  updateMenuItems(parameters, callback) {
+  async updateMenuItems(parameters) {
     // - parameters: MenuParameters
     debug("updateMenuItems", parameters);
     return false;
@@ -94,24 +94,24 @@ export class ChromeInputIme {
 
   // Indicates that the key event received by onKeyEvent is handled.
   // This should only be called if the onKeyEvent listener is asynchronous.
-  keyEventHandled(requestId, response) {
+  async keyEventHandled(requestId, response) {
     // requestId: string (from keyEvent.requestId)
     // response: boolean
-    debug("keyEventHandled: NOT_IMPL");
+    debug("keyEventHandled: NOT_IMPL", requestId, response);
   }
 
-  sendKeyEvents(parameters) {
+  async sendKeyEvents(parameters) {
     // parameters:
     // - contextID: number
     // - keyData: KeyboardEvent[]
-    debug("sendKeyEvents: NOT_IMPL");
+    debug("sendKeyEvents: NOT_IMPL", parameters);
   }
 
-  setCursorPosition(parameters) {
+  async setCursorPosition(parameters) {
     // parameters:
     // - candidateID: number
     // - contextID: number
-    debug("setCursorPosition: NOT_IMPL");
+    debug("setCursorPosition: NOT_IMPL", parameters);
   }
 
   // Meta function to help creating the event handlers.

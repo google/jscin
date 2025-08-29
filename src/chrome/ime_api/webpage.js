@@ -75,13 +75,13 @@ export class WebPageIme extends ChromeInputIme {
 
   // chrome.input.ime APIs
 
-  clearComposition(parameters, callback) {
+  async clearComposition(parameters) {
     let node = this.getNode('composition');
     node.empty().append(NBSP);
     return true;
   };
 
-  commitText(parameters, callback) {
+  async commitText(parameters) {
     /*
      * The browsers no longer support changing input contents using TextEvent,
      * so we have to manually set the value and then fire the IntputEvent.
@@ -102,7 +102,7 @@ export class WebPageIme extends ChromeInputIme {
   }
 
   // TODO(hungte) Bind CandidateClicked.
-  setCandidates(parameters, callback) {
+  async setCandidates(parameters) {
     let node = this.getNode('candidates');
     node.empty();
     for (let c of parameters.candidates) {
@@ -126,7 +126,7 @@ export class WebPageIme extends ChromeInputIme {
     return true;
   }
 
-  setCandidateWindowProperties(parameters, callback) {
+  async setCandidateWindowProperties(parameters) {
     let p = parameters.properties;
     if ('auxiliaryText' in p) {
       let node = this.getNode('auxiliary');
@@ -153,7 +153,7 @@ export class WebPageIme extends ChromeInputIme {
     return true;
   }
 
-  setComposition(parameters, callback) {
+  async setComposition(parameters) {
     let node = this.getNode('composition');
     let p = parameters;
     const simple = true;
@@ -209,7 +209,7 @@ export class WebPageIme extends ChromeInputIme {
     return true;
   }
 
-  setMenuItems(parameters, callback) {
+  async setMenuItems(parameters) {
     let node = this.getNode('menu');
     node.empty();
     for (let i of parameters.items) {
@@ -228,7 +228,7 @@ export class WebPageIme extends ChromeInputIme {
     return false;
   }
 
-  updateMenuItems(parameters, callback) {
-    return this.setMenuItems(parameters, callback);
+  async updateMenuItems(parameters) {
+    return this.setMenuItems(parameters);
   }
 }

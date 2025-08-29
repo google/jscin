@@ -186,19 +186,19 @@ export class IpcContentIme extends IpcIme {
   }
 
   // Bridge calls to the IME panel
-  setCandidates(parameters, callback) {
+  async setCandidates(parameters) {
     this.sendCommandToPanel("setCandidates", parameters);
   }
-  setCandidateWindowProperties(parameters, callback) {
+  async setCandidateWindowProperties(parameters) {
     this.sendCommandToPanel("setCandidateWindowProperties", parameters);
   }
-  setComposition(parameters, callback) {
+  async setComposition(parameters) {
     this.sendCommandToPanel("setComposition", parameters);
   }
-  clearComposition(parameters, callback) {
+  async clearComposition(parameters) {
     this.sendCommandToPanel("clearComposition", parameters);
   }
-  setMenuItems(parameters, callback) {
+  async setMenuItems(parameters) {
     this.sendCommandToMenu("setMenuItems", parameters);
   }
 }
