@@ -380,7 +380,7 @@ export class CrOS_CIN {
 
   UpdateCandidates(candidate_list, labels) {
     if (candidate_list === undefined) {
-      assert(mcch, "candidate_list (mcch) is undefined");
+      assert(false, "candidate_list (mcch) is undefined");
       return;
     }
     if (typeof(candidate_list) == typeof('')) {

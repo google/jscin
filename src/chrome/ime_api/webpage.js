@@ -188,7 +188,7 @@ export class WebPageIme extends ChromeInputIme {
     for (let d of data) {
       if (d.segment != segi) {
         // new segment.
-        ui.append(span);
+        node.append(span);
         segi = d.segment;
         span = $('<span/>');
         if (segi)

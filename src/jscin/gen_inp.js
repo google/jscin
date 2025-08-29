@@ -142,10 +142,12 @@ export class GenInp extends BaseInputMethod
     function pick_cch_wild(head, dir, keystroke, mcch_size) {
       let mcch = [];
       let more = false;
+      let i = 0, idx;
 
       // Object.keys() is in standard since ECMAScript 5 and is only
       // implemented in new browsers.
       let keys = ime.table.keys();
+      let pattern = wildcard2re(keystroke);
       if (dir == 1) {
         for (i=0, idx=head; idx<keys.length && i<=mcch_size; idx++) {
           if (keys[i].match(pattern)) {

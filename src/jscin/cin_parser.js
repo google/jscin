@@ -28,8 +28,7 @@ export function parseCin(cin_input) {
     return [false, undefined, 'line ' + (lineno+1) + ': ' + msg];
   }
 
-  for (let lineno in lines) {
-    let line = lines[lineno];
+  for (const [lineno, line] of lines.entries()) {
 
     // Comment line start with '#'
     if (line.match(/^#/)) {
@@ -91,7 +90,7 @@ export function parseCin(cin_input) {
   }
 
   if (runningcmd && runningcmd != 'chardef') // iBus tables has no "%chardef end"
-    return failed(lineno, 'previous section has no end');
+    return failed(lines.length, 'previous section has no end');
 
   // We want to keep the CIN AS-IS and prevent minimal changes (except the
   // cname/ename because they are critical for storing and showing). The
