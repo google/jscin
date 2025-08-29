@@ -12,6 +12,8 @@ import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp");
 
+let flag_match_keystroke_wild = false;
+
 // General Input Module for table-based IMs, ex. Zhuyin, Array
 export class GenInp extends BaseInputMethod
 {
@@ -168,7 +170,8 @@ export class GenInp extends BaseInputMethod
     }
     function match_keystroke_wild(inpinfo) {
       debug("match_keystroke_wild", inpinfo);
-      return match_keystroke_normal(inpinfo);
+      if (!flag_match_keystroke_wild)
+        return match_keystroke_normal(inpinfo);
 
       // TODO optimize
       let idx = 0;
