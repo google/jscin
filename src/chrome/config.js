@@ -62,6 +62,7 @@ export class Config {
       DefaultModule: '',
       Emulation: false,
       RawMode: true,
+      Locale: 'en',
       VerticalWindow: true,
       AddonRelatedText: false,
       AddonPunctuations: true,
@@ -168,6 +169,7 @@ export class Config {
   AddonPunctuations()   { return this.Get("AddonPunctuations"); }
   AddonCrossQuery()     { return this.Get("AddonCrossQuery"); }
   InputMethods()        { return this.Get("InputMethods"); }
+  Locale()              { return this.Get("Locale"); }
   DefaultInputMethod()  {
     let ims = this.InputMethods();
     return (ims.length > 0) ? ims[0] : '';

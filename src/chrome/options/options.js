@@ -17,6 +17,7 @@ import { parseCin } from "../jscin/cin_parser.js";
 import { DetectInputMethodType } from "../jscin/quirks.js";
 import { Config } from "../config.js";
 import { ChromeStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/storage.js";
+import { _ } from "../i18n.js";
 
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
@@ -28,9 +29,6 @@ let notify = new Notify();
 
 // A list for managing loading messages in UI.
 let table_loading = {};
-
-// _: Let Chrome decide (_locales)
-let _ = chrome.i18n.getMessage;
 
 let hasZH = false;
 chrome.i18n.getAcceptLanguages((locales) => {
@@ -285,6 +283,10 @@ async function init() {
   $('#checkDebugMessage').prop("checked",
     config.Debug()).click(function () {
       config.Set("Debug", $(this).prop("checked"));
+  });
+  $('#checkUseZHTWLocale').prop("checked",
+    config.Locale() == 'zh_TW').click(function () {
+      config.Set("Locale", $(this).prop("checked") ? "zh_TW" : "en");
   });
 
   let im_modules = jscin.getModuleNames();

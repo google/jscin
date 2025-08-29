@@ -89,6 +89,8 @@
   "optionOK": {"message":
     "OK" },
 
+  "optionUseZHTWLocale": {"message": "Force using zh_TW locale" },
+
   "optionDebug": {"message":
     "Debug and development" },
   "optionDebugMessage": {"message":
