@@ -87,7 +87,7 @@
   "optionAlert": {"message":
     "Warning!" },
   "optionOK": {"message":
-    "OK" },
+    " OK " },
 
   "optionUseZHTWLocale": {"message": "Force using zh_TW locale" },
 

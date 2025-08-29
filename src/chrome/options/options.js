@@ -574,7 +574,7 @@ function addTableToList(name, list_id, do_insert) {
     });
 
     let buttons = [{
-      text: ' OK ',
+      text: _("optionOK"),
       click: async function () {
         // Save CrossQuery
         let checked = $('#query_keystrokes').is(':checked');
