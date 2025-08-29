@@ -65,9 +65,11 @@ export class CrOS_CIN {
     this.kEngineId = 'cros_cin';
 
     this.kMenuOptions = "options";
-    this.kMenuOptionsLabel = chrome.i18n.getMessage("menuOptions");
-    this.kImeErrorLabel = chrome.i18n.getMessage("imeError");
-    this.kPromptRawMode = chrome.i18n.getMessage("promptRawMode");
+    // The service worker will fail to register if we use the local i18n module.
+    let _ = chrome?.i18n?.getMessage || function (v) {return v;};
+    this.kMenuOptionsLabel = _("menuOptions");
+    this.kImeErrorLabel = _("imeError");
+    this.kPromptRawMode = _("promptRawMode");
 
     this.engineID = this.kEngineId;
     this.context = null;

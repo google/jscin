@@ -89,6 +89,8 @@
   "optionOK": {"message":
     "確定" },
 
+  "optionUseZHTWLocale": {"message": "顯示中文界面" },
+
   "optionDebug": {"message":
     "除錯與開發" },
   "optionDebugMessage": {"message":
