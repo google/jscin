@@ -49,7 +49,6 @@ async function console_main(argv) {
   print("JsCIN Emulator\n");
   const rl = readline.createInterface({ input, output });
 
-  let im_url = "";
   let im_name;
 
   if (argv.length > 0) {

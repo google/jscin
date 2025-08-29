@@ -32,13 +32,6 @@ let table_loading = {};
 // _: Let Chrome decide (_locales)
 let _ = chrome.i18n.getMessage;
 
-// __: Follow UI Language
-function __(ename, cname) {
-  if (chrome.i18n.getUILanguage().startsWith('zh'))
-    return cname;
-  return ename;
-}
-
 let hasZH = false;
 chrome.i18n.getAcceptLanguages((locales) => {
   for (let v of locales) {

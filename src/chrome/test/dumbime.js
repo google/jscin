@@ -17,7 +17,6 @@ function log(...args) {
 }
 
 function DumbIME() {
-  let dummy_function = function() {};
   let _listeners = {};
 
   function create_listener(name) {

@@ -9,7 +9,7 @@ import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("migration");
 
 import {ChromeStorage, Storage} from "./storage.js";
-import {KEY_INFO_LIST, KEY_TABLE_PREFIX} from "./ime.js";
+import {KEY_TABLE_PREFIX} from "./ime.js";
 
 const kOldTableDataKeyPrefix = "table_data-";
 
@@ -49,7 +49,6 @@ export class Migration {
 
     let start = performance.now();
     let parallel = true;
-    let url_base = chrome.runtime.getURL("");
     debug("migrateAllTables: start to check...");
     let waits = [];
 

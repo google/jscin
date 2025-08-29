@@ -13,8 +13,6 @@ import { getUnshiftedKey, hasCtrlAltMeta } from "./key_event.js";
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("addon.RelatedText");
 
-const kPhrasesDatabase = 'croscinPhrasesDatabase';
-
 // the phrases database is so large that we want to hold only one copy in the
 // module level.
 var phrases = undefined;

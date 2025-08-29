@@ -551,7 +551,6 @@ export class CrOS_CIN {
 
     // Normalize preferences.
     let available = jscin.getTableNames();
-    let k = null;
     let enabled = this.config.InputMethods().filter(
       (v) => available.includes(v) );
 

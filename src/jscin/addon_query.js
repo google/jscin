@@ -11,8 +11,6 @@ import { BaseInputAddon } from "./base_addon.js";
 import { AddLogger } from "./logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("addon.CrossQuery");
 
-let PROMPT = globalThis.chrome?.i18n?.getMessage('crossQueryAuxText') || "Look up:";
-
 export class AddonCrossQuery extends BaseInputAddon
 {
   constructor(name, im)

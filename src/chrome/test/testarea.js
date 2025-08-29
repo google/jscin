@@ -108,7 +108,6 @@ class testInputIme {
 
   // jquery-based test init
   test_setMenuItems(labels_array) {
-    let i;
     let items = [];
     for (let label of labels_array) {
       items.push({
