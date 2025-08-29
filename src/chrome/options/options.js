@@ -422,7 +422,7 @@ async function addTableFromUrl(url, progress=true) {
       xhr.responseType = 'arraybuffer';
       xhr.send(null);
     } else {
-      blob = await LoadArrayBuffer(url, true);
+      blob = await LoadArrayBuffer(url);
       setAddTableStatus(_("tableStatusDownloadedParseName", name), false);
       addTableFromBlob(blob, url);
       delete table_loading[url];
