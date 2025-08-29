@@ -504,16 +504,11 @@ export class GenInp2 extends BaseInputMethod
     // change it. OpenVanilla proposed the solution of "auto commit only if
     // the candidates are <= 1 page", which is a good solution so we'll follow
     // here.
-    // As a result, the implementation for SPACE here is:
-    //  - If override_autocompose, don't commit.
-    //  - If CanCycleCandidates, don't commit.
-    //  - Otherwise, commit.
     let commit = this.IsSingleCandidate(ctx);
 
     if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE &&
-      !this.override_autocompose && this.opts.OPT_AUTO_UPCHAR) {
-
-      if (!this.CycleCandidates(ctx))
+        !this.CycleCandidates(ctx)) {
+      if (this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP)
         commit = true;
     }
     debug('ConvertComposition', `[${key}]`, commit, this.opts);
