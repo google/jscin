@@ -113,7 +113,7 @@ export class Config {
     this.CheckProperties(props);
     let data = props ?
       Object.fromEntries(
-        props.map((key, index) => [key, this.config[key]])) :
+        props.map((key) => [key, this.config[key]])) :
       this.config;
     debug("Save:", data);
     // This would trigger the onChanged event to happen.

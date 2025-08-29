@@ -28,7 +28,7 @@ export class Migration {
   }
 
   // Migrate from version <= v3.0.2
-  migrateTable(data) {
+  migrateTable(data, force) {
     let modified = false;
     let chardef = data.cin.chardef;
     for (let k in chardef) {
@@ -42,7 +42,7 @@ export class Migration {
       delete data.cin.PHRASE_CHARDEF;
       modified = true;
     }
-    return [modified, data];
+    return [modified || force, data];
   }
 
   async migrateAllTables(force) {
@@ -57,7 +57,7 @@ export class Migration {
         continue;
 
       let src = await this.storage.get(k);
-      let [need_update, output] = this.migrateTable(src)
+      let [need_update, output] = this.migrateTable(src, force)
 
       if (!need_update) {
         debug("Migration not needed:", k);

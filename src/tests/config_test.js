@@ -18,7 +18,7 @@ class FakeStorage {
   async get(items) {
     log("FakeStorage.get:", items);
     let data = Object.fromEntries(
-      items.map((key, index) => [key, this.data[key]]));
+      items.map((key) => [key, this.data[key]]));
     return data;
   }
   async set(data) {

@@ -8,16 +8,18 @@
 export class Trie {
   constructor(data) {
     this.children = {};
+    if (data)
+      this.data = data;
   }
 
-  _lookup(key, create) {
+  _lookup(key, create, data) {
     let next = this;
     for (let c of key) {
       let child = next.children[c];
       if (!child) {
         if (!create)
           return undefined;
-        child = new Trie();
+        child = new Trie(data);
         next.children[c] = child;
       }
       next = child;
@@ -36,8 +38,7 @@ export class Trie {
   }
 
   add(key, data) {
-    let next = this._lookup(key, true);
-    next.data = data;
+    this._lookup(key, true, data);
   }
 
   find(key) {

@@ -97,7 +97,7 @@ export class CrOS_CIN {
       debug("VerticalWindow", value);
       this.SwitchVerticalWindow();
     });
-    this.config.forEach((key, value) => {
+    this.config.forEach((key) => {
       if (!key.startsWith('Addon'))
         return;
       this.config.Bind(key, (v) => {
@@ -118,7 +118,8 @@ export class CrOS_CIN {
     if(chrome.action)
       chrome.action.disable();
 
-    chrome.runtime.onMessage.addListener((ev) => {
+    chrome.runtime.onMessage.addListener(() => {
+      // TODO(hungte) Move the notification to be here?
     });
     await this.config.Load();
 
@@ -597,8 +598,11 @@ export class CrOS_CIN {
 
     ime_api.onDeactivated.addListener((engineID) => {
       debug('onDeactivated: croscin stopped.');
-      this.heartbeat.stop()
+      if (this.engineID != engineID)
+        error("onDeactivated with a different engineID:", this.engineID, engineID);
+      this.engineID = undefined;
       this.context = null;
+      this.heartbeat.stop()
     });
 
     ime_api.onFocus.addListener((context) => {

@@ -26,8 +26,11 @@
 //   };
 // };
 
+const debugFlag = false;
+
 function debug(...args) {
-  // console.log(...args);
+  if (debugFlag)
+    console.log(...args);
 }
 
 export function IsGTabBlob(blob) {

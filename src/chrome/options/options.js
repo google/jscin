@@ -100,9 +100,10 @@ async function init() {
     connectWith: ".sortable",
     cancel: "li:only-child",
     helper: 'clone',
-    update: function (event, ui) {
+    update: function () {
       let new_list = [];
-      $('#enabled_im_list li').each(function(index) {
+      // TODO(hungte) Replace each by something better.
+      $('#enabled_im_list li').each(function() {
         new_list.push(decodeId($(this).attr('id').replace(/^ime_/, '')));
       });
       config.Set("InputMethods", new_list);
@@ -132,7 +133,7 @@ async function init() {
     setAddTableStatus("");
   }
 
-  $(".optionAddUrl").button().click(function(event) {
+  $(".optionAddUrl").button().click(function() {
     selectAddDiv('url');
     $('#cin_table_url_input').addClass("ui-corner-all");
 
@@ -154,7 +155,7 @@ async function init() {
     ]).dialog("open");
   });
 
-  $(".optionAddFile").button().click(function(event) {
+  $(".optionAddFile").button().click(function() {
     selectAddDiv('file');
     $('#cin_table_file_input').button().addClass("ui-corner-all");
 
@@ -176,7 +177,7 @@ async function init() {
     ]).dialog("open");
   });
 
-  $(".optionAddOpenDesktop").button().click(function (event) {
+  $(".optionAddOpenDesktop").button().click(function () {
     selectAddDiv('odlist');
     let list = $("#odlist_select");
     list.change(() => {
@@ -301,7 +302,7 @@ async function init() {
       opt.attr("selected", "selected");
     selectMod.append(opt);
   }
-  selectMod.selectmenu({change: (val) => {
+  selectMod.selectmenu({change: () => {
     config.Set("DefaultModule", selectMod.val());
     alert(_("optionReloadExtensionOrRestart"));
   }});
@@ -353,7 +354,7 @@ async function addTableFromBlob(blob, source) {
       t = new TextDecoder(locale, {fatal: true}).decode(blob);
       break;
     } catch (err) {
-      debug("Failed to decode CIN table:", source, locale);
+      debug("Failed to decode CIN table:", source, locale, err);
     }
   }
   if (!t) {
@@ -406,7 +407,7 @@ async function addTableFromUrl(url, progress=true) {
         addTableFromBlob(blob, url);
         delete table_loading[url];
       });
-      xhr.onreadystatechange = (e) => {
+      xhr.onreadystatechange = () => {
         if (xhr.readyState != 4)
           return;
         if (xhr.status == 200) {
@@ -438,10 +439,10 @@ async function addTableFromFile(files) {
   for (let f of files) {
     debug("addTableFromFile", f);
     let fr = new FileReader();
-    fr.addEventListener("load", (event) => {
+    fr.addEventListener("load", () => {
       addTableFromBlob(fr.result, f);
     });
-    fr.addEventListener("error", (event) => {
+    fr.addEventListener("error", () => {
       error("Failed loading file:", f);
     });
 
