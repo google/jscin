@@ -143,7 +143,7 @@ export class CrOS_CIN {
     }
     this.registerEventHandlers();
 
-    await this.LoadPreferences();
+    this.LoadPreferences();
 
     this.config.Bind("InputMethods", () => {
       if (!this.im)

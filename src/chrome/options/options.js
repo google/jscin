@@ -111,7 +111,7 @@ async function init() {
   }).disableSelection();
   $("#accordion").accordion({heightStyle: "content"});
 
-  await loadTables();
+  loadTables();
   updateBytesInUse(); // no need to wait.
 
   $("#add_table_dialog").attr("title", _("optionAddTable")).dialog({
