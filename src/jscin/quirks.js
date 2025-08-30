@@ -236,16 +236,17 @@ function SelkeyShiftQuirks(cin) {
   let k = cin.selkey || '';
   if (k.startsWith(' ')) {
     warn("SELKEY_SHIFT but selkey alreay started with SPACE.");
-    return;
   }
 
-  if (cin.SPACE_AUTOUP && k.includes('123456789')) {
-    k = '0' + k.replaceAll('0', '');
-    debug("SELKEY_SHIFT + SPACE_AUTOUP: shift with '0':", k);
-  } else {
-    k = ' ' + k;
-    debug(`SELKEY_SHIFT: new selkey=[${k}]`);
+  if (k.includes('123456789')) {
+    // For a number sequce selkey, we can be pretty sure 0 should not be there.
+    if (k.startsWith('0') || k.startsWith(' '))
+      k = k.slice(1);
   }
+  const c = cin.SPACE_AUTOUP ? '0' : ' ';
+  k = c + k.replaceAll(c, '')
+  debug("SELKEY_SHIFT: selkey", cin.selkey, '=>', k);
+
   cin.selkey = k;
 }
 
