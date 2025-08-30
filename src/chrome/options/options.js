@@ -615,9 +615,12 @@ function addTableToList(name, list_id, do_insert) {
       }
     }
     SetOpts(opts);
+    let default_opts = undefined;
 
-    $('.optionResetOpts').button().off("click").click(async () => {
-      SetOpts(jscin.getTableDefaultOpts(table.cin));
+    $('.optionResetOpts').button().off("click").click(function () {
+      if (!default_opts)
+        default_opts = jscin.getTableDefaultOpts(table.cin)
+      SetOpts(default_opts);
     });
 
     let buttons = [{
