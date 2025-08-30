@@ -30,10 +30,8 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 %chardef begin
 <KEYS> <VALUE>
 %chardef end
-  組字規則。KEYS 是實際的按鍵，而 VALUE 是轉換後的輸出字串。
-  同樣的 KEYS 可以出現多次，其對應的每個 VALUE 都會進入候選字列表。
-  注意若 VALUE 有多個字，預設情形下會被拆開視為多個候選字。
-  若想要建立有詞類的輸入法表，則要在 %chardef 之前加入 %PHRASE_CHARDEF 命令。
+  組字規則。KEYS 是實際的按鍵，而 VALUE 是轉換後的輸出字串(字或詞)。
+  同樣的 KEYS 可以出現多次，其對應的每個 VALUE 都會進入候選字(詞)列表。
 
 -----------------------------------------------------------------------------
 次要的指令
@@ -54,7 +52,7 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 <KEY> <VALUE>
 %quick end
   自行指定預列候選字的列表。主要用於行列30的一級與二級簡碼。
-  JsCIN 也支援 XCIN2.3 的同命指令 %quickkey
+  JsCIN 也支援 XCIN2.3 的同義指令 %quickkey
 
 -----------------------------------------------------------------------------
 來自 GCIN 的指令
@@ -108,12 +106,18 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   時會把選擇鍵改為 0 但還是可以用空白選。
 
 %DISABLE_SEL_LIST <KEYS>
-  XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround。
+  XCIN2.5 對行列30提供的 Dirty workaround。
+  現代輸入法通常直接把 1234567890 直接編入 endkey ，然後在 chardef
+  裡直接代入 w1 ... w2 ... 所以不太需要再另外定義此值。
 
 %KEYSTROKE_REMAP begin
 <KEY> <VALUE>
 %KEYSTROKE_REMAP end
-  XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround。
+  XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround，主要是
+  由於 XCIN2.5 用標準的候選字列實作一二級簡碼，所以跟特別碼衝突了，
+  這時就會把特別碼用 KEYSTROKE_REMAP 來取代（主要是 t=的）。
+  現代輸入法通常會選擇實作 %quick (如 gcin) 或是另開模組處理簡碼 (如
+  OpenVanilla) 所以此命令實用性不高，只對非常舊的 XCIN 2.5 行列表有用。
 
 %MODULE <NAME>
   指定輸入法模組。目前的 JsCIN 除了 %gen_inp 可用的 gen_inp 與 gen_inp2 外，
@@ -129,6 +133,3 @@ JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
 %KEYGROUPS end
   分類按鍵成幾個群組。主要應用是注音的聲母、韻母等，讓按鍵在不按順序輸入時
   能依分類自動重新組合。
-
-%PHRASE_CHARDEF
-  改變 %chardef 的預設行為，允許詞類輸入。
