@@ -9,9 +9,25 @@ import { Config } from "./config.js";
 import { LoadJSON } from "../jscin/storage.js";
 
 class I18n {
-  constructor() {
-    this.locales = {"en": {}, "zh_TW": {}};
-    this.current = "en";
+  constructor(native) {
+    const zhTW = 'zh_TW', en = 'en';
+    this.native = native;
+    this.locales = {[en]: {}, [zhTW]: {}};
+    this.default = en;
+    this.alt = zhTW;
+    if (chrome?.i18n?.getUILanguage().startsWith(zhTW)) {
+      this.default = zhTW;
+      this.alt = en;
+    }
+    this.current = this.default;
+  }
+
+  setAltLocale(use_alt) {
+    if (use_alt)
+      this.current = this.alt;
+    else
+      this.current = this.default;
+    console.assert(this.locales[this.current], "Missing locales for:", this.current);
   }
 
   async load_db() {
@@ -20,13 +36,10 @@ class I18n {
     }
   }
 
-  setLocale(l) {
-    if (!this.locales[l])
-      return;
-    this.current = l;
-  }
-
   getMessage(key, substitutions) {
+    if (this.native && this.current == this.default)
+      return this.native(...arguments);
+
     let db = this.locales[this.current];
     let ret = db[key]?.message;
     if (!ret)
@@ -56,14 +69,15 @@ async function Init() {
   if (native && !config.Debug())
     return native;
 
-  let myi18n = new I18n();
+  let myi18n = new I18n(native);
   await myi18n.load_db();
-  myi18n.setLocale(config.Locale());
+
+  myi18n.setAltLocale(config.ForceAltLocale());
   console.log("Using debug locale", myi18n);
 
-  config.Bind("Locale", (value) => {
-    console.log("Setting locale", value);
-    myi18n.setLocale(value);
+  config.Bind("ForceAltLocale", (value) => {
+    console.log("Setting alternative locale:", value);
+    myi18n.setAltLocale(value);
   });
 
   return myi18n.getMessage.bind(myi18n);

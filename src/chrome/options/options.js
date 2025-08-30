@@ -284,9 +284,9 @@ async function init() {
     config.Debug()).click(function () {
       config.Set("Debug", $(this).prop("checked"));
   });
-  $('#checkUseZHTWLocale').prop("checked",
-    config.Locale() == 'zh_TW').click(function () {
-      config.Set("Locale", $(this).prop("checked") ? "zh_TW" : "en");
+  $('#checkForceAltLocale').prop("checked",
+    config.ForceAltLocale()).click(function () {
+      config.Set("ForceAltLocale", $(this).prop("checked"));
   });
 
   let im_modules = jscin.getModuleNames();

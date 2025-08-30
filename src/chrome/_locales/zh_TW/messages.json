@@ -89,7 +89,7 @@
   "optionOK": {"message":
     "確定" },
 
-  "optionUseZHTWLocale": {"message": "顯示中文界面" },
+  "optionForceAltLocale": {"message": "強制用不同語言顯示界面(開發專用)" },
 
   "optionDebug": {"message":
     "除錯與開發" },

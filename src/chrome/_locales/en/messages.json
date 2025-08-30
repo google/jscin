@@ -89,7 +89,7 @@
   "optionOK": {"message":
     " OK " },
 
-  "optionUseZHTWLocale": {"message": "Force using zh_TW locale" },
+  "optionForceAltLocale": {"message": "Show UI messages in the different locale (for developer)." },
 
   "optionDebug": {"message":
     "Debug and development" },
