@@ -412,7 +412,7 @@ export class InputMethodsEnvironment {
   }
 
   freeTable(name) {
-    delete this[name];
+    delete this.cache[name];
   }
 
   // ----- Table Info -----
@@ -492,12 +492,16 @@ export class InputMethodsEnvironment {
     module = this.getModule(module || table.cin.MODULE);
     assert(module, "activateInputMethod: No any modules available:", name);
 
-    applyInputMethodTableQuirks(table.cin);
+    // The quirks may change CIN content that was cached so we want to modify
+    // only the cloned copy.
+    let cin = structuredClone(table.cin);
+
+    applyInputMethodTableQuirks(cin);
     // Overwrite opts from stored values (must be done after
     // applyInputMethodTableQuirks).
-    Object.assign(table.cin, opts);
+    Object.assign(cin, opts);
 
-    let instance = new module(name, table.cin);
+    let instance = new module(name, cin);
     debug("activateInputMethod: Created input method:", name, opts, instance, module.name);
 
     for (let addon of this.addons)

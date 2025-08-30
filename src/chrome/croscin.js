@@ -466,6 +466,10 @@ export class CrOS_CIN {
       this.InitializeUI();
       return;
     }
+    if (!name) {
+      error("ActivateInputMethod: No IMs can be activated.");
+      return;
+    }
 
     let info = jscin.getTableInfo(name);
     debug("ActivateInputMethod:", name, info);
