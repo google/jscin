@@ -22,6 +22,9 @@ import { _ } from "../i18n.js";
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
 
+const ClsExperimental = "experimental";
+const ClsOptAdvanced = "optAdvanced";
+
 // Use var for variables that we want to explore and change in the browser
 // debugging tool.
 let config = new Config();
@@ -60,6 +63,89 @@ async function reloadIM(name) {
   notify.Send(NOTIFY_RELOAD_IM, name);
 }
 
+function HideByClass(cls, bg) {
+  for (let n of document.getElementsByClassName(cls)) {
+    if (!bg)
+      n.style.display = 'none';
+    else
+      n.style.background = bg;
+  }
+}
+
+function ShowByClass(cls) {
+  for (let n of document.getElementsByClassName(cls)) {
+    n.style.display = 'block';
+  }
+}
+
+function initOpts() {
+  // OpenVanilla only supports setting (in order):
+  //  AUTO_FULLUP
+  //  AUTO_RESET
+  //  AUTO_COMPOSE
+  //  SELKEY_SHIFT
+  //  SPACE_AUTOUP
+  //  (SPACE_RESET, AUTO_UPCHAR, and WILD_ENABLE are probably both implicit
+  //  true)
+
+  // MacOS behavior:
+  //  Only allows setting AUTO_COMPOSE (+flag_disp_partial_match), with cursor
+  //  set to the first candidate.  Press SPACE will commit the text under
+  //  cursor.  Associate will keep appearing, but without cursor so you have
+  //  to either select by 1~9 or arrow to get cursor first, not possible to
+  //  keep committing by SPACE.
+
+  // Generate the options list in the details window
+  let opts_exp = [];
+  let opts_advanced = [
+    'SPACE_RESET', 'AUTO_UPCHAR', 'WILD_ENABLE', 'END_KEY',
+    'flag_disp_partial_match',
+    'flag_unique_auto_send',
+  ];
+  let node = $('#divOpts');
+  for (let o in jscin.OPTS) {
+    let cls = `opt_${o}`;
+    let div = $('<div/>').attr("id", `div_${cls}`).append(
+      $('<input/>').attr("type", "checkbox").attr("id", cls)).
+      append($('<label/>').attr("for", cls).attr("class", cls).
+        text(_(cls)).attr('title', _(`title_${o}`)));
+    if (opts_exp.includes(o))
+      div.addClass(ClsExperimental);
+    if (opts_advanced.includes(o))
+      div.addClass(ClsOptAdvanced);
+    node.append(div);
+  }
+  const id = '#optionOptShowAdvanced';
+  let isBasic = true;
+  $(id).button().on("click", function () {
+    isBasic = !isBasic;
+    if (isBasic)
+      HideByClass(ClsOptAdvanced);
+    else
+      ShowByClass(ClsOptAdvanced);
+    $(id).text(_(isBasic ? 'optionOptShowAdvanced' : 'optionOptShowBasic'));
+  });
+
+  function AssociateOpts(source, dest, reverse) {
+    let src_id = `#opt_${source}`;
+    let dest_id = `#opt_${dest}`;
+    $(src_id).off("change").on("change", function() {
+      let enabled = $(src_id).is(':checked');
+      if (reverse)
+        enabled = false;
+      $(dest_id).prop("disabled", !enabled);
+      let dest_label = $(`.opt_${dest}`);
+      if (enabled)
+        dest_label.removeClass('disabled');
+      else
+        dest_label.addClass('disabled');
+    });
+  }
+
+  AssociateOpts('AUTO_UPCHAR', 'SPACE_AUTOUP');
+  HideByClass(ClsOptAdvanced);
+}
+
 async function init() {
   await config.Load();
   if (config.Debug()) {
@@ -72,20 +158,7 @@ async function init() {
     $(v).text(_(v.className));
   }
 
-  // Generate the options list in the details window
-  let exp_opts = [];
-  let node = $('#divOpts');
-  for (let o in jscin.OPTS) {
-    let cls = `opt_${o}`;
-    let div = $('<div/>').attr("id", `div_${cls}`).append(
-      $('<input/>').attr("type", "checkbox").attr("id", cls)).
-      append($('<label/>').attr("for", cls).attr("class", cls).
-        text(_(cls)).attr('title', _(`title_${o}`)));
-    if (exp_opts.includes(o)) {
-      div.attr("class", "experimental");
-    }
-    node.append(div);
-  }
+  initOpts();
 
   $('#available_im_list').sortable({
     revert: true,
@@ -233,22 +306,6 @@ async function init() {
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
-  function HideByClass(cls, bg) {
-    for (let n of document.getElementsByClassName(cls)) {
-      if (!bg)
-        n.style.display = 'none';
-      else
-        n.style.background = bg;
-    }
-  }
-
-  let divPlat = 'divOnCrOS';
-  if (chrome?.input?.ime) {
-    divPlat = 'divNonCrOS';
-  }
-  HideByClass(divPlat, debugFlag ? "yellow" : undefined);
-  HideByClass('experimental', debugFlag ? "greenyellow" : undefined);
-
   $('#checkSupportNonChromeOS').prop("checked",
     config.Emulation()).click(function ()
   {
@@ -311,6 +368,14 @@ async function init() {
   $('#formSelectModule').controlgroup();
   $('#start_dumb_ime').button();
   $('#start_test_area').button();
+
+  // Hide platform-specific options and experimental options.
+  let divPlat = 'divOnCrOS';
+  if (chrome?.input?.ime) {
+    divPlat = 'divNonCrOS';
+  }
+  HideByClass(divPlat, debugFlag ? "yellow" : undefined);
+  HideByClass(ClsExperimental, debugFlag ? "greenyellow" : undefined);
 }
 
 function removeFileExtension(filename) {
@@ -549,24 +614,6 @@ function addTableToList(name, list_id, do_insert) {
         $(idsel).prop('checked', opts[o]).trigger('change');
       }
     }
-
-    function AssociateOpts(source, dest, reverse) {
-      let src_id = `#opt_${source}`;
-      let dest_id = `#opt_${dest}`;
-      $(src_id).off("change").on("change", function() {
-        let enabled = $(src_id).is(':checked');
-        if (reverse)
-          enabled = false;
-        $(dest_id).prop("disabled", !enabled);
-        let dest_label = $(`.opt_${dest}`);
-        if (enabled)
-          dest_label.removeClass('disabled');
-        else
-          dest_label.addClass('disabled');
-      });
-    }
-
-    AssociateOpts('AUTO_UPCHAR', 'SPACE_AUTOUP');
     SetOpts(opts);
 
     $('.optionResetOpts').button().off("click").click(async () => {

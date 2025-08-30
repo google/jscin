@@ -59,6 +59,10 @@
     "名稱: " },
   "optionTableDetailSourceHeader": {"message":
     "來源: " },
+  "optionOptShowAdvanced": {"message":
+    "▼ 顯示全部選項..." },
+  "optionOptShowBasic": {"message":
+    "▲ 只顯示基本選項" },
   "optionResetOpts": {"message":
     "重設" },
   "optionResetOptsAs": {"message":

@@ -59,6 +59,10 @@
     "Name: " },
   "optionTableDetailSourceHeader": {"message":
     "Source: " },
+  "optionOptShowAdvanced": {"message":
+    "▼ Show all options..." },
+  "optionOptShowBasic": {"message":
+    "▲ Show basic options" },
   "optionResetOpts": {"message":
     "Reset" },
   "optionResetOptsAs": {"message":
