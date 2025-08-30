@@ -8,7 +8,7 @@
 %cname 行列30
 %selkey 1234567890
 %endkey 1234567890
-%space_style 2
+%space_style 4
 %phase_auto_skip_endkey
 %flag_disp_full_match
 %flag_disp_partial_match
