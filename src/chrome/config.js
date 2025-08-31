@@ -68,6 +68,7 @@ export class Config {
       AddonPunctuations: true,
       AddonCrossQuery: "",
       InputMethods: [],
+      LastActiveInputMethod: '',
     };
   }
   onChanged(changes, namespace) {
@@ -170,6 +171,7 @@ export class Config {
   AddonCrossQuery()     { return this.Get("AddonCrossQuery"); }
   InputMethods()        { return this.Get("InputMethods"); }
   ForceAltLocale()      { return this.Get("ForceAltLocale"); }
+  LastActiveInputMethod() { return this.Get('LastActiveInputMethod'); }
   DefaultInputMethod()  {
     let ims = this.InputMethods();
     return (ims.length > 0) ? ims[0] : '';

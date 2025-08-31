@@ -453,10 +453,16 @@ export class CrOS_CIN {
 
   async ActivateInputMethod(name, reload) {
     if (name === undefined) {
-      if (this.config.InputMethods().includes(this.im_name))
+      // After de-activated, try to load the previously activated IM.
+      if (!this.im_name) {
+        name = this.config.LastActiveInputMethod();
+        if (!name || !this.config.InputMethods().includes(name))
+          name = this.config.DefaultInputMethod();
+      } else if (this.config.InputMethods().includes(this.im_name)) {
         name = this.im_name;
-      else
+      } else {
         name = this.config.DefaultInputMethod();
+      }
     }
     if (name && name == this.im_name && !reload) {
       debug("ActivateInputMethod: already activated:", name);
@@ -484,7 +490,7 @@ export class CrOS_CIN {
       name, imctx, null, null, this.config.DefaultModule());
 
     if (!im) {
-      debug("ActivateInputMethod: Cannot start Input Method:", name);
+      error("ActivateInputMethod: Cannot start Input Method:", name);
       return;
     }
 
@@ -502,6 +508,8 @@ export class CrOS_CIN {
 
     this.InitializeUI();
     debug("ActivateInputMethod: Started:", name, this.im);
+    if (name != this.config.LastActiveInputMethod())
+      this.config.Set("LastActiveInputMethod", name);
   }
 
   UpdateMenu() {
