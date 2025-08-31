@@ -166,11 +166,13 @@ export class CrOS_CIN {
   // Standard utilities
 
   GetContextArg() {
-    return {'contextID': this.context.contextID};
+    let contextID = this.context.contextID;
+    return {contextID};
   }
 
   GetEngineArg() {
-    return {'engineID': this.kEngineId};
+    let engineID = this.kEngineId;
+    return {engineID};
   }
 
   // Core functions
@@ -610,6 +612,7 @@ export class CrOS_CIN {
       this.ActivateInputMethod();
     });
 
+    // This event is sent when the IME is switched (Ctrl-Space).
     ime_api.onDeactivated.addListener((engineID) => {
       debug('onDeactivated: croscin stopped.');
       if (this.engineID != engineID)
@@ -619,19 +622,22 @@ export class CrOS_CIN {
       this.heartbeat.stop()
     });
 
+    // When an input box is attached to the IME (mouse click).
     ime_api.onFocus.addListener((context) => {
+      debug("onFocus", context);
       this.context = context;
       // Calling updateUI here to forward unfinished composition (preedit) into
       // the new input element.
       this.UpdateUI();
     });
 
+    // When an input box has lost the IME (mouse click outside).
     ime_api.onBlur.addListener((contextID) => {
+      debug("onBlur", contextID);
       if (!this.context) {
         debug("onBlur: WARNING: no existing context.");
         return;
       }
-      debug("onBlur", contextID);
       if (this.context.contextID != contextID) {
         debug("onBlur: WARNING: incompatible context.",
                  this.context.contextID, contextID);
