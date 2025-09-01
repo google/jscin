@@ -46,7 +46,7 @@ export class GenInp2 extends BaseInputMethod
     this.keygroups = conf.KEYGROUPS;
 
     // Convert table commands to options.
-    let opts_remap = {
+    const opts_remap = {
       SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
       SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
@@ -60,7 +60,7 @@ export class GenInp2 extends BaseInputMethod
       flag_disp_partial_match: 'OPT_PARTIAL_MATCH',
     };
 
-    for (let key in opts_remap) {
+    for (const key in opts_remap) {
       if (key in conf)
         this.opts[opts_remap[key]] = conf[key];
     }
@@ -73,8 +73,8 @@ export class GenInp2 extends BaseInputMethod
   _NormalizeTable(t) {
     if (!t)
       return t;
-    for (let k in t) {
-      let v = t[k];
+    for (const k in t) {
+      const v = t[k];
       if (typeof(v) == 'string')
         t[k] = v.split('');
     }
@@ -161,7 +161,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   IsGlobPattern(pattern) {
-    for (let k of this.GLOB_KEYS)
+    for (const k of this.GLOB_KEYS)
       if (pattern.includes(k))
         return true;
     return false;
@@ -186,12 +186,10 @@ export class GenInp2 extends BaseInputMethod
   UpdateCandidates(ctx) {
     // Compatible with gen_inp.
     const i = ctx.candidates_start_index || 0;
-    let pageSize = this.GetSelKeyLength();
     const c = ctx.candidates;
-    if (!pageSize)
-      pageSize = 10;
-    let total = Math.ceil(c.length / pageSize);
-    let now = Math.ceil((i + 1) / pageSize);
+    const pageSize = this.GetSelKeyLength() || 10;
+    const total = Math.ceil(c.length / pageSize);
+    const now = Math.ceil((i + 1) / pageSize);
 
     ctx.mcch = c.slice(i, i + pageSize);
     ctx.page_prompt = (total > 1) ? `${now}/${total}` : '';
@@ -238,7 +236,7 @@ export class GenInp2 extends BaseInputMethod
 
   IsUniqueCandidate(ctx) {
     // Checks if there is only 1 candidate (by partial match).
-    let r = this.GetPartialMatchCandidates(ctx);
+    const r = this.GetPartialMatchCandidates(ctx);
     debug("IsUniqueCandidate:", r);
     return (r.length == 1);
   }
@@ -248,13 +246,13 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CycleCandidates(ctx, direction) {
-    let start = ctx.candidates_start_index;
+    const start = ctx.candidates_start_index;
     debug("CycleCandidates", ctx.candidates, start, direction);
     if (!this.CanCycleCandidates(ctx))
       return false;
     direction = direction || 1;
-    let max = ctx.candidates.length;
-    let cycle_size = this.GetSelKeyLength();
+    const max = ctx.candidates.length;
+    const cycle_size = this.GetSelKeyLength();
     let new_index = start + direction * cycle_size;
     if (new_index >= max) {
       new_index = 0;
@@ -284,7 +282,7 @@ export class GenInp2 extends BaseInputMethod
     let node = trie.find(prefix);
     if (!node)
       return [];
-    let r = node.below(limit).flat().slice(0, limit);
+    const r = node.below(limit).flat().slice(0, limit);
     debug("Trie partial match:", prefix, node, r);
     return r;
   }
@@ -312,7 +310,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   GlobCandidates(ctx, pattern, table, limit) {
-    let regex = this.Glob2Regex(pattern || ctx.composition);
+    const regex = this.Glob2Regex(pattern || ctx.composition);
 
     return this._MatchCandidates(ctx, (k) => {
       return regex.test(k);
@@ -329,7 +327,7 @@ export class GenInp2 extends BaseInputMethod
       limit = this.GetMatchLimit();
 
     // Currently looping with index is the fastest way to iterate an array.
-    for (let k of Object.keys(table)) {
+    for (const k of Object.keys(table)) {
       if (!matcher(k))
         continue;
       result = result.concat(table[k]);
@@ -344,7 +342,7 @@ export class GenInp2 extends BaseInputMethod
 
   PrepareCandidates(ctx, autocompose_stage) {
     debug("PrepareCandidates", ctx.composition, "autocompose_stage:", autocompose_stage);
-    let key = ctx.composition;
+    const key = ctx.composition;
 
     this.ClearCandidates(ctx);
 
@@ -355,8 +353,8 @@ export class GenInp2 extends BaseInputMethod
     }
 
     // Decide if we should prepare anything.
-    let quick = this.override_autocompose;
-    let is_quick = quick && !!quick[key];
+    const quick = this.override_autocompose;
+    const is_quick = quick && !!quick[key];
     if (autocompose_stage) {
       // When AUTO_COMPOSE is turned off, only %quick (override_autocompose) may
       // still show the candidates (if matched).
@@ -370,7 +368,7 @@ export class GenInp2 extends BaseInputMethod
     let changed = false;
 
     const try_glob = this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key);
-    let limit = this.GetMatchLimit();
+    const limit = this.GetMatchLimit();
 
     if (try_glob) {
       // Do nothing - ignore override and always use the original table.
@@ -429,10 +427,10 @@ export class GenInp2 extends BaseInputMethod
   }
 
   GetCompositionKeyGroup(ctx, key) {
-    let groups = this.keygroups;
+    const groups = this.keygroups;
     if (!groups)
       return undefined;
-    for (let g in groups) {
+    for (const g in groups) {
       if (groups[g].includes(key))
         return g;
     }
@@ -443,8 +441,8 @@ export class GenInp2 extends BaseInputMethod
     debug("CreateCompositionByGroups: new_grouop", newgroup);
     // modify composition to fit key groups.
     let key_by_group = {};
-    for (let c of ctx.composition) {
-      let cg = this.GetCompositionKeyGroup(ctx, c);
+    for (const c of ctx.composition) {
+      const cg = this.GetCompositionKeyGroup(ctx, c);
       // If any composition is not grouped, abort.
       if (!cg)
         return false;
@@ -453,7 +451,7 @@ export class GenInp2 extends BaseInputMethod
     debug("CreateCompositionByGroups key_by_group", key_by_group, newgroup, key);
     key_by_group[newgroup] = key;
     let v = '';
-    for (let g of Object.keys(key_by_group).sort()) {
+    for (const g of Object.keys(key_by_group).sort()) {
       v += key_by_group[g];
     }
     ctx.composition = v;
@@ -467,7 +465,7 @@ export class GenInp2 extends BaseInputMethod
     if (this.IsFullComposition(ctx))
       return false;
 
-    let newgroup = this.GetCompositionKeyGroup(ctx, key);
+    const newgroup = this.GetCompositionKeyGroup(ctx, key);
     if (!newgroup || !this.CreateCompositionByGroups(ctx, newgroup, key)) {
       ctx.composition += key;
     }
@@ -476,7 +474,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   DelComposition(ctx) {
-    let comp = ctx.composition;
+    const comp = ctx.composition;
     debug("DelComposition", comp);
     if (!this.HasComposition(ctx))
       return false;
@@ -539,7 +537,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ConvertComposition(ctx, key) {
-    let was_override = ctx.candidates_override;
+    const was_override = ctx.candidates_override;
     if (!this.HasComposition(ctx))
       return this.ResultIgnore(ctx);
     if (!this.PrepareCandidates(ctx, false)) {
@@ -583,7 +581,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ProcessCompositionStateKey(ctx, ev) {
-    let key = normalizeKey(ev.key);
+    const key = normalizeKey(ev.key);
 
     switch (key) {
       case 'Backspace':
@@ -675,7 +673,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ProcessCandidatesStateKey(ctx, ev) {
-    let key = normalizeKey(ev.key);
+    const key = normalizeKey(ev.key);
 
     switch (key) {
       case 'Escape':
