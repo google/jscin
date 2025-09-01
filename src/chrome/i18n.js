@@ -15,7 +15,8 @@ class I18n {
     this.locales = {[en]: {}, [zhTW]: {}};
     this.default = en;
     this.alt = zhTW;
-    if (chrome?.i18n?.getUILanguage().startsWith(zhTW)) {
+    // Unfortunately the getUILanguage returns a different name for zh-TW.
+    if (chrome?.i18n?.getUILanguage().startsWith('zh-TW')) {
       this.default = zhTW;
       this.alt = en;
     }
