@@ -173,6 +173,7 @@ export class GenInp2 extends BaseInputMethod
   ClearCandidates(ctx) {
     ctx.candidates = [];
     ctx.candidates_start_index = 0;
+    ctx.candidates_override = false;
     ctx.mcch = [];
     ctx.page_prompt = '';
   }
@@ -372,6 +373,7 @@ export class GenInp2 extends BaseInputMethod
       debug("PrepareCandidates: - exact match", ctx.candidates);
     }
 
+    ctx.candidates_override = changed;
     this.UpdateCandidates(ctx);
     return ctx.candidates.length > 0;
   }
@@ -493,6 +495,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ConvertComposition(ctx, key) {
+    let was_override = ctx.candidates_override;
     if (this.IsEmptyComposition(ctx))
       return this.ResultIgnored(ctx);
     if (!this.PrepareCandidates(ctx, false)) {
@@ -508,15 +511,18 @@ export class GenInp2 extends BaseInputMethod
     // candidates more than one page, but the partial match and glob would
     // change it. OpenVanilla proposed the solution of "auto commit only if
     // the candidates are <= 1 page", which is a good solution so we'll follow
-    // here. Hint: try 'yneu' in Boshiamy to check multi-page candidates
-    // behavior.
+    // here except if the conversion comes from an override (e.g., Array30
+    // %quick) then an additional SPACE is required to start cycling.
+    // Hint: try 'yneu' in Boshiamy to check multi-page candidates behavior.
+    //       try 'p' in Array to check single-page acndidates behavior.
+    //       try 'w1' in Array to check multi-page candidates behavior.
     let commit = this.IsSingleCandidate(ctx);
 
     // TODO(hungte) When SPACE is the selection key, actually we can't cycle the
     // page. We should either always choose 0 in the quirks, or not using SPACE
     // as the selection when there are multiple pages of candidates.
 
-    if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE &&
+    if (!commit && !was_override && key == ' ' && this.opts.OPT_AUTO_COMPOSE &&
         !this.CycleCandidates(ctx)) {
       if (this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP)
         commit = true;
