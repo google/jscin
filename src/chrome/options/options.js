@@ -96,10 +96,9 @@ function initOpts() {
   //  keep committing by SPACE.
 
   // Generate the options list in the details window
-  let opts_exp = [];
+  let opts_exp = ['flag_disp_partial_match'];
   let opts_advanced = [
     'SPACE_RESET', 'AUTO_UPCHAR', 'WILD_ENABLE', 'END_KEY',
-    'flag_disp_partial_match',
     'flag_unique_auto_send',
   ];
   let node = $('#divOpts');

@@ -335,11 +335,7 @@ export class GenInp2 extends BaseInputMethod
 
   PrepareCandidates(ctx, autocompose_stage) {
     debug("PrepareCandidates", ctx.composition, "autocompose_stage:", autocompose_stage);
-    let table = this.table;
     let key = ctx.composition;
-    let override = undefined;
-    let changed = false;
-    let limit = this.GetMatchLimit();
 
     this.ClearCandidates(ctx);
 
@@ -348,15 +344,29 @@ export class GenInp2 extends BaseInputMethod
       // modified the states in ClearCandidates.
       return false;
     }
-    const try_glob = this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key);
 
-    // Process override_* tables.
+    // Decide if we should prepare anything.
+    let quick = this.override_autocompose;
+    let is_quick = quick && !!quick[key];
+    if (autocompose_stage) {
+      // When AUTO_COMPOSE is turned off, only %quick (override_autocompose) may
+      // still show the candidates (if matched).
+      if (!this.opts.OPT_AUTO_COMPOSE && !is_quick)
+        return false;
+    }
+
+    // Find which table we should use.
+    let table = this.table;
+    let override = undefined;
+    let changed = false;
+
+    const try_glob = this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key);
+    let limit = this.GetMatchLimit();
+
     if (try_glob) {
       // Do nothing - ignore override and always use the original table.
     } else if (autocompose_stage) {
-      override = this.override_autocompose;
-      if (!override && !this.opts.OPT_AUTO_COMPOSE)
-        table = {};
+      override = quick;
     } else { // converted (candidates) stage.
       override = this.override_conversion;
     }
@@ -365,15 +375,22 @@ export class GenInp2 extends BaseInputMethod
       changed = true;
     }
 
+    // Now prepare the candidates.
     if (try_glob) {
       this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table, limit));
       debug("PrepareCandidates: - glob", ctx.candidates);
-    } else if (!changed && autocompose_stage && this.opts.OPT_PARTIAL_MATCH) {
-      this.AddCandidates(ctx, this.GetPartialMatchCandidates(ctx, key, table, limit));
-      debug("PrepareCandidates: - partial", ctx.candidates);
-    } else {
+    } else if (changed || !this.opts.OPT_PARTIAL_MATCH) {
+      // Normal lokoup
       this.AddCandidates(ctx, table[key]);
       debug("PrepareCandidates: - exact match", ctx.candidates);
+    } else {
+      // OPT_PARTIAL_MATCH and table NOT changed.
+      // The %flag_disp_partial_match is actually an IM-specific enhancement
+      // that on Array it will list "next available to the column" just like the
+      // level 1/2 short codes. We don't have such implementation so far because
+      // the GetPartialMatchCandidates is really a partial match.
+      this.AddCandidates(ctx, table[key]);
+      debug("PrepareCandidates: - partial match (NOT_IMPL; fallback to exact match)", ctx.candidates);
     }
 
     ctx.candidates_override = changed;
