@@ -98,7 +98,8 @@ function initOpts() {
   // Generate the options list in the details window
   let opts_exp = ['flag_disp_partial_match'];
   let opts_advanced = [
-    'SPACE_RESET', 'AUTO_UPCHAR', 'WILD_ENABLE', 'END_KEY',
+    'SPACE_RESET', 'AUTO_UPCHAR', 'SPACE_AUTOUP',
+    'WILD_ENABLE', 'END_KEY',
     'flag_unique_auto_send',
   ];
   let node = $('#divOpts');
