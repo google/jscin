@@ -612,17 +612,21 @@ export class CrOS_CIN {
       this.ActivateInputMethod();
     });
 
-    // This event is sent when the IME is switched (Ctrl-Space).
+    // This event is sent when the IME is switched off (Ctrl-Space).
+    // In Manifest V3 we can't touch UI nor commiting text in onDeactivated.
     ime_api.onDeactivated.addListener((engineID) => {
       debug('onDeactivated: croscin stopped.');
+      if (this.im)
+        this.im.reset_context(this.imctx);
       if (this.engineID != engineID)
-        error("onDeactivated with a different engineID:", this.engineID, engineID);
+        warn("onDeactivated with a different engineID:", this.engineID, engineID);
       this.engineID = undefined;
       this.context = null;
       this.heartbeat.stop()
+      // To speed up switching back, we don't really free the activated IM here.
     });
 
-    // When an input box is attached to the IME (mouse click).
+    // When an input box is attached to the IME (mouse click or activate).
     ime_api.onFocus.addListener((context) => {
       debug("onFocus", context);
       this.context = context;
@@ -632,22 +636,20 @@ export class CrOS_CIN {
     });
 
     // When an input box has lost the IME (mouse click outside).
+    // In Manifest V3 we can't touch UI nor commiting text in onBlur.
     ime_api.onBlur.addListener((contextID) => {
       debug("onBlur", contextID);
+      if (this.im)
+        this.im.reset_context(this.imctx);
       if (!this.context) {
-        debug("onBlur: WARNING: no existing context.");
+        warn("onBlur: No existing context but requested:", contextID);
         return;
       }
       if (this.context.contextID != contextID) {
-        debug("onBlur: WARNING: incompatible context.",
-                 this.context.contextID, contextID);
+        warn("onBlur: incompatible context:", this.context.contextID,
+          contextID);
         return;
       }
-
-      // Note anything left in composition will be automatically commited by
-      // chrome.input.ime. We tried to prevent this in onReset but in vain.
-      // To synchronize behavior on ChromeOS / Chrome, the best solution is to
-      // let emulated chrome.input.ime do commit from composition.
       this.context = null;
     });
 
@@ -656,11 +658,15 @@ export class CrOS_CIN {
       return this.ProcessKeyEvent(keyData);
     });
 
+    // When something still in the composition but we will abort (blur or
+    // deactivate).
+    // In Manifest V3 we can't touch UI in onReset, so anything in the
+    // composition buffer will be sent out (commitText) AS-IS.
     ime_api.onReset.addListener((engineID) => {
       debug("onReset", engineID);
       if (this.im) {
+        // reset_context should be done in onBlur and onDeactivated.
         this.im.reset(this.imctx);
-        this.UpdateUI();
       }
     });
 
