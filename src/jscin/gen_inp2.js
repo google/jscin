@@ -131,8 +131,8 @@ export class GenInp2 extends BaseInputMethod
     return jscin.IMKEY_ABSORB;
   }
 
-  ResultIgnored(ctx) {
-    debug("ResultIgnored", ctx);
+  ResultIgnore(ctx) {
+    debug("ResultIgnore", ctx);
     return jscin.IMKEY_IGNORE;
   }
 
@@ -517,7 +517,7 @@ export class GenInp2 extends BaseInputMethod
   ConvertComposition(ctx, key) {
     let was_override = ctx.candidates_override;
     if (this.IsEmptyComposition(ctx))
-      return this.ResultIgnored(ctx);
+      return this.ResultIgnore(ctx);
     if (!this.PrepareCandidates(ctx, false)) {
       return this.ResultError(ctx, key);
     }
@@ -562,12 +562,12 @@ export class GenInp2 extends BaseInputMethod
     switch (key) {
       case 'Backspace':
         if (!this.DelComposition(ctx))
-          return this.ResultIgnored(ctx);
+          return this.ResultIgnore(ctx);
         return this.ResultProcessed(ctx);
 
       case 'Escape':
         if (this.IsEmptyComposition(ctx))
-          return this.ResultIgnored(ctx);
+          return this.ResultIgnore(ctx);
         this.ResetContext(ctx);
         return this.ResultProcessed(ctx);
 
@@ -624,7 +624,7 @@ export class GenInp2 extends BaseInputMethod
           return this.ResultProcessed(ctx);
         }
     }
-    return this.ResultIgnored(ctx);
+    return this.ResultIgnore(ctx);
   }
 
   ProcessCandidatesStateKey(ctx, ev) {
@@ -687,14 +687,14 @@ export class GenInp2 extends BaseInputMethod
         }
         if (this.IsCompositionKey(key, key))
           return this.ResultError(ctx);
-        return this.ResultIgnored(ctx);
+        return this.ResultIgnore(ctx);
     }
   }
 
   ProcessKeystroke(ctx, ev) {
     debug("ProcessKeystroke", ev);
     if (ev.type != 'keydown' || hasCtrlAltMeta(ev)) {
-      return this.ResultIgnored(ctx);
+      return this.ResultIgnore(ctx);
     }
 
     switch (ctx.state) {
@@ -703,7 +703,7 @@ export class GenInp2 extends BaseInputMethod
       case this.STATE_CANDIDATES:
         return this.ProcessCandidatesStateKey(ctx, ev);
     }
-    return this.ResultIgnored(ctx);
+    return this.ResultIgnore(ctx);
   };
 }
 
