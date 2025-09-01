@@ -30,13 +30,13 @@ function shallowEqual(obj1, obj2)
   return equ;
 }
 
-function simulate(inst, inpinfo, input, result, expects) {
+function simulate(inst, inpinfo, input, result, expects, table_name) {
   let committed = '';
 
   for (let i in input) {
     let keyinfo = new KeyEvent(input[i]);
     let ret = inst.keystroke(inpinfo, keyinfo);
-    print('ret=', ret, ", inpinfo: ", inpinfo);
+    print('table=', table_name, ', ret=', ret, ", input:", input[i], ", inpinfo:", inpinfo);
 
     let expect;
     if (!expects || expects[i] == undefined) {
@@ -154,7 +154,7 @@ async function main() {
     let inst = await jscin.activateInputMethod(name, inpinfo);
     for (let entry of test.test) {
       total_tested++;
-      if (!simulate(inst, inpinfo, entry.input, entry.result, entry))
+      if (!simulate(inst, inpinfo, entry.input, entry.result, entry, test.table))
         failure++;
     };
     if (failure) {
