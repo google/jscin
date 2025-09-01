@@ -12,10 +12,12 @@ export class BaseInputAddon {
   }
   // Called when the IM is first initialized.
   init(ctx) {
+    ctx.addon_prompt = undefined;
     return this.im.init(ctx);
   }
   // Called when IM or system wants to reset input context.
   reset_context(ctx) {
+    ctx.addon_prompt = undefined;
     return this.im.reset_context(ctx);
   }
 

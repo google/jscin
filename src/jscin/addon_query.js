@@ -22,7 +22,7 @@ export class AddonCrossQuery extends BaseInputAddon
     this.label = '';
   }
   resetCross(ctx) {
-    delete ctx.addon_prompt;
+    ctx.addon_prompt = undefined;
     this.map = {};
     this.keyname = {};
     this.cross_name = null;
