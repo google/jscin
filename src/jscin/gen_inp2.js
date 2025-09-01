@@ -495,15 +495,6 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
-  IsSelectionKey(ctx, key) {
-    return this.selkey.includes(key);
-  }
-
-  IsEndKey(ctx, key) {
-    debug("IsEndKey", key);
-    return this.endkey.includes(key);
-  }
-
   SelectCommit(ctx, key) {
     let keyidx = this.selkey.indexOf(key);
     assert(keyidx >= 0, "SelectCommit: key should never be out of selkey", key, this.selkey);
@@ -512,6 +503,23 @@ export class GenInp2 extends BaseInputMethod
       return false;
     debug("SelectCommit: keyidx, index:", keyidx, index);
     return this.CommitText(ctx, index);
+  }
+
+  CommitFirst(ctx) {
+    if (!this.selkey?.length) {
+      error("CommitFirst: no selkey defined.", ctx);
+      return false;
+    }
+    return this.SelectCommit(ctx, this.selkey[0]);
+  }
+
+  IsSelectionKey(ctx, key) {
+    return this.selkey.includes(key);
+  }
+
+  IsEndKey(ctx, key) {
+    debug("IsEndKey", key);
+    return this.endkey.includes(key);
   }
 
   ConvertComposition(ctx, key) {
@@ -550,7 +558,7 @@ export class GenInp2 extends BaseInputMethod
     debug('ConvertComposition', `[${key}]`, commit, this.opts);
 
     if (commit) {
-      this.CommitText(ctx, 0);
+      this.CommitFirst(ctx);
       return this.ResultCommit(ctx);
     }
     return this.ResultProcessed(ctx);
@@ -664,7 +672,7 @@ export class GenInp2 extends BaseInputMethod
         if (this.CycleCandidates(ctx))
           return this.ResultProcessed(ctx);
         if (this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) {
-          this.CommitText(ctx, 0);
+          this.CommitFirst(ctx);
           return this.ResultCommit(ctx);
         }
         return this.ResultProcessed(ctx);
@@ -680,7 +688,7 @@ export class GenInp2 extends BaseInputMethod
         // time, so we can only commit on Composition keys.
         if (this.opts.OPT_AUTO_UPCHAR) {
           if (this.IsCompositionKey(ctx, key)) {
-            this.CommitText(ctx, 0);
+            this.CommitFirst(ctx);
             this.AddComposition(ctx, key);
             return this.ResultCommit(ctx);
           }
