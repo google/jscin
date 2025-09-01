@@ -8,7 +8,7 @@
 import { AddLogger } from "../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace} = AddLogger("ime.webpage");
 
-import { $, jQuery } from "../jquery/jquery.js";
+import { $ } from "../jquery/jquery.js";
 import { ChromeInputIme } from "./chrome_input_ime.js";
 
 // http://stackoverflow.com/questions/8039182/matching-jquery-text-to-nbsp

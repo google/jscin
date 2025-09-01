@@ -5,7 +5,7 @@
  * @author zork@google.com (Zach Kuznia)
  */
 
-import { $, jQuery } from "../jquery/jquery-ui.js";
+import { $ } from "../jquery/jquery-ui.js";
 import { Notify, NOTIFY_RELOAD_IM  } from "../notify.js";
 
 // Here we must import the same set that the engine (e.g., croscin) is using,

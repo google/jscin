@@ -8,7 +8,7 @@
  * jscin behavior.
  */
 
-import { $, jQuery } from "../jquery/jquery-ui.js";
+import { $ } from "../jquery/jquery-ui.js";
 import { WebPageIme } from "../ime_api/webpage.js";
 import { CrOS_CIN, jscin } from "../croscin.js";
 

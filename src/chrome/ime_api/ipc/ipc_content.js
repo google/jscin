@@ -9,7 +9,7 @@ import { AddLogger } from "../../jscin/logger.js";
 const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc/ipc_content");
 
 import { hasCtrlAltMeta } from "../../jscin/key_event.js";
-import { $, jQuery } from "../../jquery/jquery.js";
+import { $ } from "../../jquery/jquery.js";
 import { IpcIme } from "./ipc.js";
 
 export class IpcContentIme extends IpcIme {
