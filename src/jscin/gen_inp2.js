@@ -126,6 +126,9 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ResultProcessed(ctx) {
+    if (ctx.state == this.STATE_CANDIDATES && ctx.mcch?.length)
+      ctx.keystroke = ctx.mcch[0];
+
     debug("ResultProcessed", ctx);
     return jscin.IMKEY_ABSORB;
   }
