@@ -202,18 +202,18 @@ export class GenInp2 extends BaseInputMethod
     this.PrepareCandidates(ctx, true);
   }
 
-  ShiftState(ctx) {
+  ShiftState(ctx, keep_index) {
     debug("ShiftState", ctx.state);
     switch (ctx.state) {
       case this.STATE_COMPOSITION:
         ctx.state = this.STATE_CANDIDATES;
-        ctx.candidates_start_index = 0;
         break;
       case this.STATE_CANDIDATES:
         ctx.state = this.STATE_COMPOSITION;
-        ctx.candidates_start_index = 0;
         break;
     }
+    if (!keep_index)
+      ctx.candidates_start_index = 0;
   }
 
   AddCandidates(ctx, list) {
@@ -576,6 +576,26 @@ export class GenInp2 extends BaseInputMethod
       case 'Escape':
         if (this.HasComposition(ctx)) {
           this.ResetContext(ctx);
+          return this.ResultProcessed(ctx);
+        }
+        return this.ResultIgnore(ctx);
+
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+      case '<':
+        if (this.CycleCandidates(ctx, -1)) {
+          this.ShiftState(ctx, true);
+          return this.ResultProcessed(ctx);
+        }
+        return this.ResultIgnore(ctx);
+
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case 'PageDown':
+      case '>':
+        if (this.CycleCandidates(ctx)) {
+          this.ShiftState(ctx, true);
           return this.ResultProcessed(ctx);
         }
         return this.ResultIgnore(ctx);
