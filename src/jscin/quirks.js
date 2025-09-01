@@ -41,7 +41,10 @@ function GeneralQuirks(cin) {
 
   // Turn on AUTO_COMPOSE if the selkey does not overlap with keyname and
   // endkey, so we always know the selkey = "select candidate" when pressed
-  // without ambiguity no matter if candidates are listed or not.
+  // without ambiguity no matter if candidates are listed or not. Although, for
+  // most other keys we can identify, and the most difficult one is SPACE. For
+  // Phonetic, the SPACE is conversion also the endkey so we can't judge if the
+  // SPACE should flip or convert.
   if (!('AUTO_COMPOSE' in cin)) {
     let v = true;
     for (let k of cin.selkey) {

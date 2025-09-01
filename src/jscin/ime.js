@@ -21,7 +21,7 @@ export const OPTS = {
   AUTO_FULLUP: false,
   flag_unique_auto_send: false,
   AUTO_UPCHAR: true,
-  SPACE_AUTOUP: false,
+  SPACE_AUTOUP: true,
   SELKEY_SHIFT: false,
 
   SPACE_RESET: true,
