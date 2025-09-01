@@ -55,6 +55,7 @@ export class GenInp2 extends BaseInputMethod
       AUTO_UPCHAR: 'OPT_AUTO_UPCHAR',
       END_KEY: 'OPT_END_KEY',
       WILD_ENABLE: 'OPT_WILD_ENABLE',
+      SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
       flag_unique_auto_send: 'OPT_UNIQUE_AUTO',
       flag_disp_partial_match: 'OPT_PARTIAL_MATCH',
     };
@@ -522,6 +523,17 @@ export class GenInp2 extends BaseInputMethod
     return this.endkey.includes(key);
   }
 
+  IsSpaceAutoUp() {
+    return this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP;
+  }
+
+  IsSpaceCommitFirst() {
+    // This is a stonger indication that IsSpaceAutoUp.
+    // Indicates the space will commit the first candidate. The actual selkey
+    // may be '0' but we should look at this option instead.
+    return this.opts.OPT_SELKEY_SHIFT;
+  }
+
   ConvertComposition(ctx, key) {
     let was_override = ctx.candidates_override;
     if (!this.HasComposition(ctx))
@@ -532,29 +544,31 @@ export class GenInp2 extends BaseInputMethod
     this.ShiftState(ctx);
 
     // In AUTO_COMPOSE mode, the candidates window is already there so most
-    // modern IM implementations will expect the SPACE to commit. Array
-    // rejected this because of the 'quick' that generates a different set of
-    // candidates, but other IMs all towards auto-commit. Boshiamy is more
-    // explicit on SPACE to commit because it has almost no chance to show
-    // candidates more than one page, but the partial match and glob would
-    // change it. OpenVanilla proposed the solution of "auto commit only if
-    // the candidates are <= 1 page", which is a good solution so we'll follow
-    // here except if the conversion comes from an override (e.g., Array30
-    // %quick) then an additional SPACE is required to start cycling.
+    // modern IM implementations will expect the SPACE to commit (SPACE_AUTOUP).
+    // - Array rejected this because of the 'quick' that generates a different set
+    //   of candidates, but other IMs all towards auto-commit.
+    // - Boshiamy explicitly expects SPACE to always commit even for multiple
+    //   pages (by SELKEY_SHIFT).
+    // - OpenVanilla revised the SPACE_AUTOUP as "auto commit only if the
+    //   candidates are <= 1 page".
     // Hint: try 'yneu' in Boshiamy to check multi-page candidates behavior.
     //       try 'p' in Array to check single-page acndidates behavior.
     //       try 'w1' in Array to check multi-page candidates behavior.
     let commit = this.IsSingleCandidate(ctx);
-
-    // TODO(hungte) When SPACE is the selection key, actually we can't cycle the
-    // page. We should either always choose 0 in the quirks, or not using SPACE
-    // as the selection when there are multiple pages of candidates.
-
-    if (!commit && !was_override && key == ' ' && this.opts.OPT_AUTO_COMPOSE &&
-        !this.CycleCandidates(ctx)) {
-      if (this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP)
+    if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE) {
+      if (was_override) {
+        // In override mode, never commit.
+        debug("ConvertComposition: was_override");
+      } else if (this.IsSpaceCommitFirst()) {
         commit = true;
+        debug("ConvertComposition: IsSpaceCommitFirst");
+      } else if (this.IsSpaceAutoUp()) {
+        debug("ConvertComposition: IsSpaceAutoUp");
+        if (!this.CycleCandidates(ctx))
+          commit = true;
+      }
     }
+
     debug('ConvertComposition', `[${key}]`, commit, this.opts);
 
     if (commit) {
@@ -686,17 +700,13 @@ export class GenInp2 extends BaseInputMethod
         return this.ResultIgnore(ctx);
 
       case ' ':
-        // For most cases, SPACE should do CycleCandidates; however for
-        // SELKEY_SHIFT with ' ' really set as the selection key, we do want to
-        // select it.
-        if (this.IsSelectionKey(ctx, key)) {
-          if (this.SelectCommit(ctx, key))
-            return this.ResultCommit(ctx);
-          return this.ResultError(ctx, key);
-        }
-        if (this.CycleCandidates(ctx))
+        assert(this.HasCandidates(ctx), "SPACE in STATE_CANDIDATES needs candidates");
+        if (this.IsSpaceCommitFirst()) {
+          this.CommitFirst(ctx);
+          return this.ResultCommit(ctx);
+        } else if (this.CycleCandidates(ctx)) {
           return this.ResultProcessed(ctx);
-        if (this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP) {
+        } else if (this.IsSpaceAutoUp()) {
           this.CommitFirst(ctx);
           return this.ResultCommit(ctx);
         }
