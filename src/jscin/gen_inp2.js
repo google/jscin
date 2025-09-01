@@ -85,11 +85,9 @@ export class GenInp2 extends BaseInputMethod
     super.reset_context(ctx);
     ctx.state = this.STATE_COMPOSITION;
     ctx.composition = '';
-    ctx.candidates = [];
     ctx.commit = '';
     ctx.display_composition = '';
-    ctx.candidates_start_index = 0;
-    ctx.page_prompt = '';
+    this.ClearCandidates(ctx);
 
     // Flag for addons.
     ctx.auto_compose = (
