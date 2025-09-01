@@ -348,9 +348,12 @@ export class GenInp2 extends BaseInputMethod
       // modified the states in ClearCandidates.
       return false;
     }
+    const try_glob = this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key);
 
     // Process override_* tables.
-    if (autocompose_stage) {
+    if (try_glob) {
+      // Do nothing - ignore override and always use the original table.
+    } else if (autocompose_stage) {
       override = this.override_autocompose;
       if (!override && !this.opts.OPT_AUTO_COMPOSE)
         table = {};
@@ -362,7 +365,7 @@ export class GenInp2 extends BaseInputMethod
       changed = true;
     }
 
-    if (this.opts.OPT_WILD_ENABLE && this.IsGlobPattern(key)) {
+    if (try_glob) {
       this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table, limit));
       debug("PrepareCandidates: - glob", ctx.candidates);
     } else if (!changed && autocompose_stage && this.opts.OPT_PARTIAL_MATCH) {
