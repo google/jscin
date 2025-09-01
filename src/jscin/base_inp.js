@@ -24,9 +24,8 @@ export class BaseInputMethod
     this.cname = conf.cname || name;
     this.ename = conf.ename || name;
 
-    // TODO(hungte) use conf directly.
-    this.keyname = conf.keyname;
-    this.selkey = conf.selkey;
+    this.keyname = conf.keyname || [];
+    this.selkey = conf.selkey || '';
     this.endkey = conf.endkey || '';  // endkey is optional.
   }
 

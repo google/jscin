@@ -25,7 +25,7 @@ export class GenInp2 extends BaseInputMethod
     this.STATE_COMPOSITION = 1;
     this.STATE_CANDIDATES = 2;
 
-    this.MAX_MATCH_PAGES = 20; // eeach page has self.selkey.length candidates
+    this.MAX_MATCH_PAGES = 20; // each page has self.selkey.length candidates
     this.GLOB_KEYS = '?*';
 
     // Read and parse from conf (a standard parsed CIN).
@@ -145,7 +145,11 @@ export class GenInp2 extends BaseInputMethod
   GetMatchLimit(pages) {
     if (!pages)
       pages = this.MAX_MATCH_PAGES;
-    return pages * this.selkey.length;
+    return pages * this.GetSelKeyLength();
+  }
+
+  GetSelKeyLength() {
+    return this.selkey.length;
   }
 
   Glob2Regex(pattern) {
@@ -182,7 +186,7 @@ export class GenInp2 extends BaseInputMethod
   UpdateCandidates(ctx) {
     // Compatible with gen_inp.
     const i = ctx.candidates_start_index || 0;
-    let pageSize = this.selkey?.length || 0;
+    let pageSize = this.GetSelKeyLength();
     const c = ctx.candidates;
     if (!pageSize)
       pageSize = 10;
@@ -218,7 +222,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   AddCandidates(ctx, list) {
-    if (!list || !list.length)
+    if (!list?.length)
       return false;
     ctx.candidates = ctx.candidates.concat(list);
     return true;
@@ -240,7 +244,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CanCycleCandidates(ctx) {
-    return ctx.candidates.length > this.selkey.length;
+    return ctx.candidates.length > this.GetSelKeyLength();
   }
 
   CycleCandidates(ctx, direction) {
@@ -250,7 +254,7 @@ export class GenInp2 extends BaseInputMethod
       return false;
     direction = direction || 1;
     let max = ctx.candidates.length;
-    let cycle_size = this.selkey.length;
+    let cycle_size = this.GetSelKeyLength();
     let new_index = start + direction * cycle_size;
     if (new_index >= max) {
       new_index = 0;
@@ -474,7 +478,7 @@ export class GenInp2 extends BaseInputMethod
   DelComposition(ctx) {
     let comp = ctx.composition;
     debug("DelComposition", comp);
-    if (!comp.length)
+    if (!this.HasComposition(ctx))
       return false;
     ctx.composition = comp.replace(/.$/, '');
     this.UpdateComposition(ctx);
@@ -507,7 +511,7 @@ export class GenInp2 extends BaseInputMethod
   }
 
   CommitFirst(ctx) {
-    if (!this.selkey?.length) {
+    if (!this.GetSelKeyLength()) {
       error("CommitFirst: no selkey defined.", ctx);
       return false;
     }
@@ -583,9 +587,9 @@ export class GenInp2 extends BaseInputMethod
 
     switch (key) {
       case 'Backspace':
-        if (!this.DelComposition(ctx))
-          return this.ResultIgnore(ctx);
-        return this.ResultProcessed(ctx);
+        if (this.DelComposition(ctx))
+          return this.ResultProcessed(ctx);
+        return this.ResultIgnore(ctx);
 
       case 'Escape':
         if (this.HasComposition(ctx)) {
