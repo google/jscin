@@ -229,8 +229,7 @@ export class CrOS_CIN {
     if (this.CheckSingleShiftPress(keyData, this.imctx) && this.config.RawMode()) {
       this.imctx.raw_mode = !this.imctx.raw_mode;
       let msg = this.imctx.raw_mode ? this.kPromptRawMode : this.im_label;
-      if (this.imctx.raw_mode)
-        this.im.reset(this.imctx);
+      this.ResetInputMethod();
       this.ShowOnlyAuxiliaryText(msg); // Prompt for IM mode.
       return false;
     }
@@ -512,6 +511,39 @@ export class CrOS_CIN {
     debug("ActivateInputMethod: Started:", name, this.im);
     if (name != this.config.LastActiveInputMethod())
       this.config.Set("LastActiveInputMethod", name);
+  }
+
+  // This is invoked when we're changing the input context, similiar to the
+  // onReset+on{Blur,Deactivated}. However the implementation here is dedicated
+  // to the Single Shift (raw mode) because that is the only one we can still
+  // invoke the `chrome.input.ime` APIs
+  ResetInputMethod() {
+    if (!this.im)
+      return;
+
+    let ctx = this.imctx;
+    // After reset, all the remaining composition and candidates should be
+    // removed, so we want croscin to handle (commit) the incomplete input:
+    // "Vefore conversion, commit the raw keystrokes as-is. After conversion,
+    // commit the first candidate".
+
+    // TODO(hungte) IMs with KEYGROUPS won't have the keystroke in the right
+    // order - we need to track them in a different way.
+    let override = ctx.composition; // Note GenInp does not have this.
+    const keystroke = ctx.keystroke; // Both GenInp and GenInp2 have this.
+    if (override) {
+      const mcch0 = ctx.mcch?.length ? ctx.mcch[0] : '';
+      if (keystroke == mcch0)
+        override = mcch0;
+    }
+    let text = override || keystroke;
+    if (text)
+      this.Commit(text);
+
+    // onReset
+    if (keystroke)
+      this.im.reset(this.imctx);
+    this.im.reset_context(this.imctx);
   }
 
   UpdateMenu() {
