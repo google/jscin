@@ -141,12 +141,19 @@ export class ChromeInputIme {
   // keyEventHandled).
   onKeyEvent = this._createEventHandler("KeyEvent", true);
 
+  // The order of events:
+  //  Whenever we change the state while there is still composition, onReset will be invoked.
+  //  When Cltr-Space (already in an input box) -> onActivate, onFocus.
+  //  When Ctrl-Space again (already activated) -> [onReset if has composition,] onDeactivated.
+  //  Click into another input box -> [onReset,] onBlur, onFocus.
+
   onActivate = this._createEventHandler("Activate");
+  onReset = this._createEventHandler("Reset");
   onBlur = this._createEventHandler("Blur");
-  onCandidateClicked = this._createEventHandler("CandidateClicked");
-  onDeactivated = this._createEventHandler("Deactivated");
   onFocus = this._createEventHandler("Focus");
+  onDeactivated = this._createEventHandler("Deactivated");
+
+  onCandidateClicked = this._createEventHandler("CandidateClicked");
   onInputContextUpdate = this._createEventHandler("InputContextUpdate");
   onMenuItemActivated = this._createEventHandler("MenuItemActivated");
-  onReset = this._createEventHandler("Reset");
 }

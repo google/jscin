@@ -23,6 +23,7 @@ export class WebPageIme extends ChromeInputIme {
     this.panel = panel;
     this.contexts = [];
     this.vertical = true;
+    this.composition = undefined;
   }
 
   getNode(id) {
@@ -70,6 +71,8 @@ export class WebPageIme extends ChromeInputIme {
   }
   domBlur(evt) {
     debug("DOM blur:", evt.target, evt);
+    if (this.composition)
+      this.onReset.dispatch(this.getContextID(evt.target));
     return this.onBlur.dispatch(this.getContextID(evt.target));
   }
 
@@ -79,6 +82,7 @@ export class WebPageIme extends ChromeInputIme {
     debug("clearComposition", parameters);
     let node = this.getNode('composition');
     node.empty().append(NBSP);
+    this.composition = undefined;
     return true;
   };
 
@@ -159,6 +163,7 @@ export class WebPageIme extends ChromeInputIme {
     let p = parameters;
     const simple = true;
     let text = p.text || '';
+    this.composition = text;
 
     // A simple implementation when we don't IMs like libchewing.
     if (simple) {
