@@ -35,7 +35,7 @@ let table_loading = {};
 
 let hasZH = false;
 chrome.i18n.getAcceptLanguages((locales) => {
-  for (let v of locales) {
+  for (const v of locales) {
     if (v.startsWith('zh')) {
       hasZH = true;
       break;
@@ -50,7 +50,7 @@ function ___(ename, cname) {
 }
 
 function encodeId(name) {
-  let v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
+  const v = name.split("").map((v)=>v.charCodeAt().toString(16)).join('');
   return v;
 }
 
@@ -64,7 +64,7 @@ async function reloadIM(name) {
 }
 
 function HideByClass(cls, bg) {
-  for (let n of document.getElementsByClassName(cls)) {
+  for (const n of document.getElementsByClassName(cls)) {
     if (!bg)
       n.style.display = 'none';
     else
@@ -73,7 +73,7 @@ function HideByClass(cls, bg) {
 }
 
 function ShowByClass(cls) {
-  for (let n of document.getElementsByClassName(cls)) {
+  for (const n of document.getElementsByClassName(cls)) {
     n.style.display = 'block';
   }
 }
@@ -96,16 +96,16 @@ function initOpts() {
   //  keep committing by SPACE.
 
   // Generate the options list in the details window
-  let opts_exp = ['flag_disp_partial_match'];
-  let opts_advanced = [
+  const opts_exp = ['flag_disp_partial_match'];
+  const opts_advanced = [
     'SPACE_RESET', 'AUTO_UPCHAR', 'SPACE_AUTOUP',
     'WILD_ENABLE', 'END_KEY',
     'flag_unique_auto_send',
   ];
   let node = $('#divOpts');
-  for (let o in jscin.OPTS) {
-    let cls = `opt_${o}`;
-    let div = $('<div/>').attr("id", `div_${cls}`).append(
+  for (const o in jscin.OPTS) {
+    const cls = `opt_${o}`;
+    const div = $('<div/>').attr("id", `div_${cls}`).append(
       $('<input/>').attr("type", "checkbox").attr("id", cls)).
       append($('<label/>').attr("for", cls).attr("class", cls).
         text(_(cls)).attr('title', _(`title_${o}`)));
@@ -127,14 +127,14 @@ function initOpts() {
   });
 
   function AssociateOpts(source, dest, reverse) {
-    let src_id = `#opt_${source}`;
-    let dest_id = `#opt_${dest}`;
+    const src_id = `#opt_${source}`;
+    const dest_id = `#opt_${dest}`;
     $(src_id).off("change").on("change", function() {
       let enabled = $(src_id).is(':checked');
       if (reverse)
         enabled = false;
       $(dest_id).prop("disabled", !enabled);
-      let dest_label = $(`.opt_${dest}`);
+      const dest_label = $(`.opt_${dest}`);
       if (enabled)
         dest_label.removeClass('disabled');
       else
@@ -154,7 +154,7 @@ async function init() {
   const debugFlag = config.Debug();
 
   // Localize all .option* elements.
-  for (let v of $('*[class^="option"]')) {
+  for (const v of $('*[class^="option"]')) {
     $(v).text(_(v.className));
   }
 
@@ -212,7 +212,7 @@ async function init() {
       {
         text: _("optionAddTable"),
         click: function() {
-          let url = $("#cin_table_url_input").val();
+          const url = $("#cin_table_url_input").val();
           addTableFromUrl(url);
           $(this).dialog("close");
         }
@@ -234,7 +234,7 @@ async function init() {
       {
         text: _("optionAddTable"),
         click: function() {
-          let files = document.getElementById("cin_table_file_input").files;
+          const files = document.getElementById("cin_table_file_input").files;
           addTableFromFile(files);
           $(this).dialog("close");
         }
@@ -264,7 +264,7 @@ async function init() {
 
       openDesktop.load(reload).then((data) => {
         list.empty();
-        for (let v of data) {
+        for (const v of data) {
           list.append($('<option></option>').val(v.cin).text(
             `${v.cname} (${v.ename}) - ${___(v.edesc, v.cdesc)}`));
         }
@@ -277,7 +277,7 @@ async function init() {
         text: _("optionAddTable"),
         class: 'btnAddTable',
         click: function() {
-          let val = $('#odlist_select').val();
+          const val = $('#odlist_select').val();
           $(this).dialog("close");
           addTableFromUrl(openDesktop.getURL(val));
         }
@@ -346,17 +346,17 @@ async function init() {
       config.Set("ForceAltLocale", $(this).prop("checked"));
   });
 
-  let im_modules = jscin.getModuleNames();
+  const im_modules = jscin.getModuleNames();
   let def_module = config.DefaultModule();
   if (!im_modules.includes(def_module))
     def_module = jscin.getModule()?.name;
   assert(def_module, "Cannot find the default module.");
 
-  let selectMod = $('#formSelectModule');
+  const selectMod = $('#formSelectModule');
   selectMod.empty();
 
-  for (let name of im_modules.filter((v)=>v.startsWith("Gen"))) {
-    let opt = $('<option></option>').val(name).text(name);
+  for (const name of im_modules.filter((v)=>v.startsWith("Gen"))) {
+    const opt = $('<option></option>').val(name).text(name);
     if (name == def_module)
       opt.attr("selected", "selected");
     selectMod.append(opt);
@@ -399,9 +399,9 @@ async function addTableFromBlob(blob, source) {
     try {
       // No %ename from blob so let's "guess" from the URL name or the file
       // name.
-      let ename = GuessNameFromURL(source);
+      const ename = GuessNameFromURL(source);
       debug("Parsing GTAB into CIN:", source, ename);
-      let cin = `%ename ${ename}\n` + parseGtab(blob);
+      const cin = `%ename ${ename}\n` + parseGtab(blob);
       debug("Succesfully parsed a GTAB into CIN:", source, cin.substring(0,100).split('\n'));
       if (await addTable(cin, source)) {
         debug("addTableFromBlob: success.", source);
@@ -416,7 +416,7 @@ async function addTableFromBlob(blob, source) {
   }
 
   let t;
-  for (let locale of ['utf-8', 'big5', 'gbk', 'gb18030', 'utf-16le', 'utf-16be']) {
+  for (const locale of ['utf-8', 'big5', 'gbk', 'gb18030', 'utf-16le', 'utf-16be']) {
     try {
       t = new TextDecoder(locale, {fatal: true}).decode(blob);
       break;
@@ -437,7 +437,7 @@ async function addTableFromBlob(blob, source) {
 }
 
 async function addTableFromUrl(url, progress=true) {
-  let name = GuessNameFromURL(url);
+  const name = GuessNameFromURL(url);
   debug("addTableFromUrl:", name, url);
   try {
     if (url.replace(/^\s+|s+$/g, "") == "") {
@@ -462,7 +462,7 @@ async function addTableFromUrl(url, progress=true) {
       xhr.addEventListener("progress", (e)=> {
         debug("progress", e);
         if (e.lengthComputable && e.total > 0) {
-          let pct = Math.round(e.loaded / e.total * 100);
+          const pct = Math.round(e.loaded / e.total * 100);
           setAddTableStatus(_("tableStatusDownloadingNamePct", [name, pct]), false);
         } else {
           setAddTableStatus(_("tableStatusDownloadingNameBytes", [name, e.loaded]), false);
@@ -503,7 +503,7 @@ async function addTableFromUrl(url, progress=true) {
 }
 
 async function addTableFromFile(files) {
-  for (let f of files) {
+  for (const f of files) {
     debug("addTableFromFile", f);
     let fr = new FileReader();
     fr.addEventListener("load", () => {
@@ -523,7 +523,7 @@ async function addTable(content, url) {
   // TODO(hungte) Parse using jscin.createTable
   // so we can better figure out the right name.
   // Parse the content
-  let [success, cin, msg] = parseCin(content);
+  const [success, cin, msg] = parseCin(content);
 
   if (!success) {
     // result is now the error message.
@@ -531,9 +531,9 @@ async function addTable(content, url) {
     return false;
   }
 
-  let name = jscin.getTableSaveName(cin, url);
+  const name = jscin.getTableSaveName(cin, url);
   debug("addTable - test overwrite - ", name);
-  let info = jscin.getTableInfo(name);
+  const info = jscin.getTableInfo(name);
   if (info) {
     if (!confirm(_("optionOverwriteTable", [info.cname, info.ename]))) {
       setAddTableStatus(_("tableStatusNotAdded"), true);
@@ -543,7 +543,7 @@ async function addTable(content, url) {
     }
   }
 
-  let real_type = DetectInputMethodType(cin);
+  const real_type = DetectInputMethodType(cin);
   debug("addTable: table type:", real_type);
 
   // Update the UI
@@ -566,13 +566,13 @@ async function updateBytesInUse(storage=jscin.storage) {
 }
 
 function setAddTableStatus(status, err) {
-  let status_field = document.getElementById("add_table_status");
+  const status_field = document.getElementById("add_table_status");
   status_field.innerText = status;
   status_field.className = err ? "status_error" : "status_ok";
 }
 
 function addTableToList(name, list_id, do_insert) {
-  let info = jscin.getTableInfo(name);
+  const info = jscin.getTableInfo(name);
   const ename = info.ename;
   const cname = info.cname;
   const url = info.url || '';
@@ -595,9 +595,9 @@ function addTableToList(name, list_id, do_insert) {
     $(list_id).append(item);
 
   $(`#${id}`).prepend(icon).click(async function() {
-    let table = await jscin.loadTable(name, url);
-    let opts = (await jscin.loadOpts(name)) || {};
-    let im_type = DetectInputMethodType(table.cin);
+    const table = await jscin.loadTable(name, url);
+    const opts = (await jscin.loadOpts(name)) || {};
+    const im_type = DetectInputMethodType(table.cin);
 
     $('#optionTableDetailName').text(name_label);
     $('#optionTableDetailSource').val(url);
@@ -609,8 +609,8 @@ function addTableToList(name, list_id, do_insert) {
     }
 
     function SetOpts(opts) {
-      for (let o in jscin.OPTS) {
-        let idsel = `#opt_${o}`;
+      for (const o in jscin.OPTS) {
+        const idsel = `#opt_${o}`;
         $(idsel).prop('checked', opts[o]).trigger('change');
       }
     }
@@ -627,8 +627,8 @@ function addTableToList(name, list_id, do_insert) {
       text: _("optionOK"),
       click: async function () {
         // Save CrossQuery
-        let checked = $('#query_keystrokes').is(':checked');
-        let current = config.AddonCrossQuery();
+        const checked = $('#query_keystrokes').is(':checked');
+        const current = config.AddonCrossQuery();
         let update = false;
         let reload_im = false;
 
@@ -644,8 +644,8 @@ function addTableToList(name, list_id, do_insert) {
         // Save Opts
         update = false;
         let new_opts = {};
-        for (let o in jscin.OPTS) {
-          let id = `opt_${o}`;
+        for (const o in jscin.OPTS) {
+          const id = `opt_${o}`;
           new_opts[o] = $(`#${id}`).is(':checked');
           if (new_opts[o] != opts[o])
             update = true;
@@ -662,8 +662,8 @@ function addTableToList(name, list_id, do_insert) {
         $(this).dialog("close");
       } }];
 
-    let ims = config.InputMethods();
-    let keep = builtin || (ims.length == 1 && ims[0] == name);
+    const ims = config.InputMethods();
+    const keep = builtin || (ims.length == 1 && ims[0] == name);
 
     /* Currently we expect at least one table is enabled. */
     if (!keep) {
@@ -705,16 +705,16 @@ function addTableToList(name, list_id, do_insert) {
 }
 
 function loadTables() {
-  let available = jscin.getTableNames();
-  let enabled = config.InputMethods();
+  const available = jscin.getTableNames();
+  const enabled = config.InputMethods();
 
   // First make sure we've visited all in the 'enabled', so we have more chance
   // to see the available input methods even if table info list is out of sync.
-  for (let name of enabled.filter((n) => available.includes(n))) {
+  for (const name of enabled.filter((n) => available.includes(n))) {
     addTableToList(name, '#enabled_im_list');
   }
   // Next add anything available but not in the enabled.
-  for (let name of available.filter((n) => !enabled.includes(n))) {
+  for (const name of available.filter((n) => !enabled.includes(n))) {
     addTableToList(name, '#available_im_list');
   }
 }
@@ -743,9 +743,9 @@ class ChineseOpenDesktop {
     let result = [];
     if (!text)
       return result;
-    for (let line of text.split('\n')) {
-      let regex = /^ *(?<cin>[^.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);?(?<edesc>.*)?"/;
-      let v = line.match(regex)?.groups;
+    for (const line of text.split('\n')) {
+      const regex = /^ *(?<cin>[^.]*\.cin),"(?<ename>[^(]*)\((?<cname>[^)]*)\)","(?<cdesc>[^;]*);?(?<edesc>.*)?"/;
+      const v = line.match(regex)?.groups;
       if (!v)
         continue;
       result.push(v);

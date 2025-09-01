@@ -66,7 +66,7 @@ export class CrOS_CIN {
 
     this.kMenuOptions = "options";
     // The service worker will fail to register if we use the local i18n module.
-    let _ = chrome?.i18n?.getMessage || function (v) {return v;};
+    const _ = chrome?.i18n?.getMessage || function (v) {return v;};
     this.kMenuOptionsLabel = _("menuOptions");
     this.kImeErrorLabel = _("imeError");
     this.kPromptRawMode = _("promptRawMode");
@@ -125,8 +125,8 @@ export class CrOS_CIN {
     });
     await this.config.Load();
 
-    let version = chrome.runtime.getManifest().version;
-    let reload = (version !== this.config.Version());
+    const version = chrome.runtime.getManifest().version;
+    const reload = (version !== this.config.Version());
 
     if (reload && jscin.MIGRATION) {
       warn("Start migration from version", this.config.Version(), "to", version);
@@ -166,12 +166,12 @@ export class CrOS_CIN {
   // Standard utilities
 
   GetContextArg() {
-    let contextID = this.context.contextID;
+    const contextID = this.context.contextID;
     return {contextID};
   }
 
   GetEngineArg() {
-    let engineID = this.kEngineId;
+    const engineID = this.kEngineId;
     return {engineID};
   }
 
@@ -197,7 +197,7 @@ export class CrOS_CIN {
 
   // TODO(hungte): Add an configurable option for this.
   CheckSingleShiftPress(ev, ctx) {
-    let last_seen = ctx.shift_pressed;
+    const last_seen = ctx.shift_pressed;
     if (ev.type == 'keyup') {
       if (ev.key == 'Shift' && (ev.code || ev.key) == last_seen) {
         debug("CheckSingleShiftPress: Shift Single Pressed!", ev);
@@ -228,7 +228,7 @@ export class CrOS_CIN {
     // Special case single-shift press
     if (this.CheckSingleShiftPress(keyData, this.imctx) && this.config.RawMode()) {
       this.imctx.raw_mode = !this.imctx.raw_mode;
-      let msg = this.imctx.raw_mode ? this.kPromptRawMode : this.im_label;
+      const msg = this.imctx.raw_mode ? this.kPromptRawMode : this.im_label;
       this.ResetInputMethod();
       this.ShowOnlyAuxiliaryText(msg); // Prompt for IM mode.
       return false;
@@ -245,7 +245,7 @@ export class CrOS_CIN {
       return false;
     }
 
-    let ret = this.im.keystroke(this.imctx, keyData);
+    const ret = this.im.keystroke(this.imctx, keyData);
 
     switch (ret) {
       case jscin.IMKEY_COMMIT:
@@ -283,7 +283,7 @@ export class CrOS_CIN {
   }
 
   SimulateKeyDown(key) {
-    let keyEvent = {
+    const keyEvent = {
       type: 'keydown',
       key: key,
       ctrlKey: false,
@@ -325,7 +325,7 @@ export class CrOS_CIN {
     this.ime_api.clearComposition(arg);
     arg.candidates = [];
     this.ime_api.setCandidates(arg);
-    let visible = !!message;
+    const visible = !!message;
     this.SetCandidateWindowProperties({
       pageSize: 1,
       cursorVisible: false,
@@ -339,8 +339,8 @@ export class CrOS_CIN {
     // Format: buffer...|cursor-keystroke...buffer
     keystroke = keystroke || '';
     buffer = buffer || [];
-    let buffer_text = buffer.join('');
-    let all_text = buffer_text + keystroke;
+    const buffer_text = buffer.join('');
+    const all_text = buffer_text + keystroke;
     debug("UpdateComposition:", all_text);
     if (typeof cursor === 'undefined'){
       cursor = all_text.length;
@@ -356,7 +356,7 @@ export class CrOS_CIN {
         arg.segments = [];
         for (let i = 0, len = buffer.length, total = 0; i < len; i++) {
           if (cursor >= total && cursor < total + buffer[i].length) {
-            let next = total + keystroke.length + buffer[i].length;
+            const next = total + keystroke.length + buffer[i].length;
             // cursor will split segment: [total, cursor); [cursor, next).
             if (cursor > total) {
               arg.segments.push({
@@ -392,7 +392,7 @@ export class CrOS_CIN {
     }
     // Dirty workaround because recent ChromeOS horizontal IME window was
     // broken displaying candidate.
-    let quirk_use_annotation = isNavite() && !this.config.VerticalWindow();
+    const quirk_use_annotation = isNavite() && !this.config.VerticalWindow();
     const candidates = candidate_list.map((c, i) => (
       quirk_use_annotation ? {
         candidate: '',
@@ -430,12 +430,12 @@ export class CrOS_CIN {
     //  - keystroke
     this.UpdateComposition(keystroke, lcch, cursor);
     //  - selkey, mcch
-    let num_candidates = this.UpdateCandidates(mcch, selkey);
+    const num_candidates = this.UpdateCandidates(mcch, selkey);
     // show_keystroke(cch_publish) can be displayed in auxiliary text,
     // although this is currently done by addon_query as addon_prompt.
 
-    let visible = num_candidates > 0 || !!imctx.addon_prompt || !!message;
-    let props = { visible };
+    const visible = num_candidates > 0 || !!imctx.addon_prompt || !!message;
+    const props = { visible };
 
     // The pageSize is actually the width of the candidates window (and will be
     // padded if not enough candidates so we should assign num_candidates to it.
@@ -444,7 +444,7 @@ export class CrOS_CIN {
 
     // Build up the auxiliaryText.
     // We want it to be [addon][IM][Page]
-    let aux = [imctx.addon_prompt,
+    const aux = [imctx.addon_prompt,
                this.im_label,
                imctx.page_prompt].filter((v) => (!!v));
     props.auxiliaryText = message || aux.join(' | ');
@@ -478,7 +478,7 @@ export class CrOS_CIN {
       return;
     }
 
-    let info = jscin.getTableInfo(name);
+    const info = jscin.getTableInfo(name);
     debug("ActivateInputMethod:", name, info);
     if (info && info.url && info.url.startsWith(chrome.runtime.getURL(""))) {
       // Preload the builtin table.
@@ -536,7 +536,7 @@ export class CrOS_CIN {
       if (keystroke == mcch0)
         override = mcch0;
     }
-    let text = override || keystroke;
+    const text = override || keystroke;
     if (text)
       this.Commit(text);
 
@@ -549,8 +549,8 @@ export class CrOS_CIN {
   UpdateMenu() {
     let menu_items = [];
 
-    for (let name of this.config.InputMethods()) {
-      let label = jscin.getLabel(name) || name;
+    for (const name of this.config.InputMethods()) {
+      const label = jscin.getLabel(name) || name;
       menu_items.push({
         "id": `ime:${name}`,
         "label": label,
@@ -570,15 +570,15 @@ export class CrOS_CIN {
   }
 
   async LoadBuiltinTables(reload) {
-    let list = await LoadJSON("tables/builtin.json");
+    const list = await LoadJSON("tables/builtin.json");
     if (!list) {
       debug("LoadBuiltinTables: No built-in tables.");
       return;
     }
-    let available = jscin.getTableNames();
+    const available = jscin.getTableNames();
     const saveBuiltin = false;
 
-    for (let name in list) {
+    for (const name in list) {
       if (available.includes(name) && !reload) {
         debug("LoadBuiltinTables: skip loaded table:", name);
         continue;
@@ -587,8 +587,8 @@ export class CrOS_CIN {
       // Clear existing tables (both the CIN contents and info) but keep the opts
       await jscin.removeTable(name, true);
 
-      let url = chrome.runtime.getURL(`tables/${list[name]}`);
-      let content = await LoadText(url);
+      const url = chrome.runtime.getURL(`tables/${list[name]}`);
+      const content = await LoadText(url);
       assert(content, "Can't load built-in table:", url);
       // Built-in tables may have a special name so they won't overwrite user
       // installed tables and we should use the name from `builtin.son`.
@@ -599,7 +599,7 @@ export class CrOS_CIN {
   LoadPreferences() {
 
     // Normalize preferences.
-    let available = jscin.getTableNames();
+    const available = jscin.getTableNames();
     let enabled = this.config.InputMethods().filter(
       (v) => available.includes(v) );
 
@@ -635,7 +635,7 @@ export class CrOS_CIN {
 
   // Registers event handlers to the browser.
   registerEventHandlers() {
-    let ime_api = this.ime_api;
+    const ime_api = this.ime_api;
 
     ime_api.onActivate.addListener((engineID) => {
       debug('onActivate: croscin started.', engineID);
