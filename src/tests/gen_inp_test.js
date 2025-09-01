@@ -21,8 +21,8 @@ function shallowEqual(obj1, obj2)
     equ = obj1.length == obj2.length;
     if (!equ)
       return equ;
-    for (let k in obj1)
-      if (obj1[k] != obj2[k])
+    for (const [k, v] of Object.entries(obj1))
+      if (v != obj2[k])
         return false;
     return true;
   }

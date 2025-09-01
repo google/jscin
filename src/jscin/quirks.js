@@ -274,14 +274,13 @@ function PhoneticQuirks(cin) {
     reverse[keyname[i]] = i;
   }
 
-  let r = {};
-  for (let i in groups) {
-    let v = groups[i].split('').map((v) => {
+  let r = groups.map((g) => {
+    return g.split('').map((v) => {
       return reverse[v];
-    });
-    r[parseInt(i)+1] = v.join('');
-  }
-  cin.KEYGROUPS = r;
+    }).join('');
+  });
+
+  cin.KEYGROUPS = Object.assign({}, r);
   debug("PhoneticQuirks: Added KEYGROUPS:", r);
 }
 
