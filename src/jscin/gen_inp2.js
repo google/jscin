@@ -649,16 +649,20 @@ export class GenInp2 extends BaseInputMethod
         return this.ResultProcessed(ctx);
 
       case 'ArrowLeft':
-      case 'PageUp':
       case 'ArrowUp':
-        this.CycleCandidates(ctx, -1);
-        return this.ResultProcessed(ctx);
+      case 'PageUp':
+      case '<':
+        if (this.CycleCandidates(ctx, -1))
+          return this.ResultProcessed(ctx);
+        return this.ResultIgnore(ctx);
 
       case 'ArrowRight':
-      case 'PageDown':
       case 'ArrowDown':
-        this.CycleCandidates(ctx);
-        return this.ResultProcessed(ctx);
+      case 'PageDown':
+      case '>':
+        if (this.CycleCandidates(ctx))
+          return this.ResultProcessed(ctx);
+        return this.ResultIgnore(ctx);
 
       case ' ':
         // For most cases, SPACE should do CycleCandidates; however for
