@@ -31,8 +31,7 @@ export class BaseInputAddon {
     return this.im.show_keystroke(ctx, text);
   }
 
-  // Called when terminates ongoing text input session without sending focus/blur
-  // events, ex creating new tab / instance.
+  // Interrupts a text input context with remaining data in the buffer.
   reset(ctx) {
     return this.im.reset(ctx);
   }
