@@ -223,6 +223,10 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
+  HasCandidates(ctx) {
+    return ctx.candidates.length > 0;
+  }
+
   IsSingleCandidate(ctx) {
     return ctx.candidates.length == 1;
   }
@@ -395,7 +399,7 @@ export class GenInp2 extends BaseInputMethod
 
     ctx.candidates_override = changed;
     this.UpdateCandidates(ctx);
-    return ctx.candidates.length > 0;
+    return this.HasCandidates(ctx);
   }
 
   IsCompositionKey(ctx, key) {
@@ -410,17 +414,13 @@ export class GenInp2 extends BaseInputMethod
     return false;
   }
 
-  IsEmptyComposition(ctx) {
-    return ctx.composition.length == 0;
+  HasComposition(ctx) {
+    return ctx.composition.length > 0;
   }
 
   IsFullComposition(ctx) {
     return (this.max_composition &&
       ctx.composition.length >= this.max_composition);
-  }
-
-  IsEmptyCandidates(ctx) {
-    return ctx.candidates.length == 0;
   }
 
   GetCompositionKeyGroup(ctx, key) {
@@ -524,7 +524,7 @@ export class GenInp2 extends BaseInputMethod
 
   ConvertComposition(ctx, key) {
     let was_override = ctx.candidates_override;
-    if (this.IsEmptyComposition(ctx))
+    if (!this.HasComposition(ctx))
       return this.ResultIgnore(ctx);
     if (!this.PrepareCandidates(ctx, false)) {
       return this.ResultError(ctx, key);
@@ -574,10 +574,11 @@ export class GenInp2 extends BaseInputMethod
         return this.ResultProcessed(ctx);
 
       case 'Escape':
-        if (this.IsEmptyComposition(ctx))
-          return this.ResultIgnore(ctx);
-        this.ResetContext(ctx);
-        return this.ResultProcessed(ctx);
+        if (this.HasComposition(ctx)) {
+          this.ResetContext(ctx);
+          return this.ResultProcessed(ctx);
+        }
+        return this.ResultIgnore(ctx);
 
       case ' ':
         return this.ConvertComposition(ctx, key);
@@ -608,7 +609,7 @@ export class GenInp2 extends BaseInputMethod
             return this.ConvertComposition(ctx, key);
           }
         } else {
-          if (this.IsSelectionKey(ctx, key) && !this.IsEmptyCandidates(ctx)) {
+          if (this.IsSelectionKey(ctx, key) && this.HasCandidates(ctx)) {
             if (this.SelectCommit(ctx, key))
               return this.ResultCommit(ctx);
             return this.ResultError(ctx, key);
