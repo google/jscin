@@ -276,28 +276,31 @@ export class GenInp2 extends BaseInputMethod
     let node = trie.find(prefix);
     if (!node)
       return [];
-    let r = node.below(limit).flat();
+    let r = node.below(limit).flat().slice(0, limit);
     debug("Trie partial match:", prefix, node, r);
     return r;
   }
 
   GetPartialMatchCandidates(ctx, prefix, table, limit) {
+    let r = [];
     if (!prefix)
       prefix = ctx.composition;
     if (!prefix) {
       warn("GetPartialMatchCandidates: prefix is empty, abort");
-      return [];
+      return r;
     }
     if (this.opts.OPT_PARTIAL_MATCH || this.opts.OPT_UNIQUE_AUTO) {
       // We can't afford to create trie on every new table, so let's assume the
       // table is exactly this.table.
       if (!this.trie)
         this.trie = this.BuildTrie(this.table);
-      return this.TriePartialMatch(ctx, prefix, this.trie, limit);
+      r = this.TriePartialMatch(ctx, prefix, this.trie, limit);
+    } else {
+      r = this._MatchCandidates(ctx, (k) => {
+        return k.startsWith(prefix);
+      }, table, limit);
     }
-    return this._MatchCandidates(ctx, (k) => {
-      return k.startsWith(prefix);
-    }, table, limit);
+    return r;
   }
 
   GlobCandidates(ctx, pattern, table, limit) {
@@ -324,6 +327,7 @@ export class GenInp2 extends BaseInputMethod
       result = result.concat(table[k]);
       if (result.length >= limit) {
         debug("MatchCandidates: too many candidates:", result.length, result);
+        result = result.slice(0, limit);
         break;
       }
     }
