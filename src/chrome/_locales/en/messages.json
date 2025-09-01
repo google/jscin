@@ -108,12 +108,12 @@
 
   "optionTableOptionsHeader": {"message": "Options:" },
 
-  "opt_AUTO_FULLUP": {"message": "Auto commit when reaching the max key strokes" },
+  "opt_AUTO_FULLUP": {"message": "Auto commit when reached the max key strokes" },
   "opt_flag_unique_auto_send": {"message":
     "Auto commit if the candidate is unique (even when partial matched)" },
-  "opt_AUTO_UPCHAR": {"message": "Auto commit if only one candidate after composed" },
-  "opt_SPACE_AUTOUP": {"message": "Auto commit the first candidate by SPACE if only one page" },
-  "opt_SELKEY_SHIFT": {"message": "Use SPACE (or 0) as the first selection key" },
+  "opt_AUTO_UPCHAR": {"message": "Auto commit if there is only one candidate" },
+  "opt_SPACE_AUTOUP": {"message": "Auto commit the first candidate by SPACE when there's only one page" },
+  "opt_SELKEY_SHIFT": {"message": "Use SPACE to select the first candidate" },
   "opt_SPACE_RESET": {"message": "Reset error (clear composing buffer) by SPACE" },
   "opt_AUTO_RESET": {"message": "Reset error (clear composing buffer) automatically" },
   "opt_AUTO_COMPOSE": {"message": "Preview exactly matched candidates" },

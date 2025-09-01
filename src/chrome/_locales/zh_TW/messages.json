@@ -111,11 +111,11 @@
 
   "optionTableOptionsHeader": {"message": "可設定選項:" },
 
-  "opt_AUTO_FULLUP": {"message": "組字時打滿最大長度後自動送出候選字" },
+  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度則自動送出候選字" },
   "opt_flag_unique_auto_send": {"message": "組字時若只有單一候選字(包含部份符合)則自動送出" },
   "opt_AUTO_UPCHAR": {"message": "組字後若只有一個候選字則自動送出" },
-  "opt_SPACE_AUTOUP": {"message": "組字時若只有一頁以內的候選字，按空白鍵可送出第一個字" },
-  "opt_SELKEY_SHIFT": {"message": "使用空白鍵（或0）當第一個候選字的選擇鍵" },
+  "opt_SPACE_AUTOUP": {"message": "組字時若候選字只有一頁以內，按空白鍵送出第一個字" },
+  "opt_SELKEY_SHIFT": {"message": "使用空白鍵來選擇第一個候選字" },
   "opt_SPACE_RESET": {"message": "組字錯誤時可按空白鍵清除" },
   "opt_AUTO_RESET": {"message": "組字錯誤時自動清除" },
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出所有完全符合的候選字" },
