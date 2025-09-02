@@ -136,6 +136,19 @@ async function main() {
         { input: "ao ", result: "合" },
       ]
     }, {
+      table: "test_cangjei.cin",
+      test: [
+        // AUTO COMPOSE
+        { input: "aab ", result: "𣇵" },
+        { input: "a ", result: "日" },
+        { input: "a2", result: "曰" },
+        // Multi-page behavior: First nav starts selection
+        { input: "nnmrb1", result: "䰞" },
+        { input: "nnmrb 1", result: "⑪" },
+        { input: "nnmrb<1", result: "㉛" },
+        { input: "nnmrb   2", result: "㉜" },
+      ]
+    }, {
       table: "test_phone.cin",
       test: [
         { input: "z ", result: "ㄈ" },
