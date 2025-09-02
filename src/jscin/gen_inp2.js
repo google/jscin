@@ -14,7 +14,7 @@ import {BaseInputMethod} from "./base_inp.js";
 import {Trie} from "./trie.js";
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp2");
+const {debug, warn, error, assert} = AddLogger("gen_inp2");
 
 export class GenInp2 extends BaseInputMethod
 {

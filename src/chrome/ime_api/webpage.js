@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("ime.webpage");
+const {debug, warn, error, assert} = AddLogger("ime.webpage");
 
 import { $ } from "../jquery/jquery.js";
 import { ChromeInputIme } from "./chrome_input_ime.js";

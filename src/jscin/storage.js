@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("storage");
+const {debug, warn, error, assert, trace} = AddLogger("storage");
 
 // A general asynchronous storage provider.
 export class Storage {

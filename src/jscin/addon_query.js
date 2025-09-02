@@ -9,7 +9,7 @@ import { jscin } from "./jscin.js";
 import { BaseInputAddon } from "./base_addon.js";
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("addon.CrossQuery");
+const {debug, warn, error, assert} = AddLogger("addon.CrossQuery");
 
 export class AddonCrossQuery extends BaseInputAddon
 {

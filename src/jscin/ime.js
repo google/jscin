@@ -10,7 +10,7 @@ import { applyInputMethodTableQuirks } from './quirks.js';
 import { ChromeStorage, Storage, LoadText } from "./storage.js";
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("jscin.ime");
+const {debug, warn, error, assert} = AddLogger("jscin.ime");
 
 /* Key names in the storage. */
 export const KEY_INFO_LIST = "info_list";

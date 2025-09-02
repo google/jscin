@@ -10,7 +10,7 @@ import {BaseInputMethod} from "./base_inp.js";
 import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("gen_inp");
+const {debug, warn, error, assert, trace} = AddLogger("gen_inp");
 
 const flag_match_keystroke_wild = false;
 const flag_has_keypad = false;

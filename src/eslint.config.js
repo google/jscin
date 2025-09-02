@@ -16,7 +16,7 @@ export default defineConfig([
   {
     rules: {
       "no-unused-vars": ["error", {
-        "varsIgnorePattern": "^debug|warn|error|trace|info|assert|logger|log|jQuery$"
+        "varsIgnorePattern": "^warn|error|assert$"
       }]
     }
   }

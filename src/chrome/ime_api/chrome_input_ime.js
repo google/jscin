@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("chrome.input.ime");
+const {debug, warn, error, assert} = AddLogger("chrome.input.ime");
 
 export class ChromeInputIme {
 

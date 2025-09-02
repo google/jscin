@@ -20,7 +20,7 @@ import { ChromeStorage, LoadJSON, LoadArrayBuffer, LoadText } from "../jscin/sto
 import { _ } from "../i18n.js";
 
 import { AddLogger } from "../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("option");
+const {debug, warn, error, assert, logger} = AddLogger("option");
 
 const ClsExperimental = "experimental";
 const ClsOptAdvanced = "optAdvanced";

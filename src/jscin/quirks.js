@@ -7,7 +7,7 @@
 
 import { AddLogger } from "./logger.js";
 import { jscin } from "./jscin.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("quirks");
+const {debug, warn, error, assert, trace} = AddLogger("quirks");
 
 function ApplyIfMissing(dest, src) {
   for (let k in src) {

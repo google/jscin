@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("ipc/ime_panel");
+const {logger} = AddLogger("ipc/ime_panel");
 
 import { IpcIme } from "./ipc.js";
 

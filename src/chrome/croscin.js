@@ -16,7 +16,7 @@ import { ChromeInputIme } from "./ime_api/chrome_input_ime.js";
 export { jscin };
 
 import { AddLogger } from "./jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace, logger} = AddLogger("croscin");
+const {debug, warn, error, assert, logger} = AddLogger("croscin");
 
 // Running with native chrome.input.ime support (e.g., CrOS)
 function isNavite() {

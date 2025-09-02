@@ -8,7 +8,7 @@
 import { jscin } from "./jscin.js";
 
 import { AddLogger } from "./logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("base_inp");
+const {debug, warn, error, assert, trace} = AddLogger("base_inp");
 
 // To store data in IM module:
 // 'this (self)' should be read-only after constructor / init.

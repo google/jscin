@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {log, debug, info, warn, error, assert, trace} = AddLogger("ipc/ipc_content");
+const {debug, warn, error, assert} = AddLogger("ipc/ipc_content");
 
 import { hasCtrlAltMeta } from "../../jscin/key_event.js";
 import { $ } from "../../jquery/jquery.js";
