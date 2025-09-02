@@ -8,8 +8,9 @@
 import { jscin } from "./jscin.js";
 import { BaseInputAddon } from "./base_addon.js";
 
-import { AddLogger } from "./logger.js";
-const {debug, warn, error, assert} = AddLogger("addon.CrossQuery");
+import { AddLogger, Logged } from "./logger.js";
+const {debug, warn, error, assert, trace} = AddLogger("addon.CrossQuery");
+Logged(debug, warn, error, assert, trace);
 
 export class AddonCrossQuery extends BaseInputAddon
 {
@@ -87,4 +88,5 @@ export class AddonCrossQuery extends BaseInputAddon
     this.buildCharToKeyMap(this.cross_name);
   }
 }
+
 jscin.registerAddon(AddonCrossQuery);

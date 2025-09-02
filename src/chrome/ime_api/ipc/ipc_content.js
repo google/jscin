@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {debug, warn, error, assert} = AddLogger("ipc/ipc_content");
+const {debug} = AddLogger("ipc/ipc_content");
 
 import { hasCtrlAltMeta } from "../../jscin/key_event.js";
 import { $ } from "../../jquery/jquery.js";
@@ -117,6 +117,7 @@ export class IpcContentIme extends IpcIme {
   }
 
   detachPanel() {
+    debug("detachPanel");
     this.hidePanel();
   }
 

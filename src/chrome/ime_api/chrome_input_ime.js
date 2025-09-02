@@ -6,7 +6,7 @@
  */
 
 import { AddLogger } from "../jscin/logger.js";
-const {debug, warn, error, assert} = AddLogger("chrome.input.ime");
+const {error} = AddLogger("chrome.input.ime");
 
 export class ChromeInputIme {
 
@@ -35,7 +35,7 @@ export class ChromeInputIme {
   async clearComposition(parameters) {
     // parameters:
     // - contextID
-    debug("clearComposition", parameters);
+    error("clearComposition: NOT_IMPL", parameters);
     return false;
   }
 
@@ -43,7 +43,7 @@ export class ChromeInputIme {
     // parameters:
     // - contextID
     // - text
-    debug("commitText", parameters);
+    error("commitText: NOT_IMPL", parameters);
     return false;
   }
 
@@ -52,7 +52,7 @@ export class ChromeInputIme {
     // - contextID
     // - candidates[]
     //   = annotation, candidate, id, label, parentId, usage{body, title}
-    debug("setCandidates", parameters);
+    error("setCandidates: NOT_IMPL", parameters);
     return false;
   }
 
@@ -63,7 +63,7 @@ export class ChromeInputIme {
     //   = auxiliaryText, auxiliaryTextVisible, currentCandidateIndex,
     //     cursorVisible, pageSize, totalCAndidates, vertical, visible,
     //     windowPosition
-    debug("setCandidateWindowProperties", parameters);
+    error("setCandidateWindowProperties: NOT_IMPL", parameters);
     return false;
   }
 
@@ -76,19 +76,19 @@ export class ChromeInputIme {
     // - selectionEnd
     // - selectionStart
     // - text
-    debug("setComposition", parameters);
+    error("setComposition: NOT_IMPL", parameters);
     return false;
   }
 
   async setMenuItems(parameters) {
     // - parameters: MenuParameters
-    debug("setMenuItems", parameters);
+    error("setMenuItems: NOT_IMPL", parameters);
     return false;
   }
 
   async updateMenuItems(parameters) {
     // - parameters: MenuParameters
-    debug("updateMenuItems", parameters);
+    error("updateMenuItems: NOT_IMPL", parameters);
     return false;
   }
 
@@ -97,21 +97,21 @@ export class ChromeInputIme {
   async keyEventHandled(requestId, response) {
     // requestId: string (from keyEvent.requestId)
     // response: boolean
-    debug("keyEventHandled: NOT_IMPL", requestId, response);
+    error("keyEventHandled: NOT_IMPL", requestId, response);
   }
 
   async sendKeyEvents(parameters) {
     // parameters:
     // - contextID: number
     // - keyData: KeyboardEvent[]
-    debug("sendKeyEvents: NOT_IMPL", parameters);
+    error("sendKeyEvents: NOT_IMPL", parameters);
   }
 
   async setCursorPosition(parameters) {
     // parameters:
     // - candidateID: number
     // - contextID: number
-    debug("setCursorPosition: NOT_IMPL", parameters);
+    error("setCursorPosition: NOT_IMPL", parameters);
   }
 
   // Meta function to help creating the event handlers.

@@ -139,3 +139,7 @@ export class Logger {
 export function AddLogger(name) {
   return new Logger(name).getExports();
 }
+
+export function Logged() {
+  // An empty place holder.
+}

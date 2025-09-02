@@ -5,8 +5,9 @@
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
-import { AddLogger } from "./logger.js";
-const {debug, warn, error, assert} = AddLogger("migration");
+import { AddLogger, Logged } from "./logger.js";
+const {debug, warn, error, assert, trace} = AddLogger("migration");
+Logged(debug, warn, error, assert, trace);
 
 import {ChromeStorage, Storage} from "./storage.js";
 import {KEY_TABLE_PREFIX} from "./ime.js";

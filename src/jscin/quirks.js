@@ -5,9 +5,10 @@
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
-import { AddLogger } from "./logger.js";
 import { jscin } from "./jscin.js";
+import { AddLogger, Logged } from "./logger.js";
 const {debug, warn, error, assert, trace} = AddLogger("quirks");
+Logged(debug, warn, error, assert, trace);
 
 function ApplyIfMissing(dest, src) {
   for (let k in src) {

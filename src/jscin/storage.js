@@ -5,8 +5,9 @@
  * @author Hung-Te Lin <hungte@gmail.com>
  */
 
-import { AddLogger } from "./logger.js";
+import { AddLogger, Logged } from "./logger.js";
 const {debug, warn, error, assert, trace} = AddLogger("storage");
+Logged(debug, warn, error, assert, trace);
 
 // A general asynchronous storage provider.
 export class Storage {

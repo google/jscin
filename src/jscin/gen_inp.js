@@ -9,8 +9,9 @@ import {jscin} from "./jscin.js";
 import {BaseInputMethod} from "./base_inp.js";
 import {hasCtrlAltMeta, normalizeKey} from "./key_event.js";
 
-import { AddLogger } from "./logger.js";
+import { AddLogger, Logged } from "./logger.js";
 const {debug, warn, error, assert, trace} = AddLogger("gen_inp");
+Logged(debug, warn, error, assert, trace);
 
 const flag_match_keystroke_wild = false;
 const flag_has_keypad = false;

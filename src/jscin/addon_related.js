@@ -10,8 +10,9 @@ import { LoadJSON } from "./storage.js";
 import { BaseInputAddon } from "./base_addon.js";
 import { getUnshiftedKey, hasCtrlAltMeta } from "./key_event.js";
 
-import { AddLogger } from "./logger.js";
-const {debug, warn, error, assert} = AddLogger("addon.RelatedText");
+import { AddLogger, Logged } from "./logger.js";
+const {debug, warn, error, assert, trace} = AddLogger("addon.RelatedText");
+Logged(debug, warn, error, assert, trace);
 
 // the phrases database is so large that we want to hold only one copy in the
 // module level.

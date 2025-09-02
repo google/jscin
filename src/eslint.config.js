@@ -13,11 +13,4 @@ export default defineConfig([
       }
     }
   },
-  {
-    rules: {
-      "no-unused-vars": ["error", {
-        "varsIgnorePattern": "^warn|error|assert$"
-      }]
-    }
-  }
 ]);

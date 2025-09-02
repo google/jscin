@@ -5,8 +5,9 @@
  * @author hungte@google.com (Hung-Te Lin)
  */
 
-import { AddLogger } from "../jscin/logger.js";
-const {debug, warn, error, assert} = AddLogger("ime.webpage");
+import { AddLogger, Logged } from "../jscin/logger.js";
+const {debug, warn, error, assert, trace} = AddLogger("ime.webpage");
+Logged(debug, warn, error, assert, trace);
 
 import { $ } from "../jquery/jquery.js";
 import { ChromeInputIme } from "./chrome_input_ime.js";
