@@ -95,9 +95,6 @@ export class CrOS_CIN {
       debug("Emulation", value);
       // Can't restart extension here - should
       // be handled in the options confirm dialog.
-    }).Bind("VerticalWindow", (value)=> {
-      debug("VerticalWindow", value);
-      this.SwitchVerticalWindow();
     });
     this.config.forEach((key) => {
       if (!key.startsWith('Addon'))
@@ -298,6 +295,7 @@ export class CrOS_CIN {
     let arg = this.GetEngineArg();
     debug("SetCandidateWindowProperties: ", properties);
     arg.properties = properties;
+    properties.vertical = this.config.VerticalWindow();
     this.ime_api.setCandidateWindowProperties(arg);
   }
 
@@ -305,7 +303,6 @@ export class CrOS_CIN {
     // Vertical candidates window looks better on ChromeOS.
     // CIN tables don't expect cursor in candidates window.
     this.SetCandidateWindowProperties({
-      vertical: this.config.VerticalWindow(),
       cursorVisible: false,
       visible: false,
       auxiliaryText: this.im_label,
@@ -313,11 +310,6 @@ export class CrOS_CIN {
 
     // Setup menu
     this.UpdateMenu();
-  }
-
-  SwitchVerticalWindow() {
-    this.SetCandidateWindowProperties({
-      vertical: this.config.VerticalWindow()});
   }
 
   ShowOnlyAuxiliaryText(message) {
