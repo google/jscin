@@ -28,7 +28,7 @@ export class WebPageIme extends ChromeInputIme {
   }
 
   getNode(id) {
-    let node = $(`#${this.panel} #${id}`);
+    const node = $(`#${this.panel} #${id}`);
     assert(node, "Failed to find IME panel node by id:", id);
     return node;
   }
@@ -81,7 +81,7 @@ export class WebPageIme extends ChromeInputIme {
 
   async clearComposition(parameters) {
     debug("clearComposition", parameters);
-    let node = this.getNode('composition');
+    const node = this.getNode('composition');
     node.empty().append(NBSP);
     this.composition = undefined;
     return true;
@@ -92,8 +92,8 @@ export class WebPageIme extends ChromeInputIme {
      * The browsers no longer support changing input contents using TextEvent,
      * so we have to manually set the value and then fire the IntputEvent.
      */
-    let text = parameters.text;
-    let node = this.contexts[parameters.contextID];  /* or, document.activeElemnt */
+    const text = parameters.text;
+    const node = this.contexts[parameters.contextID];  /* or, document.activeElemnt */
     const newpos = node.selectionStart + text.length;
     const value = node.value;
     const prefix = value.slice(0, node.selectionStart);
@@ -101,7 +101,7 @@ export class WebPageIme extends ChromeInputIme {
     node.value = `${prefix}${text}${postfix}`;
     node.selectionStart = node.selectionEnd = newpos;
     if (InputEvent) {
-      let ev = new InputEvent("input", {data: text, inputType: "insertText"});
+      const ev = new InputEvent("input", {data: text, inputType: "insertText"});
       node.dispatchEvent(ev);
     }
     return true;
@@ -109,9 +109,9 @@ export class WebPageIme extends ChromeInputIme {
 
   // TODO(hungte) Bind CandidateClicked.
   async setCandidates(parameters) {
-    let node = this.getNode('candidates');
+    const node = this.getNode('candidates');
     node.empty();
-    for (let c of parameters.candidates) {
+    for (const c of parameters.candidates) {
       let label = c.label || c.id;
       let candidate = `${c.candidate} `;
       if (!c.candidate && c.annotation) {
@@ -133,22 +133,22 @@ export class WebPageIme extends ChromeInputIme {
   }
 
   async setCandidateWindowProperties(parameters) {
-    let p = parameters.properties;
+    const p = parameters.properties;
     if ('auxiliaryText' in p) {
-      let node = this.getNode('auxiliary');
-      let hint = this.vertical ? '' : _("imeToggleHint");
+      const node = this.getNode('auxiliary');
+      const hint = this.vertical ? '' : _("imeToggleHint");
       node.text(`${NBSP}${p.auxiliaryText}${NBSP}`);
       if (hint)
         node.prepend($('<span/>').css({color: '#444'}).
           text(`${NBSP}${hint}|`));
     }
     if ('auxiliaryTextVisible' in p) {
-      let node = this.getNode('auxiliary');
+      const node = this.getNode('auxiliary');
       node.toggle(p.auxiliaryTextVisible);
     }
     if ('visible' in p) {
-      let node = this.getNode('candidates')
-      let body = $('body');
+      const node = this.getNode('candidates')
+      const body = $('body');
       node.toggle(p.visible);
       if (p.visible)
         body.css({opacity: 1.0});
@@ -160,10 +160,10 @@ export class WebPageIme extends ChromeInputIme {
   }
 
   async setComposition(parameters) {
-    let node = this.getNode('composition');
-    let p = parameters;
+    const node = this.getNode('composition');
+    const p = parameters;
     const simple = true;
-    let text = p.text || '';
+    const text = p.text || '';
     this.composition = text;
 
     // A simple implementation when we don't IMs like libchewing.
@@ -172,18 +172,18 @@ export class WebPageIme extends ChromeInputIme {
       return true;
     }
 
-    let selectionStart = p.selectionStart || 0;
-    let selectionEnd = p.selectionEnd || text.length;
-    let cursor = p.cursor || text.length;
+    const selectionStart = p.selectionStart || 0;
+    const selectionEnd = p.selectionEnd || text.length;
+    const cursor = p.cursor || text.length;
     let segments = p.segments || [];
 
-    let data = text.split('').map((c) => ({text: c}));
+    const data = text.split('').map((c) => ({text: c}));
     data.push({text: NBSP});
     data[cursor].cursor = true;
     for (let i = selectionStart; i < selectionEnd; i++) {
       data[i].selected = true;
     }
-    for (let i in segments) {
+    for (const i in segments) {
       for (let idx = segments[i].start; idx < segments[i].end; idx++) {
         data[idx].segment = (i + 1);
       }
@@ -192,7 +192,7 @@ export class WebPageIme extends ChromeInputIme {
     node.empty();
     let span = $('<span/>');
     let segi;
-    for (let d of data) {
+    for (const d of data) {
       if (d.segment != segi) {
         // new segment.
         node.append(span);
@@ -203,7 +203,7 @@ export class WebPageIme extends ChromeInputIme {
       }
       let newdata = document.createTextNode(d.text);
       if (d.cursor) {
-        let cursor = $('<span class="cursor">');
+        const cursor = $('<span class="cursor">');
         if (segi) {
           newdata = cursor.append(newdata);
         } else {
@@ -217,18 +217,17 @@ export class WebPageIme extends ChromeInputIme {
   }
 
   async setMenuItems(parameters) {
-    let node = this.getNode('menu');
+    const node = this.getNode('menu');
     node.empty();
-    for (let i of parameters.items) {
-      let label = i.label || i.id;
-      if (i.checked)
-        label = `>${NBSP}${label}`;
-      else
-        label = `${NBSP}${NBSP}${label}`;
+    for (const i of parameters.items) {
+      const label = i.label || i.id;
+      const prefix = i.checked ? '>' : `${NBSP}`;
+      const text = `${prefix}${NBSP}${label}`;
+      const className = i.checked ? "active" : "";
       if (!i.id.startsWith('ime:'))
         node.append($('<hr/>'));
       node.append(
-        $('<div></div>', {text: label, class: i.checked ? "active":""}).click(() => {
+        $('<div></div>', {text, class: className}).click(() => {
           this.onMenuItemActivated.dispatch(this.engineID, i.id);
         }));
     }
