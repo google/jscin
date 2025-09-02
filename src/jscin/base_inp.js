@@ -45,7 +45,6 @@ export class BaseInputMethod
     // XCIN style interface.
     ctx.selkey = this.selkey;
     ctx.keystroke = '';  // compoisition
-    ctx.suggest_keystroke = '';
     ctx.cch = '';  // the string to commit
     ctx.mcch = [];  // multi-char list (candidates)
     ctx.lcch = [];  // composed cch list, e.g., edit buffer in Smart IMs

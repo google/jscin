@@ -87,7 +87,6 @@ export class GenInp2 extends BaseInputMethod
     ctx.state = this.STATE_COMPOSITION;
     ctx.composition = '';
     ctx.commit = '';
-    ctx.display_composition = '';
     this.ClearCandidates(ctx);
 
     // Flag for addons.
@@ -196,10 +195,9 @@ export class GenInp2 extends BaseInputMethod
 
   UpdateComposition(ctx) {
     debug("UpdateComposition", ctx.composition);
-    ctx.display_composition = ctx.composition.split('').map(
+    // Exported to the croscin, just like gen_inp.
+    ctx.keystroke = ctx.composition.split('').map(
       (c) => this.keyname[c] || c).join('');
-    // Compatible with gen_inp.
-    ctx.keystroke = ctx.display_composition;
 
     this.PrepareCandidates(ctx, true);
   }
