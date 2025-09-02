@@ -36,7 +36,7 @@ function simulate(inst, inpinfo, input, result, expects, table_name) {
   for (let i in input) {
     let keyinfo = new KeyEvent(input[i]);
     let ret = inst.keystroke(inpinfo, keyinfo);
-    print('table=', table_name, ', ret=', ret, ", input:", input[i], ", inpinfo:", inpinfo);
+    print('table=', table_name, ', ret=', ret, ", input:", input[i]);
 
     let expect;
     if (!expects || expects[i] == undefined) {
@@ -63,6 +63,7 @@ function simulate(inst, inpinfo, input, result, expects, table_name) {
       ok = false;
     }
     if (!ok) {
+      print("inpinfo:", inpinfo);
       return false;
     }
     if (ret == jscin.IMKEY_COMMIT)
@@ -71,7 +72,7 @@ function simulate(inst, inpinfo, input, result, expects, table_name) {
 
   if (committed == result)
     return true;
-  print("test failed: input=", input, ", expect: ", result);
+  print("test failed: input=", input, ", expect: ", result, ", got: ", committed, ", inp_info:", inpinfo);
   return false;
 }
 
@@ -97,7 +98,11 @@ async function main() {
         { input: "t1", result: "隨" },
         { input: "w ", result: "女" },
         { input: "w11", result: "，" },
-        { input: "w22", result: "）" }
+        { input: "w22", result: "）" },
+        { input: ".... 1", result: "乂"},
+        { input: "....  ", result: "乂"}, // SPACE_AUTOUP in Array
+        { input: "....i 1", result: "㐅"}, // Multi-Page
+        { input: "....i  1", result: "彳"}, // Multi-Page
       ]
     }, {
       table: "test_ar30_xcin25.cin",
@@ -115,6 +120,10 @@ async function main() {
         { input: "a ", result: "對", 0: {selkey: '0123456789'} },
         { input: "o ", result: "○", 0: {mcch: ['○', '〇']} },
         { input: "o1", result: "〇" },
+        // Boshiamy: SPACE always commits, no matter multi-pages or not.
+        { input: "yneu ", result: "殼" },
+        { input: "yneu> ", result: "鷇" },
+        { input: "yneu>>1", result: "穀" },
       ]
     }, {
       table: "test_dayi3p.cin",
