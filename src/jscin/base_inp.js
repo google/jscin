@@ -43,8 +43,8 @@ export class BaseInputMethod
   reset_context(ctx)
   {
     // XCIN style interface.
-    ctx.selkey = this.selkey;
-    ctx.keystroke = '';  // compoisition
+    ctx.selkey = this.selkey; // selection keys
+    ctx.keystroke = '';  // compoisition for display
     ctx.cch = '';  // the string to commit
     ctx.mcch = [];  // multi-char list (candidates)
     ctx.lcch = [];  // composed cch list, e.g., edit buffer in Smart IMs
@@ -90,9 +90,9 @@ export class BaseInputMethod
   // done separately when the IM is losing the context (e.g., onBlur).
   reset(ctx)
   {
-    let has_keystroke = (ctx.keystroke || '').length;
-    let has_lcch = (ctx.lcch || []).length;
-    let has_mcch = (ctx.mcch || []).length;
+    let has_keystroke = !!ctx.keystroke?.length;
+    let has_lcch = !!ctx.lcch?.length;
+    let has_mcch = !!ctx.mcch?.length;
 
     if (has_keystroke || has_lcch || has_mcch) {
       // Assuming most IMs will consider Escape = Cancel/reset all states.
