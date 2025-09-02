@@ -178,7 +178,6 @@ export class GenInp2 extends BaseInputMethod
   ClearCandidates(ctx) {
     ctx.candidates = [];
     ctx.candidates_start_index = 0;
-    ctx.candidates_override = false;
     ctx.mcch = [];
     ctx.page_prompt = '';
   }
@@ -400,7 +399,6 @@ export class GenInp2 extends BaseInputMethod
       debug("PrepareCandidates: - partial match (NOT_IMPL; fallback to exact match)", ctx.candidates);
     }
 
-    ctx.candidates_override = changed;
     this.UpdateCandidates(ctx);
     return this.HasCandidates(ctx);
   }
@@ -537,7 +535,6 @@ export class GenInp2 extends BaseInputMethod
   }
 
   ConvertComposition(ctx, key) {
-    const was_override = ctx.candidates_override;
     if (!this.HasComposition(ctx))
       return this.ResultIgnore(ctx);
     if (!this.PrepareCandidates(ctx, false)) {
@@ -554,13 +551,13 @@ export class GenInp2 extends BaseInputMethod
     // - OpenVanilla revised the SPACE_AUTOUP as "auto commit only if the
     //   candidates are <= 1 page".
     // Hint: try 'yneu' in Boshiamy to check multi-page candidates behavior.
-    //       try 'p' in Array to check single-page acndidates behavior.
+    //       try '....i' in Array to check single-page acndidates behavior.
     //       try 'w1' in Array to check multi-page candidates behavior.
     let commit = this.IsSingleCandidate(ctx);
     if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE) {
-      if (was_override) {
+      if (this.override_autocompose) {
         // In override mode, never commit.
-        debug("ConvertComposition: was_override");
+        debug("ConvertComposition: override_autocompose");
       } else if (this.IsSpaceCommitFirst()) {
         commit = true;
         debug("ConvertComposition: IsSpaceCommitFirst");
