@@ -15,11 +15,6 @@ async function LoadModule(url) {
   return import(chrome.runtime.getURL(url));
 }
 
-async function LoadDefaultConfig() {
-  const mod = await LoadModule("config.js");
-  return new mod.Config();
-}
-
 function GetAllTextInputNodes() {
   return document.querySelectorAll(
     'input[type=text], input[type=search], input:not([type]), textarea');
@@ -42,20 +37,6 @@ async function StartEmulation() {
     document.activeElement.focus();
 }
 
-async function CheckEmulation(items) {
-  let result = items[kEmulation];
-
-  if (!(kEmulation in items)) {
-    let config = await LoadDefaultConfig();
-    result = config.Get(kEmulation);
-    // If first time, save with the default values.
-    config.Save(kEmulation);
-  }
-
-  if (result)
-    StartEmulation();
-}
-
 async function Initialize () {
   // Currently we inject the content scripts to every frames so it is important
   // to early-exit if the page does not have input elements (for emulation).
@@ -64,7 +45,10 @@ async function Initialize () {
 
   // Now let's see if we need to start the emulation of IME API.
   // This should be the same as config.js, except simpler.
-  chrome.storage.local.get(kEmulation, CheckEmulation);
+  // The assumption is kEmulation IS default false.
+  const data = await chrome.storage.local.get(kEmulation);
+  if (data[kEmulation])
+    StartEmulation();
 }
 
 // Check chrome.input.ime availability.
