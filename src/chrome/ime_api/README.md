@@ -16,6 +16,8 @@ The `webpage.js` is an implementation using the web page technology as the
 backend.  Any web pages with a 'imePanel' DOM element with sub elements
 'composition', 'candidates', 'auxiliary' can use this implementation.
 
+The `ime.css` provides a reference styling for the IME panel and the menu.
+
 This is currently directly used by the test pages like `/test/testarea.html`.
 
 ## Inter process communication components based implementation
@@ -27,8 +29,8 @@ extension technology via inter process communication (IPC).
 - `ipc_content.js`: The core input method module runs in the content script
   context, based on web page implementation. Will bind input events to the
   `<INPUT>` and `<TEXTAREA>` HTML tags.
-- `ime_panel.{html,js,css}`: The user interface, that will be injected into the
-  web page inside a `<IFRAME>` HTML tag. The `ime_panel` will render the
+- `ime_frame.{html,js}`: The main user interface that will be injected into the
+  web page inside a `<IFRAME>` HTML tag. The `ime_frame` will render the
   composition, candidates, auxiliary text.
 - `menu.{html,js}`: The quick list of enabled input methods to choose from,
   a replacement for the system input methods menu on ChromeOS.

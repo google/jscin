@@ -1,4 +1,6 @@
-body.imeBody {
+/* JsCIN / IME Panel Style for Chrome extensions (emulation) and web page */
+
+body.imeFrame {
   background: none transparent;
   font-family: sans-serif;
   margin: 0;

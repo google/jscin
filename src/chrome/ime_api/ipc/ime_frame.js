@@ -6,11 +6,11 @@
  */
 
 import { AddLogger } from "../../jscin/logger.js";
-const {logger} = AddLogger("ipc/ime_panel");
+const {logger} = AddLogger("ipc/ime_frame");
 
 import { IpcIme } from "./ipc.js";
 
-export class ImePanel extends IpcIme {
+export class ImeFrame extends IpcIme {
   constructor(panel='imePanel') {
     // The seed was provided by ipc_content.js#IpcContentIme
     const seed = document.location.href.match(/\?seed=(.+)/)[1] || undefined;
@@ -45,5 +45,5 @@ export class ImePanel extends IpcIme {
 }
 
 // register in the global name space.
-globalThis.croscin = globalThis.panel = new ImePanel();
+globalThis.croscin = globalThis.frame = new ImeFrame();
 globalThis.logger = logger;

@@ -14,7 +14,7 @@ import { IpcIme } from "./ipc.js";
 
 export class IpcContentIme extends IpcIme {
 
-  constructor(panel='ime_api/ipc/ime_panel.html') {
+  constructor(panel='ime_api/ipc/ime_frame.html') {
 
     const seed = Math.round(Math.random() * 65530);
     const seeded_panel = `${panel}?seed=${seed}`;

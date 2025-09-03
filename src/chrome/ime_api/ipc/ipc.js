@@ -6,9 +6,9 @@
  *
  * content script -> extension: chrome.runtime.sendMessage(msg)
  * extension -> content script: chrome.tabs.sendMessage(tab_id, msg)
- * The 'extension' is defined by URL, including: ime_panel, background, menu.
+ * The 'extension' is defined by URL, including: ime_frame, background, menu.
  * The 'content' is the content script running in a tab.
- * Note: ime_panel and the content script are in the same tab so it knows which
+ * Note: ime_frame and the content script are in the same tab so it knows which
  * tab_id to send)
  */
 
