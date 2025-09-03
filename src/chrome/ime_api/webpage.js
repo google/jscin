@@ -25,12 +25,36 @@ export class WebPageIme extends ChromeInputIme {
     this.contexts = [];
     this.vertical = true;
     this.composition = undefined;
+
+    this.idAuxiliary = 'auxiliary';
+    this.idCandidates = 'candidates';
+    this.idComposition = 'composition';
+    this.idMenu = 'menu';
+  }
+
+  createPanel() {
+    return $('<div/>', {id: this.panel}).append(
+      $('<div/>', {id: this.idComposition})).appand(
+      $('<div/>', {id: this.idCandidates})).appand(
+      $('<div/>', {id: this.idAuxiliary}));
   }
 
   getNode(id) {
     const node = $(`#${this.panel} #${id}`);
     assert(node, "Failed to find IME panel node by id:", id);
     return node;
+  }
+  getAuxiliaryNode() {
+    return this.getNode(this.idAuxiliary);
+  }
+  getCandidatesNode() {
+    return this.getNode(this.idCandidates);
+  }
+  getCompositionNode() {
+    return this.getNode(this.idComposition);
+  }
+  getMenuNode() {
+    return this.getNode(this.idMenu);
   }
 
   getContextID(node) {
@@ -81,7 +105,7 @@ export class WebPageIme extends ChromeInputIme {
 
   async clearComposition(parameters) {
     debug("clearComposition", parameters);
-    const node = this.getNode('composition');
+    const node = this.getCompositionNode();
     node.empty().append(NBSP);
     this.composition = undefined;
     return true;
@@ -109,7 +133,7 @@ export class WebPageIme extends ChromeInputIme {
 
   // TODO(hungte) Bind CandidateClicked.
   async setCandidates(parameters) {
-    const node = this.getNode('candidates');
+    const node = this.getCandidatesNode();
     node.empty();
     for (const c of parameters.candidates) {
       let label = c.label || c.id;
@@ -121,7 +145,7 @@ export class WebPageIme extends ChromeInputIme {
         label = '';
       }
       if (this.vertical && label)
-        label += ' ';
+        label += NBSP;
       node.append($('<span/>', {text: candidate, class: "candidate"}).
         prepend($('<span/>', {text: label, class: "candidate_label"})));
       if (this.vertical)
@@ -134,36 +158,39 @@ export class WebPageIme extends ChromeInputIme {
 
   async setCandidateWindowProperties(parameters) {
     const p = parameters.properties;
-    if ('auxiliaryText' in p) {
-      const node = this.getNode('auxiliary');
+    function on_demand(name, callback) {
+      if (name in p)
+        callback(p[name]);
+    }
+
+    on_demand('vertical', (v) => {
+      this.vertical = v;
+    });
+    on_demand('auxiliaryText', (v) => {
+      const node = this.getAuxiliaryNode();
       const hint = this.vertical ? '' : _("imeToggleHint");
-      node.text(`${NBSP}${p.auxiliaryText}${NBSP}`);
+      node.text(`${NBSP}${v}${NBSP}`);
       if (hint)
         node.prepend($('<span/>').css({color: '#444'}).
           text(`${NBSP}${hint}|`));
-    }
-    if ('auxiliaryTextVisible' in p) {
-      const node = this.getNode('auxiliary');
-      node.toggle(p.auxiliaryTextVisible);
-    }
-    if ('visible' in p) {
-      const node = this.getNode('candidates')
-      node.toggle(p.visible);
-    }
-    if ('vertical' in p) {
-      this.vertical = p.vertical;
-    }
+    });
+    on_demand('auxiliaryTextVisible', (v) => {
+      this.getAuxiliaryNode().toggle(v);
+    });
+    on_demand('visible', (v) => {
+      this.getCandidatesNode().toggle(v);
+    });
     return true;
   }
 
   async setComposition(parameters) {
-    const node = this.getNode('composition');
+    const node = this.getCompositionNode();
     const p = parameters;
     const simple = true;
     const text = p.text || '';
     this.composition = text;
 
-    // A simple implementation when we don't IMs like libchewing.
+    // A simple implementation when we don't have IMs like libchewing.
     if (simple) {
       node.text(`${text}${NBSP}`)
       return true;
@@ -224,7 +251,7 @@ export class WebPageIme extends ChromeInputIme {
       if (!i.id.startsWith('ime:'))
         node.append($('<hr/>'));
       node.append(
-        $('<div></div>', {text, class: className}).click(() => {
+        $('<div/>', {text, class: className}).click(() => {
           this.onMenuItemActivated.dispatch(this.engineID, i.id);
         }));
     }
