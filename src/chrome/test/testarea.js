@@ -57,9 +57,11 @@ class testInputIme {
     });
     this.ime.onBlur.addListener(function(contextID) {
       debug("onBlur:", contextID);
+      $('#imePanel').addClass('hide');
     });
     this.ime.onFocus.addListener(function(context) {
       debug("onFocus:", context.contextID, context.type);
+      $('#imePanel').removeClass('hide');
     });
     this.ime.onMenuItemActivated.addListener(function(engineID, menu_id) {
       debug("menu item activated: id=", menu_id);
@@ -126,7 +128,7 @@ async function Init() {
   // Show all logs.
   jscin.logger.enableAllLoggers();
 
-  let ime = new WebPageIme();
+  let ime = new WebPageIme('TestAreaPanel');
   let croscin = new CrOS_CIN(ime);
   globalThis.croscin = croscin;
 
