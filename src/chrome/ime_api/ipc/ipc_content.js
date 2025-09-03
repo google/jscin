@@ -25,7 +25,7 @@ export class IpcContentIme extends IpcIme {
     this.waitForHotkeyUp = false;
 
     // Change panel to a real created DOM node.
-    this.panel_node = this.createPanel(this.panel);
+    this.panel_node = this.createFrame(this.panel);
 
     this.initialize();
   }
@@ -36,7 +36,7 @@ export class IpcContentIme extends IpcIme {
     this.forwardEventToPanel("OpenOptionsPage");
   }
 
-  createPanel(url) {
+  createFrame(url) {
     let frame = document.createElement("iframe");
     const frameURL = chrome.runtime.getURL(url);
     // the attributes of the iframe itself can only be set from the top level.
