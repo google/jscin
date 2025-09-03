@@ -9,6 +9,10 @@ import { ChromeStorage } from "../jscin/storage.js";
 export const NOTIFY_TARGET_CROSCIN = 'croscin';
 export const NOTIFY_RELOAD_IM = 'ReloadIM';
 
+// The Notify can't be implemented as chrome.runtime.sendMessage because we may
+// run the IME inside the content script; e.g., the messages will be mixing
+// tabs.sendMessage and chrome.runtime.sendMessage and being very complicated.
+
 export class Notify {
   constructor(target) {
     this.storage = new ChromeStorage();

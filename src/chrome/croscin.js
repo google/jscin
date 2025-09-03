@@ -38,7 +38,7 @@ class Heartbeat {
     if (!isNavite())
       return;
     if (this.interval) {
-      assert(false, "Heartbeat.start: should not run again without stop().");
+      assert(!this.interval, "Heartbeat.start: should not run again without stop().");
       return;
     }
     debug("Heartbeat.start");
@@ -89,19 +89,19 @@ export class CrOS_CIN {
     this.jscin = jscin;
     this.logger = logger;
 
+    // Be aware `this.config` was loaded later in Initialize so all bindings of
+    // non-default values here will be triggered before the UI & IMs are up.
     this.config.Bind("Debug", (value)=> {
       logger.enableAllLoggers(value);
-    }).Bind("Emulation", (value)=> {
-      debug("Emulation", value);
-      // Can't restart extension here - should
-      // be handled in the options confirm dialog.
     });
     this.config.forEach((key) => {
       if (!key.startsWith('Addon'))
         return;
       this.config.Bind(key, (v) => {
         debug("Config: set:", key, "=>", v);
-        this.imctx[key] = v;
+        let ctx = this.imctx;
+        if (ctx)
+          ctx[key] = v;
       });
     });
 
@@ -117,9 +117,6 @@ export class CrOS_CIN {
     if(chrome.action)
       chrome.action.disable();
 
-    chrome.runtime.onMessage.addListener(() => {
-      // TODO(hungte) Move the notification to be here?
-    });
     await this.config.Load();
 
     const version = chrome.runtime.getManifest().version;
@@ -174,16 +171,11 @@ export class CrOS_CIN {
 
   // Core functions
   Commit(text) {
-    // TODO(hungte) fixme when gen_inp has fixed this.
-    if (text && typeof(text) != typeof('')) {
-      debug("Commit: WARNING: input text was not a simple string (pick only [0]):", text);
-      text = text[0];
-    }
-
     if (!text) {
-      debug("Commit: warning: called with empty string.", text);
+      assert(text, "Commit: invoked with empty string.");
       return false;
     }
+    assert(typeof(text) == typeof(''), "Commit: input text is not a string", text, typeof(text));
 
     let arg = this.GetContextArg();
     arg.text = text;
@@ -337,39 +329,42 @@ export class CrOS_CIN {
     if (typeof cursor === 'undefined'){
       cursor = all_text.length;
     }
-    if (all_text) {
-      arg.cursor = cursor;
-      // Selection to show where keystrokes are.
-      arg.selectionStart = cursor;
-      arg.selectionEnd = cursor + keystroke.length;
-      arg.text = (buffer_text.substring(0, cursor) + keystroke +
-                  buffer_text.substring(cursor));
-      if (buffer_text) {
-        arg.segments = [];
-        for (let i = 0, len = buffer.length, total = 0; i < len; i++) {
-          if (cursor >= total && cursor < total + buffer[i].length) {
-            const next = total + keystroke.length + buffer[i].length;
-            // cursor will split segment: [total, cursor); [cursor, next).
-            if (cursor > total) {
-              arg.segments.push({
-                start: total, end: cursor, style: "underline"});
-            }
-            if (next > cursor) {
-              arg.segments.push({
-                start: cursor + keystroke.length, end: next, style: "underline"});
-            }
-            total = next;
-          } else {
-            arg.segments.push({
-              start: total, end: total + buffer[i].length, style: "underline"});
-            total += buffer[i].length;
+    if (!all_text) {
+      this.ime_api.clearComposition(arg);
+      return all_text;
+    }
+
+    arg.cursor = cursor;
+    // Selection to show where keystrokes are.
+    arg.selectionStart = cursor;
+    arg.selectionEnd = cursor + keystroke.length;
+    arg.text = (
+      buffer_text.slice(0, cursor) + keystroke +
+      buffer_text.slice(cursor));
+
+    if (buffer_text) {
+      arg.segments = [];
+      const style = 'underline';
+      for (let i = 0, len = buffer.length, total = 0; i < len; i++) {
+        if (cursor >= total && cursor < total + buffer[i].length) {
+          const next = total + keystroke.length + buffer[i].length;
+          // cursor will split segments: [total, cursor); [cursor, next).
+          if (cursor > total) {
+            arg.segments.push({start: total, end: cursor, style});
           }
+          if (next > cursor) {
+            const start = cursor + keystroke.length;
+            arg.segments.push({start, end: next, style});
+          }
+          total = next;
+        } else {
+          const end = total + buffer[i].length;
+          arg.segments.push({start: total, end, style});
+          total += buffer[i].length;
         }
       }
-      this.ime_api.setComposition(arg);
-    } else {
-      this.ime_api.clearComposition(arg);
     }
+    this.ime_api.setComposition(arg);
     return all_text;
   }
 
