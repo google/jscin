@@ -149,11 +149,6 @@ export class WebPageIme extends ChromeInputIme {
     if ('visible' in p) {
       const node = this.getNode('candidates')
       node.toggle(p.visible);
-      // TOOD(hungte) The 'body' below only works for the entire IME loaded as
-      // iframe. Need a better way to handle showing / hiding the panel itself.
-      const body = $('body');
-      if (p.visible)
-        body.css({opacity: 1.0});
     }
     if ('vertical' in p) {
       this.vertical = p.vertical;
