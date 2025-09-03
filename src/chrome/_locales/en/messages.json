@@ -86,9 +86,9 @@
     "Shift+SelectionKeys (123456789) to enter Related Text."},
   "optionVerticalWindow": {"message":
     "Check to use vertical window (uncheck for horizontal)."},
-  "optionAlertChangeSupportNonChromeOS": {"message":
+  "optionAlertRestart": {"message":
     "This setting will take effect next time Chrome restarted." },
-  "optionAlert": {"message":
+  "optionWarning": {"message":
     "Warning!" },
   "optionOK": {"message":
     " OK " },

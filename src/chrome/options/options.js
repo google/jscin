@@ -78,6 +78,18 @@ function ShowByClass(cls) {
   }
 }
 
+function ShowAlertRestartDialog(value) {
+  debug('ShowAlertRestartDialog', value);
+  const title = _("optionWarning");
+  const text = _("optionOK");
+  const modal = true;
+  const click = function() {
+    $(this).dialog("close");
+  };
+  const buttons = [{text, click}];
+  $('#dialog_alert_restart').dialog({title, modal, buttons});
+}
+
 function initOpts() {
   // OpenVanilla only supports setting (in order):
   //  AUTO_FULLUP
@@ -306,45 +318,22 @@ async function init() {
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
-  $('#checkSupportNonChromeOS').prop("checked",
-    config.Emulation()).click(function ()
-  {
-    config.Set("Emulation", $(this).prop("checked"));
-    let buttons = {};
-    buttons[_("optionOK")] = function () {
-      $(this).dialog("close");
-    };
-    $('#dialog_alert_change_support_non_chromeos').dialog({
-      title: _("optionAlert"),
-      modal: true,
-      buttons: buttons});
-  });
-  $('#checkRawMode').prop("checked",
-    config.RawMode()).click(function () {
-      config.Set("RawMode", $(this).prop("checked"));
-    });
-  $('#checkPunctuations').prop("checked",
-    config.AddonPunctuations()).click(function () {
-      config.Set("AddonPunctuations", $(this).prop("checked"));
-    });
-  $('#checkRelatedText').prop("checked",
-    config.AddonRelatedText()).click(function () {
-      config.Set("AddonRelatedText", $(this).prop("checked"));
-    });
-  $('#checkVerticalWindow').prop("checked",
-    config.VerticalWindow()).click(function () {
-      config.Set("VerticalWindow", $(this).prop("checked"));
-    });
-
-  // To set default check state of checkboxes, do call button("refresh").
-  $('#checkDebugMessage').prop("checked",
-    config.Debug()).click(function () {
-      config.Set("Debug", $(this).prop("checked"));
-  });
-  $('#checkForceAltLocale').prop("checked",
-    config.ForceAltLocale()).click(function () {
-      config.Set("ForceAltLocale", $(this).prop("checked"));
-  });
+  function BindCheck(name, callback) {
+    $(`#check${name}`).prop('checked',
+      config[name]()).on('click', function () {
+        const value = $(this).prop('checked');
+        config.Set(name, value);
+        if (callback)
+          callback(value);
+      });
+  }
+  BindCheck('Debug');
+  BindCheck('AddonPunctuations');
+  BindCheck('AddonRelatedText');
+  BindCheck('RawMode');
+  BindCheck('ForceAltLocale');
+  BindCheck('VerticalWindow');
+  BindCheck('Emulation', ShowAlertRestartDialog);
 
   const im_modules = jscin.getModuleNames();
   let def_module = config.DefaultModule();

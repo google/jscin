@@ -86,9 +86,9 @@
     "按 Shift+選擇鍵(123456789) 以輸入聯想字"},
   "optionVerticalWindow": {"message":
     "使用直式候選字列 (取消以改用橫式列表)"},
-  "optionAlertChangeSupportNonChromeOS": {"message":
+  "optionAlertRestart": {"message":
     "更改此設定要到下次重新開啟 Chrome 瀏覽器才會完全生效。" },
-  "optionAlert": {"message":
+  "optionWarning": {"message":
     "注意!" },
   "optionOK": {"message":
     "確定" },
