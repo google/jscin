@@ -576,8 +576,9 @@ export class GenInp2 extends BaseInputMethod
     debug('ConvertComposition', `[${key}]`, commit, this.opts);
 
     if (commit) {
-      this.CommitFirst(ctx);
-      return this.ResultCommit(ctx);
+      if (this.CommitFirst(ctx))
+        return this.ResultCommit(ctx);
+      return this.ResultError(ctx);
     }
     return this.ResultProcessed(ctx);
   }
@@ -706,13 +707,15 @@ export class GenInp2 extends BaseInputMethod
       case ' ':
         assert(this.HasCandidates(ctx), "SPACE in STATE_CANDIDATES needs candidates");
         if (this.IsSpaceCommitFirst()) {
-          this.CommitFirst(ctx);
-          return this.ResultCommit(ctx);
+          if (this.CommitFirst(ctx))
+            return this.ResultCommit(ctx);
+          return this.ResultError(ctx);
         } else if (this.CycleCandidates(ctx)) {
           return this.ResultProcessed(ctx);
         } else if (this.IsSpaceAutoUp()) {
-          this.CommitFirst(ctx);
-          return this.ResultCommit(ctx);
+          if (this.CommitFirst(ctx))
+            return this.ResultCommit(ctx);
+          return this.ResultError(ctx);
         }
         return this.ResultProcessed(ctx);
 
