@@ -380,18 +380,15 @@ export class CrOS_CIN {
     // Dirty workaround because recent ChromeOS horizontal IME window was
     // broken displaying candidate.
     const quirk_use_annotation = isNavite() && !this.config.VerticalWindow();
-    // c may be `null`.
-    const candidates = candidate_list.map((c, i) => (
-      quirk_use_annotation ? {
-        candidate: '',
-        id: i,
-        annotation: `${labels.charAt(i)}${c || ''}`,
-      } : {
-        candidate: c || '',
-        id: i,
-        label: labels.charAt(i),
-      })
-    );
+    const candidates = candidate_list.map((c, id) => {
+      let candidate = c || ''; // c may be null.
+      let label = labels.charAt(id);
+      if (quirk_use_annotation) {
+        const annotation = `${label} ${candidate}`;
+        return {id, candidate: '', annotation};
+      }
+      return {id, candidate, label};
+    });
     debug("UpdateCandidates: candidate_list:", candidate_list,
           "labels:", labels, 'candidates:', candidates);
 
