@@ -151,15 +151,34 @@ function GcinQuirks(cin) {
       break;
 
     case 1:
-      // GTAB_space_auto_first_any: Boshiamy
-      cin.SPACE_AUTOUP = true;
+      // GTAB_space_auto_first_any: Boshiamy [and Dayi].
+
+      // Technically, space_auto_first_any does not describe how the SELKEY
+      // should be changed. But modern IMs (and many tables) solved this by
+      // shifting with '0' instead of space. In the end, adding SELKEY_SHIFT for
+      // space_auto_first_any seems more reasonable.
       cin.SELKEY_SHIFT = true;
-      cin.SPACE_RESET = true;
+
+      // The following options are expected but not really needed because they
+      // are the default options today:
+      //  cin.AUTO_UPCHAR = true;
+      //  cin.SPACE_AUTOUP = true;
+      // Not really space_auto_first related, but we learned that IMs with
+      // space_auto_first_any would strongly prefer SPACE_RESET.
+      //  cin.SPACE_RESET = true;
       break;
 
     case 2:
       // GTAB_space_auto_first_full: Simplex.
+      // Technically this only means "SPACE_AUTOUP on full" (which the
+      // xcin/jscin do not really have an option), but some tables may only have
+      // this and not %flag_press_full_auto_send (AUTO_FULLUP) so we are
+      // combining these options together.
       cin.AUTO_FULLUP = true;
+      // The following options are expected but not really needed because they
+      // are the default options today:
+      //  cin.AUTO_UPCHAR = true;
+      //  cin.SPACE_AUTOUP = true;
       break;
 
     case 4:

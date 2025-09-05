@@ -3,7 +3,8 @@ CIN 檔案格式說明
 JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入了不少與 GCIN 相容
 的指令。指令一律以 % 開頭。註解以 # 開頭。XCIN/GCIN 的命令全為小寫。
 由於 XCIN2.5 把部份設定指令放在使用者設定檔 (xcinrc) ，JsCIN 也同時接受此類
-指令，如 %AUTO_COMPOSE。
+指令(大寫)，如 %AUTO_COMPOSE。
+未列出的指令一律直接忽略不會視為錯誤。
 
 另外還有表格形式的命令較特殊，語法是:
 %command begin
@@ -38,52 +39,80 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 
 %gen_inp
   指定使用傳統 "General Input" 輸入法模組。由於 XCIN 與 GCIN 的表格類輸入法
-  幾乎只會使用 gen_inp (智慧選字形通常有自己的模組)，此指令常被省略；
-  在 JsCIN 中有其它模組但用來指定的命令為 %MODULE。
-  另外，JsCIN 目前有兩組 gen_inp 的實作: GenInp 與 GenInp2 ，可在選項中調整。
-  GenInp 為原始 XCIN2.5 的直接移植，GenInp2 則是JsCIN從零開始的版本。
-  預設與建議都是使用 GenInp2。
+  幾乎只會使用 gen_inp (智慧選字通常有自己的模組)，此指令可被省略。
 
 %endkey <KEYS>
   立刻開始組字的鍵（相當於加入該鍵後立刻按空白）。
   常見於大千(標準)排列的注音輸入法的聲調鍵。
 
-%quick begin
-<KEY> <VALUE>
-%quick end
-  自行指定預列候選字的列表。主要用於行列30的一級與二級簡碼。
-  JsCIN 也支援 XCIN2.3 的同義指令 %quickkey
-
 -----------------------------------------------------------------------------
 來自 GCIN 的指令
 (https://hyperrate.com/gcin-source/)
 
+%quick begin
+<KEY> <VALUE>
+%quick end
+  替換預列候選字的列表。主要用於行列30的一級與二級簡碼。
+  JsCIN 也支援 XCIN2.3 的同義指令 %quickkey
+
 %prompt <NAME>
   同 %cname。
 
-%space_style <STYLE>
-  指定空白鍵的行為模式。
-  1: 按空白自動上(第一)字": 如嘸蝦米 (對應 %SPACE_AUTOUP)
-  2: 打滿最大鍵數時上字：如簡易 (對應 %AUTO_FULLUP)
-  4: 不自動上字: 如行列30、倉頡 (無對應 - 預設行為)
-  8: 侯選列第一字是用空白選，如大易 (對應 %SELKEY_SHIFT) 。
-  更多說明請參考 GCIN 文件。
+%keep_key_case
+在 %chardef 跟 %keyname 裡保留分辨大小寫的不同
 
-注意 %SPACE_AUTOUP 跟 %SELKEY_SHIFT 的差異在組字途中 %SPACE_AUTOUP 就可以上
-字，但 %SELKEY_SHIFT 是組字完成（通常是用空白切換）後，才能用空白選第一個字。
-這個差異在 DOS 時代比較明顯，Windows 時代則由於大部份的輸入法實作都開始支援
-部份預列選字（不用打完就可以看到符合的字），所以兩種選項的差異變的模糊。
+%space_style <STYLE>
+  指定空白鍵的行為模式 (GTAB_space_auto_first)
+  1: "any": 按空白鍵立即送出第一字: 如嘸蝦米、大易
+  2: "full": 按滿(最大鍵數)按空白送出第一字：如簡易
+  4: "nofull": 按滿(最大鍵數)按空白不送出第一字: 如行列30、倉頡
+  8: "dayi": 侯選列第一字改用空白選字，如大易
+
+  在 JsCIN 的實作中，以上選項會盡可能轉換成對應的 XCIN25 選項。但注意 XCIN25 的
+  設定體系與 GCIN 有根本上的不同， XCIN 是以「重複後怎麼處理」為原則，而 GCIN
+  則是「空白鍵的行為是什麼」。
+
+  另外，在新版的 GCIN 當中，"dayi" 選項已經沒有相關的程式碼，且設定界面上直接
+  建議大易使用跟嘸蝦米一樣的 "any"。這個舊選項只留在 `gtab.h` 檔案內。
+  JsCIN 的處理 方式是照說明用 XIN25 的 %SELKEY_SHIFT 取代。
+
+%flag_disp_full_match
+  打字時列出符合的候選字 (同 XCIN25 的 AUTO_COMPOSE)
+
+%flag_disp_partial_match
+  打字時列出部份符合的候選字。 注意在 gcin 上實測，這個功能並不是完全像
+  WILD_ENABLE 加上 '*' 那樣把所有符合開頭的全找出來，而是接近行列 %quick
+  的想法，把「如果再多按了某個鍵，它可能符合的字是哪個」列出來，同時照垂
+  直排分類把選擇鍵與其下方所有鍵歸到一起，所以最多只會列出一頁不會超過。
+  對於非行列的輸入法來說可能難以理解，也所以這個選項 gcin 內建表格裡只有
+  在行列、新倉頡或是非中文輸入法內啟用。 與 %flag_disp_full_match 時，
+  先把所有的 full match 列完再列 partial mtch，中間可能留空。
+  JsCIN 目前無法使用這個功能。
+
+%flag_vertical_selection
+  輸入法視窗改為垂直顯示。 JsCIN 的預設就是垂直，且目前此設定是系統選項
+  而非輸入法選項，所以目前暫時不處理直接忽略。
+
+%flag_press_full_auto_send
+  打滿最大鍵數後自動送出 (同 XCIN25 的 AUTO_FULLUP)
+
+%flag_unique_auto_send
+  主要是用於非中文的輸入法，如 greek。 大部份的 chardef 都是單鍵唯一對應，
+  但少部份有多個字元的 key，如 <p, ph, ps>。 %flag_press_full_auto_send
+  這時無法有效減少空白鍵的需要，所以新的 %flag_unique_auto_send 可以在
+  只有在除了像 p 會停下來等後續的輸入外都可以直接上字。
 
 -----------------------------------------------------------------------------
 來自 CIN2 或其它表格的指令
 (CIN2: https://vchewing.github.io/CIN_EVOLUTION.html)
 
 %intlname <NAME>
-輸入法的多國顯示名稱，類似把 cname ename 全部列在一行。
-格式是 名稱:語言[;].... ，如 行列:zh;Array:en
+  輸入法的多國顯示名稱，類似把 cname ename 全部列在一行。
+  格式是 名稱:語言[;].... ，如 行列:zh;Array:en
 
-嚴格來說 jscin 並不支援照多國語系顯示名稱，但由於部份 CIN 會把 intlname 的格
-式用在 ename 上，所以 jscin 有多判斷 ename 是不是其實是 intlname。
+  嚴格來說 JsCIN 並不支援照多國語系顯示名稱，但由於部份 CIN 會把 intlname 的格
+  式用在 ename 上，所以 JsCIN 有多判斷 ename 是不是其實是 intlname。
+
 
 -----------------------------------------------------------------------------
 來自 XCIN 2.5 選項 (xcinrc) 的指令
@@ -93,22 +122,35 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   在組字完成前就自動列出符合的候選字。
 
 %AUTO_FULLUP
-  輸入最大鍵數時自動上字。
+  輸入最大鍵數時若無重複字則自動上字。
+
+%SPACE_IGNORE
+  在 AUTO_FULLUP 時，若有上字，忽略接下來的一次空白（接近沒開 AUTO_FULLUP
+  的行為）。目前 JsCIN 的 GenInp2 不支援 (只有 GenInp 支援)。
+
+%AUTO_UPCHAR
+  自動上字。遇到重複字時可用任一非選擇鍵選第一個字，但空白除外（會翻頁)。
 
 %SPACE_AUTOUP
-  空白鍵自動上字。
-
-%SPACE_RESET
-  空白鍵自動清除錯誤輸入。
+  空白鍵自動上字模式。在 AUTO_UPCHAR 開啟時，空白鍵改為選第一個字而非翻頁。
 
 %SELKEY_SHIFT
-  第一個候選字用空白選（用於嘸蝦米與大易），當同時使用 SPACE_AUTOUP
-  時會把選擇鍵改為 0 但還是可以用空白選。
+  第一個候選字用空白選（用於嘸蝦米與大易），後面的選擇鍵順移。
+  當同時使用 SPACE_AUTOUP 時會把選擇鍵改為 0 但還是可以用空白選。
+
+  注意 %SPACE_AUTOUP 跟 %SELKEY_SHIFT 的差異在於 SPACE_AUTOUP 是「有重複字
+  時按空白可選第一個 (原 selkey 順序不變，如第一個還是1)」，SELKEY_SHIFT 則是
+  「第一個選擇鍵改為空白（原順序改變，第一個鍵變成選第二個）」。
+
+%SPACE_RESET
+  空白鍵可清除錯誤輸入(等於 Esc)。
 
 %DISABLE_SEL_LIST <KEYS>
-  XCIN2.5 對行列30提供的 Dirty workaround。
-  現代輸入法通常直接把 1234567890 直接編入 endkey ，然後在 chardef
-  裡直接代入 w1 ... w2 ... 所以不太需要再另外定義此值。
+  XCIN2.5 對行列30提供的 Dirty workaround ，因為不支援 %quick 並把候選字
+  留給一二級簡碼用了，當直接按下 w1 時變成選了 "w" 的第一個字，跟 "女"
+  衝突所以有問題。
+  現代行列表格通常直接把 1234567890 直接編入 endkey ，然後在 chardef
+  裡直接代入 w1 ... w2 ... 所以不需要再另外定義此值。
 
 %KEYSTROKE_REMAP begin
 <KEY> <VALUE>
@@ -116,14 +158,18 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround，主要是
   由於 XCIN2.5 用標準的候選字列實作一二級簡碼，所以跟特別碼衝突了，
   這時就會把特別碼用 KEYSTROKE_REMAP 來取代（主要是 t=的）。
-  現代輸入法通常會選擇實作 %quick (如 gcin) 或是另開模組處理簡碼 (如
-  OpenVanilla) 所以此命令實用性不高，只對非常舊的 XCIN 2.5 行列表有用。
+  現代行列表格通常會選擇實作 %quick (如 gcin) 或是另開模組處理簡碼 (如
+  OpenVanilla) 所以此命令實用性不高，只對非常舊的 XCIN 2.5 行列表格有用。
 
 %MODULE <NAME>
-  指定輸入法模組。目前的 JsCIN 除了 %gen_inp 可用的 gen_inp 與 gen_inp2 外，
-  其實曾經支援過 CrExtInp 這個特別的模組，它是專用於跨 Chrome extension
+  指定輸入法模組。
+  JsCIN 曾經支援過 CrExtInp 這個特別的模組，它是專用於跨 Chrome extension
   的輸入法，例如酷音。 不過隨著 NaCl 的終止，JsCIN/酷音也消失了，所以
   這個指令現在等於沒用也不該設定。
+
+  JsCIN 目前有兩組對應 %gen_inp 的實作: GenInp 與 GenInp2，可在選項中調整。
+  GenInp 為原始 XCIN2.5 的直接移植，GenInp2 則是JsCIN從零開始的版本。
+  預設與建議都是使用 GenInp2。
 
 -----------------------------------------------------------------------------
 JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
@@ -132,4 +178,47 @@ JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
 <ORDER> <KEYS>
 %KEYGROUPS end
   分類按鍵成幾個群組。主要應用是注音的聲母、韻母等，讓按鍵在不按順序輸入時
-  能依分類自動重新組合。
+  能依分類自動重新組合。 ORDER 是數字以指定群組的順序（由小到大）。
+  JsCIN 如果發現 %keyname 剛好有全部注音符號的話會自動照建建的聲母韻母分類
+  產生對應的 KEYGROUPS 設定所以注音表格不用再加此定義。
+
+-----------------------------------------------------------------------------
+空白鍵的行為
+
+空白鍵的行為在各輸入法通常都有不同的定義，在 GCIN 與 XCIN 中也提供了最多的指令。
+在此統整一下相關的行為與指令。
+
+[組字中第一次按下空白時]
+如果只有單一候選字則送出此字。 若有多重候選字時：
+
+- GTAB_space_auto_first_any: 不管幾頁，送出第一個候選字。
+- GTAB_space_auto_first_full: 若打滿則送出第一個候選字。
+- GTAB_space_auto_first_nofull: 不管有沒有打滿都不送候選字。
+- SELKEY_SHIFT: 選擇目前頁面第一個候選字。
+- AUTO_UPCHAR+SPACE_AUTOUP: 選擇第一個候選字 (多頁時未定義)
+- AUTO_FULLUP+SPACE_IGNORE: 若打滿(其實已經上字了)，忽略此空白。
+
+古早 DOS 時代原始的輸入法實作裡通常沒有預視 (AUTO_COMPOSE) 功能導致這些設計
+在有預視與沒預視的狀態下可能產生差異。 沒預視的前提下，有沒有多重候選字是
+空白鍵按下去才知道的（有的輸入法要求在多重字時發出嗶聲），所以除了像嘸蝦米
+明確定義空白鍵按下去就是要出字外，其它輸入法在「選擇第一個候選字」前
+可能會要先多按一次空白來進行變換（組字）。 對於有預視的系統，則常會假設
+使用者已看到結果，所以空白鍵就是要進行下一步的選擇。
+
+如果 SPACE 沒有送出候選字也沒被忽略，在沒有預視功能(如注音)的前提下，
+應該是「變換=列出候選字」。 在有預視的系統上，目前大多的實作如香草、
+Mac、GCIN 都傾向直接變成出第一個字或翻下一頁(相當於第二次按下空白)。
+
+注意行列30的一二級簡碼 (%quick) 根據原始行列的定義是一定要顯示的，
+但不會被空白鍵選擇到也不會翻頁，應與正常預視分開處理。
+
+另外，space_first_full 跟 space_first_nofull 在目前的輸入法差異不大，
+對於 full 而言，主要是簡易在用，可是簡易更需要的是 %flag_press_full_auto_send
+(AUTO_FULLUP) ，對於使用者來說這可能更像 AUTO_FULLUP + SPACE_IGNORE。
+對於 nofull 而言，像行列有的表格支援詞庫或是大字庫（加上 i），平時打滿的
+機會幾乎沒有。
+
+[第二次按下空白時]
+
+若只有一頁，目前的實作都傾向送出第一個候選字。
+若有多頁，目前的實作都傾向翻頁。
