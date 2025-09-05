@@ -108,11 +108,12 @@ function initOpts() {
   //  keep committing by SPACE.
 
   // Generate the options list in the details window
-  const opts_exp = ['flag_disp_partial_match'];
+  const opts_exp = [];
   const opts_advanced = [
     'SPACE_RESET', 'AUTO_UPCHAR', 'SPACE_AUTOUP',
     'WILD_ENABLE', 'END_KEY',
     'flag_unique_auto_send',
+    'flag_disp_partial_match',
   ];
   let node = $('#divOpts');
   for (const o in jscin.OPTS) {

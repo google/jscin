@@ -110,15 +110,14 @@
 
   "opt_AUTO_FULLUP": {"message": "Auto commit when reached the max key strokes" },
   "opt_flag_unique_auto_send": {"message":
-    "Auto commit if the candidate is unique (even when partial matched)" },
+    "Auto commit when only one candidate will match" },
   "opt_AUTO_UPCHAR": {"message": "When multiple candidates, commit the first by any keys (except SPACE)" },
   "opt_SPACE_AUTOUP": {"message": "When multiple candidates, commit the first by SPACE" },
   "opt_SELKEY_SHIFT": {"message": "Use SPACE as the first candidate selection key" },
   "opt_SPACE_RESET": {"message": "Reset error (clear composing buffer) by SPACE" },
   "opt_AUTO_RESET": {"message": "Reset error (clear composing buffer) automatically" },
   "opt_AUTO_COMPOSE": {"message": "Preview exactly matched candidates" },
-  "opt_flag_disp_partial_match": {"message":
-    "Preview all partial-matched candidates" },
+  "opt_flag_disp_partial_match": {"message": "Preview partially matched candidates" },
   "opt_WILD_ENABLE": {"message": "Match candidates with wildcards: *?" },
   "opt_END_KEY": {"message": "Compose immediately when any ending key (%endkey) is pressed" },
 

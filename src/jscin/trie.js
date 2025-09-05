@@ -6,12 +6,12 @@
  */
 
 export class Trie {
-  constructor(data) {
+  constructor() {
     this.children = {};
     this.data = undefined;
   }
 
-  _lookup(key, create, data) {
+  _lookup(key, create=false) {
     let next = this;
     for (let c of key) {
       let child = next.children[c];
@@ -23,50 +23,45 @@ export class Trie {
       }
       next = child;
     }
-    if (create)
-      next.set(data);
     return next;
   }
 
-  _walk(callback) {
-    if (!callback(this))
+  _walk(callback, key) {
+    if (!callback(this, key))
       return false;
-    for (let c of Object.values(this.children)) {
-      if (!c._walk(callback))
+    for (const [k, v] of Object.entries(this.children)) {
+      if (!v._walk(callback, key + k))
         return false;
     }
     return true;
   }
 
   add(key, data) {
-    this._lookup(key, true, data);
+    const node = this._lookup(key, true);
+    node.set(data);
   }
 
   find(key) {
-    return this._lookup(key, false);
+    return this._lookup(key);
   }
 
-  get(key) {
-    if (!key)
-      return this.data;
-    return this.find(key)?.data;
+  isLeaf() {
+    return Object.keys(this.children).length == 0;
+  }
+
+  get() {
+    return this.data;
   }
   set(data) {
     this.data = data;
   }
 
-  // collect and return all data below this node.
-  below(limit) {
-    if (!limit)
-      limit = 100;
-    let r = [];
-    this._walk((node) => {
-      if (r.length > limit)
-        return false;
-      else if (node.data)
-        r.push(node.data);
+  aggregate(aggregator) {
+    this._walk((node, key) => {
+      if (node.data)
+        return aggregator(key, node.data);
+      // continue searching.
       return true;
-    });
-    return r;
+    }, '');
   }
 }
