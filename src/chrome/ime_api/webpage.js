@@ -136,12 +136,13 @@ export class WebPageIme extends ChromeInputIme {
     const node = this.getCandidatesNode();
     node.empty();
     for (const c of parameters.candidates) {
+      // Array30 %quick will send ch=null. Use u3000 for full width  height.
+      const ch = c.candidate || c.annotation || '\u3000';
       let label = c.label || c.id;
-      let candidate = `${c.candidate} `;
+      const candidate = `${ch} `;
       if (!c.candidate && c.annotation) {
         // Special workaround for CrOS showing background=textcolor in
         // horizontal mode.
-        candidate = `${c.annotation} `;
         label = '';
       }
       if (this.vertical && label)

@@ -24,6 +24,7 @@ export class GenInp2 extends BaseInputMethod
     // Declaration of states
     this.STATE_COMPOSITION = 1;
     this.STATE_CANDIDATES = 2;
+    this.NULL_CANDIDATE = conf.nullcandidate || '\u25a1';  // 25a1 was from gcin ar30 table.
 
     this.MAX_MATCH_PAGES = 20; // each page has self.selkey.length candidates
     this.GLOB_KEYS = '?*';
@@ -67,16 +68,19 @@ export class GenInp2 extends BaseInputMethod
 
     // Currently CIN stores most tables as simple strings.
     this._NormalizeTable(this.override_conversion);
-    this._NormalizeTable(this.override_autocompose);
+    this._NormalizeTable(this.override_autocompose, this.NULL_CANDIDATE);
   }
 
-  _NormalizeTable(t) {
+  _NormalizeTable(t, nullc) {
     if (!t)
       return t;
     for (const k in t) {
-      const v = t[k];
+      let v = t[k];
       if (typeof(v) == 'string')
-        t[k] = v.split('');
+        v = v.split('');
+      if (nullc)
+        v = v.map((c) => (c == nullc) ? null : c);
+      t[k] = v;
     }
     return t;
   }
@@ -486,6 +490,9 @@ export class GenInp2 extends BaseInputMethod
       return false;
 
     let text = ctx.candidates[candidate_index];
+    if (text == null)
+      return false;
+
     this.ResetContext(ctx);
     assert(text != undefined, "CommitText: missing commit text.");
     ctx.commit = text;
