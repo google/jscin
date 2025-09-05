@@ -8,8 +8,7 @@
 export class Trie {
   constructor(data) {
     this.children = {};
-    if (data)
-      this.data = data;
+    this.data = undefined;
   }
 
   _lookup(key, create, data) {
@@ -19,11 +18,13 @@ export class Trie {
       if (!child) {
         if (!create)
           return undefined;
-        child = new Trie(data);
+        child = new Trie();
         next.children[c] = child;
       }
       next = child;
     }
+    if (create)
+      next.set(data);
     return next;
   }
 
@@ -46,7 +47,12 @@ export class Trie {
   }
 
   get(key) {
+    if (!key)
+      return this.data;
     return this.find(key)?.data;
+  }
+  set(data) {
+    this.data = data;
   }
 
   // collect and return all data below this node.
