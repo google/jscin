@@ -16,6 +16,21 @@ import {Trie} from "./trie.js";
 import { AddLogger } from "./logger.js";
 const {debug, warn, error, assert} = AddLogger("gen_inp2");
 
+const QWER_KEYS_BY_COLUMN = [
+  '1qaz', '2wsx', '3edc', '4rfv', '5tgb', '6yhn', '7ujm', '8ik,', '9ol.', '0p;/',
+];
+
+function ReverseIndexedGroups(g) {
+  let r = {};
+  for (const [i, data] of Object.entries(g)) {
+    for (const c of data)
+      r[c] = i;
+  }
+  return r;
+}
+
+const QWER_COLUMN_MAP = ReverseIndexedGroups(QWER_KEYS_BY_COLUMN);
+
 export class GenInp2 extends BaseInputMethod
 {
   constructor(name, conf)
@@ -145,9 +160,7 @@ export class GenInp2 extends BaseInputMethod
     return jscin.IMKEY_COMMIT;
   }
 
-  GetMatchLimit(pages) {
-    if (!pages)
-      pages = this.MAX_MATCH_PAGES;
+  GetMatchLimit(pages=this.MAX_MATCH_PAGES) {
     return pages * this.GetSelKeyLength();
   }
 
@@ -237,9 +250,11 @@ export class GenInp2 extends BaseInputMethod
 
   IsUniqueCandidate(ctx) {
     // Checks if there is only 1 candidate (by partial match).
-    const r = this.GetPartialMatchCandidates(ctx);
-    debug("IsUniqueCandidate:", r);
-    return (r.length == 1);
+    const trie = this.GetTrie();
+    const node = trie.find(ctx.composition);
+    const result = node?.isLeaf() && node.get().length == 1;
+    debug("IsUniqueCandidate: result:", result, ctx.composition);
+    return result;
   }
 
   CanCycleCandidates(ctx) {
@@ -266,47 +281,92 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
-  BuildTrie(table) {
-    let trie = new Trie();
-    if (!table)
-      table = this.table;
-    for (const [k, v] of Object.entries(table))
+  GetTrie(table) {
+    let trie;
+    const t = table || this.table;
+
+    if (!table) {
+      // built-in
+      trie = this.trie;
+      if (trie)
+        return trie;
+    }
+
+    debug("GetTrie: Constructing the new trie:", t);
+    trie = new Trie();
+    for (const [k, v] of Object.entries(t))
       trie.add(k, v);
+
+    if (!table)  // Cache for the next time.
+      this.trie = trie;
     return trie;
   }
 
-  TriePartialMatch(ctx, prefix, trie, limit) {
-    if (!trie)
-      trie = this.trie;
-    if (!limit)
-      limit = this.GetMatchLimit();
-    let node = trie.find(prefix);
-    if (!node)
-      return [];
-    const r = node.below(limit).flat().slice(0, limit);
-    debug("Trie partial match:", prefix, node, r);
-    return r;
-  }
+  // This is not really partial match; it's partial group.
+  GetPartialGroupCandidates(ctx, prefix) {
+    prefix ||= ctx.composition;
+    assert(prefix, "GetPartialGroupCandidates: prefix is empty");
 
-  GetPartialMatchCandidates(ctx, prefix, table, limit) {
+    const trie = this.GetTrie();
+    let node = trie.find(prefix);
     let r = [];
-    if (!prefix)
-      prefix = ctx.composition;
-    if (!prefix) {
-      warn("GetPartialMatchCandidates: prefix is empty, abort");
+    if (!node)
       return r;
+
+    // The results can be up to one page.
+    const page_size = this.GetSelKeyLength();
+
+    // Always start with 'full matched' candidates.
+    const matched = node.get();
+    if (matched)
+      r = r.concat(matched);
+    if (r.length >= page_size)
+      return r;
+
+    let all = {};
+    node.aggregate((key, data) => {
+      if (key)
+        all[key] = data;
+      return true;
+    });
+
+    r.length = page_size;
+    let remains = [];
+
+    // Try to put all candidaes in the right column
+    for (const key of Object.keys(all).sort()) {
+      if (!key)
+        continue;
+
+      const candidates = all[key];
+      const col = QWER_COLUMN_MAP[key[0]];
+      let occupied = false;
+      if (!col) {
+        debug("GetPartialGroupCandidates: Key outside the known Qwer map", key);
+        occupied = true;
+      } else if (r[col]) {
+        debug("GetPartialGroupCandidates: Column already occupied", key, col, r);
+        occupied = true;
+      }
+      if (occupied) {
+        remains = remains.concat(candidates);
+      } else {
+        r[col] = candidates[0];
+        remains = remains.concat(candidates.slice(1));
+      }
     }
-    if (this.opts.OPT_PARTIAL_MATCH || this.opts.OPT_UNIQUE_AUTO) {
-      // We can't afford to create trie on every new table, so let's assume the
-      // table is exactly this.table.
-      if (!this.trie)
-        this.trie = this.BuildTrie(this.table);
-      r = this.TriePartialMatch(ctx, prefix, this.trie, limit);
-    } else {
-      r = this._MatchCandidates(ctx, (k) => {
-        return k.startsWith(prefix);
-      }, table, limit);
+
+    // Put all remains in the empty slots.
+    let last_idx = -1;
+    for (const [idx, c] of r.entries()) {
+      const ch = c || remains.shift();
+      if (ch)
+        last_idx = idx;
+      r[idx] = ch;
     }
+    r = r.slice(0, last_idx + 1);
+
+    debug("Trie partial match:", prefix, node, r);
     return r;
   }
 
@@ -344,7 +404,6 @@ export class GenInp2 extends BaseInputMethod
   PrepareCandidates(ctx, autocompose_stage) {
     debug("PrepareCandidates", ctx.composition, "autocompose_stage:", autocompose_stage);
     const key = ctx.composition;
-
     this.ClearCandidates(ctx);
 
     if (!key) {
@@ -387,18 +446,14 @@ export class GenInp2 extends BaseInputMethod
     if (try_glob) {
       this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table, limit));
       debug("PrepareCandidates: - glob", ctx.candidates);
-    } else if (changed || !this.opts.OPT_PARTIAL_MATCH) {
-      // Normal lokoup
+    } else if (this.opts.OPT_PARTIAL_MATCH && !changed) {
+      // OPT_PARTIAL_MATCH and table NOT changed (if changed=quick).
+      this.AddCandidates(ctx, this.GetPartialGroupCandidates(ctx, key));
+      debug("PrepareCandidates: - partial match", ctx.candidates);
+    } else {
+      // Normal lookup (exact match).
       this.AddCandidates(ctx, table[key]);
       debug("PrepareCandidates: - exact match", ctx.candidates);
-    } else {
-      // OPT_PARTIAL_MATCH and table NOT changed.
-      // The %flag_disp_partial_match is actually an IM-specific enhancement
-      // that on Array it will list "next available to the column" just like the
-      // level 1/2 short codes. We don't have such implementation so far because
-      // the GetPartialMatchCandidates is really a partial match.
-      this.AddCandidates(ctx, table[key]);
-      debug("PrepareCandidates: - partial match (NOT_IMPL; fallback to exact match)", ctx.candidates);
     }
 
     this.UpdateCandidates(ctx);
@@ -486,12 +541,16 @@ export class GenInp2 extends BaseInputMethod
   CommitText(ctx, candidate_index) {
     debug("CommitText", ctx.candidates, candidate_index);
     candidate_index = candidate_index || 0;
-    if (candidate_index >= ctx.candidates.length)
+    if (candidate_index >= ctx.candidates.length) {
+      warn("CommitText: index out of range", candidate_index, ctx.candidates);
       return false;
+    }
 
     let text = ctx.candidates[candidate_index];
-    if (text == null)
+    if (!text) {
+      warn("CommitText: invalid text to commit:", text);
       return false;
+    }
 
     this.ResetContext(ctx);
     assert(text != undefined, "CommitText: missing commit text.");
