@@ -45,7 +45,7 @@ export class AddonCrossQuery extends BaseInputAddon
       let cross = this.map[ctx.cch];
       if (cross) {
         cross = cross.split('').map((v) => this.keyname[v] || v).join('');
-        ctx.addon_prompt = `${ctx.cch}=${cross}`;
+        ctx.addon_prompt = `${ctx.cch}:${cross}`;
       }
     }
     return ret;

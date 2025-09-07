@@ -419,7 +419,9 @@ export class CrOS_CIN {
     // show_keystroke(cch_publish) can be displayed in auxiliary text,
     // although this is currently done by addon_query as addon_prompt.
 
-    const visible = num_candidates > 0 || !!imctx.addon_prompt || !!message;
+    // Note we will ignore addon_prompt when deciding visible. This is the
+    // expected behavior for AddonQuery, as compared GCIN.
+    const visible = num_candidates > 0 || !!message;
     const props = { visible };
 
     // The pageSize is actually the width of the candidates window (and will be
