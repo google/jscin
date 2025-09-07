@@ -84,10 +84,14 @@
     "按 Ctrl+符號鍵(,.';[]...) 以輸入中文標點符號" },
   "optionRelatedText": {"message":
     "按 Shift+選擇鍵(123456789) 以輸入聯想字"},
-  "optionVerticalWindow": {"message":
-    "使用直式候選字列 (取消以改用橫式列表)"},
   "optionAlertRestart": {"message":
     "更改此設定要到下次重新開啟 Chrome 瀏覽器才會完全生效。" },
+  "optionChooseCandidateWindowType": {"message":
+    "選擇候選字視窗樣式:"},
+  "optionVerticalWindow": {"message":
+    "直式"},
+  "optionHorizontalWindow": {"message":
+    "橫式"},
   "optionWarning": {"message":
     "注意!" },
   "optionOK": {"message":

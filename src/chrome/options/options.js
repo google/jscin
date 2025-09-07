@@ -319,21 +319,27 @@ async function init() {
   }
   SameWidth($(".optionAddUrl"), $(".optionAddFile"));
 
-  function BindCheck(name, callback) {
-    $(`#check${name}`).prop('checked',
-      config[name]()).on('click', function () {
-        const value = $(this).prop('checked');
-        config.Set(name, value);
-        if (callback)
-          callback(value);
-      });
+  function BindCheck(name, callback, verbs) {
+    if (!verbs)
+      verbs = {'': (v)=>v};
+    for (const [verb, mapper] of Object.entries(verbs)) {
+      const val = mapper(config[name]());
+      $(`#check${name}${verb}`).prop('checked',
+        val).on('click', function () {
+          const value = mapper($(this).prop('checked'));
+          config.Set(name, value);
+          if (callback)
+            callback(value);
+        });
+    }
   }
+  const verbRatioTrueFalse = {'True': (v)=>v, 'False': (v)=>!v};
   BindCheck('Debug');
   BindCheck('AddonPunctuations');
   BindCheck('AddonRelatedText');
   BindCheck('RawMode');
   BindCheck('ForceAltLocale');
-  BindCheck('VerticalWindow');
+  BindCheck('VerticalWindow', null, verbRatioTrueFalse);
   BindCheck('Emulation', ShowAlertRestartDialog);
 
   const im_modules = jscin.getModuleNames();
