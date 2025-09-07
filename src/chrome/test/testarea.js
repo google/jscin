@@ -57,11 +57,11 @@ class testInputIme {
     });
     this.ime.onBlur.addListener(function(contextID) {
       debug("onBlur:", contextID);
-      $('#imePanel').addClass('hide');
+      $('#imePanel').addClass('hidden');
     });
     this.ime.onFocus.addListener(function(context) {
       debug("onFocus:", context.contextID, context.type);
-      $('#imePanel').removeClass('hide');
+      $('#imePanel').removeClass('hidden');
     });
     this.ime.onMenuItemActivated.addListener(function(engineID, menu_id) {
       debug("menu item activated: id=", menu_id);

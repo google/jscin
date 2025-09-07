@@ -36,6 +36,10 @@ export class ImeFrame extends IpcIme {
     this.enableActionPopup();
   }
 
+  toggleCandidateWindow(show) {
+    this.getCandidatesNode().toggleClass('hidden', !show);
+  }
+
   enableActionPopup() {
     if (chrome.pageAction)
       chrome.pageAction.show(this.getTabId());

@@ -40,7 +40,8 @@ export class WebPageIme extends ChromeInputIme {
   }
 
   getNode(id) {
-    const node = $(`#${this.panel} #${id}`);
+    const suffix = id ? ` #${id}` : '';
+    const node = $(`#${this.panel}${suffix}`);
     assert(node, "Failed to find IME panel node by id:", id);
     return node;
   }
@@ -55,6 +56,9 @@ export class WebPageIme extends ChromeInputIme {
   }
   getMenuNode() {
     return this.getNode(this.idMenu);
+  }
+  getPanel() {
+    return this.getNode();
   }
 
   getContextID(node) {
@@ -157,6 +161,10 @@ export class WebPageIme extends ChromeInputIme {
     return true;
   }
 
+  toggleCandidateWindow(show) {
+    this.getPanel().toggleClass('hidden', !show);
+  }
+
   async setCandidateWindowProperties(parameters) {
     const p = parameters.properties;
     function on_demand(name, callback) {
@@ -179,7 +187,7 @@ export class WebPageIme extends ChromeInputIme {
       this.getAuxiliaryNode().toggle(v);
     });
     on_demand('visible', (v) => {
-      this.getCandidatesNode().toggle(v);
+      this.toggleCandidateWindow(v);
     });
     return true;
   }

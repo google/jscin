@@ -27,8 +27,9 @@ input, textarea, button {
   margin: 1px;
 }
 
-#imePanel.hide {
+.hidden {
   filter: brightness(75%);
+  display: block;
 }
 
 </style>
@@ -40,7 +41,7 @@ input, textarea, button {
 <input type="text" name="input" id="input" value="Sample Text"
        size="50"></input><br/>
 
-<span id="TestAreaPanel">
+<div id="TestAreaPanel">
   <h3>IME Panel</h3>
   <div class="imePanel" id='imePanel'>
     <div id="composition">Composition Area</div>
