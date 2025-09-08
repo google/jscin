@@ -109,11 +109,9 @@ function initOpts() {
 
   // Generate the options list in the details window
   const opts_exp = [];
-  const opts_advanced = [
-    'SPACE_RESET', 'AUTO_UPCHAR', 'WILD_ENABLE', 'END_KEY',
-    'flag_unique_auto_send',
-    'flag_disp_partial_match',
-    'space_auto_first_full',
+  const opts_basic = [
+    'SPACE_AUTOUP', 'SELKEY_SHIFT',
+    'AUTO_RESET', 'AUTO_COMPOSE', 'AUTO_FULLUP',
   ];
   let node = $('#divOpts');
   for (const o in jscin.OPTS) {
@@ -124,7 +122,7 @@ function initOpts() {
         text(_(cls)).attr('title', _(`title_${o}`)));
     if (opts_exp.includes(o))
       div.addClass(ClsExperimental);
-    if (opts_advanced.includes(o))
+    if (!opts_basic.includes(o))
       div.addClass(ClsOptAdvanced);
     node.append(div);
   }
