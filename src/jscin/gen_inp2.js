@@ -63,7 +63,7 @@ export class GenInp2 extends BaseInputMethod
 
     // Convert table commands to options.
     const opts_remap = {
-      SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',
+      SPACE_AUTOUP: 'OPT_SPACE_AUTOUP',  // The SPACE_AUTOUP will be expanded later.
       SPACE_RESET: 'OPT_SPACE_RESET',
       AUTO_COMPOSE: 'OPT_AUTO_COMPOSE',
       AUTO_FULLUP: 'OPT_COMMIT_ON_FULL',
@@ -80,6 +80,18 @@ export class GenInp2 extends BaseInputMethod
     for (const key in opts_remap) {
       if (key in conf)
         this.opts[opts_remap[key]] = conf[key];
+    }
+
+    if ('SPACE_AUTOUP' in conf) {
+      let v = conf.SPACE_AUTOUP;
+      const valid = jscin.SPACE_AUTOUP_VALUES.includes(v);
+      assert(valid, "Unknown SPACE_AUTOUP:", v);
+      if (!valid)
+        v = jscin.SPACE_AUTOUP_DEFAULT;
+      this.opts[`OPT_SPACE_AUTOUP_${v}`] = true;
+      // OPT_SPACE_AUTOUP_NONE,
+      // OPT_SPACE_AUTOUP_DEFAULT,
+      // OPT_SPACE_AUTOUP_ANY,
     }
 
     // Currently CIN stores most tables as simple strings.
@@ -601,13 +613,6 @@ export class GenInp2 extends BaseInputMethod
     return this.endkey.includes(key);
   }
 
-  IsSpaceCommitFirst() {
-    // Note SELKEY_SHIFT should be already handled by IsSelectionKey.
-    // If SPACE was processed outside the 'default' key path then we have to
-    // check SELKEY_SHIFT here.
-    return this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP;
-  }
-
   ProcessSpace(ctx, from_convert) {
     // See `docs/cin.txt` for details on SPACE behavior.
     // In AUTO_COMPOSE mode, the candidates window is already there so most
@@ -615,7 +620,7 @@ export class GenInp2 extends BaseInputMethod
     // - Array rejected this because of the 'quick' that generates a different set
     //   of candidates, but other IMs all towards auto-commit.
     // - Boshiamy explicitly expects SPACE to always commit even for multiple
-    //   pages (SPACE_AUTOUP).
+    //   pages.
     // - OpenVanilla's behavior (with cusor) is "auto commit only if the
     //   candidates are <= 1 page".
     // Hint: try 'yneu' in Boshiamy to check multi-page candidates behavior.
@@ -635,15 +640,19 @@ export class GenInp2 extends BaseInputMethod
       // In convert+override mode, never commit
       commit = false;
       debug("ConvertComposition: override_autocompose, commit=", commit);
-    } else if (this.IsSpaceCommitFirst()) {
+    } else if (this.opts.OPT_SPACE_AUTOUP_ANY) {
       commit = true;
-      debug("ConvertComposition: IsSpaceCommitFirst, commit=", commit);
+      debug("ConvertComposition: SPACE_AUTOUP_ANY, commit=", commit);
     } else if (this.CycleCandidates(ctx)) {
       commit = false;
       debug("ConvertComposition: CycleCandidates, commit=", commit);
-    } else {
+    } else if (this.opts.OPT_SPACE_AUTOUP_DEFAULT) {
       commit = true;
-      debug("ConvertComposition: Default (single page), commit=", commit);
+      debug("ConvertComposition: SPACE_AUTOUP_DEFAULT, commit=", commit);
+    } else {
+      commit = false;
+      debug("ConvertComposition: Default (nothing), commit=", commit);
+      return this.ResultError(ctx);
     }
     debug('ProcessSpace: commit=', commit, this.opts);
 

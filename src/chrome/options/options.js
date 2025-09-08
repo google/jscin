@@ -89,6 +89,9 @@ function ShowAlertRestartDialog(value) {
   const buttons = [{text, click}];
   $('#dialog_alert_restart').dialog({title, modal, buttons});
 }
+const SELECT_OPTS = {
+  SPACE_AUTOUP: jscin.SPACE_AUTOUP_VALUES,
+}
 
 function initOpts() {
   // OpenVanilla only supports setting (in order):
@@ -115,11 +118,25 @@ function initOpts() {
   ];
   let node = $('#divOpts');
   for (const o in jscin.OPTS) {
-    const cls = `opt_${o}`;
-    const div = $('<div/>').attr("id", `div_${cls}`).append(
-      $('<input/>').attr("type", "checkbox").attr("id", cls)).
-      append($('<label/>').attr("for", cls).attr("class", cls).
-        text(_(cls)).attr('title', _(`title_${o}`)));
+    const cls = `opt_${o}`, id = cls, title = _(`title_${o}`);
+    const text= _(cls);
+    let items = [];
+    if (o in SELECT_OPTS) {
+      items.push($('<label/>').attr({title, for: cls, class: cls}).text(text));
+      items.push('<br/>&nbsp;&nbsp;&nbsp;');
+      const sel = $('<select/>').attr({id});
+      for (const value of SELECT_OPTS[o]) {
+        const val_text = _(`opt_${o}_${value}`);
+        sel.append($('<option/>').attr({value}).text(val_text));
+      }
+      items.push(sel);
+      items.push('<br/><br/>');
+    } else  {
+      const type = 'checkbox';
+      items.push($('<input/>').attr({type, id}));
+      items.push($('<label/>').attr({title, for: cls, class: cls}).text(text));
+    }
+    const div = $('<div/>').attr("id", `div_${cls}`).append(items);
     if (opts_exp.includes(o))
       div.addClass(ClsExperimental);
     if (!opts_basic.includes(o))
@@ -143,7 +160,7 @@ function initOpts() {
     $(src_id).off("change").on("change", function() {
       let enabled = $(src_id).is(':checked');
       if (reverse)
-        enabled = false;
+        enabled = !enabled;
       $(dest_id).prop("disabled", !enabled);
       const dest_label = $(`.opt_${dest}`);
       if (enabled)
@@ -170,9 +187,8 @@ function initOpts() {
     }
   }
 
-  AssociateOpts('AUTO_UPCHAR', 'SPACE_AUTOUP');
+  AssociateOpts('SELKEY_SHIFT', 'SPACE_AUTOUP', true);
   AssociateOpts('AUTO_COMPOSE', 'flag_disp_partial_match');
-  ExclusiveOpts(['SPACE_AUTOUP', 'SELKEY_SHIFT']);
   ExclusiveOpts(['SPACE_RESET', 'AUTO_RESET']);
   HideByClass(ClsOptAdvanced);
 }
@@ -625,7 +641,17 @@ function addTableToList(name, list_id, do_insert) {
     function SetOpts(opts) {
       for (const o in jscin.OPTS) {
         const idsel = `#opt_${o}`;
-        $(idsel).prop('checked', opts[o]).trigger('change');
+        const select = SELECT_OPTS[o];
+        if (select) {
+          let val = opts[o];
+          if (!val)
+            val = select[0];
+          else if (val === true)
+            val = select[1];
+          $(idsel).val(val).trigger('change');
+        } else {
+          $(idsel).prop('checked', opts[o]).trigger('change');
+        }
       }
     }
     SetOpts(opts);
@@ -660,7 +686,14 @@ function addTableToList(name, list_id, do_insert) {
         let new_opts = {};
         for (const o in jscin.OPTS) {
           const id = `opt_${o}`;
-          new_opts[o] = $(`#${id}`).is(':checked');
+          const node = $(`#${id}`);
+          let new_val;
+          if (o in SELECT_OPTS) {
+            new_val = node.val();
+          } else {
+            new_val = node.is(':checked')
+          }
+          new_opts[o] = new_val;
           if (new_opts[o] != opts[o])
             update = true;
         }

@@ -144,6 +144,8 @@ export class WebPageIme extends ChromeInputIme {
       const ch = c.candidate || c.annotation || '\u3000';
       let label = c.label || c.id;
       const candidate = `${ch} `;
+      if (label == ' ')
+        label = NBSP;
       if (!c.candidate && c.annotation) {
         // Special workaround for CrOS showing background=textcolor in
         // horizontal mode.

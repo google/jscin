@@ -94,6 +94,7 @@ export function DetectInputMethodType(cin) {
       detect: { "ca": "夕" },
       opts: {
         SELKEY_SHIFT: true,
+        SPACE_AUTOUP: jscin.SPACE_AUTOUP_ANY,
         SPACE_RESET: true,
       },
     },
@@ -152,20 +153,11 @@ function GcinQuirks(cin) {
 
     case 1:
       // GTAB_space_auto_first_any: Boshiamy [and Dayi].
-
-      // Technically, space_auto_first_any does not describe how the SELKEY
-      // should be changed. But modern IMs (and many tables) solved this by
-      // shifting with '0' instead of space. In the end, adding SELKEY_SHIFT for
-      // space_auto_first_any seems more reasonable.
+      cin.SPACE_AUTOUP = jscin.SPACE_AUTOUP_ANY;
+      // For most Boshimay tables setting space_style=1, they don't really have
+      // a proper selkey start with space/0 so we'd like to ensure that using
+      // SELKEY_SHIFT.
       cin.SELKEY_SHIFT = true;
-
-      // The following options are expected but not really needed because they
-      // are the default options today:
-      //  cin.AUTO_UPCHAR = true;
-      //  cin.SPACE_AUTOUP = true;
-      // Not really space_auto_first related, but we learned that IMs with
-      // space_auto_first_any would strongly prefer SPACE_RESET.
-      //  cin.SPACE_RESET = true;
       break;
 
     case 2:
@@ -304,12 +296,29 @@ function PhoneticQuirks(cin) {
   debug("PhoneticQuirks: Added KEYGROUPS:", r);
 }
 
+function NormalizeSpaceAutoUp(cin) {
+  if (!('SPACE_AUTOUP' in cin))
+    return;
+  let v = cin.SPACE_AUTOUP;
+  if (jscin.SPACE_AUTOUP_VALUES.includes(v))
+    return;
+  if (v === false)
+    v = jscin.SPACE_AUTOUP_NONE;
+  else
+    v = jscin.SPACE_AUTOUP_DEFAULT;
+  debug("Adjusted cin.SPACE_AUTOUP:", cin.SPACE_AUTOUP, "=>", v);
+  cin.SPACE_AUTOUP = v;
+}
+
 function AddDefaultOptions(cin) {
   ApplyIfMissing(cin, jscin.OPTS);
 }
 
 /* Check and apply various patches to make the input table better. */
 export function applyInputMethodTableQuirks(cin) {
+  // Fix settings
+  NormalizeSpaceAutoUp(cin);
+
   // GcinQuirks will extract the flag and normalize commands across gcin/xcin.
   GcinQuirks(cin);
 
@@ -330,5 +339,6 @@ export function applyInputMethodTableQuirks(cin) {
 /* Quirks that must be applied after the opts were finalized. */
 export function postInputMethodTableQuirks(cin) {
 
+  NormalizeSpaceAutoUp(cin);
   SelkeyShiftQuirks(cin);
 }
