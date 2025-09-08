@@ -18,8 +18,6 @@ export const KEY_TABLE_PREFIX = "table-";
 export const KEY_OPTS_PREFIX = "opts-";
 
 export const OPTS = {
-  AUTO_FULLUP: false,
-  flag_unique_auto_send: false,
   AUTO_UPCHAR: true,
   SPACE_AUTOUP: true,
   SELKEY_SHIFT: false,
@@ -29,7 +27,11 @@ export const OPTS = {
 
   AUTO_COMPOSE: true,
   flag_disp_partial_match: false,
+  flag_unique_auto_send: false,
+
+  AUTO_FULLUP: false,
   space_auto_first_full: false,
+
   WILD_ENABLE: true,
 
   END_KEY: false,

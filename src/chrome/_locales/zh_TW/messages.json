@@ -115,16 +115,17 @@
 
   "optionTableOptionsHeader": {"message": "可設定選項:" },
 
-  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度則自動送出候選字" },
-  "opt_flag_unique_auto_send": {"message": "組字時若只有唯一選擇時自動送字" },
-  "opt_AUTO_UPCHAR": {"message": "多個候選字時，按(空白除外)任意鍵會送出第一個候選字" },
-  "opt_SPACE_AUTOUP": {"message": "多個候選字時，按空白鍵也可送出第一個候選字" },
-  "opt_SELKEY_SHIFT": {"message": "調整選擇鍵讓空白鍵成為第一個候選字選擇鍵" },
+  "opt_AUTO_UPCHAR": {"message": "多個候選字時，按任意鍵(空白鍵除外)送出第一個字" },
+  "opt_SPACE_AUTOUP": {"message": "空白鍵在候選字未超過一頁時會送出第一個候選字" },
+  "opt_SELKEY_SHIFT": {"message": "調整選擇鍵讓空白鍵一律選擇並送出第一個候選字" },
   "opt_SPACE_RESET": {"message": "組字錯誤時可按空白鍵清除" },
   "opt_AUTO_RESET": {"message": "組字錯誤時自動清除" },
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出完全符合的候選字" },
   "opt_flag_disp_partial_match": {"message": "組字時預先列出部分符合的候選字" },
-  "opt_space_auto_first_full": {"message": "按滿按空白送出第一字" },
+  "opt_flag_unique_auto_send": {"message": "組字時若未來只有唯一選擇時自動送字" },
+  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度則自動送出候選字" },
+  "opt_space_auto_first_full": {"message": "組字時若打滿最大長度後按空白可送出第一字" },
+
   "opt_WILD_ENABLE": {"message": "允許使用萬用字元(?*)來找尋候選字" },
   "opt_END_KEY": {"message": "按下輸入法指定的結束鍵(%endkey)時立刻組字" },
 

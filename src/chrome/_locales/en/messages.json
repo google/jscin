@@ -112,17 +112,17 @@
 
   "optionTableOptionsHeader": {"message": "Options:" },
 
-  "opt_AUTO_FULLUP": {"message": "Auto commit when reached the max key strokes" },
-  "opt_flag_unique_auto_send": {"message":
-    "Auto commit when only one candidate will match" },
   "opt_AUTO_UPCHAR": {"message": "When multiple candidates, commit the first by any keys (except SPACE)" },
-  "opt_SPACE_AUTOUP": {"message": "When multiple candidates, commit the first by SPACE" },
-  "opt_SELKEY_SHIFT": {"message": "Use SPACE as the first candidate selection key" },
+  "opt_SPACE_AUTOUP": {"message": "SPACE commits the first candidate when there's only one page" },
+  "opt_SELKEY_SHIFT": {"message": "Adjust selection keys so SPACE always commits the first candidate" },
   "opt_SPACE_RESET": {"message": "Reset error (clear composing buffer) by SPACE" },
   "opt_AUTO_RESET": {"message": "Reset error (clear composing buffer) automatically" },
   "opt_AUTO_COMPOSE": {"message": "Preview exactly matched candidates" },
+
   "opt_flag_disp_partial_match": {"message": "Preview partially matched candidates" },
-  "opt_space_auto_first_full": {"message": "When composition is full, SPACE to commit the first candidate" },
+  "opt_flag_unique_auto_send": {"message": "Auto commit when only one candidate will match" },
+  "opt_AUTO_FULLUP": {"message": "When reaching the maximum length, commit automatically" },
+  "opt_space_auto_first_full": {"message": "When reaching the maximum length, SPACE to commit the first candidate" },
   "opt_WILD_ENABLE": {"message": "Match candidates with wildcards: *?" },
   "opt_END_KEY": {"message": "Compose immediately when any ending key (%endkey) is pressed" },
 
