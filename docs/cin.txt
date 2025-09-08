@@ -195,7 +195,7 @@ JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
 - GTAB_space_auto_first_full: 若打滿則送出第一個候選字。
 - GTAB_space_auto_first_nofull: 不管有沒有打滿都不送候選字。
 - SELKEY_SHIFT: 選擇目前頁面第一個候選字。
-- AUTO_UPCHAR+SPACE_AUTOUP: 選擇第一個候選字 (多頁時未定義)
+- AUTO_UPCHAR+SPACE_AUTOUP: 選擇第一個候選字
 - AUTO_FULLUP+SPACE_IGNORE: 若打滿(其實已經上字了)，忽略此空白。
 
 古早 DOS 時代原始的輸入法實作裡通常沒有預視 (AUTO_COMPOSE) 功能導致這些設計
@@ -217,6 +217,18 @@ Mac、GCIN 都傾向直接變成出第一個字或翻下一頁(相當於第二�
 (AUTO_FULLUP) ，對於使用者來說這可能更像 AUTO_FULLUP + SPACE_IGNORE。
 對於 nofull 而言，像行列有的表格支援詞庫或是大字庫（加上 i），平時打滿的
 機會幾乎沒有。
+
+也因此，在 JsCIN 實作(主要是 GenInp2)內，
+ - SELKEY_SHIFT 不管候選字有幾頁，按下空白一律出第一個字（因為它是選擇鍵），
+   對應 GTAB_space_auto_first_any。
+ - AUTO_UPCHAR+SPACE_AUTOUP 則是只在候選字一頁內才會用空白送字，超過一頁則翻頁。
+   (注意這與原始 SPACE_AUTOUP 定義不同，但為了讓空白的預設行為更接近現代輸入法
+    所以 JsCIN 在此有所調整)
+ - space_first_full 在非 AUTO_COMPOSE 的時候無作用（因為按下去才能變換，或是
+   AUTO_FULLUP 自動變換，後面變成 SPACE_AUTOUP），
+   AUTO_COMPOSE 時不管是不是 FULL 都同等於 AUTO_UPCHAR+SPACE_AUTOUP。
+   所以 JsCIN 無實作，但會自動選取 AUTO_FULLUP。
+ - space_first_nofull: 預設值 (另一個作法是取消 SPACE_AUTOUP)。
 
 [第二次按下空白時]
 
