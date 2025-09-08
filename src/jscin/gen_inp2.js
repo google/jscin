@@ -560,8 +560,19 @@ export class GenInp2 extends BaseInputMethod
     return true;
   }
 
+  GetSelectionIndex(key) {
+    if (this.opts.OPT_SELKEY_SHIFT && key == ' ')
+      return 0;
+    assert(this.selkey, "GetSelectionIndex: Missing selkey.");
+    return this.selkey.indexOf(key);
+  }
+
+  IsSelectionKey(ctx, key) {
+    return this.GetSelectionIndex(key) >= 0;
+  }
+
   SelectCommit(ctx, key) {
-    let keyidx = this.selkey.indexOf(key);
+    let keyidx = this.GetSelectionIndex(key);
     assert(keyidx >= 0, "SelectCommit: key should never be out of selkey", key, this.selkey);
     let index = ctx.candidates_start_index + keyidx;
     if (index >= ctx.candidates.length)
@@ -578,8 +589,10 @@ export class GenInp2 extends BaseInputMethod
     return this.SelectCommit(ctx, this.selkey[0]);
   }
 
-  IsSelectionKey(ctx, key) {
-    return this.selkey.includes(key);
+  ReturnCommitFirst(ctx) {
+    if (this.CommitFirst(ctx))
+      return this.ResultCommit(ctx);
+    return this.ResultError(ctx);
   }
 
   IsEndKey(ctx, key) {
@@ -587,15 +600,51 @@ export class GenInp2 extends BaseInputMethod
     return this.endkey.includes(key);
   }
 
-  IsSpaceAutoUp() {
+  IsSpaceCommitFirst() {
+    // Note SELKEY_SHIFT should be already handled by IsSelectionKey.
+    // If SPACE was processed outside the 'default' key path then we have to
+    // check SELKEY_SHIFT here.
     return this.opts.OPT_AUTO_UPCHAR && this.opts.OPT_SPACE_AUTOUP;
   }
 
-  IsSpaceCommitFirst() {
-    // This is a stonger indication that IsSpaceAutoUp.
-    // Indicates the space will commit the first candidate. The actual selkey
-    // may be '0' but we should look at this option instead.
-    return this.opts.OPT_SELKEY_SHIFT;
+  ProcessSpace(ctx, from_convert) {
+    // See `docs/cin.txt` for details on SPACE behavior.
+    // In AUTO_COMPOSE mode, the candidates window is already there so most
+    // modern IM implementations will expect the SPACE to commit.
+    // - Array rejected this because of the 'quick' that generates a different set
+    //   of candidates, but other IMs all towards auto-commit.
+    // - Boshiamy explicitly expects SPACE to always commit even for multiple
+    //   pages (SPACE_AUTOUP).
+    // - OpenVanilla's behavior (with cusor) is "auto commit only if the
+    //   candidates are <= 1 page".
+    // Hint: try 'yneu' in Boshiamy to check multi-page candidates behavior.
+    //       try '....i' in Array to check single-page acndidates behavior.
+    //       try 'w1' in Array to check multi-page candidates behavior.
+    let commit = false;
+
+    if (from_convert && !this.opts.OPT_AUTO_COMPOSE) {
+      // Convert without AUTO_COMPOSE implies we should not do anything special.
+      commit = false;
+      debug("ConvertComposition: convert without AUTO_COMPOSE, commit=", commit);
+    } else if (from_convert && this.override_autocompose) {
+      // In convert+override mode, never commit
+      commit = false;
+      debug("ConvertComposition: override_autocompose, commit=", commit);
+    } else if (this.IsSpaceCommitFirst()) {
+      commit = true;
+      debug("ConvertComposition: IsSpaceCommitFirst, commit=", commit);
+    } else if (this.CycleCandidates(ctx)) {
+      commit = false;
+      debug("ConvertComposition: CycleCandidates, commit=", commit);
+    } else {
+      commit = true;
+      debug("ConvertComposition: Default (single page), commit=", commit);
+    }
+    debug('ProcessSpace: commit=', commit, this.opts);
+
+    if (!commit)
+      return this.ResultProcessed(ctx);
+    return this.ReturnCommitFirst(ctx);
   }
 
   ConvertComposition(ctx, key) {
@@ -606,39 +655,11 @@ export class GenInp2 extends BaseInputMethod
     }
     this.ShiftState(ctx);
 
-    // In AUTO_COMPOSE mode, the candidates window is already there so most
-    // modern IM implementations will expect the SPACE to commit (SPACE_AUTOUP).
-    // - Array rejected this because of the 'quick' that generates a different set
-    //   of candidates, but other IMs all towards auto-commit.
-    // - Boshiamy explicitly expects SPACE to always commit even for multiple
-    //   pages (by SELKEY_SHIFT).
-    // - OpenVanilla revised the SPACE_AUTOUP as "auto commit only if the
-    //   candidates are <= 1 page".
-    // Hint: try 'yneu' in Boshiamy to check multi-page candidates behavior.
-    //       try '....i' in Array to check single-page acndidates behavior.
-    //       try 'w1' in Array to check multi-page candidates behavior.
-    let commit = this.IsSingleCandidate(ctx);
-    if (!commit && key == ' ' && this.opts.OPT_AUTO_COMPOSE) {
-      if (this.override_autocompose) {
-        // In override mode, never commit.
-        debug("ConvertComposition: override_autocompose");
-      } else if (this.IsSpaceCommitFirst()) {
-        commit = true;
-        debug("ConvertComposition: IsSpaceCommitFirst");
-      } else if (this.IsSpaceAutoUp()) {
-        debug("ConvertComposition: IsSpaceAutoUp");
-        if (!this.CycleCandidates(ctx))
-          commit = true;
-      }
-    }
+    if (this.IsSingleCandidate(ctx))
+      return this.ReturnCommitFirst(ctx);
+    if (key == ' ')
+      return this.ProcessSpace(ctx, true);
 
-    debug('ConvertComposition', `[${key}]`, commit, this.opts);
-
-    if (commit) {
-      if (this.CommitFirst(ctx))
-        return this.ResultCommit(ctx);
-      return this.ResultError(ctx);
-    }
     return this.ResultProcessed(ctx);
   }
 
@@ -677,9 +698,6 @@ export class GenInp2 extends BaseInputMethod
           return this.ResultProcessed(ctx);
         }
         return this.ResultIgnore(ctx);
-
-      case ' ':
-        return this.ConvertComposition(ctx, key);
 
       default:
         // Some keys may be EndKey, SelectionKey, and CompositionKey at the
@@ -730,6 +748,10 @@ export class GenInp2 extends BaseInputMethod
 
           return this.ResultProcessed(ctx);
         }
+
+        if (key == ' ')
+          return this.ConvertComposition(ctx, key);
+        break;
     }
     return this.ResultIgnore(ctx);
   }
@@ -763,40 +785,25 @@ export class GenInp2 extends BaseInputMethod
           return this.ResultProcessed(ctx);
         return this.ResultIgnore(ctx);
 
-      case ' ':
-        assert(this.HasCandidates(ctx), "SPACE in STATE_CANDIDATES needs candidates");
-        if (this.IsSpaceCommitFirst()) {
-          if (this.CommitFirst(ctx))
-            return this.ResultCommit(ctx);
-          return this.ResultError(ctx);
-        } else if (this.CycleCandidates(ctx)) {
-          return this.ResultProcessed(ctx);
-        } else if (this.IsSpaceAutoUp()) {
-          if (this.CommitFirst(ctx))
-            return this.ResultCommit(ctx);
-          return this.ResultError(ctx);
-        }
-        return this.ResultProcessed(ctx);
-
       default:
         if (this.IsSelectionKey(ctx, key)) {
           if (this.SelectCommit(ctx, key))
             return this.ResultCommit(ctx);
           return this.ResultError(ctx, key);
         }
-        // From definition, we should commit + keep typing any characters;
-        // however, currently we can't do ResultCommit+ResultIgnore at the same
-        // time, so we can only commit on Composition keys.
-        if (this.opts.OPT_AUTO_UPCHAR) {
-          if (this.IsCompositionKey(ctx, key)) {
-            this.CommitFirst(ctx);
-            this.AddComposition(ctx, key);
-            return this.ResultCommit(ctx);
-          }
+        // AUTO_UPCHAR: From definition, we should commit + keep typing any
+        // characters; however currently we can't do ResultCommit+ResultIgnore
+        // at the same time, so we can only commit on Composition keys.
+        if (key == ' ') {
+          assert(this.HasCandidates(ctx), "SPACE in STATE_CANDIDATES needs candidates");
+          return this.ProcessSpace(ctx, false);
+        } else if (!this.IsCompositionKey(ctx, key)) {
+          return this.ResultIgnore(ctx);
+        } else if (this.opts.OPT_AUTO_UPCHAR && this.CommitFirst(ctx)) {
+          this.AddComposition(ctx, key);
+          return this.ResultCommit(ctx);
         }
-        if (this.IsCompositionKey(key, key))
-          return this.ResultError(ctx);
-        return this.ResultIgnore(ctx);
+        return this.ResultError(ctx);
     }
   }
 
