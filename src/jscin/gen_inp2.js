@@ -447,7 +447,7 @@ export class GenInp2 extends BaseInputMethod
     if (try_glob) {
       this.AddCandidates(ctx, this.GlobCandidates(ctx, key, table, limit));
       debug("PrepareCandidates: - glob", ctx.candidates);
-    } else if (this.opts.OPT_PARTIAL_MATCH && !changed) {
+    } else if ((this.opts.OPT_AUTO_COMPOSE && this.opts.OPT_PARTIAL_MATCH) && !changed) {
       // OPT_PARTIAL_MATCH and table NOT changed (if changed=quick).
       this.AddCandidates(ctx, this.GetPartialGroupCandidates(ctx, key));
       debug("PrepareCandidates: - partial match", ctx.candidates);

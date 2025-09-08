@@ -173,6 +173,7 @@ function initOpts() {
   }
 
   AssociateOpts('AUTO_UPCHAR', 'SPACE_AUTOUP');
+  AssociateOpts('AUTO_COMPOSE', 'flag_disp_partial_match');
   ExclusiveOpts(['SPACE_AUTOUP', 'SELKEY_SHIFT']);
   ExclusiveOpts(['SPACE_RESET', 'AUTO_RESET']);
   HideByClass(ClsOptAdvanced);
