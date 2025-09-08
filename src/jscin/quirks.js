@@ -259,7 +259,11 @@ function SelkeyShiftQuirks(cin) {
     if (k.startsWith('0') || k.startsWith(' '))
       k = k.slice(1);
   }
-  const c = cin.SPACE_AUTOUP ? '0' : ' ';
+  // TODO(hungte) Decide if we should look at SPACE_AUTOUP or other flags to
+  // decide using '0' or space.
+  let preferZero = cin.SPACE_AUTOUP;
+  preferZero = true;
+  const c = preferZero ? '0' : ' ';
   k = c + k.replaceAll(c, '')
   debug("SELKEY_SHIFT: selkey", cin.selkey, '=>', k);
 
