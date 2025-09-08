@@ -87,13 +87,13 @@ export function DetectInputMethodType(cin) {
       opts: {
         AUTO_COMPOSE: false,
         AUTO_FULLUP: true,
+        space_auto_first_full: true,
       },
     },
     boshiamy: {
       detect: { "ca": "夕" },
       opts: {
         SELKEY_SHIFT: true,
-        SPACE_AUTOUP: true,
         SPACE_RESET: true,
       },
     },
@@ -170,19 +170,12 @@ function GcinQuirks(cin) {
 
     case 2:
       // GTAB_space_auto_first_full: Simplex.
-      // Technically this only means "SPACE_AUTOUP on full" (which the
-      // xcin/jscin do not really have an option), but some tables may only have
-      // this and not %flag_press_full_auto_send (AUTO_FULLUP) so we are
-      // combining these options together.
-      cin.AUTO_FULLUP = true;
-      // The following options are expected but not really needed because they
-      // are the default options today:
-      //  cin.AUTO_UPCHAR = true;
-      //  cin.SPACE_AUTOUP = true;
+      cin.space_auto_first_full = true;
       break;
 
     case 4:
       // GTAB_space_auto_first_nofull: Windows Array30, Changjei.
+      cin.space_auto_first_full = false;
       break;
 
     case 8:

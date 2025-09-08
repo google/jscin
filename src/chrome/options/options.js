@@ -114,6 +114,7 @@ function initOpts() {
     'WILD_ENABLE', 'END_KEY',
     'flag_unique_auto_send',
     'flag_disp_partial_match',
+    'space_auto_first_full',
   ];
   let node = $('#divOpts');
   for (const o in jscin.OPTS) {

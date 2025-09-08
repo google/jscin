@@ -29,6 +29,7 @@ export const OPTS = {
 
   AUTO_COMPOSE: true,
   flag_disp_partial_match: false,
+  space_auto_first_full: false,
   WILD_ENABLE: true,
 
   END_KEY: false,

@@ -70,7 +70,8 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 
   在 JsCIN 的實作中，以上選項會盡可能轉換成對應的 XCIN25 選項。但注意 XCIN25 的
   設定體系與 GCIN 有根本上的不同， XCIN 是以「重複後怎麼處理」為原則，而 GCIN
-  則是「空白鍵的行為是什麼」。
+  則是「空白鍵的行為是什麼」。所以 "any" 會轉成 SPACE_AUTOUP, 但 "full" 跟
+  "nofull" 則是結合為新選項 "space_auto_first_full"
 
   另外，在新版的 GCIN 當中，"dayi" 選項已經沒有相關的程式碼，且設定界面上直接
   建議大易使用跟嘸蝦米一樣的 "any"。這個舊選項只留在 `gtab.h` 檔案內。

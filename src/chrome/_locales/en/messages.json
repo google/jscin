@@ -122,6 +122,7 @@
   "opt_AUTO_RESET": {"message": "Reset error (clear composing buffer) automatically" },
   "opt_AUTO_COMPOSE": {"message": "Preview exactly matched candidates" },
   "opt_flag_disp_partial_match": {"message": "Preview partially matched candidates" },
+  "opt_space_auto_first_full": {"message": "When composition is full, SPACE to commit the first candidate" },
   "opt_WILD_ENABLE": {"message": "Match candidates with wildcards: *?" },
   "opt_END_KEY": {"message": "Compose immediately when any ending key (%endkey) is pressed" },
 
@@ -133,6 +134,7 @@
   "title_flag_unique_auto_send": {"message": "GCIN Command: %flag_unique_auto_send" },
   "title_AUTO_COMPOSE": {"message": "XCIN25 Command: %AUTO_COMPOSE" },
   "title_flag_disp_partial_match": {"message": "GCIN Command: %flag_disp_partial_match" },
+  "title_space_auto_first_full": {"message": "GCIN Command: %space_style=2 (GTAB_space_auto_first_full)" },
   "title_WILD_ENABLE": {"message": "XCIN25 Command: %WILD_ENABLE" },
   "title_END_KEY": {"message": "XCIN25 Command: %ENDKEY" },
   "title_SELKEY_SHIFT": {"message": "XCIN25 Command: %SELKEY_SHIFT" },

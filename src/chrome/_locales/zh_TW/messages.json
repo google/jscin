@@ -124,6 +124,7 @@
   "opt_AUTO_RESET": {"message": "組字錯誤時自動清除" },
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出完全符合的候選字" },
   "opt_flag_disp_partial_match": {"message": "組字時預先列出部分符合的候選字" },
+  "opt_space_auto_first_full": {"message": "按滿按空白送出第一字" },
   "opt_WILD_ENABLE": {"message": "允許使用萬用字元(?*)來找尋候選字" },
   "opt_END_KEY": {"message": "按下輸入法指定的結束鍵(%endkey)時立刻組字" },
 
@@ -135,6 +136,7 @@
   "title_flag_unique_auto_send": {"message": "GCIN 指令: %flag_unique_auto_send" },
   "title_AUTO_COMPOSE": {"message": "XCIN25 指令: %AUTO_COMPOSE" },
   "title_flag_disp_partial_match": {"message": "GCIN 指令: %flag_disp_partial_match" },
+  "title_space_auto_first_full": {"message": "GCIN 指令: %space_style=2 (GTAB_space_auto_first_full)" },
   "title_WILD_ENABLE": {"message": "XCIN25 指令: %WILD_ENABLE" },
   "title_SELKEY_SHIFT": {"message": "XCIN25 指令: %SELKEY_SHIFT" },
   "title_END_KEY": {"message": "XCIN 25 指令: %ENDKEY" },
