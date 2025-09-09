@@ -6,7 +6,7 @@
  */
 
 import { parseCin } from "./cin_parser.js";
-import { applyInputMethodTableQuirks } from './quirks.js';
+import { applyInputMethodTableQuirks, postInputMethodTableQuirks } from './quirks.js';
 import { ChromeStorage, Storage, LoadText } from "./storage.js";
 
 import { AddLogger } from "./logger.js";
@@ -503,6 +503,7 @@ export class InputMethodsEnvironment {
     // Overwrite opts from stored values (must be done after
     // applyInputMethodTableQuirks).
     Object.assign(cin, opts);
+    postInputMethodTableQuirks(cin);
 
     let instance = new module(name, cin);
     debug("activateInputMethod: Created input method:", name, opts, instance, module.name);

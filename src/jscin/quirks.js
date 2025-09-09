@@ -322,8 +322,13 @@ export function applyInputMethodTableQuirks(cin) {
 
   // IM specific quirks
   PhoneticQuirks(cin);
-  SelkeyShiftQuirks(cin);
 
   // Default options should be applied at the last step.
   AddDefaultOptions(cin);
+}
+
+/* Quirks that must be applied after the opts were finalized. */
+export function postInputMethodTableQuirks(cin) {
+
+  SelkeyShiftQuirks(cin);
 }
