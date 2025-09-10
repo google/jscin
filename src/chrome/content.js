@@ -33,8 +33,9 @@ async function StartEmulation() {
   for (let i = 0; i < nodes.length; i++) {
     ime_api.attach(nodes[i]);
   }
-  if (document.activeElement)
-    document.activeElement.focus();
+  const active = document.activeElement;
+  if (active)
+    active.focus();
 }
 
 async function Initialize () {

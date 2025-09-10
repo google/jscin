@@ -37,35 +37,32 @@ export class IpcContentIme extends IpcIme {
   }
 
   createFrame(url) {
-    let frame = document.createElement("iframe");
-    const frameURL = chrome.runtime.getURL(url);
     // the attributes of the iframe itself can only be set from the top level.
-    frame.setAttribute("src", frameURL);
-    frame.setAttribute("scrolling", "no");
-    frame.setAttribute("frameBorder", 0);
-    frame.setAttribute("allowTransparency", true);
-    frame.style.backgroundColor = "transparent";
-    frame.style.border = 0;
-    frame.style.display = "none";
-    frame.style.padding = 0;
-    frame.style.position = "absolute";
-    frame.style.width = "32em";
-    frame.style.height = "100%";
-    frame.style.zIndex = 999999;
-    let [ref] = document.getElementsByTagName('body') || document.children;
-    ref.appendChild(frame);
+    const frame = $('<iframe/>').attr({
+      src: chrome.runtime.getURL(url),
+      allowTransparency: true,
+      frameBorder: 0,
+      scrolling: "no",
+    }).css({
+      backgroundColor: "transparent",
+      border: 0,
+      display: "none",
+      padding: 0,
+      position: "absolute",
+      width: "32em",
+      height: "100%",
+      zIndex: 999999
+    });
+    frame.appendTo('body');
     return frame;
   }
 
-  showPanel(show) {
-    if (show === undefined)
-      show = true;
+  showPanel(show=true) {
     let panel = $(this.panel_node);
+    panel.finish();
     if (show) {
-      panel.finish();
       panel.fadeIn(100);
     } else {
-      panel.finish();
       panel.fadeOut(100);
     }
   }

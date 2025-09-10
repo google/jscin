@@ -16,6 +16,10 @@ function log(...args) {
   console.log("[dumbime]", ...args);
 }
 
+function ByID(id) {
+  return document.getElementById(id);
+}
+
 function DumbIME() {
   let _listeners = {};
 
@@ -40,7 +44,7 @@ function DumbIME() {
 
     commitText: function (arg) {
       log('commitText', arguments);
-      document.getElementById('committed').value += arg.text;
+      ByID('committed').value += arg.text;
     },
     setCandidateWindowProperties: function (arg) {
       log('setCandidateWindowProperties', arguments);
@@ -48,25 +52,24 @@ function DumbIME() {
         let color = 'black';
         if (!arg.properties.visible)
           color = 'lightgray';
-        document.getElementById('candidates').style.color = color;
+        ByID('candidates').style.color = color;
       }
     },
     setComposition: function (arg) {
       log('setComposition', arguments);
-      document.getElementById('composition').value = arg.text;
+      ByID('composition').value = arg.text;
     },
     clearComposition: function () {
       log('clearComposition', arguments);
-      document.getElementById('composition').value = '';
+      ByID('composition').value = '';
     },
     setCandidates: function (arg) {
       log('setCandidates', arguments);
       let s = '';
-      for (let i in arg.candidates) {
-        let cand = arg.candidates[i];
+      for (let cand of arg.candidates) {
         s += cand.label + ' ' + cand.candidate + ', ';
       }
-      document.getElementById('candidates').value = s;
+      ByID('candidates').value = s;
     },
     updateMenuItems: function () {
       log('updateMenuItems', arguments);
@@ -98,30 +101,30 @@ async function init() {
   await croscin.Initialize();
 
   // key events
-  document.getElementById('input').onkeydown = function (evt) {
+  ByID('input').onkeydown = function (evt) {
     log('onkeydown', evt);
     dumb_ime.onKeyEvent.invoke(engineID, evt);
     return false;
   }
-  document.getElementById('input').onkeyup = function (evt) {
+  ByID('input').onkeyup = function (evt) {
     log('onkeyup', evt);
     dumb_ime.onKeyEvent.invoke(engineID, evt);
     return false;
   }
 
   // Generate events
-  document.getElementById('onActivate').onclick = function () {
+  ByID('onActivate').onclick = function () {
     dumb_ime.onActivate.invoke(engineID);
-    document.getElementById('input').title = 'Please click onFocus to start';
-    document.getElementById('onActivate').disabled = true;
-    document.getElementById('onFocus').disabled = false;
+    ByID('input').title = 'Please click onFocus to start';
+    ByID('onActivate').disabled = true;
+    ByID('onFocus').disabled = false;
   }
-  document.getElementById('onFocus').onclick = function () {
+  ByID('onFocus').onclick = function () {
     let context = {
       'contextID': 1,
     };
-    document.getElementById('input').title = 'Please start to input';
-    document.getElementById('input').disabled = false;
+    ByID('input').title = 'Please start to input';
+    ByID('input').disabled = false;
     dumb_ime.onFocus.invoke(context);
   }
 }

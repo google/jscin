@@ -18,6 +18,7 @@ function debug(...args) {
 
 // Testing functions
 const testContextID = '0';
+const contextID = testContextID;
 
 class testInputIme {
   constructor(ime) {
@@ -43,13 +44,15 @@ class testInputIme {
   }
 
   bind() {
-    let btns = document.getElementsByTagName('button');
+    let btns = $('button');
     let items = this.items();
     console.assert(btns.length == items.length);
-    for (let i = 0; i < btns.length; i++) {
-      $(btns[i]).text(`${items[i]}`.match(/{ this\.test_(.*); }/)[1]);
-      $(btns[i]).click(items[i]);
-    }
+    btns.each((i, e) => {
+      debug("i,e=", i, e);
+      const t = items[i];
+      $(e).text(t.toString().match(/{ this\.test_(.*); }/)[1]);
+      $(e).click(t);
+    });
     this.ime.onKeyEvent.addListener(function(engineID, ev) {
       let val = $('#chkKeyEvent').prop('checked');
       debug("onKeyEvent:", ev, engineID);
@@ -68,59 +71,41 @@ class testInputIme {
     });
   }
 
-  test_setCandidateWindowProperties(obj) {
-    this.ime.setCandidateWindowProperties({
-      contextID: testContextID,
-      properties: obj});
+  test_setCandidateWindowProperties(properties) {
+    this.ime.setCandidateWindowProperties({contextID, properties});
   }
 
   test_clearComposition() {
-    this.ime.clearComposition({
-      contextID: testContextID});
+    this.ime.clearComposition({contextID});
   }
 
   test_setComposition(text) {
-    this.ime.setComposition({
-      contextID: testContextID,
-      text: text});
+    this.ime.setComposition({contextID, text});
   }
 
   test_commitText(text) {
-    let node = document.getElementById('input');
-    node.focus();
-    this.ime.commitText({
-      contextID: testContextID,
-      text: text});
+    $('#input').focus();
+    this.ime.commitText({contextID, text});
   }
 
   test_setCandidates(candidate_string) {
-    let i;
-    let items = [];
-
-    for (i in candidate_string) {
-      items.push({
-        candidate: candidate_string[i],
-        id: parseInt(i),
-        label: `${parseInt(i) + 1}`});
-    }
-    this.ime.setCandidates({
-      contextID: testContextID,
-      candidates: items});
+    let candidates = [];
+    [...candidate_string].forEach((candidate, id) => {
+      const label = `${id + 1}`;
+      candidates.push({candidate, id, label});
+    });
+    this.ime.setCandidates({contextID, candidates});
   }
 
-  // jquery-based test init
   test_setMenuItems(labels_array) {
     let items = [];
+    const style = 'radio';
     for (let label of labels_array) {
-      items.push({
-        id: 'id_' + label,
-        label: label,
-        style: 'radio',
-      });
+      const id = `id_${label}`;
+      items.push({id, label, style});
     }
-    this.ime.setMenuItems({
-      engineID: this.ime.engineID,
-      items: items});
+    const engineID = this.ime.engineID;
+    this.ime.setMenuItems({engineID, items});
   }
 }
 
@@ -134,9 +119,9 @@ async function Init() {
 
   await croscin.Initialize();
 
-  let node = document.getElementById('input');
+  const node = $('#input');
   ime.onActivate.dispatch(ime.engineID);
-  ime.attach(node);
+  ime.attach(node[0]);
 
   let test = new testInputIme(ime);
   $('#TestItems').hide();
