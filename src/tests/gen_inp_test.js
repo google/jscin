@@ -185,6 +185,7 @@ async function main() {
     }
   };
   print("Total failures: ", total_failure, " / " , total_tested);
+  process.exit(total_failure);
 }
 
 await main();
