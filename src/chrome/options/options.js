@@ -97,10 +97,6 @@ function ShowAlertRestartDialog(value) {
   const buttons = [{text, click}];
   $('#dialog_alert_restart').dialog({title, modal, buttons});
 }
-const SELECT_OPTS = {
-  SPACE_AUTOUP: jscin.SPACE_AUTOUP_VALUES,
-}
-
 function initOpts() {
   // OpenVanilla only supports setting (in order):
   //  AUTO_FULLUP
@@ -129,11 +125,11 @@ function initOpts() {
     const cls = `opt_${o}`, id = cls, title = _(`title_${o}`);
     const text= _(cls);
     let items = [];
-    if (o in SELECT_OPTS) {
+    if (o in jscin.MULTI_OPTS) {
       items.push($('<label/>').attr({title, for: cls, class: cls}).text(text));
       items.push('<br/>&nbsp;&nbsp;&nbsp;');
       const sel = $('<select/>').attr({id});
-      for (const value of SELECT_OPTS[o]) {
+      for (const value of jscin.MULTI_OPTS[o]) {
         const val_text = _(`opt_${o}_${value}`);
         sel.append($('<option/>').attr({value}).text(val_text));
       }
@@ -643,7 +639,7 @@ function addTableToList(name, list_id, do_insert) {
     function SetOpts(opts) {
       for (const o in jscin.OPTS) {
         const idsel = `#opt_${o}`;
-        const select = SELECT_OPTS[o];
+        const select = jscin.MULTI_OPTS[o];
         if (select) {
           let val = opts[o];
           if (!val)
@@ -690,7 +686,7 @@ function addTableToList(name, list_id, do_insert) {
           const id = `opt_${o}`;
           const node = $(ById(id));
           let new_val;
-          if (o in SELECT_OPTS) {
+          if (o in jscin.MULTI_OPTS) {
             new_val = node.val();
           } else {
             new_val = node.is(':checked')
