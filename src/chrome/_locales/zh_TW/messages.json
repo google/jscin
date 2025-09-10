@@ -117,8 +117,8 @@
 
   "opt_AUTO_UPCHAR": {"message": "多個候選字時，按任意鍵(空白鍵除外)送出第一個字" },
   "opt_SPACE_AUTOUP": {"message": "在多個候選字時按下空白鍵:" },
-  "opt_SPACE_AUTOUP_NONE": {"message": "無: 不會送出候選字 (翻頁或錯誤)" },
-  "opt_SPACE_AUTOUP_DEFAULT": {"message": "預設: 候選字單頁時送出第一個候選字，多頁時翻頁" },
+  "opt_SPACE_AUTOUP_NO": {"message": "無: 不會送出候選字 (翻頁或錯誤)" },
+  "opt_SPACE_AUTOUP_YES": {"message": "自動: 候選字單頁時送出第一個候選字，多頁時翻頁" },
   "opt_SPACE_AUTOUP_ANY": {"message": "一律: 只會送出第一個候選字" },
   "opt_SELKEY_SHIFT": {"message": "調整選擇鍵讓空白鍵一律選擇並送出第一個候選字" },
   "opt_SPACE_RESET": {"message": "組字錯誤時可按空白鍵清除" },

@@ -17,15 +17,16 @@ export const KEY_INFO_LIST = "info_list";
 export const KEY_TABLE_PREFIX = "table-";
 export const KEY_OPTS_PREFIX = "opts-";
 
-export const SPACE_AUTOUP_NONE = 'NONE';
-export const SPACE_AUTOUP_DEFAULT = 'DEFAULT';
+export const SPACE_AUTOUP_NO = 'NO';
+export const SPACE_AUTOUP_YES = 'YES';
 export const SPACE_AUTOUP_ANY = 'ANY';
+export const SPACE_AUTOUP_DEFAULT = SPACE_AUTOUP_YES;
 export const SPACE_AUTOUP_VALUES = [
-  SPACE_AUTOUP_NONE, SPACE_AUTOUP_DEFAULT, SPACE_AUTOUP_ANY
+  SPACE_AUTOUP_NO, SPACE_AUTOUP_YES, SPACE_AUTOUP_ANY,
 ];
 
 export const OPTS = {
-  SPACE_AUTOUP: 'DEFAULT',
+  SPACE_AUTOUP: SPACE_AUTOUP_DEFAULT,
   SELKEY_SHIFT: false,
   AUTO_UPCHAR: true,
 
@@ -127,8 +128,9 @@ export class InputMethodsEnvironment {
     this.OPTS = OPTS;
     this.SPACE_AUTOUP_VALUES = SPACE_AUTOUP_VALUES;
     this.SPACE_AUTOUP_ANY = SPACE_AUTOUP_ANY;
+    this.SPACE_AUTOUP_YES = SPACE_AUTOUP_YES;
+    this.SPACE_AUTOUP_NO = SPACE_AUTOUP_NO;
     this.SPACE_AUTOUP_DEFAULT = SPACE_AUTOUP_DEFAULT;
-    this.SPACE_AUTOUP_NONE = SPACE_AUTOUP_NONE;
   }
 
   async initialize() {

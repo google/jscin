@@ -85,8 +85,8 @@ export class GenInp2 extends BaseInputMethod
       if (!valid)
         v = jscin.SPACE_AUTOUP_DEFAULT;
       this.opts[`OPT_SPACE_AUTOUP_${v}`] = true;
-      // OPT_SPACE_AUTOUP_NONE,
-      // OPT_SPACE_AUTOUP_DEFAULT,
+      // OPT_SPACE_AUTOUP_NO,
+      // OPT_SPACE_AUTOUP_YES,
       // OPT_SPACE_AUTOUP_ANY,
     }
 
@@ -642,9 +642,9 @@ export class GenInp2 extends BaseInputMethod
     } else if (this.CycleCandidates(ctx)) {
       commit = false;
       debug("ConvertComposition: CycleCandidates, commit=", commit);
-    } else if (this.opts.OPT_SPACE_AUTOUP_DEFAULT) {
+    } else if (this.opts.OPT_SPACE_AUTOUP_YES) {
       commit = true;
-      debug("ConvertComposition: SPACE_AUTOUP_DEFAULT, commit=", commit);
+      debug("ConvertComposition: SPACE_AUTOUP_YES, commit=", commit);
     } else {
       commit = false;
       debug("ConvertComposition: Default (nothing), commit=", commit);

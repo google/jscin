@@ -303,7 +303,7 @@ function NormalizeSpaceAutoUp(cin) {
   if (jscin.SPACE_AUTOUP_VALUES.includes(v))
     return;
   if (v === false)
-    v = jscin.SPACE_AUTOUP_NONE;
+    v = jscin.SPACE_AUTOUP_NO;
   else
     v = jscin.SPACE_AUTOUP_DEFAULT;
   debug("Adjusted cin.SPACE_AUTOUP:", cin.SPACE_AUTOUP, "=>", v);

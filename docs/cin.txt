@@ -137,8 +137,8 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   選第一個字(而非翻頁)。 在 JsCIN 裡 SPACE_AUTOUP 與 AUTO_UPCHAR 脫勾，
   獨立成為空白鍵的選項之一，而且變為多重文字選項:
    ANY: 一律送出第一個候選字
-   DEFAULT: 單頁時送出第一個候選字，多頁時翻頁
-   NONE: 一律不送出候選字（只翻頁或錯誤）
+   YES: 單頁時送出第一個候選字，多頁時翻頁
+   NO: 一律不送出候選字（只翻頁或錯誤）
 
 %SELKEY_SHIFT
   第一個候選字用空白選（用於嘸蝦米與大易），後面的選擇鍵順移。
@@ -256,5 +256,5 @@ GCIN 2.9.* 在 UI 上提供的選項是:
 - 對於空白變換後相關的設定選項:
   = SELKEY_SHIFT: 調整選擇鍵(同時有一律送出第一個字的效果)
   = SPACE_AUTOUP=ANY: 一律送字
-  = SPACE_AUTOUP=DEFAULT: 單頁送字，多頁翻頁
-  = SPACE_AUTOUP=NONE: 一律不送字
+  = SPACE_AUTOUP=YES: 單頁送字，多頁翻頁
+  = SPACE_AUTOUP=NO:  不送字
