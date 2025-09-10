@@ -70,12 +70,12 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 
   在 JsCIN 的實作中，以上選項會盡可能轉換成對應的 XCIN25 選項。但注意 XCIN25 的
   設定體系與 GCIN 有根本上的不同， XCIN 是以「重複後怎麼處理」為原則，而 GCIN
-  則是「空白鍵的行為是什麼」。所以 "any" 會轉成 SPACE_AUTOUP, 但 "full" 跟
-  "nofull" 則是結合為新選項 "space_auto_first_full"
+  則是「空白鍵的行為是什麼」。所以 "any" 會轉成 SELKEY_SHIFT 或 SPACE_AUTOUP,
+  但 "full" 跟 "nofull" 則是結合為新選項 "space_auto_first_full"
 
   另外，在新版的 GCIN 當中，"dayi" 選項已經沒有相關的程式碼，且設定界面上直接
   建議大易使用跟嘸蝦米一樣的 "any"。這個舊選項只留在 `gtab.h` 檔案內。
-  JsCIN 的處理 方式是照說明用 XIN25 的 %SELKEY_SHIFT 取代。
+  JsCIN 的處理方式是照說明用 XIN25 的 %SELKEY_SHIFT 取代。
 
 %flag_disp_full_match
   打字時列出符合的候選字 (同 XCIN25 的 AUTO_COMPOSE)
@@ -133,7 +133,12 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   自動上字。遇到重複字時可用任一非選擇鍵選第一個字，但空白除外（會翻頁)。
 
 %SPACE_AUTOUP
-  空白鍵自動上字模式。在 AUTO_UPCHAR 開啟時，空白鍵改為選第一個字而非翻頁。
+  空白鍵自動上字模式。XCIN 的原始定義是在 AUTO_UPCHAR 開啟時，空白鍵改為
+  選第一個字(而非翻頁)。 在 JsCIN 裡 SPACE_AUTOUP 與 AUTO_UPCHAR 脫勾，
+  獨立成為空白鍵的選項之一，而且變為多重文字選項:
+   ANY: 一律送出第一個候選字
+   DEFAULT: 單頁時送出第一個候選字，多頁時翻頁
+   NONE: 一律不送出候選字（只翻頁或錯誤）
 
 %SELKEY_SHIFT
   第一個候選字用空白選（用於嘸蝦米與大易），後面的選擇鍵順移。
@@ -189,14 +194,13 @@ JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
 空白鍵的行為在各輸入法通常都有不同的定義，在 GCIN 與 XCIN 中也提供了最多的指令。
 在此統整一下相關的行為與指令。
 
-[組字中第一次按下空白時]
-如果只有單一候選字則送出此字。 若有多重候選字時：
+組字中第一次按下空白時，如果只有單一候選字則送出此字。 若有多重候選字時：
 
 - GTAB_space_auto_first_any: 不管幾頁，送出第一個候選字。
 - GTAB_space_auto_first_full: 若打滿則送出第一個候選字。
 - GTAB_space_auto_first_nofull: 不管有沒有打滿都不送候選字。
 - SELKEY_SHIFT: 選擇目前頁面第一個候選字。
-- AUTO_UPCHAR+SPACE_AUTOUP: 選擇第一個候選字
+- SPACE_AUTOUP: 選擇第一個候選字
 - AUTO_FULLUP+SPACE_IGNORE: 若打滿(其實已經上字了)，忽略此空白。
 
 古早 DOS 時代原始的輸入法實作裡通常沒有預視 (AUTO_COMPOSE) 功能導致這些設計
@@ -207,31 +211,50 @@ JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
 使用者已看到結果，所以空白鍵就是要進行下一步的選擇。
 
 如果 SPACE 沒有送出候選字也沒被忽略，在沒有預視功能(如注音)的前提下，
-應該是「變換=列出候選字」。 在有預視的系統上，目前大多的實作如香草、
+應該是「變換=列出候選字」。 在有預視的系統上，目前大多的實作如OpenVanilla、
 Mac、GCIN 都傾向直接變成出第一個字或翻下一頁(相當於第二次按下空白)。
+
+OpenVanilla 提供的兩個選項 (exclusive) 是：
+ - Use Space as the first candidate key [SELKEY_SHIFT]
+ - Space selects the first candidate when there's only one page
+   [SendFirstCandidateWithSpaceWithOnePageList, 接近 SPACE_AUTOUP
+    但多了一頁的限制]
+ - 兩個都不選就是多重候選字時空白鍵完全不會出字。
+另外，OpenVanilla 的行列是獨立的選項界面、沒有空白選項可以選，它的行為是
+預設 SendFirstCandidateWithSpaceWithOnePageList=true,多頁時翻頁，單頁時出字。
+
+線上嘸蝦米 (https://boshiamy.then.tw/ime) 的行為則是第一個選擇鍵寫 0，但
+加入了游標系統、按下空白鍵等於選游標所在的字（預設是第一個，不管是否多頁）
+
+GCIN 2.9.* 在 UI 上提供的選項是:
+ - 按空白送出第一字 [SELKEY_SHIFT]
+ - 按滿按空白送出第一字
+ - 按滿按空白不送出第一字
+在沒選到「按空白送出第一字」的前提下，空白的行為也是「多頁翻頁，單頁出字」。
+但 space_first_full 跟 space_first_nofull 在目前的輸入法差異不大。
+對於 full 而言，主要是簡易在用，可是簡易更需要的是 %flag_press_full_auto_send
+(AUTO_FULLUP) ，對於使用者來說這可能更像 AUTO_FULLUP + SPACE_IGNORE。
+對於 nofull 而言，像行列有的表格支援詞庫或是大字庫（加上 i），平時打滿的機會
+幾乎沒有。所以 GCIN 相當於是兩種選項。
+
+總結來說，現代輸入法平台的需求主要是兩種：
+(1) 嘸蝦米類的 SELKEY_SHIFT
+(2) 多頁翻頁，單頁出字 (SendFirstCandidateWithSpaceWithOnePageList)
+至於有沒有不依靠 SELKEY_SHIFT 的 SPACE_AUTOUP, 在原始的 xcinrc
+範例裡沒有使用，一般主要還是嘸蝦米的使用者跟 SELKEY_SHIFT 一起連用。
 
 注意行列30的一二級簡碼 (%quick) 根據原始行列的定義是一定要顯示的，
 但不會被空白鍵選擇到也不會翻頁，應與正常預視分開處理。
 
-另外，space_first_full 跟 space_first_nofull 在目前的輸入法差異不大，
-對於 full 而言，主要是簡易在用，可是簡易更需要的是 %flag_press_full_auto_send
-(AUTO_FULLUP) ，對於使用者來說這可能更像 AUTO_FULLUP + SPACE_IGNORE。
-對於 nofull 而言，像行列有的表格支援詞庫或是大字庫（加上 i），平時打滿的
-機會幾乎沒有。
+也因此，在 JsCIN 實作(主要是 GenInp2)內，空白鍵的選項是接近 OpenVanilla 的
+設計，並把 SPACE_AUTOUP 改成多重選項。
 
-也因此，在 JsCIN 實作(主要是 GenInp2)內，
- - SELKEY_SHIFT 不管候選字有幾頁，按下空白一律出第一個字（因為它是選擇鍵），
-   對應 GTAB_space_auto_first_any。
- - AUTO_UPCHAR+SPACE_AUTOUP 則是只在候選字一頁內才會用空白送字，超過一頁則翻頁。
-   (注意這與原始 SPACE_AUTOUP 定義不同，但為了讓空白的預設行為更接近現代輸入法
-    所以 JsCIN 在此有所調整)
- - space_first_full 在非 AUTO_COMPOSE 的時候無作用（因為按下去才能變換，或是
-   AUTO_FULLUP 自動變換，後面變成 SPACE_AUTOUP），
-   AUTO_COMPOSE 時不管是不是 FULL 都同等於 AUTO_UPCHAR+SPACE_AUTOUP。
-   所以 JsCIN 無實作，但會自動選取 AUTO_FULLUP。
- - space_first_nofull: 預設值 (另一個作法是取消 SPACE_AUTOUP)。
-
-[第二次按下空白時]
-
-若只有一頁，目前的實作都傾向送出第一個候選字。
-若有多頁，目前的實作都傾向翻頁。
+- 空白的預設行為是:
+  (變換前)變換成候選字，若只有一個候選字則送出。若有多個字則不送出。
+  (變換後)若只有一頁候選字則送出第一個，若有多頁候選字則翻頁。
+  AUTO_COMPOSE 時，第一個空白同時要進行變換前後的處理。
+- 對於空白變換後相關的設定選項:
+  = SELKEY_SHIFT: 調整選擇鍵(同時有一律送出第一個字的效果)
+  = SPACE_AUTOUP=ANY: 一律送字
+  = SPACE_AUTOUP=DEFAULT: 單頁送字，多頁翻頁
+  = SPACE_AUTOUP=NONE: 一律不送字
