@@ -48,12 +48,8 @@ export class GenInp2 extends BaseInputMethod
     this.table = conf.chardef || {};
     this.trie = undefined; // trie is created only if we need frequent partial match.
     this.max_composition = parseInt(conf.max_keystroke || "0");
-    this.opts = {
-      OPT_AUTO_COMPOSE: true,
-      OPT_AUTO_UPCHAR: true,
-      OPT_SPACE_RESET: true,
-      OPT_WILD_ENABLE: true,
-    };
+    // Default values should come from `jscin.OPTS`.
+    this.opts = {};
 
     // The table to override when converting composition to candidates.
     this.override_conversion = conf.KEYSTROKE_REMAP;
