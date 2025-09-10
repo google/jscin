@@ -211,17 +211,15 @@ async function init() {
 
   initOpts();
 
+  const revert = true, connectWith = '.sortable', helper = 'clone';
+
   $('#available_im_list').sortable({
-    revert: true,
-    connectWith: ".sortable",
-    helper: 'clone'
+    revert, connectWith, helper
   }).disableSelection();
 
   $('#enabled_im_list').sortable({
-    revert: true,
-    connectWith: ".sortable",
+    revert, connectWith, helper,
     cancel: "li:only-child",
-    helper: 'clone',
     update: function () {
       let new_list = [];
       // TODO(hungte) Replace each by something better.
@@ -285,7 +283,7 @@ async function init() {
       {
         text: _("optionAddTable"),
         click: function() {
-          const files = document.getElementById("cin_table_file_input").files;
+          const files = $("#cin_table_file_input").prop('files');
           addTableFromFile(files);
           $(this).dialog("close");
         }
@@ -604,9 +602,8 @@ async function updateBytesInUse(storage=jscin.storage) {
 }
 
 function setAddTableStatus(status, err) {
-  const status_field = document.getElementById("add_table_status");
-  status_field.innerText = status;
-  status_field.className = err ? "status_error" : "status_ok";
+  $('#add_table_status').text(status).toggleClass(
+    'status_error', err).toggleClass('status_ok', !err);
 }
 
 function addTableToList(name, list_id, do_insert) {
@@ -640,11 +637,8 @@ function addTableToList(name, list_id, do_insert) {
     $('#optionTableDetailName').text(name_label);
     $('#optionTableDetailSource').val(url);
     $('#query_keystrokes').prop('checked', config.AddonCrossQuery() == name);
-    if (im_type) {
-      $('.optionResetOpts').text(_('optionResetOptsAs', _(`im_${im_type}`)));
-    } else {
-      $('.optionResetOpts').text(_('optionResetOpts'));
-    }
+    const btn = im_type ? _('optionResetOptsAs', _(`im_${im_type}`)) : _('optionResetOpts');
+    $('.optionResetOpts').text(btn);
 
     function SetOpts(opts) {
       for (const o in jscin.OPTS) {
@@ -722,7 +716,8 @@ function addTableToList(name, list_id, do_insert) {
 
     /* Currently we expect at least one table is enabled. */
     if (!keep) {
-      buttons.push( { text: _('optionRemove'),
+      buttons.push({
+        text: _('optionRemove'),
         click: function () {
           if (confirm(_("optionAreYouSure"))) {
             removeTable(name);
@@ -742,8 +737,7 @@ function addTableToList(name, list_id, do_insert) {
           $(this).dialog("close");
         }});
     }
-    buttons.push(
-    {
+    buttons.push({
       text: _("optionCancel"),
       click: function() {
         $(this).dialog("close");
@@ -753,8 +747,8 @@ function addTableToList(name, list_id, do_insert) {
     $('#table_detail_dialog').dialog({
       title: _("optionTableDetail"),
       minWidth: 575,
-      buttons: buttons,
-      modal: true
+      modal: true,
+      buttons,
     });
   });
 }
