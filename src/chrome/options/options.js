@@ -639,10 +639,11 @@ function addTableToList(name, list_id, do_insert) {
         const select = jscin.MULTI_OPTS[o];
         if (select) {
           let val = opts[o];
-          if (!val)
-            val = select[0];
-          else if (val === true)
-            val = select[1];
+
+          // Solve incompatible values.
+          if (!select.includes(val))
+            val = val ? select[1] : select[0];
+
           $(idsel).val(val).trigger('change');
         } else {
           $(idsel).prop('checked', opts[o]).trigger('change');
