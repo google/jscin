@@ -22,7 +22,10 @@ import { _ } from "../i18n.js";
 import { AddLogger } from "../jscin/logger.js";
 const {debug, warn, error, assert, logger} = AddLogger("option");
 
-const ClsExperimental = "experimental";
+const ClsExperimental = "experimental",
+      ClsPatform = "platform",
+      ClsDebug = "debug",
+      ClsHidden = 'hidden';
 const ClsOptAdvanced = "optAdvanced";
 
 // Use var for variables that we want to explore and change in the browser
@@ -63,19 +66,24 @@ async function reloadIM(name) {
   notify.Send(NOTIFY_RELOAD_IM, name);
 }
 
-function HideByClass(cls, bg) {
-  for (const n of document.getElementsByClassName(cls)) {
-    if (!bg)
-      n.style.display = 'none';
-    else
-      n.style.background = bg;
-  }
+function ByClass(cls) {
+  return `.${cls}`;
+}
+
+function ById(id) {
+  return `#${id}`;
+}
+
+function ToggleByClass(cls, val) {
+  $(ByClass(cls)).toggleClass(ClsHidden, !val);
+}
+
+function HideByClass(cls) {
+  return ToggleByClass(cls, false);
 }
 
 function ShowByClass(cls) {
-  for (const n of document.getElementsByClassName(cls)) {
-    n.style.display = 'block';
-  }
+  return ToggleByClass(cls, true);
 }
 
 function ShowAlertRestartDialog(value) {
@@ -146,11 +154,8 @@ function initOpts() {
   const id = '#optionOptShowAdvanced';
   let isBasic = true;
   $(id).button().on("click", function () {
+    ToggleByClass(ClsOptAdvanced, isBasic);
     isBasic = !isBasic;
-    if (isBasic)
-      HideByClass(ClsOptAdvanced);
-    else
-      ShowByClass(ClsOptAdvanced);
     $(id).text(_(isBasic ? 'optionOptShowAdvanced' : 'optionOptShowBasic'));
   });
 
@@ -198,7 +203,6 @@ async function init() {
   if (config.Debug()) {
     logger.enableAllLoggers();
   }
-  const debugFlag = config.Debug();
 
   // Localize all .option* elements.
   for (const v of $('*[class^="option"]')) {
@@ -347,12 +351,6 @@ async function init() {
     $('.btnAddTable').hide();
   });
 
-  function SameWidth(...args) {
-    const w = Math.max(...args.map((e)=>e.width()));
-    args.forEach((e)=>e.width(w));
-  }
-  SameWidth($(".optionAddUrl"), $(".optionAddFile"));
-
   function BindCheck(name, callback, verbs) {
     if (!verbs)
       verbs = {'': (v)=>v};
@@ -404,8 +402,18 @@ async function init() {
   if (chrome?.input?.ime) {
     divPlat = 'divNonCrOS';
   }
-  HideByClass(divPlat, debugFlag ? "yellow" : undefined);
-  HideByClass(ClsExperimental, debugFlag ? "greenyellow" : undefined);
+  $(ByClass(divPlat)).addClass(ClsPatform);
+  ShowByClass('main');
+
+  function SameWidth(...args) {
+    const w = Math.max(...args.map((e)=>e.width()));
+    args.forEach((e)=>e.width(w));
+  }
+  // The width calculation must be done after the main is displayed.
+  SameWidth($(".optionAddUrl"), $(".optionAddFile"));
+
+  if (config.Debug())
+    $('body').addClass(ClsDebug);
 }
 
 function removeFileExtension(filename) {
@@ -624,7 +632,7 @@ function addTableToList(name, list_id, do_insert) {
   else
     $(list_id).append(item);
 
-  $(`#${id}`).prepend(icon).click(async function() {
+  $(ById(id)).prepend(icon).click(async function() {
     const table = await jscin.loadTable(name, url);
     const opts = (await jscin.loadOpts(name)) || {};
     const im_type = DetectInputMethodType(table.cin);
@@ -686,7 +694,7 @@ function addTableToList(name, list_id, do_insert) {
         let new_opts = {};
         for (const o in jscin.OPTS) {
           const id = `opt_${o}`;
-          const node = $(`#${id}`);
+          const node = $(ById(id));
           let new_val;
           if (o in SELECT_OPTS) {
             new_val = node.val();
@@ -718,7 +726,7 @@ function addTableToList(name, list_id, do_insert) {
         click: function () {
           if (confirm(_("optionAreYouSure"))) {
             removeTable(name);
-            $(`#${id}`).remove();
+            $(ById(id)).remove();
           }
           $(this).dialog("close");
 

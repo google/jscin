@@ -100,6 +100,28 @@ label.disabled {
    color: darkgrey;
 }
 
+.hidden {
+  display: none;
+}
+
+.experimental {
+  display: none;
+}
+
+.platform {
+  display: none;
+}
+
+.debug .experimental {
+  display: block;
+  background: greenyellow;
+}
+
+.debug .platform {
+  display: block;
+  background: yellow;
+}
+
 #optionBytesInUse {
   text-align: right;
   font-size: 90%;
