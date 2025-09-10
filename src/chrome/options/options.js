@@ -110,8 +110,7 @@ function initOpts() {
   // Generate the options list in the details window
   const opts_exp = [];
   const opts_advanced = [
-    'SPACE_RESET', 'AUTO_UPCHAR', 'SPACE_AUTOUP',
-    'WILD_ENABLE', 'END_KEY',
+    'SPACE_RESET', 'AUTO_UPCHAR', 'WILD_ENABLE', 'END_KEY',
     'flag_unique_auto_send',
     'flag_disp_partial_match',
     'space_auto_first_full',
@@ -156,7 +155,26 @@ function initOpts() {
     });
   }
 
+  function ExclusiveOpts(list) {
+    for (const name of list) {
+      const id=`#opt_${name}`;
+      $(id).on('change', function() {
+        let enabled = $(id).is(':checked');
+        if (!enabled)
+          return;
+        for (const dest of list) {
+          if (dest == name)
+            continue;
+          const dest_id = `#opt_${dest}`;
+          $(dest_id).prop("checked", false);
+        }
+      });
+    }
+  }
+
   AssociateOpts('AUTO_UPCHAR', 'SPACE_AUTOUP');
+  ExclusiveOpts(['SPACE_AUTOUP', 'SELKEY_SHIFT']);
+  ExclusiveOpts(['SPACE_RESET', 'AUTO_RESET']);
   HideByClass(ClsOptAdvanced);
 }
 
