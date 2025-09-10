@@ -23,7 +23,7 @@ import { AddLogger } from "../jscin/logger.js";
 const {debug, warn, error, assert, logger} = AddLogger("option");
 
 const ClsExperimental = "experimental",
-      ClsPatform = "platform",
+      ClsPlatform = "platform",
       ClsDebug = "debug",
       ClsHidden = 'hidden';
 const ClsOptAdvanced = "optAdvanced";
@@ -392,11 +392,8 @@ async function init() {
   $('#start_test_area').button();
 
   // Hide platform-specific options and experimental options.
-  let divPlat = 'divOnCrOS';
-  if (chrome?.input?.ime) {
-    divPlat = 'divNonCrOS';
-  }
-  $(ByClass(divPlat)).addClass(ClsPatform);
+  const clsPlatHide = (chrome?.input?.ime) ? 'NonCrOS' : 'CrOS';
+  $(ByClass(clsPlatHide)).addClass(ClsPlatform);
   ShowByClass('main');
 
   function SameWidth(...args) {

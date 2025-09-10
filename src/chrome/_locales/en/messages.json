@@ -114,7 +114,7 @@
 
   "opt_AUTO_UPCHAR": {"message": "When multiple candidates, commit the first by any keys (except SPACE)" },
   "opt_SPACE_AUTOUP": {"message": "SPACE when there are multiple candidates:" },
-  "opt_SPACE_AUTOUP_NO": {"message": "NO: Never commit (turn the page or error)" },
+  "opt_SPACE_AUTOUP_NO": {"message": "NO: Never commit" },
   "opt_SPACE_AUTOUP_YES": {"message": "YES: Commit the first candidate if only one page" },
   "opt_SPACE_AUTOUP_ANY": {"message": "ANY: Always commit the first candidate" },
   "opt_SELKEY_SHIFT": {"message": "Adjust selection keys so SPACE always commits the first candidate" },
