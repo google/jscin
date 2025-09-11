@@ -126,7 +126,7 @@
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出完全符合的候選字" },
   "opt_flag_disp_partial_match": {"message": "組字時預先列出部分符合的候選字" },
   "opt_flag_unique_auto_send": {"message": "組字時若未來只有唯一選擇時自動送字" },
-  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度且無重複字則送出候選字" },
+  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度且無重複字則送出候選字(如簡易)" },
   "opt_space_auto_first_full": {"message": "組字時若打滿最大長度後按空白可送出第一字" },
 
   "opt_WILD_ENABLE": {"message": "允許使用萬用字元(?*)來找尋候選字" },
