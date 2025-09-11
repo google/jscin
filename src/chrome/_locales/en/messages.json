@@ -124,7 +124,7 @@
 
   "opt_flag_disp_partial_match": {"message": "Preview partially matched candidates" },
   "opt_flag_unique_auto_send": {"message": "Auto commit when only one candidate will match" },
-  "opt_AUTO_FULLUP": {"message": "When reaching the maximum length, commit automatically" },
+  "opt_AUTO_FULLUP": {"message": "When reaching the max length and only one candidate, commit it" },
   "opt_space_auto_first_full": {"message": "When reaching the maximum length, SPACE to commit the first candidate" },
   "opt_WILD_ENABLE": {"message": "Match candidates with wildcards: *?" },
   "opt_END_KEY": {"message": "Compose immediately when any ending key (%endkey) is pressed" },
