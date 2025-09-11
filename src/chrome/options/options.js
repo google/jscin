@@ -653,6 +653,12 @@ function addTableToList(name, list_id, do_insert) {
         }
       }
     }
+
+    // see quirks.SpaceStyle1Quirks
+    const disable_selkey = !!table.cin.quick
+    $('#opt_SELKEY_SHIFT').prop('disabled', disable_selkey);
+    $('.opt_SELKEY_SHIFT').toggleClass('disabled', disable_selkey);
+
     let default_opts = undefined;
     $('.optionResetOpts').button().off("click").click(function () {
       if (!default_opts)

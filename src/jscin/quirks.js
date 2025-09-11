@@ -72,6 +72,17 @@ function GeneralQuirks(cin) {
   }
 }
 
+// This quirk must be applied after GcinQuirks (processing space_style) or any
+// quirks that will change %SELKEY_SHIFT. Note this behavior may still be
+// overriden by user saved opts, so it has to be applied again after user opts.
+function SpaceStyle1Quirks(cin) {
+  if (!cin.SELKEY_SHIFT || !cin.quick)
+    return;
+
+  cin.SPACE_AUTOUP = jscin.SPACE_AUTOUP_ANY;
+  delete cin.SELKEY_SHIFT;
+}
+
 export function DetectInputMethodType(cin, do_apply=false) {
   const detectors = {
     phonetic: {
@@ -155,10 +166,13 @@ function GcinQuirks(cin) {
     case 1:
       // GTAB_space_auto_first_any: Boshiamy [and Dayi].
       cin.SPACE_AUTOUP = jscin.SPACE_AUTOUP_ANY;
-      // In official GCIN, when space_style=1 then it will also do SELKEY_SHIFT
-      // so we are setting both here. Note GCIN will ignore the SELKEY_SHIFT
-      // when %quick is set, also limiting candidates to only one page.
-      cin.SELKEY_SHIFT = true;
+      // In official GCIN, it doesn't have an explicit SELKEY_SHIFT config so
+      // when space_style=1 it will try to do SELKEY_SHIFT unless %quick is set.
+      // In JsCIN, we can set the two options separately. Note GCIN will also
+      // limit the candidates to only 1 page, but we do support turning pages
+      // without SPACE so that is not needed.
+      if (!cin.quick)
+        cin.SELKEY_SHIFT = true;
       break;
 
     case 2:
@@ -329,14 +343,15 @@ export function applyInputMethodTableQuirks(cin) {
 
   // IM specific quirks
   PhoneticQuirks(cin);
+  SpaceStyle1Quirks(cin);
 
-  // Default options should be applied at the last step.
+  // Default options should be applied (if missing) at the last step.
   AddDefaultOptions(cin);
 }
 
 /* Quirks that must be applied after the opts were finalized. */
 export function postInputMethodTableQuirks(cin) {
-
   NormalizeSpaceAutoUp(cin);
+  SpaceStyle1Quirks(cin);  // Must be applied over opts.
   SelkeyShiftQuirks(cin);
 }
