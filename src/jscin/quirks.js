@@ -154,9 +154,9 @@ function GcinQuirks(cin) {
     case 1:
       // GTAB_space_auto_first_any: Boshiamy [and Dayi].
       cin.SPACE_AUTOUP = jscin.SPACE_AUTOUP_ANY;
-      // For most Boshimay tables setting space_style=1, they don't really have
-      // a proper selkey start with space/0 so we'd like to ensure that using
-      // SELKEY_SHIFT.
+      // In official GCIN, when space_style=1 then it will also do SELKEY_SHIFT
+      // so we are setting both here. Note GCIN will ignore the SELKEY_SHIFT
+      // when %quick is set, also limiting candidates to only one page.
       cin.SELKEY_SHIFT = true;
       break;
 
