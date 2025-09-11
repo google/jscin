@@ -97,6 +97,9 @@ function ShowAlertRestartDialog(value) {
   const buttons = [{text, click}];
   $('#dialog_alert_restart').dialog({title, modal, buttons});
 }
+
+const MULTI_OPTS = jscin.MULTI_OPTS;
+
 function initOpts() {
   // OpenVanilla only supports setting (in order):
   //  AUTO_FULLUP
@@ -125,11 +128,11 @@ function initOpts() {
     const cls = `opt_${o}`, id = cls, title = _(`title_${o}`);
     const text= _(cls);
     let items = [];
-    if (o in jscin.MULTI_OPTS) {
+    if (o in MULTI_OPTS) {
       items.push($('<label/>').attr({title, for: cls, class: cls}).text(text));
       items.push('<br/>&nbsp;&nbsp;&nbsp;');
       const sel = $('<select/>').attr({id});
-      for (const value of jscin.MULTI_OPTS[o]) {
+      for (const value of MULTI_OPTS[o]) {
         const val_text = _(`opt_${o}_${value}`);
         sel.append($('<option/>').attr({value}).text(val_text));
       }
@@ -636,13 +639,13 @@ function addTableToList(name, list_id, do_insert) {
     function SetOpts(opts) {
       for (const o in jscin.OPTS) {
         const idsel = `#opt_${o}`;
-        const select = jscin.MULTI_OPTS[o];
-        if (select) {
+        const multi = MULTI_OPTS[o];
+        if (multi) {
           let val = opts[o];
 
-          // Solve incompatible values.
-          if (!select.includes(val))
-            val = val ? select[1] : select[0];
+          // Solve incompatible values, assuming [1]=default and [0]=disabled.
+          if (!multi.includes(val))
+            val = val ? multi[1] : multi[0];
 
           $(idsel).val(val).trigger('change');
         } else {
@@ -684,7 +687,7 @@ function addTableToList(name, list_id, do_insert) {
           const id = `opt_${o}`;
           const node = $(ById(id));
           let new_val;
-          if (o in jscin.MULTI_OPTS) {
+          if (o in MULTI_OPTS) {
             new_val = node.val();
           } else {
             new_val = node.is(':checked')
