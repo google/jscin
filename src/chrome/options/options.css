@@ -150,6 +150,11 @@ label.disabled {
   clear: both;
 }
 
+.ui-selectmenu-menu .ui-state-active {
+  background: #0075ff;
+  color: #ffffff;
+}
+
 /*
 .input_container {
   border: 1px solid #e5e5e5;
