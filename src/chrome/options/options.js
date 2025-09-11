@@ -165,12 +165,11 @@ function initOpts() {
       let enabled = $(src_id).is(':checked');
       if (reverse)
         enabled = !enabled;
-      $(dest_id).prop("disabled", !enabled);
-      const dest_label = $(`.opt_${dest}`);
-      if (enabled)
-        dest_label.removeClass('disabled');
+      if (MULTI_OPTS[dest])
+        $(dest_id).selectmenu(enabled ? "enable" : "disable");
       else
-        dest_label.addClass('disabled');
+        $(dest_id).prop("disabled", !enabled);
+      $(`.opt_${dest}`).toggleClass('disabled', !enabled);
     });
   }
 
@@ -636,6 +635,7 @@ function addTableToList(name, list_id, do_insert) {
     const btn = im_type ? _('optionResetOptsAs', _(`im_${im_type}`)) : _('optionResetOpts');
     $('.optionResetOpts').text(btn);
 
+    // SetOpts must be called after the dialog is opened for selectmenu to work.
     function SetOpts(opts) {
       for (const o in jscin.OPTS) {
         const idsel = `#opt_${o}`;
@@ -647,15 +647,13 @@ function addTableToList(name, list_id, do_insert) {
           if (!multi.includes(val))
             val = val ? multi[1] : multi[0];
 
-          $(idsel).val(val).trigger('change');
+          $(idsel).val(val).trigger('change').selectmenu("refresh");
         } else {
           $(idsel).prop('checked', opts[o]).trigger('change');
         }
       }
     }
-    SetOpts(opts);
     let default_opts = undefined;
-
     $('.optionResetOpts').button().off("click").click(function () {
       if (!default_opts)
         default_opts = jscin.getTableDefaultOpts(table.cin)
@@ -747,6 +745,9 @@ function addTableToList(name, list_id, do_insert) {
       modal: true,
       buttons,
     });
+    // jQuery selectmenu must created after the dialog is popped up.
+    $('#opt_SPACE_AUTOUP').selectmenu({width: '90%'});
+    SetOpts(opts);
   });
 }
 
