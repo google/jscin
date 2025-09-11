@@ -246,16 +246,13 @@ function SelkeyShiftQuirks(cin) {
     warn("SELKEY_SHIFT but selkey alreay started with SPACE.");
   }
 
-  if (k.includes('123456789')) {
+  let isNumSeq = k.includes('123456789');
+  if (isNumSeq) {
     // For a number sequce selkey, we can be pretty sure 0 should not be there.
     if (k.startsWith('0') || k.startsWith(' '))
       k = k.slice(1);
   }
-  // TODO(hungte) Decide if we should look at SPACE_AUTOUP or other flags to
-  // decide using '0' or space.
-  let preferZero = cin.SPACE_AUTOUP;
-  preferZero = true;
-  const c = preferZero ? '0' : ' ';
+  const c = isNumSeq ? '0' : ' ';
   k = c + k.replaceAll(c, '')
   debug("SELKEY_SHIFT: selkey", cin.selkey, '=>', k);
 
