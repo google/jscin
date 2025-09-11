@@ -72,7 +72,7 @@ function GeneralQuirks(cin) {
   }
 }
 
-export function DetectInputMethodType(cin) {
+export function DetectInputMethodType(cin, do_apply=false) {
   const detectors = {
     phonetic: {
       // We may add AUTO_COMPOSE=false and KEYGROUPS, but the PhoneticQuirks
@@ -132,10 +132,11 @@ export function DetectInputMethodType(cin) {
     if (!matched)
       continue;
     debug("DetectInputMethodType: matched:", name, opts);
-    ApplyIfMissing(cin, opts);
+    if (do_apply)
+      ApplyIfMissing(cin, opts);
     return name;
   }
-  return null;
+  return undefined;
 }
 
 function GcinQuirks(cin) {
@@ -321,7 +322,7 @@ export function applyInputMethodTableQuirks(cin) {
 
   // DetectInputMethodType must be done before other general quirks so the
   // IM-specific default options will be applied.
-  DetectInputMethodType(cin);
+  DetectInputMethodType(cin, true);
 
   // Normalize the table
   GeneralQuirks(cin);
