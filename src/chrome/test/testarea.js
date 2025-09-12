@@ -113,7 +113,7 @@ async function Init() {
   // Show all logs.
   jscin.logger.enableAllLoggers();
 
-  let ime = new WebPageIme('TestAreaPanel');
+  let ime = new WebPageIme('TestAreaPanel', true);
   let croscin = new CrOS_CIN(ime);
   globalThis.croscin = croscin;
 

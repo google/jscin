@@ -18,7 +18,7 @@ const _ = globalThis.chrome?.i18n?.getMessage || ((m)=>m);
 
 export class WebPageIme extends ChromeInputIme {
 
-  constructor(panel='imePanel') {
+  constructor(panel='imePanel', on_the_spot=false) {
     super();
     this.engineID = "jscin.chrome.input.ime.webpage";
     this.panel = panel;
@@ -30,6 +30,10 @@ export class WebPageIme extends ChromeInputIme {
     this.idCandidates = 'candidates';
     this.idComposition = 'composition';
     this.idMenu = 'menu';
+    this.on_the_spot = on_the_spot;
+
+    if (this.on_the_spot)
+      $(`#${this.idComposition}`).hide();
   }
 
   createPanel() {
@@ -45,14 +49,23 @@ export class WebPageIme extends ChromeInputIme {
     assert(node, "Failed to find IME panel node by id:", id);
     return node;
   }
+  getCommitNode(parameters) {
+    if (parameters)
+      return this.contexts[parameters.contextID];
+    return document.activeElemnt;
+  }
   getAuxiliaryNode() {
     return this.getNode(this.idAuxiliary);
   }
   getCandidatesNode() {
     return this.getNode(this.idCandidates);
   }
-  getCompositionNode() {
-    return this.getNode(this.idComposition);
+  getCompositionNode(parameters) {
+    if (this.on_the_spot) {
+      return this.getCommitNode(parameters);
+    } else {
+      return this.getNode(this.idComposition);
+    }
   }
   getMenuNode() {
     return this.getNode(this.idMenu);
@@ -86,8 +99,12 @@ export class WebPageIme extends ChromeInputIme {
     const r = this.onKeyEvent.dispatch(this.engineID, evt);
     debug("DOM keydown:", evt.code, evt, r, r ? "preventDefault" : "doDefault");
 
-    if (r)
+    if (r) {
       evt.preventDefault();
+    } else {
+      if (this.composition)
+        this.onReset.dispatch(this.engineID);
+    }
     return !r;
   }
   domKeyUp(evt) {
@@ -96,24 +113,46 @@ export class WebPageIme extends ChromeInputIme {
   }
   domFocus(evt) {
     debug("DOM focus:", evt.target, evt);
-    return this.onFocus.dispatch({contextID: this.getContextID(evt.target)});
+    const contextID = this.getContextID(evt.target);
+    return this.onFocus.dispatch({contextID});
   }
   domBlur(evt) {
     debug("DOM blur:", evt.target, evt);
     if (this.composition)
-      this.onReset.dispatch(this.getContextID(evt.target));
+      this.onReset.dispatch(this.engineID);
     return this.onBlur.dispatch(this.getContextID(evt.target));
   }
 
-  // chrome.input.ime APIs
+  // Helper functions
+  notifyInsertText(node, data) {
+    if (!InputEvent)
+      return false;
+    const inputType = 'insertText';
+    const ev = new InputEvent("input", {data, inputType});
+    node.dispatchEvent(ev);
+  }
 
-  async clearComposition(parameters) {
-    debug("clearComposition", parameters);
-    const node = this.getCompositionNode();
-    node.empty().append(NBSP);
-    this.composition = undefined;
-    return true;
-  };
+  insertNodeValue(node, text, select=true) {
+    const value = node.value;
+    const start = node.selectionStart;
+    const end = node.selectionEnd;
+
+    node.value = value.slice(0, start) + text + value.slice(end);
+    const new_end = start + text.length;
+    node.setSelectionRange(select ? start : new_end, new_end);
+    if (text)
+      this.notifyInsertText(node, text);
+  }
+
+  getNodeSelectedValue(node) {
+    return node.value.slice(node.selectionStart, node.selectionEnd);
+  }
+
+  toggleCandidateWindow(show) {
+    this.getPanel().toggleClass('hidden', !show);
+  }
+
+  // chrome.input.ime APIs
 
   async commitText(parameters) {
     /*
@@ -122,16 +161,7 @@ export class WebPageIme extends ChromeInputIme {
      */
     const text = parameters.text;
     const node = this.contexts[parameters.contextID];  /* or, document.activeElemnt */
-    const newpos = node.selectionStart + text.length;
-    const value = node.value;
-    const prefix = value.slice(0, node.selectionStart);
-    const postfix = value.slice(node.selectionEnd);
-    node.value = `${prefix}${text}${postfix}`;
-    node.selectionStart = node.selectionEnd = newpos;
-    if (InputEvent) {
-      const ev = new InputEvent("input", {data: text, inputType: "insertText"});
-      node.dispatchEvent(ev);
-    }
+    this.insertNodeValue(node, text, false);
     return true;
   }
 
@@ -163,10 +193,6 @@ export class WebPageIme extends ChromeInputIme {
     return true;
   }
 
-  toggleCandidateWindow(show) {
-    this.getPanel().toggleClass('hidden', !show);
-  }
-
   async setCandidateWindowProperties(parameters) {
     const p = parameters.properties;
     function on_demand(name, callback) {
@@ -194,61 +220,43 @@ export class WebPageIme extends ChromeInputIme {
     return true;
   }
 
-  async setComposition(parameters) {
-    const node = this.getCompositionNode();
-    const p = parameters;
-    const simple = true;
-    const text = p.text || '';
-    this.composition = text;
-
-    // A simple implementation when we don't have IMs like libchewing.
-    if (simple) {
-      node.text(`${text}${NBSP}`)
-      return true;
-    }
-
-    const selectionStart = p.selectionStart || 0;
-    const selectionEnd = p.selectionEnd || text.length;
-    const cursor = p.cursor || text.length;
-    let segments = p.segments || [];
-
-    const data = text.split('').map((c) => ({text: c}));
-    data.push({text: NBSP});
-    data[cursor].cursor = true;
-    for (let i = selectionStart; i < selectionEnd; i++) {
-      data[i].selected = true;
-    }
-    for (const i in segments) {
-      for (let idx = segments[i].start; idx < segments[i].end; idx++) {
-        data[idx].segment = (i + 1);
+  async clearComposition(parameters) {
+    debug("clearComposition", parameters);
+    const node = this.getCompositionNode(parameters);
+    if (this.on_the_spot) {
+      const selected = this.getNodeSelectedValue(node);
+      if (selected == this.composition) {
+        this.insertNodeValue(node, '');
+      } else {
+        debug("clearComposition: (no change because selection is not previous composition) ->", selected, this.composition);
       }
+    } else {
+      node.empty().append(NBSP);
     }
-
-    node.empty();
-    let span = $('<span/>');
-    let segi;
-    for (const d of data) {
-      if (d.segment != segi) {
-        // new segment.
-        node.append(span);
-        segi = d.segment;
-        span = $('<span/>');
-        if (segi)
-          span.attr('class', 'segment');
-      }
-      let newdata = document.createTextNode(d.text);
-      if (d.cursor) {
-        const cursor = $('<span class="cursor">');
-        if (segi) {
-          newdata = cursor.append(newdata);
-        } else {
-          span.append(cursor);
-        }
-      }
-      span.append(newdata);
-    }
-    node.append(span);
+    this.composition = undefined;
     return true;
+  };
+
+  async setCompositionOnThSpot(text, node, p) {
+    debug("setCompositionOnThSpot:", text, node.value, p);
+    this.insertNodeValue(node, text);
+    return true;
+  }
+
+  async setCompositionOverTheSpot(text, node, p) {
+    debug("setCompositionOverTheSpot:", text, p);
+    $(node).text(`${text}${NBSP}`)
+    return true;
+  }
+
+  async setComposition(parameters) {
+    const text = parameters.text || '';
+    this.composition = text;
+    const node = this.getCompositionNode(parameters);
+    if (this.on_the_spot)
+      return this.setCompositionOnThSpot(text, node, parameters);
+    else
+      return this.setCompositionOverTheSpot(text, node, parameters);
   }
 
   async setMenuItems(parameters) {
