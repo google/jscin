@@ -119,6 +119,10 @@ export function DetectInputMethodType(cin, do_apply=false) {
       // AR 40 has / as 貝 instead , AR 26 does not have,
       detect: { "a": "一", "/": "虫" },
       opts: {
+        // AUTO_COMPOSE is needed because for tables without %quick, some
+        // tables (for example cin-tables/array30.cin) will have keyname
+        // including selkey.
+        AUTO_COMPOSE: true,
         'DISABLE_SEL_LIST': 'w',
         'KEYSTROKE_REMAP': {
           't': '的',
