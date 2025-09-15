@@ -207,7 +207,12 @@ async function init() {
 
   // Localize all .option* elements.
   for (const v of $('*[class^="option"]')) {
-    $(v).text(_(v.className));
+    // Some className may have multiple values.
+    for (const n of v.classList) {
+      if (!n.startsWith('option'))
+        continue;
+      $(v).text(_(n));
+    }
   }
 
   initOpts();
