@@ -201,7 +201,7 @@ export class InputMethodsEnvironment {
   }
 
   // To get the fallback module: getModule()
-  // Toe get the name of the fallback moduel: getModule()?.name
+  // To get the name of the fallback module: getModule()?.name
   getModule(name) {
     if (typeof(name) == 'function')
       return name;
