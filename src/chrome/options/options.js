@@ -654,10 +654,14 @@ function addTableToList(name, list_id, do_insert) {
       }
     }
 
+    function ToggleOpts(opts, cond) {
+      $(`#opt_${opts}`).prop('disabled', !cond);
+      $(`.opt_${opts}`).toggleClass('disabled', !cond);
+    }
+
     // see quirks.SpaceStyle1Quirks
-    const disable_selkey = !!table.cin.quick
-    $('#opt_SELKEY_SHIFT').prop('disabled', disable_selkey);
-    $('.opt_SELKEY_SHIFT').toggleClass('disabled', disable_selkey);
+    ToggleOpts('SELKEY_SHIFT', !table.cin.quick);
+    ToggleOpts('END_KEY', table.cin.endkey);
 
     let default_opts = undefined;
     $('.optionResetOpts').button().off("click").click(function () {
