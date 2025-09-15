@@ -47,7 +47,7 @@ export const OPTS = {
 
   WILD_ENABLE: true,
 
-  END_KEY: false,
+  END_KEY: true,
 };
 
 /*

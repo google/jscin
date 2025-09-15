@@ -724,11 +724,11 @@ export class GenInp2 extends BaseInputMethod
         //     * W[0-9]: as endkey.
         //   - Array30/XCIN25: [0-9] are sel.
         //     * W[0-9]: must be also considered as composition / end key.
+        //  In XCIN GenInp, the opt END_KEY controls the behavior but that we
+        //  actually need this option to make the composition correct than a
+        //  preference. As a result, GenInp2 will ignore that option and only
+        //  check if %endkey is set.
 
-        if (this.opts.OPT_END_KEY && this.IsEndKey(ctx, key)) {
-            this.AddComposition(ctx, key);
-            return this.ConvertComposition(ctx, key);
-        }
         if (this.CanDoComposition(ctx, key)) {
           if (this.IsEndKey(ctx, key)) {
             this.AddComposition(ctx, key);

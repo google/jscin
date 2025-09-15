@@ -118,6 +118,7 @@ function initOpts() {
   //  keep committing by SPACE.
 
   // Generate the options list in the details window
+  const opts_geninp1 = ['END_KEY'];
   const opts_exp = [];
   const opts_basic = [
     'SPACE_AUTOUP', 'SELKEY_SHIFT',
@@ -145,6 +146,8 @@ function initOpts() {
     }
     const div = $('<div/>').attr("id", `div_${cls}`).append(items);
     if (opts_exp.includes(o))
+      div.addClass(ClsExperimental);
+    if (opts_geninp1.includes(o) && config.DefaultModule() != 'GenInp')
       div.addClass(ClsExperimental);
     if (!opts_basic.includes(o))
       div.addClass(ClsOptAdvanced);
