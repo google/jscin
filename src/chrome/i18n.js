@@ -43,8 +43,10 @@ class I18n {
 
     let db = this.locales[this.current];
     let ret = db[key]?.message;
-    if (!ret)
+    if (!ret) {
+      console.assert(db[key], "Missing locale for:", key, this.current);
       return '';
+    }
 
     let args = substitutions;
     if (!args)
