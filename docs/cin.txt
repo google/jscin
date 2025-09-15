@@ -125,10 +125,6 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 %AUTO_FULLUP
   輸入最大鍵數時若無重複字則自動上字。
 
-%SPACE_IGNORE
-  在 AUTO_FULLUP 時，若有上字，忽略接下來的一次空白（接近沒開 AUTO_FULLUP
-  的行為）。目前 JsCIN 的 GenInp2 不支援 (只有 GenInp 支援)。
-
 %AUTO_UPCHAR
   自動上字。遇到重複字時可用任一非選擇鍵選第一個字，但空白除外（會翻頁)。
 
@@ -151,22 +147,6 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
 %SPACE_RESET
   空白鍵可清除錯誤輸入(等於 Esc)。
 
-%DISABLE_SEL_LIST <KEYS>
-  XCIN2.5 對行列30提供的 Dirty workaround ，因為不支援 %quick 並把候選字
-  留給一二級簡碼用了，當直接按下 w1 時變成選了 "w" 的第一個字，跟 "女"
-  衝突所以有問題。
-  現代行列表格通常直接把 1234567890 直接編入 endkey ，然後在 chardef
-  裡直接代入 w1 ... w2 ... 所以不需要再另外定義此值。
-
-%KEYSTROKE_REMAP begin
-<KEY> <VALUE>
-%KEYSTROKE_REMAP end
-  XCIN2.5 由於不支援 %quick 而加入對行列30的 Dirty workaround，主要是
-  由於 XCIN2.5 用標準的候選字列實作一二級簡碼，所以跟特別碼衝突了，
-  這時就會把特別碼用 KEYSTROKE_REMAP 來取代（主要是 t=的）。
-  現代行列表格通常會選擇實作 %quick (如 gcin) 或是另開模組處理簡碼 (如
-  OpenVanilla) 所以此命令實用性不高，只對非常舊的 XCIN 2.5 行列表格有用。
-
 %MODULE <NAME>
   指定輸入法模組。
   JsCIN 曾經支援過 CrExtInp 這個特別的模組，它是專用於跨 Chrome extension
@@ -176,6 +156,35 @@ JsCIN 使用的 CIN 檔案格式原則上與 XCIN 2.5 相容，另外也加入�
   JsCIN 目前有兩組對應 %gen_inp 的實作: GenInp 與 GenInp2，可在選項中調整。
   GenInp 為原始 XCIN2.5 的直接移植，GenInp2 則是JsCIN從零開始的版本。
   預設與建議都是使用 GenInp2。
+-----------------------------------------------------------------------------
+GenInp 專屬指令 (來自於 xcinrc, GenInp2 不適用, 未來可能不再支援)
+
+%SPACE_IGNORE
+  在 AUTO_FULLUP 時，若有上字，忽略接下來的一次空白（接近沒開 AUTO_FULLUP
+  的行為）。 由於其行為的不確定性，GenInp2 不實作，有需求請關閉 AUTO_FULLUP。
+
+%END_KEY
+  若有定義 %endkey 則按下 endkey 時自動組字。
+  但如果表格有定義 %endkey, 該輸入法不太可能在沒有 %END_KEY 的情形下正常運作。
+  以行列30而言，新版表格通常會定義 1-9 為 endkey, 但又同時把它們視為selkey。
+  GenInp2 選擇從 %chardef 直接判定 endkey 是要加進組字內還是選擇鍵，所以無法
+  照此設定來決定是否要組字。 也因此 GenInp2 選擇忽略此值。
+
+%DISABLE_SEL_LIST <KEYS>
+  XCIN2.5 對行列30提供的特列指令，因為不支援 %quick 並把候選字留給一二級
+  簡碼用了，當直接按下 w1 時會變成選了 "w" 的第一個字而非符號表。
+  現代行列表格通常直接把 1234567890 直接編入 endkey ，然後在 chardef
+  裡直接代入 w1 ... w2 ... 所以 GenInp2 不需要再另外定義此值。
+
+%KEYSTROKE_REMAP begin
+<KEY> <VALUE>
+%KEYSTROKE_REMAP end
+  XCIN2.5 由於不支援 %quick 而加入對行列30的特別指令，主要是由於
+  XCIN2.5 用標準的候選字列實作一二級簡碼，所以跟特別碼衝突了，
+  這時就會把特別碼用 KEYSTROKE_REMAP 來取代（主要是 t=的）。
+  現代行列表格通常會選擇實作 %quick (如 gcin) 或是另開模組處理簡碼 (如
+  OpenVanilla)，而且幾乎所有的表格都會直接把 t=的 編進 %chardef 裡，
+  所以此命令實用性不高，只對非常舊的 XCIN 2.5 行列表格有用。
 
 -----------------------------------------------------------------------------
 JsCIN 專屬指令 (未見於其它 CIN 相容輸入法)
