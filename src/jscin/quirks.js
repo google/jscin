@@ -123,6 +123,11 @@ export function DetectInputMethodType(cin, do_apply=false) {
         // tables (for example cin-tables/array30.cin) will have keyname
         // including selkey.
         AUTO_COMPOSE: true,
+        // These settings are described in Array30 PORTING.TXT.
+        AUTO_UPCHAR: true,
+        WILD_ENABLE: true,
+        SPACE_AUTOUP: jscin.SPACE_AUTOUP_YES,
+        // These are legacy values for GenInp. Not used by GenInp2.
         'DISABLE_SEL_LIST': 'w',
         'KEYSTROKE_REMAP': {
           't': '的',
