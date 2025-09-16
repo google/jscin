@@ -625,7 +625,10 @@ export class GenInp2 extends BaseInputMethod
     //       try 'w1' in Array to check multi-page candidates behavior.
     let commit = false;
 
-    if (from_convert && !this.opts.OPT_AUTO_COMPOSE) {
+    if (this.opts.OPT_SPACE_AUTOUP_FULL && !this.CanCycleCandidates(ctx)) {
+      commit = this.IsFullComposition(ctx) || !from_convert;
+      debug("ConvertComposition: SPACE_FIRST_FULL, commit=", commit, from_convert);
+    } else if (from_convert && !this.opts.OPT_AUTO_COMPOSE) {
       // Convert without AUTO_COMPOSE implies we should not do anything special.
       commit = false;
       debug("ConvertComposition: convert without AUTO_COMPOSE, commit=", commit);
@@ -639,9 +642,6 @@ export class GenInp2 extends BaseInputMethod
     } else if (this.CycleCandidates(ctx)) {
       commit = false;
       debug("ConvertComposition: CycleCandidates, commit=", commit);
-    } else if (this.opts.OPT_SPACE_AUTOUP_FULL) {
-      commit = this.IsFullComposition(ctx) || !from_convert;
-      debug("ConvertComposition: SPACE_FIRST_FULL, commit=", commit, from_convert);
     } else if (this.opts.OPT_SPACE_AUTOUP_NOFULL) {
       commit = !from_convert;
       debug("ConvertComposition: SPACE_FIRST_NOFULL, commit=", commit);
@@ -749,11 +749,13 @@ export class GenInp2 extends BaseInputMethod
           if (!this.AddComposition(ctx, key))
             return this.ResultError(ctx, key);
 
-          // When AUTO_COMPOSE is off, we need UpdateComposition(state=false)
-          // to update the candidate list.
-          if (this.opts.OPT_COMMIT_ON_FULL && this.IsFullComposition(ctx) &&
-              this.UpdateComposition(ctx, false)) {
-            return this.ConvertComposition(ctx, key);
+          if (this.IsFullComposition(ctx)) {
+            // When AUTO_COMPOSE is off, we need UpdateComposition(state=false)
+            // to update the candidate list.
+            if (this.opts.OPT_COMMIT_ON_FULL || this.opts.OPT_SPACE_AUTOUP_FULL)
+              this.UpdateComposition(ctx, false);
+            if (this.opts.OPT_COMMIT_ON_FULL && this.HasCandidates(ctx))
+              return this.ConvertComposition(ctx, key);
           }
 
           if (this.opts.OPT_UNIQUE_AUTO && this.IsUniqueCandidate(ctx))
