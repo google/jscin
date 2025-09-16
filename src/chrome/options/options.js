@@ -122,7 +122,7 @@ function initOpts() {
   const opts_exp = [];
   const opts_basic = [
     'SPACE_AUTOUP', 'SELKEY_SHIFT',
-    'AUTO_RESET', 'AUTO_FULLUP',
+    'AUTO_RESET', 'AUTO_COMPOSE', 'AUTO_FULLUP',
   ];
   let node = $('#divOpts');
   for (const o in jscin.OPTS) {
