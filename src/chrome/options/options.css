@@ -150,6 +150,10 @@ label.disabled {
   clear: both;
 }
 
+.ui-selectmenu-menu {
+  border: 1px solid #aaa;
+}
+
 .ui-selectmenu-menu .ui-state-active {
   background: #0075ff;
   color: #ffffff;
