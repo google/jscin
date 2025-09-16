@@ -220,13 +220,13 @@ export class GenInp2 extends BaseInputMethod
     ctx.page_prompt = (total > 1) ? `${now}/${total}` : '';
   }
 
-  UpdateComposition(ctx) {
+  UpdateComposition(ctx, state=true) {
     debug("UpdateComposition", ctx.composition);
     // Exported to the croscin, just like gen_inp.
     ctx.keystroke = ctx.composition.split('').map(
       (c) => this.keyname[c] || c).join('');
 
-    this.PrepareCandidates(ctx, true);
+    return this.PrepareCandidates(ctx, state);
   }
 
   ShiftState(ctx, keep_index) {
@@ -749,8 +749,10 @@ export class GenInp2 extends BaseInputMethod
           if (!this.AddComposition(ctx, key))
             return this.ResultError(ctx, key);
 
-          if (this.opts.OPT_COMMIT_ON_FULL &&
-              this.IsFullComposition(ctx) && this.IsSingleCandidate(ctx)) {
+          // When AUTO_COMPOSE is off, we need UpdateComposition(state=false)
+          // to update the candidate list.
+          if (this.opts.OPT_COMMIT_ON_FULL && this.IsFullComposition(ctx) &&
+              this.UpdateComposition(ctx, false)) {
             return this.ConvertComposition(ctx, key);
           }
 
