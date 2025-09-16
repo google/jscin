@@ -119,6 +119,8 @@
   "opt_SPACE_AUTOUP": {"message": "在多個候選字時按下空白鍵:" },
   "opt_SPACE_AUTOUP_NO": {"message": "無: 不會送出候選字" },
   "opt_SPACE_AUTOUP_YES": {"message": "自動: 單頁時送出第一個候選字，多頁時翻頁" },
+  "opt_SPACE_AUTOUP_FULL": {"message": "打滿: 類似自動，但只在打滿時先送字" },
+  "opt_SPACE_AUTOUP_NOFULL": {"message": "預選: 類似自動，但第二下空白才送字" },
   "opt_SPACE_AUTOUP_ANY": {"message": "一律: 直接送出第一個候選字" },
   "opt_SELKEY_SHIFT": {"message": "調整選擇鍵讓空白鍵選擇並送出第一候選字(如嘸蝦米)" },
   "opt_SPACE_RESET": {"message": "組字錯誤時可按空白鍵清除" },

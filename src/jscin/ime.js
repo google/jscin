@@ -19,9 +19,11 @@ export const KEY_OPTS_PREFIX = "opts-";
 
 export const SPACE_AUTOUP_NO = 'NO';
 export const SPACE_AUTOUP_YES = 'YES';
+export const SPACE_AUTOUP_FULL = 'FULL';
+export const SPACE_AUTOUP_NOFULL = 'NOFULL';
 export const SPACE_AUTOUP_ANY = 'ANY';
 export const SPACE_AUTOUP_VALUES = [
-  SPACE_AUTOUP_NO, SPACE_AUTOUP_YES, SPACE_AUTOUP_ANY,
+  SPACE_AUTOUP_NO, SPACE_AUTOUP_NOFULL, SPACE_AUTOUP_FULL, SPACE_AUTOUP_YES, SPACE_AUTOUP_ANY,
 ];
 // All MULTI_OPS should follow [0]=disabled, [1]=default
 // (see `chrome/options.js`).
@@ -43,7 +45,6 @@ export const OPTS = {
   flag_unique_auto_send: false,
 
   AUTO_FULLUP: false,
-  space_auto_first_full: false,
 
   WILD_ENABLE: true,
 
@@ -136,6 +137,8 @@ export class InputMethodsEnvironment {
     this.SPACE_AUTOUP_ANY = SPACE_AUTOUP_ANY;
     this.SPACE_AUTOUP_YES = SPACE_AUTOUP_YES;
     this.SPACE_AUTOUP_NO = SPACE_AUTOUP_NO;
+    this.SPACE_AUTOUP_FULL = SPACE_AUTOUP_FULL;
+    this.SPACE_AUTOUP_NOFULL = SPACE_AUTOUP_NOFULL;
     this.SPACE_AUTOUP_DEFAULT = SPACE_AUTOUP_DEFAULT;
   }
 

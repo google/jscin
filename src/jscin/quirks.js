@@ -96,9 +96,7 @@ export function DetectInputMethodType(cin, do_apply=false) {
     simplex: {
       detect: { "ab": "晴" },
       opts: {
-        AUTO_COMPOSE: false,
-        AUTO_FULLUP: true,
-        space_auto_first_full: true,
+        SPACE_AUTOUP: jscin.SPACE_AUTOUP_FULL,
       },
     },
     boshiamy: {
@@ -186,12 +184,12 @@ function GcinQuirks(cin) {
 
     case 2:
       // GTAB_space_auto_first_full: Simplex.
-      cin.space_auto_first_full = true;
+      cin.SPACE_AUTOUP = jscin.SPACE_AUTOUP_FULL;
       break;
 
     case 4:
       // GTAB_space_auto_first_nofull: Windows Array30, Changjei.
-      cin.space_auto_first_full = false;
+      cin.SPACE_AUTOUP = jscin.SPACE_AUTOUP_NOFULL;
       break;
 
     case 8:
@@ -232,7 +230,7 @@ function GcinQuirks(cin) {
   }
 
   const gcin_to_xcin25 = {
-    flag_disp_partial_match: "AUTO_COMPOSE", // Technically we don't really support this yet.
+    flag_disp_partial_match: "AUTO_COMPOSE", // Not equivelant, but partial_match also needs AUTO_COMPOSE.
     flag_disp_full_match: "AUTO_COMPOSE",
     flag_press_full_auto_send: "AUTO_FULLUP",
   };

@@ -70,7 +70,6 @@ export class GenInp2 extends BaseInputMethod
       SELKEY_SHIFT: 'OPT_SELKEY_SHIFT',
       flag_unique_auto_send: 'OPT_UNIQUE_AUTO',
       flag_disp_partial_match: 'OPT_PARTIAL_MATCH',
-      space_auto_first_full: 'OPT_SPACE_FIRST_FULL',
     };
 
     for (const key in opts_remap) {
@@ -87,6 +86,8 @@ export class GenInp2 extends BaseInputMethod
       this.opts[`OPT_SPACE_AUTOUP_${v}`] = true;
       // OPT_SPACE_AUTOUP_NO,
       // OPT_SPACE_AUTOUP_YES,
+      // OPT_SPACE_AUTOUP_FULL,
+      // OPT_SPACE_AUTOUP_NOFULL,
       // OPT_SPACE_AUTOUP_ANY,
     }
 
@@ -624,11 +625,7 @@ export class GenInp2 extends BaseInputMethod
     //       try 'w1' in Array to check multi-page candidates behavior.
     let commit = false;
 
-    if (this.opts.OPT_SPACE_FIRST_FULL && this.IsFullComposition(ctx)) {
-      // Full composition implies out of %quick so we can ignore checking that.
-      commit = true;
-      debug("ConvertComposition: SPACE_FIRST_FULL, commit=", commit);
-    } else if (from_convert && !this.opts.OPT_AUTO_COMPOSE) {
+    if (from_convert && !this.opts.OPT_AUTO_COMPOSE) {
       // Convert without AUTO_COMPOSE implies we should not do anything special.
       commit = false;
       debug("ConvertComposition: convert without AUTO_COMPOSE, commit=", commit);
@@ -642,6 +639,12 @@ export class GenInp2 extends BaseInputMethod
     } else if (this.CycleCandidates(ctx)) {
       commit = false;
       debug("ConvertComposition: CycleCandidates, commit=", commit);
+    } else if (this.opts.OPT_SPACE_AUTOUP_FULL) {
+      commit = this.IsFullComposition(ctx) || !from_convert;
+      debug("ConvertComposition: SPACE_FIRST_FULL, commit=", commit, from_convert);
+    } else if (this.opts.OPT_SPACE_AUTOUP_NOFULL) {
+      commit = !from_convert;
+      debug("ConvertComposition: SPACE_FIRST_NOFULL, commit=", commit);
     } else if (this.opts.OPT_SPACE_AUTOUP_YES) {
       commit = true;
       debug("ConvertComposition: SPACE_AUTOUP_YES, commit=", commit);
@@ -746,8 +749,10 @@ export class GenInp2 extends BaseInputMethod
           if (!this.AddComposition(ctx, key))
             return this.ResultError(ctx, key);
 
-          if (this.opts.OPT_COMMIT_ON_FULL && this.IsFullComposition(ctx))
+          if (this.opts.OPT_COMMIT_ON_FULL &&
+              this.IsFullComposition(ctx) && this.IsSingleCandidate(ctx)) {
             return this.ConvertComposition(ctx, key);
+          }
 
           if (this.opts.OPT_UNIQUE_AUTO && this.IsUniqueCandidate(ctx))
             return this.ConvertComposition(ctx, key);
