@@ -99,6 +99,7 @@ function ShowAlertRestartDialog(value) {
 }
 
 const MULTI_OPTS = jscin.MULTI_OPTS;
+const OPTS = jscin.OPTS;
 
 function initOpts() {
   // OpenVanilla only supports setting (in order):
@@ -125,7 +126,7 @@ function initOpts() {
     'AUTO_RESET', 'AUTO_COMPOSE', 'AUTO_FULLUP',
   ];
   let node = $('#divOpts');
-  for (const o in jscin.OPTS) {
+  for (const o in OPTS) {
     const cls = `opt_${o}`, id = cls, title = _(`title_${o}`);
     const text= _(cls);
     let items = [];
@@ -645,15 +646,15 @@ function addTableToList(name, list_id, do_insert) {
 
     // SetOpts must be called after the dialog is opened for selectmenu to work.
     function SetOpts(opts) {
-      for (const o in jscin.OPTS) {
+      for (const o in OPTS) {
         const idsel = `#opt_${o}`;
         const multi = MULTI_OPTS[o];
         if (multi) {
           let val = opts[o];
 
-          // Solve incompatible values, assuming [1]=default and [0]=disabled.
+          // Solve incompatible values, assuming [0]=disabled and OPTS[o]=default enabled.
           if (!multi.includes(val))
-            val = val ? multi[1] : multi[0];
+            val = val ? OPTS[o] : multi[0];
 
           $(idsel).val(val).trigger('change').selectmenu("refresh");
         } else {
@@ -699,7 +700,7 @@ function addTableToList(name, list_id, do_insert) {
         // Save Opts
         update = false;
         let new_opts = {};
-        for (const o in jscin.OPTS) {
+        for (const o in OPTS) {
           const id = `opt_${o}`;
           const node = $(ById(id));
           let new_val;

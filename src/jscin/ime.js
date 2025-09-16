@@ -23,14 +23,16 @@ export const SPACE_AUTOUP_FULL = 'FULL';
 export const SPACE_AUTOUP_NOFULL = 'NOFULL';
 export const SPACE_AUTOUP_ANY = 'ANY';
 export const SPACE_AUTOUP_VALUES = [
-  SPACE_AUTOUP_NO, SPACE_AUTOUP_NOFULL, SPACE_AUTOUP_FULL, SPACE_AUTOUP_YES, SPACE_AUTOUP_ANY,
+  SPACE_AUTOUP_NO, SPACE_AUTOUP_NOFULL, SPACE_AUTOUP_FULL,
+  SPACE_AUTOUP_YES, SPACE_AUTOUP_ANY,
 ];
-// All MULTI_OPS should follow [0]=disabled, [1]=default
+export const SPACE_AUTOUP_DEFAULT = SPACE_AUTOUP_YES;
+
+// All MULTI_OPS should follow [0]=disabled, OPTS[o]=enabled[default].
 // (see `chrome/options.js`).
 export const MULTI_OPTS = {
   SPACE_AUTOUP: SPACE_AUTOUP_VALUES,
 }
-export const SPACE_AUTOUP_DEFAULT = MULTI_OPTS.SPACE_AUTOUP[1];
 
 export const OPTS = {
   SPACE_AUTOUP: SPACE_AUTOUP_DEFAULT,
