@@ -116,7 +116,7 @@
   "optionTableOptionsHeader": {"message": "可設定選項:" },
 
   "opt_AUTO_UPCHAR": {"message": "多個候選字時，按任意鍵(空白鍵除外)送出第一個字" },
-  "opt_SPACE_AUTOUP": {"message": "在多個候選字時按下空白鍵:" },
+  "opt_SPACE_AUTOUP": {"message": "在多個候選字時按下空白鍵會不會送出第一個候選字:" },
   "opt_SPACE_AUTOUP_NO": {"message": "無: 不會送出候選字" },
   "opt_SPACE_AUTOUP_YES": {"message": "自動: 單頁時送出第一個候選字，多頁時翻頁" },
   "opt_SPACE_AUTOUP_FULL": {"message": "打滿: 類似自動，但只在打滿時先送字" },
@@ -128,7 +128,7 @@
   "opt_AUTO_COMPOSE": {"message": "組字時預先列出完全符合的候選字" },
   "opt_flag_disp_partial_match": {"message": "組字時預先列出部分符合的候選字" },
   "opt_flag_unique_auto_send": {"message": "組字時若未來只有唯一選擇時自動送字" },
-  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度且無重複字則送出候選字(如簡易)" },
+  "opt_AUTO_FULLUP": {"message": "組字時若打滿最大長度且無重複字則送出候選字" },
   "opt_space_auto_first_full": {"message": "組字時若打滿最大長度後按空白可送出第一字" },
 
   "opt_WILD_ENABLE": {"message": "允許使用萬用字元(?*)來找尋候選字" },
