@@ -136,7 +136,7 @@ async function main() {
         { input: "ao ", result: "合" },
       ]
     }, {
-      table: "test_cangjei.cin",
+      table: "test_cangjie.cin",
       test: [
         // AUTO COMPOSE
         { input: "aab ", result: "𣇵" },

@@ -144,7 +144,7 @@
   "title_SELKEY_SHIFT": {"message": "XCIN25 Command: %SELKEY_SHIFT" },
 
   "im_phonetic": {"message": "Phonetic"},
-  "im_changjei": {"message": "ChangJei"},
+  "im_changjei": {"message": "Cangjie"},
   "im_simplex": {"message": "SimpleX"},
   "im_boshiamy": {"message": "Boshiamy"},
   "im_dayi": {"message": "Dayi"},
