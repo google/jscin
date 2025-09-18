@@ -94,6 +94,9 @@ export class GenInp2 extends BaseInputMethod
     // Currently CIN stores most tables as simple strings.
     this._NormalizeTable(this.override_conversion);
     this._NormalizeTable(this.override_autocompose, this.NULL_CANDIDATE);
+
+    // Keep information for addons
+    this.ADDONS_NEED_SHIFT = conf.ADDONS_NEED_SHIFT;
   }
 
   _NormalizeTable(t, nullc) {
@@ -119,8 +122,7 @@ export class GenInp2 extends BaseInputMethod
     this.ClearCandidates(ctx);
 
     // Flag for addons.
-    ctx.auto_compose = (
-        this.opts.OPT_AUTO_COMPOSE || this.override_autocompose) ? true : false;
+    ctx.ADDONS_NEED_SHIFT = this.ADDONS_NEED_SHIFT;
   }
 
   keystroke(ctx, ev)

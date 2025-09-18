@@ -315,6 +315,23 @@ function PhoneticQuirks(cin) {
   debug("PhoneticQuirks: Added KEYGROUPS:", r);
 }
 
+// For AddonRelatedText to work, we need a set of selection keys
+// that won't conflict with the composition. One way to check that is verify
+// that keyname doesn't include selkey, but some IMs tables like Array30 may do
+// that and put keyname=keyname in chardef. Here we want to lookup the table to
+// decide.
+function RelatedTextQuirks(cin) {
+  let need_shift = false;
+  for (const k in cin.chardef) {
+    if (cin.selkey.includes(k[0]) && k[0] != cin.chardef[k]) {
+      need_shift = true;
+      break;
+    }
+  }
+  debug("RelatedTextQuirks: ADDONS_NEED_SHIFT=", need_shift);
+  cin.ADDONS_NEED_SHIFT = need_shift;
+}
+
 function NormalizeSpaceAutoUp(cin) {
   if (!('SPACE_AUTOUP' in cin))
     return;
@@ -350,6 +367,7 @@ export function applyInputMethodTableQuirks(cin) {
 
   // IM specific quirks
   PhoneticQuirks(cin);
+  RelatedTextQuirks(cin);
   SpaceStyle1Quirks(cin);
 
   // Default options should be applied (if missing) at the last step.

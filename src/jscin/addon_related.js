@@ -50,11 +50,14 @@ export class AddonRelatedText extends BaseInputAddon
       ctx.mcch = '';
       let k = getUnshiftedKey(ev);
       debug("Unshifted:", k);
-      if ((ev.shiftKey || ctx.auto_compose) &&
+      if ((ev.shiftKey || !ctx.ADDONS_NEED_SHIFT) &&
           this.InSelectionKey(ctx, k) &&
           this.CommitCandidate(ctx, k)) {
         debug("Commited.");
-        this.FindRelatedText(ctx);
+        // For IMs using SELKEY_SHIFT, allowing SPACE to type more than two
+        // words can be super noisy.
+        if (k != ' ')
+          this.FindRelatedText(ctx);
         return jscin.IMKEY_COMMIT;
       }
     }
